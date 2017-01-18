@@ -1,0 +1,61 @@
+{
+  "name": "networked-aframe",
+  "version": "0.0.1",
+  "description": "A web framework for building networked A-Frame VR experiences.",
+  "homepage": "",
+  "main": "dist/networked-aframe.js",
+  "scripts": {
+    "browserify": "browserify src/index.js -p browserify-derequire",
+    "easyrtc-server-init": "cd ./node_modules/easyrtc; npm install; cd ./server_example; npm install; cd ../../../",
+    "easyrtc-server-run": "node ./node_modules/easyrtc/server_example/server.js",
+    "test": "karma start ./tests/karma.conf.js --browsers Chrome"
+  },
+  "repository": "haydenjameslee/networked-aframe",
+  "dependencies": {
+    "easyrtc": "1.1.0",
+    "socket.io-client": "1.7.2"
+  },
+  "devDependencies": {
+    "browserify": "^13.1.0",
+    "browserify-derequire": "^0.9.4",
+    "browserify-istanbul": "^2.0.0",
+    "chai": "^3.5.0",
+    "chai-shallow-deep-equal": "^1.4.0",
+    "chalk": "^1.1.3",
+    "karma": "^1.3.0",
+    "karma-browserify": "^5.1.0",
+    "karma-chai-shallow-deep-equal": "0.0.4",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-coverage": "^1.1.1",
+    "karma-env-preprocessor": "^0.1.1",
+    "karma-firefox-launcher": "^1.0.0",
+    "karma-mocha": "^1.1.1",
+    "karma-mocha-reporter": "^2.1.0",
+    "karma-sinon-chai": "^1.2.4",
+    "mocha": "^3.0.2",
+    "sinon": "^1.17.5",
+    "sinon-chai": "^2.8.0"
+  },
+  "keywords": [
+    "3d",
+    "aframe",
+    "cardboard",
+    "components",
+    "multiplayer",
+    "networked",
+    "networking",
+    "oculus",
+    "three",
+    "three.js",
+    "rift",
+    "social",
+    "vive",
+    "vr",
+    "web-components",
+    "webvr"
+  ],
+  "engines": {
+    "node": ">= 4.6.0",
+    "npm": "^2.15.9"
+  }
+}

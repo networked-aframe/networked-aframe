@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <!-- JS libraries -->
+    <script src="../node_modules/socket.io-client/dist/socket.io.min.js"></script>
+    <script src="../node_modules/easyrtc/api/easyrtc.js"></script>
+
+    <!-- A-Frame libraries -->
+    <script src="https://aframe.io/releases/0.4.0/aframe.min.js"></script>
+    <script src="https://rawgit.com/bryik/aframe-bmfont-text-component/master/dist/aframe-bmfont-text-component.min.js"></script>
+    <script src="https://rawgit.com/ngokevin/aframe-template-component/master/dist/aframe-template-component.min.js"></script>
+
+    <!-- Networked A-Frame scripts -->
+    <script src="../src/NetworkConnection.js"></script>
+    <script src="../src/components/network-scene.js"></script>
+    <script src="../src/components/network-component.js"></script>
+
+    <script src="../src/components/follow-camera.js"></script>
+    <script src="../src/components/hide-geometry.js"></script>
+  </head>
+  <body>
+
+    <a-scene network-scene="
+      socketUrl: http://localhost:8080;
+      debug: false;
+      audio: false;
+    ">
+
+      <a-assets>
+
+        <!-- Templates -->
+        <script id="avatar" type="text/html">
+          <a-entity id="head">
+            <a-box color="red"></a-box>
+          </a-entity>
+        </script>
+        <!-- /Templates -->
+
+      </a-assets>
+
+      <a-camera></a-camera>
+
+      <a-sky color="white"></a-sky>
+      <a-plane color="black" rotation="-90 0 0" width="30" height="30" repeat="10 10"></a-plane>
+      <a-entity bmfont-text="text: Simple Social VR Test; color: #BBB" position="-1.5 0.2 -3"
+        scale="1.5 1.5 1.5"></a-entity>
+
+      <a-light type="ambient" color="#445451"></a-light>
+      <a-light type="point" intensity="2" position="2 4 4" color="red"></a-light>
+    </a-scene>
+  <body>
+</html>
