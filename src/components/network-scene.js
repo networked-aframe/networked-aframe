@@ -1,4 +1,4 @@
-var networkConnection;
+var NetworkConnection = require('../NetworkConnection.js');
 
 AFRAME.registerComponent('network-scene', {
   schema: {

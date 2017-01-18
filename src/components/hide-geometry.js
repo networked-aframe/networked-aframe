@@ -1,6 +1,7 @@
 AFRAME.registerComponent('hide-geometry', {
   init: function () {
     // TODO better way to call this function after template has been created
+    // https://aframe.io/docs/0.4.0/core/entity.html#listening-for-child-elements-being-attached-and-detached
     this.delayFunction(this.removeGeometry, 100);
   },
 

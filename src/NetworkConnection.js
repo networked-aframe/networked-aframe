@@ -254,3 +254,5 @@ NetworkConnection.prototype.removeNetworkEntity = function(user) {
   delete this.networkEntities[user];
   entity.parentNode.removeChild(entity);
 };
+
+module.exports = NetworkConnection;
