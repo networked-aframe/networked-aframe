@@ -5,7 +5,7 @@
   "homepage": "",
   "main": "dist/networked-aframe.js",
   "scripts": {
-    "browserify": "browserify src/index.js -o tmp/networked-aframe.js -p browserify-derequire",
+    "browserify": "browserify src/index.js -o dist/networked-aframe.js -p browserify-derequire",
     "easyrtc-server-init": "cd ./node_modules/easyrtc; npm install; cd ./server_example; npm install; cd ../../../",
     "easyrtc-server-run": "node ./node_modules/easyrtc/server_example/server.js",
     "test": "karma start ./tests/karma.conf.js --browsers Chrome"

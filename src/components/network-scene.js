@@ -42,7 +42,7 @@ AFRAME.registerComponent('network-scene', {
    */
   connect: function () {
     console.log('Connecting to NetworkConnection');
-    networkConnection = new NetworkConnection(this.data.socketUrl);
+    networkConnection = new NetworkConnection(easyrtc, this.data.socketUrl);
     networkConnection.enableMagicEntities(this.data.magicEntities);
     networkConnection.enableDebugging(this.data.debug);
     networkConnection.connect(this.data.appId, this.data.roomId, this.data.audio);

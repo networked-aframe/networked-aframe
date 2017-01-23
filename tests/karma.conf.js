@@ -5,7 +5,7 @@ var karma_conf = {
     debug: true,
     paths: ['src']
   },
-  browsers: ['Firefox', 'Chrome'],
+  browsers: [ 'Chrome', 'Firefox' ],
   client: {
     captureConsole: true,
     mocha: {'ui': 'tdd'}
@@ -15,9 +15,9 @@ var karma_conf = {
   ],
   files: [
     // Define test files.
-    {pattern: 'tests/**/*.test.js'},
+    {pattern: 'tests/**/*.test.js'}
     // Serve test assets.
-    {pattern: 'tests/assets/**/*', included: false, served: true}
+    // {pattern: 'tests/assets/**/*', included: false, served: true}
   ],
   frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal', 'browserify'],
   preprocessors: {
