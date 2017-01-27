@@ -23,7 +23,7 @@ AFRAME.registerComponent('network-component', {
   },
 
   isMine: function() {
-    return networkConnection && this.data.owner == networkConnection.myEasyrtcid;
+    return networkConnection && this.data.owner == networkConnection.getMyNetworkId();
   },
 
   syncWithOthers: function() {

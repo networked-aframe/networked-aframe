@@ -1,13 +1,15 @@
 /* global assert, process, setup, suite, test */
-var entityFactory = require('./helpers').entityFactory;
+// var entityFactory = require('./helpers').entityFactory;
 var NetworkConnection = require('../src/NetworkConnection.js');
-var easyrtc = {};
+var WebRtcInterface = require('../src/webrtc_interfaces/WebRtcInterface.js');
 
 suite('NetworkConnection', function() {
-  var networkConnection;
+  var network;
 
   setup(function() {
-    networkConnection = new NetworkConnection('http://localhost:8080');
+    var networkInterfaceStub = {};
+    network = new NetworkConnection(
+        networkInterfaceStub, 'http://localhost:8080');
     // var el = this.el = entityFactory();
     // if (el.hasLoaded) { done(); }
     // el.addEventListener('loaded', function () {
@@ -16,51 +18,116 @@ suite('NetworkConnection', function() {
   });
 
   suite('loginSuccess', function() {
-    test('with magic entities', function() {
-      networkConnection.enableMagicEntities(true);
-      networkConnection.setupMagicEntities = sinon.stub();
 
+    test('setting network id', function() {
       var id = 'testId';
-      networkConnection.loginSuccess(id);
 
-      assert.equal(id, networkConnection.myEasyrtcid);
-      assert.isTrue(networkConnection.setupMagicEntities.called);
+      network.loginSuccess(id);
+
+      assert.equal(id, network.getMyNetworkId());
     });
 
-    test('without magic entities', function() {
-      networkConnection.enableMagicEntities(false);
-      networkConnection.setupMagicEntities = sinon.stub();
+    test('with avatar', function() {
+      network.enableAvatar(true);
+      sinon.spy(network, 'createAvatar');
 
       var id = 'testId';
-      networkConnection.loginSuccess(id);
+      network.loginSuccess(id);
 
-      assert.equal(id, networkConnection.myEasyrtcid);
-      assert.isFalse(networkConnection.setupMagicEntities.called);
+      assert.isTrue(network.createAvatar.called);
+    });
+
+    test('without avatar', function() {
+      network.enableAvatar(false);
+      sinon.spy(network, 'createAvatar');
+
+      var id = 'testId';
+      network.loginSuccess(id);
+
+      assert.isFalse(network.createAvatar.called);
     });
   });
 
   suite('occupantsReceived', function() {
+
     test('adds to connect list', function() {
       var occupants = { 'user1': true };
-      networkConnection.isNewClient = sinon.stub();
-      networkConnection.myClientShouldStartCall = sinon.stub();
+      network.webrtc.getConnectStatus = sinon.stub();
 
-      networkConnection.occupantsReceived('room1', occupants, false);
+      network.occupantsReceived('room1', occupants, false);
 
-      assert.equal(networkConnection.connectList, occupants);
+      assert.equal(network.connectList, occupants);
     });
 
-    // TODO test if startCall is called for different clients
+    test('newer client joins and starts call', function() {
+      network.myRoomJoinTime = 1;
+      var newClient = { roomJoinTime: 10 };
+      var occupants = { 'user1': newClient };
+      network.webrtc.getConnectStatus
+          = sinon.stub().returns(WebRtcInterface.NOT_CONNECTED);
+      network.webrtc.startStreamConnection = sinon.stub();
+
+      network.occupantsReceived('room1', occupants, false);
+
+      assert.isTrue(network.webrtc.startStreamConnection.called);
+    });
+
+    test('older client joins and does not start call', function() {
+      network.myRoomJoinTime = 10;
+      var olderClient = { roomJoinTime: 1 };
+      var occupants = { 'user1': olderClient };
+      network.webrtc.getConnectStatus
+          = sinon.stub().returns(WebRtcInterface.NOT_CONNECTED);
+      network.webrtc.startStreamConnection = sinon.stub();
+
+      network.occupantsReceived('room1', occupants, false);
+
+      assert.isFalse(network.webrtc.startStreamConnection.called);
+    });
   });
 
-  suite('myClientShouldStartCall', function() {
+  suite('getMyNetworkId', function() {
+    test('returns correct id', function() {
+      var testId = 'test1';
+      network.loginSuccess(testId);
+
+      var result = network.getMyNetworkId();
+
+      assert.equal(result, testId);
+    });
+  });
+
+  suite('isNewClient', function() {
+    test('not connected', function() {
+      var testId = 'test1';
+      network.webrtc.getConnectStatus
+          = sinon.stub().returns(WebRtcInterface.NOT_CONNECTED);
+
+      var result = network.isNewClient(testId);
+
+      assert.isTrue(result);
+    });
+
+    test('is connected', function() {
+      var testId = 'test1';
+      network.webrtc.getConnectStatus
+          = sinon.stub().returns(WebRtcInterface.IS_CONNECTED);
+
+      var result = network.isNewClient(testId);
+
+      assert.isFalse(result);
+    });
+  });
+
+  suite('myClientShouldStartConnection', function() {
+
     test('my client is earlier', function() {
       var otherClient = { roomJoinTime: 10 };
       var otherClientId = 'other';
-      networkConnection.connectList[otherClientId] = otherClient;
-      networkConnection.myRoomJoinTime = 1;
+      network.connectList[otherClientId] = otherClient;
+      network.myRoomJoinTime = 1;
 
-      var result = networkConnection.myClientShouldStartCall(otherClientId);
+      var result = network.myClientShouldStartConnection(otherClientId);
 
       assert.isTrue(result);
     });
@@ -68,10 +135,10 @@ suite('NetworkConnection', function() {
     test('other client is earlier', function() {
       var otherClient = { roomJoinTime: 1 };
       var otherClientId = 'other';
-      networkConnection.connectList[otherClientId] = otherClient;
-      networkConnection.myRoomJoinTime = 10;
+      network.connectList[otherClientId] = otherClient;
+      network.myRoomJoinTime = 10;
 
-      var result = networkConnection.myClientShouldStartCall(otherClientId);
+      var result = network.myClientShouldStartConnection(otherClientId);
 
       assert.isFalse(result);
     });
@@ -79,150 +146,120 @@ suite('NetworkConnection', function() {
     test('clients joined exactly the same time', function () {
       var otherClient = { roomJoinTime: 10 };
       var otherClientId = 'other';
-      networkConnection.connectList[otherClientId] = otherClient;
-      networkConnection.myRoomJoinTime = 10;
+      network.connectList[otherClientId] = otherClient;
+      network.myRoomJoinTime = 10;
 
-      var result = networkConnection.myClientShouldStartCall(otherClientId);
+      var result = network.myClientShouldStartConnection(otherClientId);
 
       assert.isTrue(result);
     });
   });
 
   suite('createNetworkEntityId', function() {
+
     test('length', function() {
-      var id = networkConnection.createNetworkEntityId();
-      assert.equal(id.length, 7, 'test message');
+      var id = network.createNetworkEntityId();
+      assert.equal(id.length, 7);
     });
 
     test('object type', function() {
-      var id = networkConnection.createNetworkEntityId();
+      var id = network.createNetworkEntityId();
       assert.isString(id)
-    });
-
-    // test('value')
-  });
-
-  suite('startCall', function() {
-    setup(function() {
-      easyrtc = {};
-      networkConnection = new NetworkConnection(easyrtc, 'http://localhost:8080');
-    });
-
-    test('Successful DC call', function() {
-      var user = 'user1';
-      easyrtc.call = sinon.stub().callsArgWith(1, user, 'datachannel');
-
-      networkConnection.startCall(user);
-
-      assert.isTrue(networkConnection.isConnectedTo('user1'));
-      assert.isNotNull(easyrtc.call.called);
-    });
-
-    test('Failed DC call', function() {
-      var user = 'user1';
-      easyrtc.call = sinon.stub().callsArgWith(2, 101, 'this is the error text');
-
-      networkConnection.startCall(user);
-
-      assert.isFalse(networkConnection.isConnectedTo('user1'));
-      assert.isNotNull(easyrtc.call.called);
     });
   });
 
   suite('isConnectedTo', function() {
+
     test('is connected', function() {
       var otherClientId = 'other';
-      networkConnection.connectList[otherClientId] = true;
+      var connected = WebRtcInterface.IS_CONNECTED;
+      network.webrtc.getConnectStatus = sinon.stub().returns(connected);
 
-      var result = networkConnection.isConnectedTo(otherClientId);
+      var result = network.isConnectedTo(otherClientId);
 
       assert.isTrue(result);
     });
 
     test('is not connected', function() {
       var otherClientId = 'other';
-      networkConnection.connectList[otherClientId] = false;
+      var notConnected = WebRtcInterface.NOT_CONNECTED;
+      network.webrtc.getConnectStatus = sinon.stub().returns(notConnected);
 
-      var result = networkConnection.isConnectedTo(otherClientId);
-
-      assert.isFalse(result);
-    });
-
-    test('is not connected, and no key', function() {
-      var otherClientId = 'no key';
-
-      var result = networkConnection.isConnectedTo(otherClientId);
+      var result = network.isConnectedTo(otherClientId);
 
       assert.isFalse(result);
     });
   });
 
   suite('dcOpenListener', function() {
+
     test('connects and syncs', function() {
       var clientId = 'other';
-      networkConnection.syncEntities = sinon.stub();
+      sinon.spy(network, 'syncAllEntities');
 
-      networkConnection.dcOpenListener(clientId);
+      network.dcOpenListener(clientId);
 
-      var dcIsConnected = networkConnection.dcIsConnectedTo(clientId);
+      var dcIsConnected = network.dcIsConnectedTo(clientId);
       assert.isTrue(dcIsConnected);
-      assert.isTrue(networkConnection.syncEntities.called);
+      assert.isTrue(network.syncAllEntities.called);
     });
 
     test('is not connected to', function() {
       var clientId = 'correct';
       var wrongClientId = 'wrong';
-      networkConnection.syncEntities = sinon.stub();
+      sinon.spy(network, 'syncAllEntities');
 
-      networkConnection.dcOpenListener(clientId);
+      network.dcOpenListener(clientId);
 
-      var dcIsConnected = networkConnection.dcIsConnectedTo(wrongClientId);
+      var dcIsConnected = network.dcIsConnectedTo(wrongClientId);
       assert.isFalse(dcIsConnected);
-      assert.isTrue(networkConnection.syncEntities.called);
+      assert.isTrue(network.syncAllEntities.called);
     });
   });
 
   suite('dcCloseListener', function() {
+
     test('connects and syncs', function() {
       var clientId = 'client';
-      networkConnection.removeNetworkEntitiesFromUser = sinon.stub();
+      sinon.spy(network, 'removeNetworkEntitiesFromUser');
 
-      networkConnection.dcCloseListener(clientId);
+      network.dcCloseListener(clientId);
 
-      var dcIsConnected = networkConnection.dcIsConnectedTo(clientId);
+      var dcIsConnected = network.dcIsConnectedTo(clientId);
       assert.isFalse(dcIsConnected);
-      assert.isTrue(networkConnection.removeNetworkEntitiesFromUser.called);
+      assert.isTrue(network.removeNetworkEntitiesFromUser.called);
     });
 
     test('is still connected to other', function() {
       var clientId = 'removeMe';
       var otherClientId = 'other';
-      networkConnection.removeNetworkEntitiesFromUser = sinon.stub();
+      sinon.spy(network, 'removeNetworkEntitiesFromUser');
 
-      networkConnection.dcOpenListener(otherClientId);
-      networkConnection.dcCloseListener(clientId);
+      network.dcOpenListener(otherClientId);
+      network.dcCloseListener(clientId);
 
-      var dcIsConnectedToOther = networkConnection.dcIsConnectedTo(otherClientId);
+      var dcIsConnectedToOther = network.dcIsConnectedTo(otherClientId);
       assert.isTrue(dcIsConnectedToOther);
-      assert.isTrue(networkConnection.removeNetworkEntitiesFromUser.called);
+      assert.isTrue(network.removeNetworkEntitiesFromUser.called);
     });
   });
 
   suite('dcIsConnectedTo', function() {
+
     test('is connected', function() {
       var client = 'client';
-      networkConnection.channelIsActive[client] = true;
+      network.dcIsActive[client] = true;
 
-      var result = networkConnection.dcIsConnectedTo(client);
+      var result = network.dcIsConnectedTo(client);
 
       assert.isTrue(result);
     });
 
     test('is not connected', function() {
       var client = 'client';
-      networkConnection.channelIsActive[client] = false;
+      network.dcIsActive[client] = false;
 
-      var result = networkConnection.dcIsConnectedTo(client);
+      var result = network.dcIsConnectedTo(client);
 
       assert.isFalse(result);
     });
@@ -230,31 +267,32 @@ suite('NetworkConnection', function() {
     test('is not connected, has no key', function() {
       var client = 'client';
 
-      var result = networkConnection.dcIsConnectedTo(client);
+      var result = network.dcIsConnectedTo(client);
 
       assert.isFalse(result);
     });
   });
 
   suite('dataReceived', function() {
+
     test('sync received', function() {
-      networkConnection.syncEntityFromRemote = sinon.stub();
-      networkConnection.removeNetworkEntity = sinon.stub();
+      network.syncEntityFromRemote = sinon.stub();
+      network.removeNetworkEntity = sinon.stub();
 
-      networkConnection.dataReceived('client', 'sync-entity', {testData:true});
+      network.dataReceived('client', 'sync-entity', {testData:true});
 
-      assert.isTrue(networkConnection.syncEntityFromRemote.called);
-      assert.isFalse(networkConnection.removeNetworkEntity.called);
+      assert.isTrue(network.syncEntityFromRemote.called);
+      assert.isFalse(network.removeNetworkEntity.called);
     });
 
     test('sync received', function() {
-      networkConnection.syncEntityFromRemote = sinon.stub();
-      networkConnection.removeNetworkEntity = sinon.stub();
+      network.syncEntityFromRemote = sinon.stub();
+      network.removeNetworkEntity = sinon.stub();
 
-      networkConnection.dataReceived('client', 'remove-entity', {testData:true});
+      network.dataReceived('client', 'remove-entity', {testData:true});
 
-      assert.isFalse(networkConnection.syncEntityFromRemote.called);
-      assert.isTrue(networkConnection.removeNetworkEntity.called);
+      assert.isFalse(network.syncEntityFromRemote.called);
+      assert.isTrue(network.removeNetworkEntity.called);
     });
   });
 });

@@ -1,4 +1,5 @@
 var NetworkConnection = require('../NetworkConnection.js');
+var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
 
 AFRAME.registerComponent('network-scene', {
   schema: {
@@ -14,14 +15,14 @@ AFRAME.registerComponent('network-scene', {
       type: 'boolean',
       default: true
     },
-    socketUrl: {
+    signallingUrl: {
       type: 'string'
     },
     audio: {
       type: 'boolean',
       default: false
     },
-    magicEntities: {
+    avatar: {
       type: 'boolean',
       default: true
     },
@@ -42,9 +43,12 @@ AFRAME.registerComponent('network-scene', {
    */
   connect: function () {
     console.log('Connecting to NetworkConnection');
-    networkConnection = new NetworkConnection(easyrtc, this.data.socketUrl);
-    networkConnection.enableMagicEntities(this.data.magicEntities);
-    networkConnection.enableDebugging(this.data.debug);
+    var easyrtcInterface = new EasyRtcInterface(easyrtc, this.data.signallingUrl)
+    networkConnection = new NetworkConnection(easyrtcInterface);
+
+    networkConnection.enableAvatar(this.data.avatar);
+    // networkConnection.enableDebugging(this.data.debug);
+
     networkConnection.connect(this.data.appId, this.data.roomId, this.data.audio);
   }
 });

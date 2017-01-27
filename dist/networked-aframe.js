@@ -1,260 +1,217 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-function NetworkConnection(easyrtc, socketUrl) {
-  this.socketUrl = socketUrl
-  this.appId = '';
-  this.roomId = '';
-  this.myEasyrtcid = "";
-  this.myTimeJoinedRoom = 0; // TODO: This should be received from the server
-  this.connectList = {};
-  this.channelIsActive = {};
-  this.networkEntities = {};
-  this.magicEntities = true;
-  this.debug = false;
-  this.easyrtc = easyrtc;
+class NafInterface {
+  notImplemented() {
+    console.error('Interface method not implemented.');
+  }
+}
+module.exports = NafInterface;
+},{}],2:[function(_dereq_,module,exports){
+var WebRtcInterface = _dereq_('./webrtc_interfaces/WebRtcInterface.js');
+
+class NetworkConnection {
+
+  constructor (webrtcInterface) {
+    this.webrtc = webrtcInterface;
+
+    this.appId = '';
+    this.roomId = '';
+    this.myNetworkId = '';
+    this.myRoomJoinTime = 0; // TODO: get from server
+    this.connectList = {};
+    this.dcIsActive = {};
+    this.networkEntities = {};
+    this.showAvatar = true;
+    this.debug = false;
+  }
+
+  /* Must be called before connect */
+  enableDebugging(enable) {
+    // TODO update this to new interface
+    this.debug = enable;
+  }
+
+  enableAvatar(enable) {
+    this.showAvatar = enable;
+  }
+  /* ------------------------------ */
+
+  connect(appId, roomId, enableAudio = false) {
+    this.appId = appId;
+    this.roomId = roomId;
+
+    var streamOptions = {
+      audio: enableAudio,
+      datachannel: true
+    };
+    this.webrtc.setStreamOptions(streamOptions);
+    this.webrtc.joinRoom(roomId);
+    this.webrtc.setDatachannelListeners(
+        this.dcOpenListener.bind(this),
+        this.dcCloseListener.bind(this),
+        this.dataReceived.bind(this)
+    );
+    this.webrtc.setLoginListeners(
+        this.loginSuccess.bind(this),
+        this.loginFailure.bind(this)
+    );
+    this.webrtc.setRoomOccupantListener(this.occupantsReceived.bind(this));
+    this.webrtc.connect(appId);
+  }
+
+  createAvatar() {
+    var templateName = '#avatar';
+    var template = document.querySelector('script' + templateName);
+    if (template) {
+      var entity = this.createNetworkEntity(templateName, '0 0 0', '0 0 0 0');
+      entity.setAttribute('hide-geometry', '');
+      entity.setAttribute('follow-camera', '');
+    }
+  }
+
+  loginSuccess(myNetworkId) {
+    console.error('My Network ID:', myNetworkId);
+    this.myNetworkId = myNetworkId;
+    if (this.showAvatar) {
+      this.createAvatar();
+    }
+  }
+
+  loginFailure(errorCode, message) {
+    console.error(errorCode, "failure to login");
+  }
+
+  occupantsReceived(roomName, occupantList, isPrimary) {
+    this.connectList = occupantList;
+    console.log('Connected clients', this.connectList);
+    for (var networkId in this.connectList) {
+      if (this.isNewClient(networkId) && this.myClientShouldStartConnection(networkId)) {
+        this.webrtc.startStreamConnection(networkId);
+      }
+    }
+  }
+
+  getMyNetworkId() {
+    return this.myNetworkId;
+  }
+
+  isNewClient(networkId) {
+    return !this.isConnectedTo(networkId);
+  }
+
+  isConnectedTo(networkId) {
+    return this.webrtc.getConnectStatus(networkId) === WebRtcInterface.IS_CONNECTED;
+  }
+
+  myClientShouldStartConnection(otherUser) {
+    var otherUserTimeJoined = this.connectList[otherUser].roomJoinTime;
+    return this.myRoomJoinTime <= otherUserTimeJoined;
+  }
+
+  dcOpenListener(user) {
+    console.log('Opened data channel from ' + user);
+    this.dcIsActive[user] = true;
+    this.syncAllEntities();
+  }
+
+  dcCloseListener(user) {
+    console.log('Closed data channel from ' + user);
+    this.dcIsActive[user] = false;
+    this.removeNetworkEntitiesFromUser(user);
+  }
+
+  dcIsConnectedTo(user) {
+    return this.dcIsActive.hasOwnProperty(user) && this.dcIsActive[user];
+  }
+
+  broadcastData(dataType, data) {
+    for (var networkId in this.connectList) {
+      this.sendData(networkId, dataType, data);
+    }
+  }
+
+  sendData(toClient, dataType, data) {
+    if (this.dcIsConnectedTo(toClient)) {
+      this.webrtc.sendDataP2P(toClient, dataType, data);
+    } else {
+      // console.error("NOT-CONNECTED", "not connected to " + easyrtc.idToName(otherEasyrtcid));
+    }
+  }
+
+  dataReceived(fromClient, dataType, data) {
+    // console.log('Data received', fromUser, dataType, data);
+    if (dataType == 'sync-entity') {
+      this.syncEntityFromRemote(data);
+    } else if (dataType == 'remove-entity') {
+      this.removeNetworkEntity(data);
+    }
+  }
+
+  syncEntityFromRemote(entityData) {
+    if (this.networkEntities.hasOwnProperty(entityData.networkId)) {
+      this.networkEntities[entityData.networkId].components['network-component'].syncFromRemote(entityData);
+    } else {
+      this.createLocalNetworkEntity(entityData);
+    }
+  }
+
+  syncAllEntities() {
+    for (var networkId in this.networkEntities) {
+      if (this.networkEntities.hasOwnProperty(networkId)) {
+        console.log('sync', networkId);
+        this.networkEntities[networkId].emit('sync', null, false);
+      }
+    }
+  }
+
+  createNetworkEntity(template, position, rotation) {
+    var networkId = this.createNetworkEntityId();
+    console.error('Created network entitiy', networkId)
+    var entityData = {
+      networkId: networkId,
+      owner: this.getMyNetworkId(),
+      template: template,
+      position: position,
+      rotation: rotation,
+    };
+    this.broadcastData('sync-entity', entityData);
+    var entity = this.createLocalNetworkEntity(entityData);
+    return entity;
+  }
+
+  createLocalNetworkEntity(entityData) {
+    var scene = document.querySelector('a-scene');
+    var entity = document.createElement('a-entity');
+    entity.setAttribute('template', 'src:' + entityData.template);
+    entity.setAttribute('position', entityData.position);
+    entity.setAttribute('rotation', entityData.rotation);
+    entity.setAttribute('network-component', 'owner:' + entityData.owner + ';networkId:' + entityData.networkId);
+    scene.appendChild(entity);
+    this.networkEntities[entityData.networkId] = entity;
+    return entity;
+  }
+
+  createNetworkEntityId() {
+    return Math.random().toString(36).substring(2, 9);
+  }
+
+  removeNetworkEntitiesFromUser(user) {
+    for (var id in this.networkEntities) {
+      var networkComponent = this.networkEntities[id].components['network-component'];
+      if (networkComponent.data.owner == user) {
+        this.removeNetworkEntity(id);
+      }
+    }
+  }
+
+  removeNetworkEntity(user) {
+    var entity = this.networkEntities[user];
+    delete this.networkEntities[user];
+    entity.parentNode.removeChild(entity);
+  }
 }
 
-/* Must be called before connect */
-NetworkConnection.prototype.enableDebugging = function(enable) {
-  this.debug = enable;
-};
-
-NetworkConnection.prototype.enableMagicEntities = function(enable) {
-  this.magicEntities = enable;
-};
-/* ------------------------------ */
-
-NetworkConnection.prototype.connect = function(appId, roomId, enableAudio = false) {
-  this.appId = appId;
-  this.roomId = roomId;
-
-  this.easyrtc.enableDebug(this.debug);
-  this.easyrtc.enableDataChannels(true);
-  this.easyrtc.enableVideo(false);
-  this.easyrtc.enableAudio(enableAudio);
-  this.easyrtc.enableVideoReceive(false);
-  this.easyrtc.enableAudioReceive(enableAudio);
-
-  this.easyrtc.setDataChannelOpenListener(this.dcOpenListener.bind(this));
-  this.easyrtc.setDataChannelCloseListener(this.dcCloseListener.bind(this));
-  this.easyrtc.setPeerListener(this.dataReceived.bind(this));
-  this.easyrtc.setRoomOccupantListener(this.occupantsReceived.bind(this));
-
-  this.easyrtc.setSocketUrl(this.socketUrl);
-  this.easyrtc.joinRoom(roomId, null);
-
-  if (enableAudio) {
-    this.connectAudio();
-  } else {
-    this.easyrtc.connect(this.appId,
-      this.loginSuccess.bind(this), this.loginFailure.bind(this));
-  }
-};
-
-NetworkConnection.prototype.connectAudio = function() {
-  this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
-    var audioEl = document.createElement("audio");
-    audioEl.setAttribute('id', 'audio-' + easyrtcid);
-    document.body.appendChild(audioEl);
-    this.easyrtc.setVideoObjectSrc(audioEl,stream);
-  });
-
-  this.easyrtc.setOnStreamClosed(function (easyrtcid) {
-    var audioEl = document.getElementById('audio-' + easyrtcid);
-    audioEl.parentNode.removeChild(audioEl);
-  });
-
-  var that = this;
-  this.easyrtc.initMediaSource(
-    function(){
-      that.easyrtc.connect(that.appId,
-        that.loginSuccess.bind(that), that.loginFailure.bind(that));
-    },
-    function(errorCode, errmesg){
-      console.error(errorCode, errmesg);
-    }
-  );
-};
-
-NetworkConnection.prototype.gatherNetworkEntitiesFromDOM = function() {
-  var networkEntities = document.querySelector('a-entity[network-component]');
-  for (var entity in networkEntities) {
-    var networkId = entity.components['network-component'].networkId;
-    this.networkEntities[networkId] = entity;
-  }
-};
-
-NetworkConnection.prototype.setupMagicEntities = function () {
-  var templateName, template;
-
-  templateName = '#avatar';
-  template = document.querySelector('script' + templateName);
-  if (template) {
-    var entity = this.createNetworkEntity(templateName, '0 0 0', '0 0 0 0');
-    entity.setAttribute('hide-geometry', '');
-    entity.setAttribute('follow-camera', '');
-  }
-};
-
-NetworkConnection.prototype.loginSuccess = function(easyrtcid) {
-  this.myEasyrtcid = easyrtcid;
-  this.gatherNetworkEntitiesFromDOM();
-  if (this.magicEntities) {
-    this.setupMagicEntities();
-  }
-};
-
-NetworkConnection.prototype.loginFailure = function(errorCode, message) {
-  console.error(errorCode, "failure to login");
-};
-
-NetworkConnection.prototype.occupantsReceived = function(roomName, occupantList, isPrimary) {
-  this.connectList = occupantList;
-  console.log('Connected clients', this.connectList);
-
-  for (var easyrtcid in this.connectList) {
-    if (this.isNewClient(easyrtcid) && this.myClientShouldStartCall(easyrtcid)) {
-      this.startCall(easyrtcid);
-    }
-  }
-};
-
-NetworkConnection.prototype.isNewClient = function(user) {
-  return !this.channelIsActive.hasOwnProperty(user) && this.isNotConnectedTo(user);
-};
-
-NetworkConnection.prototype.isNotConnectedTo = function(user) {
-  return this.easyrtc.getConnectStatus(user) === easyrtc.NOT_CONNECTED;
-};
-
-NetworkConnection.prototype.myClientShouldStartCall = function(otherUser) {
-  var otherUserTimeJoined = this.connectList[otherUser].roomJoinTime;
-  return this.myTimeJoinedRoom < otherUserTimeJoined;
-};
-
-NetworkConnection.prototype.startCall = function(otherEasyrtcid) {
-  console.log('in call: ', this.easyrtc);
-  var that = this;
-  this.easyrtc.call(otherEasyrtcid,
-      function(caller, media) {
-        console.log('askmaskdms', media);
-        if (media === 'datachannel') {
-          console.log("Made call succesfully to " + caller);
-          // TODO change this so the user's data isn't overwritten by true/false
-          that.connectList[otherEasyrtcid] = true;
-        }
-      },
-      function(errorCode, errorText) {
-        that.connectList[otherEasyrtcid] = false;
-        console.error(errorCode, errorText);
-      },
-      function(wasAccepted) {
-        // console.log("was accepted=" + wasAccepted);
-      }
-  );
-};
-
-NetworkConnection.prototype.isConnectedTo = function(user) {
-  return this.connectList.hasOwnProperty(user) && this.connectList[user];
-};
-
-NetworkConnection.prototype.dcOpenListener = function(user) {
-  console.log('Opened data channel from ' + user);
-  this.channelIsActive[user] = true;
-  this.syncEntities();
-};
-
-NetworkConnection.prototype.dcCloseListener = function(user) {
-  console.log('Closed data channel from ' + user);
-  this.channelIsActive[user] = false;
-  this.removeNetworkEntitiesFromUser(user);
-};
-
-NetworkConnection.prototype.broadcastData = function(dataType, data) {
-  for (var easyrtcid in this.connectList) {
-    this.sendData(easyrtcid, dataType, data);
-  }
-};
-
-NetworkConnection.prototype.sendData = function(user, dataType, data) {
-  if (this.easyrtc.getConnectStatus(user) === easyrtc.IS_CONNECTED) {
-    this.easyrtc.sendDataP2P(user, dataType, data);
-  } else {
-    // console.error("NOT-CONNECTED", "not connected to " + easyrtc.idToName(otherEasyrtcid));
-  }
-};
-
-NetworkConnection.prototype.dataReceived = function(fromUser, dataType, data) {
-  // console.log('Data received', fromUser, dataType, data);
-  if (dataType == 'sync-entity') {
-    this.syncEntityFromRemote(data);
-  } else if (dataType == 'remove-entity') {
-    this.removeNetworkEntity(data);
-  }
-};
-
-NetworkConnection.prototype.syncEntityFromRemote = function(entityData) {
-  if (this.networkEntities.hasOwnProperty(entityData.networkId)) {
-    this.networkEntities[entityData.networkId].components['network-component'].syncFromRemote(entityData);
-  } else {
-    this.createLocalNetworkEntity(entityData);
-  }
-};
-
-NetworkConnection.prototype.syncEntities = function() {
-  for (var networkId in this.networkEntities) {
-    if (this.networkEntities.hasOwnProperty(networkId)) {
-      this.networkEntities[networkId].emit('sync', null, false);
-    }
-  }
-};
-
-NetworkConnection.prototype.createNetworkEntity = function(template, position, rotation) {
-  var networkId = this.createNetworkEntityId();
-  var entityData = {
-    networkId: networkId,
-    owner: this.myEasyrtcid,
-    template: template,
-    position: position,
-    rotation: rotation,
-  };
-  this.broadcastData('sync-entity', entityData);
-  var entity = this.createLocalNetworkEntity(entityData);
-  return entity;
-};
-
-NetworkConnection.prototype.createLocalNetworkEntity = function(entityData) {
-  var scene = document.querySelector('a-scene');
-  var entity = document.createElement('a-entity');
-  entity.setAttribute('template', 'src:' + entityData.template);
-  entity.setAttribute('position', entityData.position);
-  entity.setAttribute('rotation', entityData.rotation);
-  entity.setAttribute('network-component', 'owner:' + entityData.owner + ';networkId:' + entityData.networkId);
-  scene.appendChild(entity);
-  this.networkEntities[entityData.networkId] = entity;
-  return entity;
-};
-
-NetworkConnection.prototype.createNetworkEntityId = function() {
-  return Math.random().toString(36).substring(0, 7);
-};
-
-NetworkConnection.prototype.removeNetworkEntitiesFromUser = function(user) {
-  for (var id in this.networkEntities) {
-    var networkComponent = this.networkEntities[id].components['network-component'];
-    if (networkComponent.data.owner == user) {
-      this.removeNetworkEntity(id);
-    }
-  }
-};
-
-NetworkConnection.prototype.removeNetworkEntity = function(user) {
-  var entity = this.networkEntities[user];
-  delete this.networkEntities[user];
-  entity.parentNode.removeChild(entity);
-};
-
 module.exports = NetworkConnection;
-},{}],2:[function(_dereq_,module,exports){
+},{"./webrtc_interfaces/WebRtcInterface.js":9}],3:[function(_dereq_,module,exports){
 AFRAME.registerComponent('follow-camera', {
   camera: {},
 
@@ -270,7 +227,7 @@ AFRAME.registerComponent('follow-camera', {
     this.el.setAttribute('rotation', rotation);
   }
 });
-},{}],3:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 AFRAME.registerComponent('hide-geometry', {
   init: function () {
     // TODO better way to call this function after template has been created
@@ -294,7 +251,7 @@ AFRAME.registerComponent('hide-geometry', {
     }
   }
 });
-},{}],4:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 AFRAME.registerComponent('network-component', {
   schema: {
     networkId: {
@@ -320,7 +277,7 @@ AFRAME.registerComponent('network-component', {
   },
 
   isMine: function() {
-    return networkConnection && this.data.owner == networkConnection.myEasyrtcid;
+    return networkConnection && this.data.owner == networkConnection.getMyNetworkId();
   },
 
   syncWithOthers: function() {
@@ -353,8 +310,9 @@ AFRAME.registerComponent('network-component', {
     }
   }
 });
-},{}],5:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 var NetworkConnection = _dereq_('../NetworkConnection.js');
+var EasyRtcInterface = _dereq_('../webrtc_interfaces/EasyRtcInterface.js');
 
 AFRAME.registerComponent('network-scene', {
   schema: {
@@ -370,14 +328,14 @@ AFRAME.registerComponent('network-scene', {
       type: 'boolean',
       default: true
     },
-    socketUrl: {
+    signallingUrl: {
       type: 'string'
     },
     audio: {
       type: 'boolean',
       default: false
     },
-    magicEntities: {
+    avatar: {
       type: 'boolean',
       default: true
     },
@@ -398,13 +356,16 @@ AFRAME.registerComponent('network-scene', {
    */
   connect: function () {
     console.log('Connecting to NetworkConnection');
-    networkConnection = new NetworkConnection(easyrtc, this.data.socketUrl);
-    networkConnection.enableMagicEntities(this.data.magicEntities);
-    networkConnection.enableDebugging(this.data.debug);
+    var easyrtcInterface = new EasyRtcInterface(easyrtc, this.data.signallingUrl)
+    networkConnection = new NetworkConnection(easyrtcInterface);
+
+    networkConnection.enableAvatar(this.data.avatar);
+    // networkConnection.enableDebugging(this.data.debug);
+
     networkConnection.connect(this.data.appId, this.data.roomId, this.data.audio);
   }
 });
-},{"../NetworkConnection.js":1}],6:[function(_dereq_,module,exports){
+},{"../NetworkConnection.js":2,"../webrtc_interfaces/EasyRtcInterface.js":8}],7:[function(_dereq_,module,exports){
 // Globals
 var networkConnection;
 
@@ -415,4 +376,172 @@ _dereq_('./components/network-component.js');
 // Other components
 _dereq_('./components/follow-camera.js');
 _dereq_('./components/hide-geometry.js');
-},{"./components/follow-camera.js":2,"./components/hide-geometry.js":3,"./components/network-component.js":4,"./components/network-scene.js":5}]},{},[6]);
+},{"./components/follow-camera.js":3,"./components/hide-geometry.js":4,"./components/network-component.js":5,"./components/network-scene.js":6}],8:[function(_dereq_,module,exports){
+var WebRtcInterface = _dereq_('./WebRtcInterface.js');
+
+class EasyRtcInterface extends WebRtcInterface {
+  constructor(easyrtc, signallingUrl) {
+    super();
+    this.easyrtc = easyrtc;
+    this.easyrtc.setSocketUrl(signallingUrl);
+  }
+
+  /*
+   * Call before `connect`
+   */
+
+  joinRoom(roomId) {
+    this.easyrtc.joinRoom(roomId, null);
+  }
+
+  setRoomOccupantListener(occupantListener){
+    this.easyrtc.setRoomOccupantListener(occupantListener);
+  }
+
+  // options: { datachannel: bool, audio: bool }
+  setStreamOptions(options) {
+    // this.easyrtc.enableDebug(true);
+    this.easyrtc.enableDataChannels(options.datachannel);
+    this.easyrtc.enableVideo(false);
+    this.easyrtc.enableAudio(options.audio);
+    this.easyrtc.enableVideoReceive(false);
+    this.easyrtc.enableAudioReceive(options.audio);
+  }
+
+  setDatachannelListeners(openListener, closedListener, messageListener) {
+    this.easyrtc.setDataChannelOpenListener(openListener);
+    this.easyrtc.setDataChannelCloseListener(closedListener);
+    this.easyrtc.setPeerListener(messageListener);
+  }
+
+  setLoginListeners(successListener, failureListener) {
+    this.loginSuccess = successListener;
+    this.loginFailure = failureListener;
+  }
+
+
+  /*
+   * Network actions
+   */
+
+  connect(appId) {
+    this.appId = appId;
+
+    if (this.easyrtc.audioEnabled) {
+      this.connectWithAudio();
+    } else {
+      this.easyrtc.connect(appId, this.loginSuccess, this.loginFailure);
+    }
+  }
+
+  connectWithAudio() {
+    this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
+      var audioEl = document.createElement("audio");
+      audioEl.setAttribute('id', 'audio-' + easyrtcid);
+      document.body.appendChild(audioEl);
+      this.easyrtc.setVideoObjectSrc(audioEl,stream);
+    });
+
+    this.easyrtc.setOnStreamClosed(function (easyrtcid) {
+      var audioEl = document.getElementById('audio-' + easyrtcid);
+      audioEl.parentNode.removeChild(audioEl);
+    });
+
+    var that = this;
+    this.easyrtc.initMediaSource(
+      function(){
+        that.easyrtc.connect(that.appId, that.loginSuccess, that.loginFailure);
+      },
+      function(errorCode, errmesg){
+        console.error(errorCode, errmesg);
+      }
+    );
+  }
+
+  startStreamConnection(networkId) {
+    this.easyrtc.call(networkId,
+      function(caller, media) {
+        if (media === 'datachannel') {
+          console.log('Successfully started datachannel  to ' + caller);
+        }
+      },
+      function(errorCode, errorText) {
+        console.error(errorCode, errorText);
+      },
+      function(wasAccepted) {
+        // console.log("was accepted=" + wasAccepted);
+      }
+    );
+  }
+
+  sendDataP2P(networkId, dataType, data) {
+    this.easyrtc.sendDataP2P(networkId, dataType, data);
+  }
+
+
+  /*
+   * Getters
+   */
+
+  // getMyRoomJoinTime() {
+  //   // TODO
+  // }
+
+  getConnectStatus(networkId) {
+    var status = this.easyrtc.getConnectStatus(networkId);
+
+    if (status == this.easyrtc.IS_CONNECTED) {
+      return WebRtcInterface.IS_CONNECTED;
+    } else if (status == this.easyrtc.NOT_CONNECTED) {
+      return WebRtcInterface.NOT_CONNECTED;
+    } else {
+      return WebRtcInterface.CONNECTING;
+    }
+  }
+}
+
+module.exports = EasyRtcInterface;
+},{"./WebRtcInterface.js":9}],9:[function(_dereq_,module,exports){
+var NafInterface = _dereq_('../NafInterface.js');
+
+class WebRtcInterface extends NafInterface {
+  constructor() {
+    super();
+
+    // Connection properties
+    this.appId = '';
+    this.roomId = '';
+
+    // Plumbing
+    this.connectList = {};
+    this.dcIsActive = {};
+    this.networkEntities = {};
+
+    // Developer Options
+    this.magicEntities = true;
+    this.debug = false;
+  }
+
+  // Call before `connect`
+  joinRoom(roomId) {this.notImplemented()}
+  setStreamOptions(StreamOptions) {this.notImplemented()}
+  setDatachannelListeners(openListener, closedListener, messageListener) {this.notImplemented()}
+  setRoomOccupantListener(occupantListener){this.notImplemented()}
+  setLoginListeners(successListener, failureListener) {this.notImplemented()}
+
+  // Network actions
+  connect(appId) {this.notImplemented()}
+  startStreamConnection(otherNetworkId) {this.notImplemented()}
+  sendDataP2P(networkId, dataType, data) {this.notImplemented()}
+
+  // Getters
+  getMyRoomJoinTime() {this.notImplemented()}
+  getConnectStatus(networkId) {this.notImplemented()}
+}
+
+WebRtcInterface.IS_CONNECTED = 'IS_CONNECTED';
+WebRtcInterface.CONNECTING = 'CONNECTING';
+WebRtcInterface.NOT_CONNECTED = 'NOT_CONNECTED';
+
+module.exports = WebRtcInterface;
+},{"../NafInterface.js":1}]},{},[7]);
