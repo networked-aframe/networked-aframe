@@ -1,4 +1,5 @@
 var NetworkConnection = require('../NetworkConnection.js');
+var NetworkEntities = require('../NetworkEntities.js');
 var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
 
 AFRAME.registerComponent('network-scene', {
@@ -43,8 +44,9 @@ AFRAME.registerComponent('network-scene', {
    */
   connect: function () {
     console.log('Connecting to NetworkConnection');
-    var easyrtcInterface = new EasyRtcInterface(easyrtc, this.data.signallingUrl)
-    networkConnection = new NetworkConnection(easyrtcInterface);
+    var easyrtcInterface = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
+    var networkEntities = new NetworkEntities();
+    networkConnection = new NetworkConnection(easyrtcInterface, networkEntities);
 
     networkConnection.enableAvatar(this.data.avatar);
     // networkConnection.enableDebugging(this.data.debug);

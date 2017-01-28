@@ -1,28 +1,29 @@
 /* global suite */
+var nafUtil = require('../src/NafUtil.js');
+
 
 /**
- * Helper method to create a scene, create an entity, add entity to scene,
+ * Helper method to create a scene,
  * add scene to document.
  *
- * @returns {object} An `<a-entity>` element.
+ * @returns {object} An `<a-scene>` element.
  */
-module.exports.entityFactory = function (opts) {
+module.exports.sceneFactory = function (opts) {
   var scene = document.createElement('a-scene');
   var assets = document.createElement('a-assets');
-  var entity = document.createElement('a-entity');
   scene.appendChild(assets);
-  scene.appendChild(entity);
 
   opts = opts || {};
 
   if (opts.assets) {
     opts.assets.forEach(function (asset) {
-      assets.appendChild(asset);
+      var el = nafUtil.createHtmlNodeFromString(asset);
+      assets.appendChild(el);
     });
   }
 
   document.body.appendChild(scene);
-  return entity;
+  return scene;
 };
 
 /**

@@ -1,20 +1,26 @@
 /* global assert, process, setup, suite, test */
-// var entityFactory = require('./helpers').entityFactory;
 var NetworkConnection = require('../src/NetworkConnection.js');
 var WebRtcInterface = require('../src/webrtc_interfaces/WebRtcInterface.js');
+var NetworkEntities = require('../src/NetworkEntities.js');
 
 suite('NetworkConnection', function() {
   var network;
+  var entities;
+
+  function NetworkEntitiesStub() {
+    this.createAvatar = sinon.stub();
+    this.syncAllEntities = sinon.stub();
+    this.removeEntitiesFromUser = sinon.stub();
+    this.updateEntity = sinon.stub();
+    this.syncAllEntities = sinon.stub();
+    this.removeEntity = sinon.stub();
+  }
 
   setup(function() {
-    var networkInterfaceStub = {};
-    network = new NetworkConnection(
-        networkInterfaceStub, 'http://localhost:8080');
-    // var el = this.el = entityFactory();
-    // if (el.hasLoaded) { done(); }
-    // el.addEventListener('loaded', function () {
-    //   done();
-    // });
+    var webrtcInterface = {};
+    entities = new NetworkEntitiesStub();
+
+    network = new NetworkConnection(webrtcInterface, entities);
   });
 
   suite('loginSuccess', function() {
@@ -29,22 +35,20 @@ suite('NetworkConnection', function() {
 
     test('with avatar', function() {
       network.enableAvatar(true);
-      sinon.spy(network, 'createAvatar');
 
       var id = 'testId';
       network.loginSuccess(id);
 
-      assert.isTrue(network.createAvatar.called);
+      assert.isTrue(entities.createAvatar.called);
     });
 
     test('without avatar', function() {
       network.enableAvatar(false);
-      sinon.spy(network, 'createAvatar');
 
       var id = 'testId';
       network.loginSuccess(id);
 
-      assert.isFalse(network.createAvatar.called);
+      assert.isFalse(entities.createAvatar.called);
     });
   });
 
@@ -155,19 +159,6 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('createNetworkEntityId', function() {
-
-    test('length', function() {
-      var id = network.createNetworkEntityId();
-      assert.equal(id.length, 7);
-    });
-
-    test('object type', function() {
-      var id = network.createNetworkEntityId();
-      assert.isString(id)
-    });
-  });
-
   suite('isConnectedTo', function() {
 
     test('is connected', function() {
@@ -195,25 +186,23 @@ suite('NetworkConnection', function() {
 
     test('connects and syncs', function() {
       var clientId = 'other';
-      sinon.spy(network, 'syncAllEntities');
 
       network.dcOpenListener(clientId);
 
       var dcIsConnected = network.dcIsConnectedTo(clientId);
       assert.isTrue(dcIsConnected);
-      assert.isTrue(network.syncAllEntities.called);
+      assert.isTrue(entities.syncAllEntities.called);
     });
 
     test('is not connected to', function() {
       var clientId = 'correct';
       var wrongClientId = 'wrong';
-      sinon.spy(network, 'syncAllEntities');
 
       network.dcOpenListener(clientId);
 
       var dcIsConnected = network.dcIsConnectedTo(wrongClientId);
       assert.isFalse(dcIsConnected);
-      assert.isTrue(network.syncAllEntities.called);
+      assert.isTrue(entities.syncAllEntities.called);
     });
   });
 
@@ -221,26 +210,24 @@ suite('NetworkConnection', function() {
 
     test('connects and syncs', function() {
       var clientId = 'client';
-      sinon.spy(network, 'removeNetworkEntitiesFromUser');
 
       network.dcCloseListener(clientId);
 
       var dcIsConnected = network.dcIsConnectedTo(clientId);
       assert.isFalse(dcIsConnected);
-      assert.isTrue(network.removeNetworkEntitiesFromUser.called);
+      assert.isTrue(entities.removeEntitiesFromUser.called);
     });
 
     test('is still connected to other', function() {
       var clientId = 'removeMe';
       var otherClientId = 'other';
-      sinon.spy(network, 'removeNetworkEntitiesFromUser');
 
       network.dcOpenListener(otherClientId);
       network.dcCloseListener(clientId);
 
       var dcIsConnectedToOther = network.dcIsConnectedTo(otherClientId);
       assert.isTrue(dcIsConnectedToOther);
-      assert.isTrue(network.removeNetworkEntitiesFromUser.called);
+      assert.isTrue(entities.removeEntitiesFromUser.called);
     });
   });
 
@@ -276,23 +263,17 @@ suite('NetworkConnection', function() {
   suite('dataReceived', function() {
 
     test('sync received', function() {
-      network.syncEntityFromRemote = sinon.stub();
-      network.removeNetworkEntity = sinon.stub();
-
       network.dataReceived('client', 'sync-entity', {testData:true});
 
-      assert.isTrue(network.syncEntityFromRemote.called);
-      assert.isFalse(network.removeNetworkEntity.called);
+      assert.isTrue(entities.updateEntity.called);
+      assert.isFalse(entities.removeEntity.called);
     });
 
     test('sync received', function() {
-      network.syncEntityFromRemote = sinon.stub();
-      network.removeNetworkEntity = sinon.stub();
-
       network.dataReceived('client', 'remove-entity', {testData:true});
 
-      assert.isFalse(network.syncEntityFromRemote.called);
-      assert.isTrue(network.removeNetworkEntity.called);
+      assert.isFalse(entities.updateEntity.called);
+      assert.isTrue(entities.removeEntity.called);
     });
   });
 });

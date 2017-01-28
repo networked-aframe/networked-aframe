@@ -10,23 +10,26 @@ AFRAME.registerComponent('network-component', {
 
   update: function(oldData) {
     if (this.isMine()) {
-      this.el.addEventListener('sync', this.syncWithOthers.bind(this));
+      this.el.addEventListener('sync', this.sync.bind(this));
     } else {
-      this.el.removeEventListener('sync', this.syncWithOthers);
+      this.el.removeEventListener('sync', this.sync);
     }
+
+    this.el.addEventListener('networkUpdate', this.networkUpdate.bind(this));
   },
 
   tick: function() {
     if (this.isMine()) {
-      this.syncWithOthers()
+      this.sync()
     }
   },
 
   isMine: function() {
-    return networkConnection && this.data.owner == networkConnection.getMyNetworkId();
+    return networkConnection
+        && this.data.owner == networkConnection.getMyNetworkId();
   },
 
-  syncWithOthers: function() {
+  sync: function() {
     var entity = this.el;
     var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
     var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
@@ -42,7 +45,8 @@ AFRAME.registerComponent('network-component', {
     networkConnection.broadcastData('sync-entity', entityData);
   },
 
-  syncFromRemote: function(newData) {
+  networkUpdate: function(newData) {
+    console.log('network update', newData);
     var oldData = this.data;
     var entity = this.el;
     entity.setAttribute('position', newData.position);

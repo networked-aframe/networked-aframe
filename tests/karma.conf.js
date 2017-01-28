@@ -15,7 +15,7 @@ var karma_conf = {
   ],
   files: [
     // Define test files.
-    {pattern: 'tests/**/*.test.js'}
+    {pattern: './tests/**/*.test.js'}
     // Serve test assets.
     // {pattern: 'tests/assets/**/*', included: false, served: true}
   ],
@@ -23,7 +23,8 @@ var karma_conf = {
   preprocessors: {
     'tests/**/*.js': ['browserify', 'env']
   },
-  reporters: ['mocha']
+  reporters: ['mocha'],
+  browserNoActivityTimeout: 1000000
 };
 
 // configuration for code coverage reporting

@@ -6,12 +6,31 @@ class NafInterface {
 }
 module.exports = NafInterface;
 },{}],2:[function(_dereq_,module,exports){
+module.exports.whenEntityLoaded = function(entity, callback) {
+  if (entity.hasLoaded) { callback(); }
+  entity.addEventListener('loaded', function () {
+    callback();
+  });
+}
+
+module.exports.createHtmlNodeFromString = function(str) {
+  var div = document.createElement('div');
+  div.innerHTML = str;
+  var child = div.firstChild;
+  return child;
+}
+
+module.exports.getNetworkOwner = function(entity) {
+  return entity.components['network-component'].data.owner;
+}
+},{}],3:[function(_dereq_,module,exports){
 var WebRtcInterface = _dereq_('./webrtc_interfaces/WebRtcInterface.js');
 
 class NetworkConnection {
 
-  constructor (webrtcInterface) {
+  constructor (webrtcInterface, networkEntities) {
     this.webrtc = webrtcInterface;
+    this.entities = networkEntities;
 
     this.appId = '';
     this.roomId = '';
@@ -19,7 +38,7 @@ class NetworkConnection {
     this.myRoomJoinTime = 0; // TODO: get from server
     this.connectList = {};
     this.dcIsActive = {};
-    this.networkEntities = {};
+
     this.showAvatar = true;
     this.debug = false;
   }
@@ -58,21 +77,11 @@ class NetworkConnection {
     this.webrtc.connect(appId);
   }
 
-  createAvatar() {
-    var templateName = '#avatar';
-    var template = document.querySelector('script' + templateName);
-    if (template) {
-      var entity = this.createNetworkEntity(templateName, '0 0 0', '0 0 0 0');
-      entity.setAttribute('hide-geometry', '');
-      entity.setAttribute('follow-camera', '');
-    }
-  }
-
   loginSuccess(myNetworkId) {
     console.error('My Network ID:', myNetworkId);
     this.myNetworkId = myNetworkId;
     if (this.showAvatar) {
-      this.createAvatar();
+      this.entities.createAvatar();
     }
   }
 
@@ -110,13 +119,13 @@ class NetworkConnection {
   dcOpenListener(user) {
     console.log('Opened data channel from ' + user);
     this.dcIsActive[user] = true;
-    this.syncAllEntities();
+    this.entities.syncAllEntities();
   }
 
   dcCloseListener(user) {
     console.log('Closed data channel from ' + user);
     this.dcIsActive[user] = false;
-    this.removeNetworkEntitiesFromUser(user);
+    this.entities.removeEntitiesFromUser(user);
   }
 
   dcIsConnectedTo(user) {
@@ -140,45 +149,41 @@ class NetworkConnection {
   dataReceived(fromClient, dataType, data) {
     // console.log('Data received', fromUser, dataType, data);
     if (dataType == 'sync-entity') {
-      this.syncEntityFromRemote(data);
+      this.entities.updateEntity(data);
     } else if (dataType == 'remove-entity') {
-      this.removeNetworkEntity(data);
+      this.entities.removeEntity(data);
     }
   }
+}
 
-  syncEntityFromRemote(entityData) {
-    if (this.networkEntities.hasOwnProperty(entityData.networkId)) {
-      this.networkEntities[entityData.networkId].components['network-component'].syncFromRemote(entityData);
-    } else {
-      this.createLocalNetworkEntity(entityData);
-    }
+module.exports = NetworkConnection;
+},{"./webrtc_interfaces/WebRtcInterface.js":11}],4:[function(_dereq_,module,exports){
+var nafUtil = _dereq_('./NafUtil.js');
+
+class NetworkEntities {
+
+  constructor() {
+    this.entities = {};
   }
 
-  syncAllEntities() {
-    for (var networkId in this.networkEntities) {
-      if (this.networkEntities.hasOwnProperty(networkId)) {
-        console.log('sync', networkId);
-        this.networkEntities[networkId].emit('sync', null, false);
-      }
-    }
-  }
-
-  createNetworkEntity(template, position, rotation) {
-    var networkId = this.createNetworkEntityId();
-    console.error('Created network entitiy', networkId)
+  createNetworkEntity(clientId, template, position, rotation) {
+    var networkId = this.createEntityId();
+    // console.error('Created network entity', networkId)
     var entityData = {
       networkId: networkId,
-      owner: this.getMyNetworkId(),
+      owner: clientId,
       template: template,
       position: position,
       rotation: rotation,
     };
-    this.broadcastData('sync-entity', entityData);
-    var entity = this.createLocalNetworkEntity(entityData);
+    var entity = this.createLocalEntity(entityData);
+    nafUtil.whenEntityLoaded(entity, function() {
+      entity.emit('sync', null, false);
+    });
     return entity;
   }
 
-  createLocalNetworkEntity(entityData) {
+  createLocalEntity(entityData) {
     var scene = document.querySelector('a-scene');
     var entity = document.createElement('a-entity');
     entity.setAttribute('template', 'src:' + entityData.template);
@@ -186,32 +191,83 @@ class NetworkConnection {
     entity.setAttribute('rotation', entityData.rotation);
     entity.setAttribute('network-component', 'owner:' + entityData.owner + ';networkId:' + entityData.networkId);
     scene.appendChild(entity);
-    this.networkEntities[entityData.networkId] = entity;
+    this.entities[entityData.networkId] = entity;
     return entity;
   }
 
-  createNetworkEntityId() {
-    return Math.random().toString(36).substring(2, 9);
+  createAvatar() {
+    var templateName = '#avatar';
+    var template = document.querySelector('script' + templateName);
+    if (template) {
+      var avatar = this.createNetworkEntity(templateName, '0 0 0', '0 0 0 0');
+      avatar.setAttribute('hide-geometry', '');
+      avatar.setAttribute('follow-camera', '');
+      avatar.setAttribute('id', 'naf-avatar');
+      return avatar;
+    } else {
+      console.error('NetworkEntities@createAvatar: Could not find template with src="#avatar"');
+      return null;
+    }
   }
 
-  removeNetworkEntitiesFromUser(user) {
-    for (var id in this.networkEntities) {
-      var networkComponent = this.networkEntities[id].components['network-component'];
-      if (networkComponent.data.owner == user) {
-        this.removeNetworkEntity(id);
+  updateEntity(entityData) {
+    if (this.hasEntity(entityData.networkId)) {
+      this.entities[entityData.networkId]
+          .emit('networkUpdate', {entityData: entityData}, false);
+    } else {
+      this.createLocalEntity(entityData);
+    }
+  }
+
+  syncAllEntities() {
+    for (var id in this.entities) {
+      if (this.entities.hasOwnProperty(id)) {
+        this.entities[id].emit('sync', null, false);
       }
     }
   }
 
-  removeNetworkEntity(user) {
-    var entity = this.networkEntities[user];
-    delete this.networkEntities[user];
-    entity.parentNode.removeChild(entity);
+  removeEntity(id) {
+    if (this.hasEntity(id)) {
+      var entity = this.entities[id];
+      delete this.entities[id];
+      entity.parentNode.removeChild(entity);
+      return entity;
+    } else {
+      return null;
+    }
+  }
+
+  removeEntitiesFromUser(user) {
+    var entityList = [];
+    for (var id in this.entities) {
+      var entityOwner = nafUtil.getNetworkOwner(this.entities[id]);
+      if (entityOwner == user) {
+        var entity = this.removeEntity(id);
+        entityList.push(entity);
+      }
+    }
+    return entityList;
+  }
+
+  getEntity(id) {
+    if (this.entities.hasOwnProperty(id)) {
+      return this.entities[id];
+    }
+    return null;
+  }
+
+  hasEntity(id) {
+    return this.entities.hasOwnProperty(id);
+  }
+
+  createEntityId() {
+    return Math.random().toString(36).substring(2, 9);
   }
 }
 
-module.exports = NetworkConnection;
-},{"./webrtc_interfaces/WebRtcInterface.js":9}],3:[function(_dereq_,module,exports){
+module.exports = NetworkEntities;
+},{"./NafUtil.js":2}],5:[function(_dereq_,module,exports){
 AFRAME.registerComponent('follow-camera', {
   camera: {},
 
@@ -227,7 +283,7 @@ AFRAME.registerComponent('follow-camera', {
     this.el.setAttribute('rotation', rotation);
   }
 });
-},{}],4:[function(_dereq_,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 AFRAME.registerComponent('hide-geometry', {
   init: function () {
     // TODO better way to call this function after template has been created
@@ -251,7 +307,7 @@ AFRAME.registerComponent('hide-geometry', {
     }
   }
 });
-},{}],5:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 AFRAME.registerComponent('network-component', {
   schema: {
     networkId: {
@@ -264,23 +320,26 @@ AFRAME.registerComponent('network-component', {
 
   update: function(oldData) {
     if (this.isMine()) {
-      this.el.addEventListener('sync', this.syncWithOthers.bind(this));
+      this.el.addEventListener('sync', this.sync.bind(this));
     } else {
-      this.el.removeEventListener('sync', this.syncWithOthers);
+      this.el.removeEventListener('sync', this.sync);
     }
+
+    this.el.addEventListener('networkUpdate', this.networkUpdate.bind(this));
   },
 
   tick: function() {
     if (this.isMine()) {
-      this.syncWithOthers()
+      this.sync()
     }
   },
 
   isMine: function() {
-    return networkConnection && this.data.owner == networkConnection.getMyNetworkId();
+    return networkConnection
+        && this.data.owner == networkConnection.getMyNetworkId();
   },
 
-  syncWithOthers: function() {
+  sync: function() {
     var entity = this.el;
     var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
     var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
@@ -296,7 +355,8 @@ AFRAME.registerComponent('network-component', {
     networkConnection.broadcastData('sync-entity', entityData);
   },
 
-  syncFromRemote: function(newData) {
+  networkUpdate: function(newData) {
+    console.log('network update', newData);
     var oldData = this.data;
     var entity = this.el;
     entity.setAttribute('position', newData.position);
@@ -310,8 +370,9 @@ AFRAME.registerComponent('network-component', {
     }
   }
 });
-},{}],6:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 var NetworkConnection = _dereq_('../NetworkConnection.js');
+var NetworkEntities = _dereq_('../NetworkEntities.js');
 var EasyRtcInterface = _dereq_('../webrtc_interfaces/EasyRtcInterface.js');
 
 AFRAME.registerComponent('network-scene', {
@@ -356,8 +417,9 @@ AFRAME.registerComponent('network-scene', {
    */
   connect: function () {
     console.log('Connecting to NetworkConnection');
-    var easyrtcInterface = new EasyRtcInterface(easyrtc, this.data.signallingUrl)
-    networkConnection = new NetworkConnection(easyrtcInterface);
+    var easyrtcInterface = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
+    var networkEntities = new NetworkEntities();
+    networkConnection = new NetworkConnection(easyrtcInterface, networkEntities);
 
     networkConnection.enableAvatar(this.data.avatar);
     // networkConnection.enableDebugging(this.data.debug);
@@ -365,7 +427,7 @@ AFRAME.registerComponent('network-scene', {
     networkConnection.connect(this.data.appId, this.data.roomId, this.data.audio);
   }
 });
-},{"../NetworkConnection.js":2,"../webrtc_interfaces/EasyRtcInterface.js":8}],7:[function(_dereq_,module,exports){
+},{"../NetworkConnection.js":3,"../NetworkEntities.js":4,"../webrtc_interfaces/EasyRtcInterface.js":10}],9:[function(_dereq_,module,exports){
 // Globals
 var networkConnection;
 
@@ -376,7 +438,7 @@ _dereq_('./components/network-component.js');
 // Other components
 _dereq_('./components/follow-camera.js');
 _dereq_('./components/hide-geometry.js');
-},{"./components/follow-camera.js":3,"./components/hide-geometry.js":4,"./components/network-component.js":5,"./components/network-scene.js":6}],8:[function(_dereq_,module,exports){
+},{"./components/follow-camera.js":5,"./components/hide-geometry.js":6,"./components/network-component.js":7,"./components/network-scene.js":8}],10:[function(_dereq_,module,exports){
 var WebRtcInterface = _dereq_('./WebRtcInterface.js');
 
 class EasyRtcInterface extends WebRtcInterface {
@@ -501,7 +563,7 @@ class EasyRtcInterface extends WebRtcInterface {
 }
 
 module.exports = EasyRtcInterface;
-},{"./WebRtcInterface.js":9}],9:[function(_dereq_,module,exports){
+},{"./WebRtcInterface.js":11}],11:[function(_dereq_,module,exports){
 var NafInterface = _dereq_('../NafInterface.js');
 
 class WebRtcInterface extends NafInterface {
@@ -544,4 +606,4 @@ WebRtcInterface.CONNECTING = 'CONNECTING';
 WebRtcInterface.NOT_CONNECTED = 'NOT_CONNECTED';
 
 module.exports = WebRtcInterface;
-},{"../NafInterface.js":1}]},{},[7]);
+},{"../NafInterface.js":1}]},{},[9]);
