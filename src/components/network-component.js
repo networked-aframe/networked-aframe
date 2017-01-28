@@ -14,7 +14,6 @@ AFRAME.registerComponent('network-component', {
     } else {
       this.el.removeEventListener('sync', this.sync);
     }
-
     this.el.addEventListener('networkUpdate', this.networkUpdate.bind(this));
   },
 
@@ -26,7 +25,7 @@ AFRAME.registerComponent('network-component', {
 
   isMine: function() {
     return networkConnection
-        && this.data.owner == networkConnection.getMyNetworkId();
+        && this.data.owner == networkConnection.getClientId();
   },
 
   sync: function() {

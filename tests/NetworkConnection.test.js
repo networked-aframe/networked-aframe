@@ -30,7 +30,7 @@ suite('NetworkConnection', function() {
 
       network.loginSuccess(id);
 
-      assert.equal(id, network.getMyNetworkId());
+      assert.equal(id, network.getClientId());
     });
 
     test('with avatar', function() {
@@ -90,12 +90,12 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('getMyNetworkId', function() {
+  suite('getClientId', function() {
     test('returns correct id', function() {
       var testId = 'test1';
       network.loginSuccess(testId);
 
-      var result = network.getMyNetworkId();
+      var result = network.getClientId();
 
       assert.equal(result, testId);
     });
@@ -262,14 +262,14 @@ suite('NetworkConnection', function() {
 
   suite('dataReceived', function() {
 
-    test('sync received', function() {
+    test('sync entity', function() {
       network.dataReceived('client', 'sync-entity', {testData:true});
 
       assert.isTrue(entities.updateEntity.called);
       assert.isFalse(entities.removeEntity.called);
     });
 
-    test('sync received', function() {
+    test('remove entity', function() {
       network.dataReceived('client', 'remove-entity', {testData:true});
 
       assert.isFalse(entities.updateEntity.called);

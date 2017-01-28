@@ -8,7 +8,7 @@ class NetworkConnection {
 
     this.appId = '';
     this.roomId = '';
-    this.myNetworkId = '';
+    this.myClientId = '';
     this.myRoomJoinTime = 0; // TODO: get from server
     this.connectList = {};
     this.dcIsActive = {};
@@ -51,9 +51,9 @@ class NetworkConnection {
     this.webrtc.connect(appId);
   }
 
-  loginSuccess(myNetworkId) {
-    console.error('My Network ID:', myNetworkId);
-    this.myNetworkId = myNetworkId;
+  loginSuccess(clientId) {
+    console.error('Networked-Aframe Client ID:', clientId);
+    this.myClientId = clientId;
     if (this.showAvatar) {
       this.entities.createAvatar();
     }
@@ -66,28 +66,28 @@ class NetworkConnection {
   occupantsReceived(roomName, occupantList, isPrimary) {
     this.connectList = occupantList;
     console.log('Connected clients', this.connectList);
-    for (var networkId in this.connectList) {
-      if (this.isNewClient(networkId) && this.myClientShouldStartConnection(networkId)) {
-        this.webrtc.startStreamConnection(networkId);
+    for (var id in this.connectList) {
+      if (this.isNewClient(id) && this.myClientShouldStartConnection(id)) {
+        this.webrtc.startStreamConnection(id);
       }
     }
   }
 
-  getMyNetworkId() {
-    return this.myNetworkId;
+  getClientId() {
+    return this.myClientId;
   }
 
-  isNewClient(networkId) {
-    return !this.isConnectedTo(networkId);
+  isNewClient(client) {
+    return !this.isConnectedTo(client);
   }
 
-  isConnectedTo(networkId) {
-    return this.webrtc.getConnectStatus(networkId) === WebRtcInterface.IS_CONNECTED;
+  isConnectedTo(client) {
+    return this.webrtc.getConnectStatus(client) === WebRtcInterface.IS_CONNECTED;
   }
 
-  myClientShouldStartConnection(otherUser) {
-    var otherUserTimeJoined = this.connectList[otherUser].roomJoinTime;
-    return this.myRoomJoinTime <= otherUserTimeJoined;
+  myClientShouldStartConnection(otherClient) {
+    var otherClientTimeJoined = this.connectList[otherClient].roomJoinTime;
+    return this.myRoomJoinTime <= otherClientTimeJoined;
   }
 
   dcOpenListener(user) {
@@ -107,8 +107,8 @@ class NetworkConnection {
   }
 
   broadcastData(dataType, data) {
-    for (var networkId in this.connectList) {
-      this.sendData(networkId, dataType, data);
+    for (var clientId in this.connectList) {
+      this.sendData(clientId, dataType, data);
     }
   }
 

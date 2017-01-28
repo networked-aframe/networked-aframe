@@ -17,7 +17,7 @@ suite('NetworkEntities', function() {
         '<script id="template2" type="text/html"><a-box></a-box></script>',
         '<script id="template3" type="text/html"><a-sphere></a-sphere></script>'
       ]
-    }
+    };
     scene = helpers.sceneFactory(opts);
     nafUtil.whenEntityLoaded(scene, done);
   }
@@ -83,7 +83,7 @@ suite('NetworkEntities', function() {
         assert.isTrue(entity.emit.calledWith('sync', null, false));
         done();
       }
-      setTimeout(checkCalled, 100);
+      setTimeout(checkCalled, 200);
     });
   });
 

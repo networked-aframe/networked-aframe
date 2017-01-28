@@ -14,10 +14,11 @@
   "repository": "haydenjameslee/networked-aframe",
   "dependencies": {
     "easyrtc": "1.1.0",
-    "socket.io-client": "1.7.2"
+    "socket.io-client": "1.7.2",
+    "aframe": "0.4.1",
+    "aframe-template-component": "3.1.2"
   },
   "devDependencies": {
-    "aframe": "0.4.1",
     "browserify": "^13.1.0",
     "browserify-derequire": "^0.9.4",
     "browserify-istanbul": "^2.0.0",
