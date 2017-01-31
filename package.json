@@ -10,7 +10,7 @@
     "easyrtc-server-init": "cd ./node_modules/easyrtc; npm install; cd ./server_example; npm install; cd ../../../",
     "easyrtc-server-run": "node ./node_modules/easyrtc/server_example/server.js",
     "unit-tests": "karma start ./tests/unit/karma.conf.js --browsers Chrome",
-    "system-tests": "karma start ./tests/system/karma.conf.js"
+    "system-tests": "./node_modules/.bin/wdio ./tests/system/wdio.conf.js"
   },
   "repository": "haydenjameslee/networked-aframe",
   "dependencies": {
@@ -37,9 +37,13 @@
     "karma-mocha-reporter": "^2.1.0",
     "karma-sinon-chai": "^1.2.4",
     "mocha": "^3.2.0",
+    "node-fetch": "^1.6.3",
     "sinon": "^1.17.5",
     "sinon-chai": "^2.8.0",
-    "watchify": "^3.9.0"
+    "watchify": "^3.9.0",
+    "wdio-mocha-framework": "^0.5.8",
+    "wdio-spec-reporter": "0.0.5",
+    "webdriverio": "^4.6.2"
   },
   "keywords": [
     "3d",

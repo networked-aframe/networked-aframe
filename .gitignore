@@ -51,3 +51,6 @@ tmp
 
 # MacOS
 .DS_Store
+
+# Testing suites
+errorShots

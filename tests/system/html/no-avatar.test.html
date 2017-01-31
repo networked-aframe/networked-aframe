@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <!-- JS libraries -->
+    <script src="/node_modules/socket.io-client/dist/socket.io.min.js"></script>
+    <script src="/node_modules/easyrtc/api/easyrtc.js"></script>
+
+    <!-- Required Aframe libraries -->
+    <script src="/node_modules/aframe/dist/aframe-master.min.js"></script>
+    <script src="/node_modules/aframe-template-component/dist/aframe-template-component.min.js"></script>
+    <script src="/dist/networked-af.js"></script>
+  </head>
+  <body>
+
+    <a-scene network-scene="
+      signallingUrl: http://localhost:8080;
+      avatar: false;
+    ">
+
+      <a-assets>
+
+        <!-- Templates -->
+        <script id="avatar" type="text/html">
+          <a-entity id="head">
+            <a-box color="red"></a-box>
+          </a-entity>
+        </script>
+        <!-- /Templates -->
+
+      </a-assets>
+
+    </a-scene>
+  <body>
+</html>
