@@ -190,16 +190,16 @@ suite('NetworkEntities', function() {
       }
     });
 
-    test('emits sync on 100 entities', function() {
+    test('emits sync on many entities', function() {
       var entityList = [];
-      for (var i = 0; i < 100; i++) {
+      for (var i = 0; i < 20; i++) {
         entityData.networkId = i;
         var entity = entities.createLocalEntity(entityData);
         entityList.push(entity);
         sinon.spy(entity, 'emit');
       }
       entities.syncAllEntities();
-      for (var i = 0; i < 100; i++) {
+      for (var i = 0; i < 20; i++) {
         assert.isTrue(entityList[i].emit.calledWith('sync'))
       }
     });
@@ -240,20 +240,30 @@ suite('NetworkEntities', function() {
 
   suite('removeEntitiesFromUser', function() {
 
-    test('removing many entities', function() {
+    test('removing many entities', sinon.test(function() {
       var entityList = [];
       for (var i = 0; i < 3; i++) {
         entityData.networkId = i;
         var entity = entities.createLocalEntity(entityData);
         entityList.push(entity);
       }
-      sinon.stub(nafUtil, 'getNetworkOwner').returns(entityData.owner);
+      this.stub(nafUtil, 'getNetworkOwner').returns(entityData.owner);
+
       var removedEntities = entities.removeEntitiesFromUser(entityData.owner);
 
       assert.equal(removedEntities.length, 3);
-    });
+    }));
 
-    test('handle no entities', function() {
+    test('other entities', sinon.test(function() {
+      var entity = entities.createLocalEntity(entityData);
+      this.stub(nafUtil, 'getNetworkOwner').returns('a');
+
+      var removedEntities = entities.removeEntitiesFromUser('b');
+
+      assert.equal(removedEntities.length, 0);
+    }));
+
+    test('no entities', function() {
       var removedEntities = entities.removeEntitiesFromUser(entityData.owner);
 
       assert.equal(removedEntities.length, 0);

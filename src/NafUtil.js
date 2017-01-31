@@ -13,5 +13,8 @@ module.exports.createHtmlNodeFromString = function(str) {
 }
 
 module.exports.getNetworkOwner = function(entity) {
-  return entity.components['network-component'].data.owner;
+  if (entity.components.hasOwnProperty('network-component')) {
+    return entity.components['network-component'].data.owner;
+  }
+  return null;
 }

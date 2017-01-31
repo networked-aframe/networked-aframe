@@ -16,12 +16,37 @@ suite('NetworkConnection', function() {
     this.removeEntity = sinon.stub();
   }
 
+  function WebRtcStub() {
+    this.setStreamOptions = sinon.stub();
+    this.joinRoom = sinon.stub();
+    this.setDatachannelListeners = sinon.stub();
+    this.setLoginListeners = sinon.stub();
+    this.setRoomOccupantListener = sinon.stub();
+    this.connect = sinon.stub();
+    this.getRoomJoinTime = sinon.stub();
+    this.sendDataP2P = sinon.stub();
+  }
+
   setup(function() {
-    var webrtcInterface = {};
-    webrtcInterface.getRoomJoinTime = sinon.stub().returns(12345);
+    var webrtcStub = new WebRtcStub();
+
     entities = new NetworkEntitiesStub();
 
-    network = new NetworkConnection(webrtcInterface, entities);
+    network = new NetworkConnection(webrtcStub, entities);
+  });
+
+  suite('connect', function() {
+
+    test('calls correct webrtc interface calls, without audio', function() {
+      network.connect('app1', 'room1', false);
+
+      assert.isTrue(network.webrtc.setStreamOptions.called);
+      assert.isTrue(network.webrtc.joinRoom.called);
+      assert.isTrue(network.webrtc.setDatachannelListeners.called);
+      assert.isTrue(network.webrtc.setLoginListeners.called);
+      assert.isTrue(network.webrtc.setRoomOccupantListener.called);
+      assert.isTrue(network.webrtc.connect.called);
+    });
   });
 
   suite('loginSuccess', function() {
@@ -36,6 +61,8 @@ suite('NetworkConnection', function() {
 
     test('setting room join time', function() {
       var id = 'testId';
+      network.webrtc.getRoomJoinTime = sinon.stub();
+      network.webrtc.getRoomJoinTime.returns(12345);
 
       network.loginSuccess(id);
 
@@ -59,6 +86,13 @@ suite('NetworkConnection', function() {
       network.loginSuccess(id);
 
       assert.isFalse(entities.createAvatar.called);
+    });
+  });
+
+  suite('loginFailure', function() {
+
+    test('runs', function() {
+      network.loginFailure(0, 'msg');
     });
   });
 
@@ -284,6 +318,61 @@ suite('NetworkConnection', function() {
 
       assert.isFalse(entities.updateEntity.called);
       assert.isTrue(entities.removeEntity.called);
+    });
+
+    test('unknown msg type', function() {
+      network.dataReceived('client', 'unknown', {testData:true});
+
+      assert.isFalse(entities.updateEntity.called);
+      assert.isFalse(entities.removeEntity.called);
+    });
+  });
+
+  suite('broadcastData', function() {
+    test('sends data to each client', function() {
+      var data = {things:true};
+      var clients = { 'c1': {}, 'c2': {}, 'c3': {} };
+      sinon.stub(network, 'sendData');
+      network.connectList = clients;
+
+      network.broadcastData('sync-entity', data);
+
+      assert.isTrue(network.sendData.calledWith('c1', 'sync-entity', data));
+      assert.isTrue(network.sendData.calledWith('c2', 'sync-entity', data));
+      assert.isTrue(network.sendData.calledWith('c3', 'sync-entity', data));
+    });
+
+    test('no connected clients', function() {
+      var data = {things:true};
+      sinon.spy(network, 'sendData');
+      network.broadcastData('sync-entity', data);
+
+      assert.isFalse(network.sendData.called);
+    });
+  });
+
+  suite('sendData', function() {
+
+    test('is connected', function() {
+      var clientId = 'client1';
+      var dataType = 'sync-entity';
+      var data = {};
+      sinon.stub(network, 'dcIsConnectedTo').returns(true);
+
+      network.sendData(clientId, dataType, data);
+
+      assert.isTrue(network.webrtc.sendDataP2P.calledWith(clientId, dataType, data));
+    });
+
+    test('not connected', function() {
+      var clientId = 'client1';
+      var dataType = 'sync-entity';
+      var data = {};
+      sinon.stub(network, 'dcIsConnectedTo').returns(false);
+
+      network.sendData(clientId, dataType, data);
+
+      assert.isFalse(network.webrtc.sendDataP2P.called);
     });
   });
 });
