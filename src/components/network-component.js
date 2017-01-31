@@ -28,7 +28,7 @@ AFRAME.registerComponent('network-component', {
         && this.data.owner == networkConnection.getClientId();
   },
 
-  sync: function() {
+  sync: function(value) {
     var entity = this.el;
     var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
     var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
@@ -44,12 +44,12 @@ AFRAME.registerComponent('network-component', {
     networkConnection.broadcastData('sync-entity', entityData);
   },
 
-  networkUpdate: function(newData) {
-    console.log('network update', newData);
+  networkUpdate: function(data) {
+    var entityData = data.detail.entityData;
     var oldData = this.data;
     var entity = this.el;
-    entity.setAttribute('position', newData.position);
-    entity.setAttribute('rotation', newData.rotation);
+    entity.setAttribute('position', entityData.position);
+    entity.setAttribute('rotation', entityData.rotation);
   },
 
   remove: function () {

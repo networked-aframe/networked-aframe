@@ -1,9 +1,8 @@
 /* global assert, process, setup, suite, test */
 var aframe = require('aframe');
 var helpers = require('./helpers');
-var nafUtil = require('../src/NafUtil.js');
-var networkConnection = {};
-var NetworkEntities = require('../src/NetworkEntities.js');
+var nafUtil = require('../../src/NafUtil.js');
+var NetworkEntities = require('../../src/NetworkEntities.js');
 
 suite('NetworkEntities', function() {
   var scene;

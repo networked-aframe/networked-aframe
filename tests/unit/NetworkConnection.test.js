@@ -1,7 +1,7 @@
 /* global assert, process, setup, suite, test */
-var NetworkConnection = require('../src/NetworkConnection.js');
-var WebRtcInterface = require('../src/webrtc_interfaces/WebRtcInterface.js');
-var NetworkEntities = require('../src/NetworkEntities.js');
+var NetworkConnection = require('../../src/NetworkConnection.js');
+var WebRtcInterface = require('../../src/webrtc_interfaces/WebRtcInterface.js');
+var NetworkEntities = require('../../src/NetworkEntities.js');
 
 suite('NetworkConnection', function() {
   var network;
@@ -18,6 +18,7 @@ suite('NetworkConnection', function() {
 
   setup(function() {
     var webrtcInterface = {};
+    webrtcInterface.getRoomJoinTime = sinon.stub().returns(12345);
     entities = new NetworkEntitiesStub();
 
     network = new NetworkConnection(webrtcInterface, entities);
@@ -25,12 +26,21 @@ suite('NetworkConnection', function() {
 
   suite('loginSuccess', function() {
 
-    test('setting network id', function() {
+    test('setting client id', function() {
       var id = 'testId';
 
       network.loginSuccess(id);
 
       assert.equal(id, network.getClientId());
+    });
+
+    test('setting room join time', function() {
+      var id = 'testId';
+
+      network.loginSuccess(id);
+
+      var result = network.myRoomJoinTime;
+      assert.equal(result, 12345);
     });
 
     test('with avatar', function() {

@@ -2,8 +2,8 @@
 var networkConnection = {};
 // var aframe = require('aframe');
 var helpers = require('./helpers');
-var nafUtil = require('../src/NafUtil.js');
-require('../src/components/network-component.js'); // Causing error with other tests
+var nafUtil = require('../../src/NafUtil.js');
+require('../../src/components/network-component.js'); // Causing error with other tests
 
 suite('network-component', function() {
   var scene;

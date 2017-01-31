@@ -9,7 +9,7 @@ class NetworkConnection {
     this.appId = '';
     this.roomId = '';
     this.myClientId = '';
-    this.myRoomJoinTime = 0; // TODO: get from server
+    this.myRoomJoinTime = 0;
     this.connectList = {};
     this.dcIsActive = {};
 
@@ -19,7 +19,7 @@ class NetworkConnection {
 
   /* Must be called before connect */
   enableDebugging(enable) {
-    // TODO update this to new interface
+    // TODO create logger
     this.debug = enable;
   }
 
@@ -54,8 +54,9 @@ class NetworkConnection {
   loginSuccess(clientId) {
     console.error('Networked-Aframe Client ID:', clientId);
     this.myClientId = clientId;
+    this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
     if (this.showAvatar) {
-      this.entities.createAvatar();
+      this.entities.createAvatar(clientId);
     }
   }
 
@@ -107,8 +108,8 @@ class NetworkConnection {
   }
 
   broadcastData(dataType, data) {
-    for (var clientId in this.connectList) {
-      this.sendData(clientId, dataType, data);
+    for (var id in this.connectList) {
+      this.sendData(id, dataType, data);
     }
   }
 
@@ -116,12 +117,11 @@ class NetworkConnection {
     if (this.dcIsConnectedTo(toClient)) {
       this.webrtc.sendDataP2P(toClient, dataType, data);
     } else {
-      // console.error("NOT-CONNECTED", "not connected to " + easyrtc.idToName(otherEasyrtcid));
+      // console.error("NOT-CONNECTED", "not connected to " + toClient);
     }
   }
 
   dataReceived(fromClient, dataType, data) {
-    // console.log('Data received', fromUser, dataType, data);
     if (dataType == 'sync-entity') {
       this.entities.updateEntity(data);
     } else if (dataType == 'remove-entity') {

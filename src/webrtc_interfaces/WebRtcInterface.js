@@ -31,7 +31,7 @@ class WebRtcInterface extends NafInterface {
   sendDataP2P(networkId, dataType, data) {this.notImplemented()}
 
   // Getters
-  getMyRoomJoinTime() {this.notImplemented()}
+  getRoomJoinTime(clientId) {this.notImplemented()}
   getConnectStatus(networkId) {this.notImplemented()}
 }
 

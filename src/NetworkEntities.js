@@ -8,7 +8,7 @@ class NetworkEntities {
 
   createNetworkEntity(clientId, template, position, rotation) {
     var networkId = this.createEntityId();
-    // console.error('Created network entity', networkId)
+    console.error('Created network entity', networkId);
     var entityData = {
       networkId: networkId,
       owner: clientId,
@@ -35,11 +35,11 @@ class NetworkEntities {
     return entity;
   }
 
-  createAvatar() {
+  createAvatar(owner) {
     var templateName = '#avatar';
     var template = document.querySelector('script' + templateName);
     if (template) {
-      var avatar = this.createNetworkEntity(templateName, '0 0 0', '0 0 0 0');
+      var avatar = this.createNetworkEntity(owner, templateName, '0 0 0', '0 0 0 0');
       avatar.setAttribute('hide-geometry', '');
       avatar.setAttribute('follow-camera', '');
       avatar.setAttribute('id', 'naf-avatar');

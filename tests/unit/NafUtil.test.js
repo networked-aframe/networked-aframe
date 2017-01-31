@@ -1,7 +1,7 @@
 /* global assert, process, setup, suite, test */
 var aframe = require('aframe');
-var helpers = require('./helpers');
-var nafUtil = require('../src/NafUtil.js');
+var helpers = require('./helpers.js');
+var nafUtil = require('../../src/NafUtil.js');
 
 suite('NafUtil', function() {
   var scene;

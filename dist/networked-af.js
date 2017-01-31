@@ -35,7 +35,7 @@ class NetworkConnection {
     this.appId = '';
     this.roomId = '';
     this.myClientId = '';
-    this.myRoomJoinTime = 0; // TODO: get from server
+    this.myRoomJoinTime = 0;
     this.connectList = {};
     this.dcIsActive = {};
 
@@ -45,7 +45,7 @@ class NetworkConnection {
 
   /* Must be called before connect */
   enableDebugging(enable) {
-    // TODO update this to new interface
+    // TODO create logger
     this.debug = enable;
   }
 
@@ -80,8 +80,9 @@ class NetworkConnection {
   loginSuccess(clientId) {
     console.error('Networked-Aframe Client ID:', clientId);
     this.myClientId = clientId;
+    this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
     if (this.showAvatar) {
-      this.entities.createAvatar();
+      this.entities.createAvatar(clientId);
     }
   }
 
@@ -133,8 +134,8 @@ class NetworkConnection {
   }
 
   broadcastData(dataType, data) {
-    for (var clientId in this.connectList) {
-      this.sendData(clientId, dataType, data);
+    for (var id in this.connectList) {
+      this.sendData(id, dataType, data);
     }
   }
 
@@ -142,12 +143,11 @@ class NetworkConnection {
     if (this.dcIsConnectedTo(toClient)) {
       this.webrtc.sendDataP2P(toClient, dataType, data);
     } else {
-      // console.error("NOT-CONNECTED", "not connected to " + easyrtc.idToName(otherEasyrtcid));
+      // console.error("NOT-CONNECTED", "not connected to " + toClient);
     }
   }
 
   dataReceived(fromClient, dataType, data) {
-    // console.log('Data received', fromUser, dataType, data);
     if (dataType == 'sync-entity') {
       this.entities.updateEntity(data);
     } else if (dataType == 'remove-entity') {
@@ -168,7 +168,7 @@ class NetworkEntities {
 
   createNetworkEntity(clientId, template, position, rotation) {
     var networkId = this.createEntityId();
-    // console.error('Created network entity', networkId)
+    console.error('Created network entity', networkId);
     var entityData = {
       networkId: networkId,
       owner: clientId,
@@ -195,11 +195,11 @@ class NetworkEntities {
     return entity;
   }
 
-  createAvatar() {
+  createAvatar(owner) {
     var templateName = '#avatar';
     var template = document.querySelector('script' + templateName);
     if (template) {
-      var avatar = this.createNetworkEntity(templateName, '0 0 0', '0 0 0 0');
+      var avatar = this.createNetworkEntity(owner, templateName, '0 0 0', '0 0 0 0');
       avatar.setAttribute('hide-geometry', '');
       avatar.setAttribute('follow-camera', '');
       avatar.setAttribute('id', 'naf-avatar');
@@ -338,7 +338,7 @@ AFRAME.registerComponent('network-component', {
         && this.data.owner == networkConnection.getClientId();
   },
 
-  sync: function() {
+  sync: function(value) {
     var entity = this.el;
     var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
     var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
@@ -354,12 +354,12 @@ AFRAME.registerComponent('network-component', {
     networkConnection.broadcastData('sync-entity', entityData);
   },
 
-  networkUpdate: function(newData) {
-    console.log('network update', newData);
+  networkUpdate: function(data) {
+    var entityData = data.detail.entityData;
     var oldData = this.data;
     var entity = this.el;
-    entity.setAttribute('position', newData.position);
-    entity.setAttribute('rotation', newData.rotation);
+    entity.setAttribute('position', entityData.position);
+    entity.setAttribute('rotation', entityData.rotation);
   },
 
   remove: function () {
@@ -435,7 +435,7 @@ _dereq_('./components/network-scene.js');
 _dereq_('./components/network-component.js');
 
 // Other components
-_dereq_('./components/follow-camera.js');
+_dereq_('./components/follow-camera.js')
 _dereq_('./components/hide-geometry.js');
 },{"./components/follow-camera.js":5,"./components/hide-geometry.js":6,"./components/network-component.js":7,"./components/network-scene.js":8}],10:[function(_dereq_,module,exports){
 var WebRtcInterface = _dereq_('./WebRtcInterface.js');
@@ -445,6 +445,7 @@ class EasyRtcInterface extends WebRtcInterface {
     super();
     this.easyrtc = easyrtc;
     this.easyrtc.setSocketUrl(signallingUrl);
+    this.roomId = '';
   }
 
   /*
@@ -452,6 +453,7 @@ class EasyRtcInterface extends WebRtcInterface {
    */
 
   joinRoom(roomId) {
+    this.roomId = roomId;
     this.easyrtc.joinRoom(roomId, null);
   }
 
@@ -544,9 +546,11 @@ class EasyRtcInterface extends WebRtcInterface {
    * Getters
    */
 
-  // getMyRoomJoinTime() {
-  //   // TODO
-  // }
+  getRoomJoinTime(clientId) {
+    var myRoomId = this.roomId;
+    var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
+    return joinTime;
+  }
 
   getConnectStatus(networkId) {
     var status = this.easyrtc.getConnectStatus(networkId);
@@ -596,7 +600,7 @@ class WebRtcInterface extends NafInterface {
   sendDataP2P(networkId, dataType, data) {this.notImplemented()}
 
   // Getters
-  getMyRoomJoinTime() {this.notImplemented()}
+  getRoomJoinTime(clientId) {this.notImplemented()}
   getConnectStatus(networkId) {this.notImplemented()}
 }
 

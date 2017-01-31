@@ -5,6 +5,7 @@ class EasyRtcInterface extends WebRtcInterface {
     super();
     this.easyrtc = easyrtc;
     this.easyrtc.setSocketUrl(signallingUrl);
+    this.roomId = '';
   }
 
   /*
@@ -12,6 +13,7 @@ class EasyRtcInterface extends WebRtcInterface {
    */
 
   joinRoom(roomId) {
+    this.roomId = roomId;
     this.easyrtc.joinRoom(roomId, null);
   }
 
@@ -104,9 +106,11 @@ class EasyRtcInterface extends WebRtcInterface {
    * Getters
    */
 
-  // getMyRoomJoinTime() {
-  //   // TODO
-  // }
+  getRoomJoinTime(clientId) {
+    var myRoomId = this.roomId;
+    var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
+    return joinTime;
+  }
 
   getConnectStatus(networkId) {
     var status = this.easyrtc.getConnectStatus(networkId);
