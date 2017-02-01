@@ -1,3 +1,5 @@
+var naf = require('../NafIndex.js');
+
 var NetworkConnection = require('../NetworkConnection.js');
 var NetworkEntities = require('../NetworkEntities.js');
 var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
@@ -43,14 +45,15 @@ AFRAME.registerComponent('network-scene', {
    * Connect to signalling server and begin connecting to other clients
    */
   connect: function () {
-    console.log('Connecting to NetworkConnection');
+    naf.globals.debug = this.data.debug;
+    naf.log.write('Networked-Aframe Connecting...');
+
     var easyrtcInterface = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
     var networkEntities = new NetworkEntities();
-    networkConnection = new NetworkConnection(easyrtcInterface, networkEntities);
+    var connection = new NetworkConnection(easyrtcInterface, networkEntities);
+    connection.enableAvatar(this.data.avatar);
+    connection.connect(this.data.appId, this.data.roomId, this.data.audio);
 
-    networkConnection.enableAvatar(this.data.avatar);
-    // networkConnection.enableDebugging(this.data.debug);
-
-    networkConnection.connect(this.data.appId, this.data.roomId, this.data.audio);
+    naf.connection = connection;
   }
 });

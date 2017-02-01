@@ -4,18 +4,10 @@ class WebRtcInterface extends NafInterface {
   constructor() {
     super();
 
-    // Connection properties
-    this.appId = '';
-    this.roomId = '';
-
     // Plumbing
     this.connectList = {};
     this.dcIsActive = {};
     this.networkEntities = {};
-
-    // Developer Options
-    this.magicEntities = true;
-    this.debug = false;
   }
 
   // Call before `connect`

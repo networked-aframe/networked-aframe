@@ -1,4 +1,4 @@
-var nafUtil = require('./NafUtil.js');
+var naf = require('./NafIndex.js');
 
 class NetworkEntities {
 
@@ -8,7 +8,7 @@ class NetworkEntities {
 
   createNetworkEntity(clientId, template, position, rotation) {
     var networkId = this.createEntityId();
-    console.error('Created network entity', networkId);
+    naf.log.write('Created network entity', networkId);
     var entityData = {
       networkId: networkId,
       owner: clientId,
@@ -17,7 +17,7 @@ class NetworkEntities {
       rotation: rotation,
     };
     var entity = this.createLocalEntity(entityData);
-    nafUtil.whenEntityLoaded(entity, function() {
+    naf.util.whenEntityLoaded(entity, function() {
       entity.emit('sync', null, false);
     });
     return entity;
@@ -45,7 +45,7 @@ class NetworkEntities {
       avatar.setAttribute('id', 'naf-avatar');
       return avatar;
     } else {
-      console.error('NetworkEntities@createAvatar: Could not find template with src="#avatar"');
+      naf.log.error('NetworkEntities@createAvatar: Could not find template with src="#avatar"');
       return null;
     }
   }
@@ -81,7 +81,7 @@ class NetworkEntities {
   removeEntitiesFromUser(user) {
     var entityList = [];
     for (var id in this.entities) {
-      var entityOwner = nafUtil.getNetworkOwner(this.entities[id]);
+      var entityOwner = naf.util.getNetworkOwner(this.entities[id]);
       if (entityOwner == user) {
         var entity = this.removeEntity(id);
         entityList.push(entity);

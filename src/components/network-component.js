@@ -24,8 +24,7 @@ AFRAME.registerComponent('network-component', {
   },
 
   isMine: function() {
-    return networkConnection
-        && this.data.owner == networkConnection.getClientId();
+    return naf && naf.connection.isMine(this.data.owner);
   },
 
   sync: function(value) {
@@ -41,7 +40,7 @@ AFRAME.registerComponent('network-component', {
       position: position,
       rotation: rotation
     };
-    networkConnection.broadcastData('sync-entity', entityData);
+    naf.connection.broadcastData('sync-entity', entityData);
   },
 
   networkUpdate: function(data) {
@@ -55,7 +54,7 @@ AFRAME.registerComponent('network-component', {
   remove: function () {
     if (this.isMine()) {
       var data = { networkId: this.data.networkId };
-      networkConnection.broadcastData('remove-entity', data);
+      naf.connection.broadcastData('remove-entity', data);
     }
   }
 });

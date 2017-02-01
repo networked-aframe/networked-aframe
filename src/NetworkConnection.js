@@ -1,3 +1,4 @@
+var naf = require('./NafIndex.js');
 var WebRtcInterface = require('./webrtc_interfaces/WebRtcInterface.js');
 
 class NetworkConnection {
@@ -6,38 +7,27 @@ class NetworkConnection {
     this.webrtc = webrtcInterface;
     this.entities = networkEntities;
 
-    this.appId = '';
-    this.roomId = '';
     this.myClientId = '';
     this.myRoomJoinTime = 0;
     this.connectList = {};
     this.dcIsActive = {};
 
     this.showAvatar = true;
-    this.debug = false;
-  }
-
-  /* Must be called before connect */
-  enableDebugging(enable) {
-    // TODO create logger
-    this.debug = enable;
   }
 
   enableAvatar(enable) {
     this.showAvatar = enable;
   }
-  /* ------------------------------ */
 
   connect(appId, roomId, enableAudio = false) {
-    this.appId = appId;
-    this.roomId = roomId;
+    naf.globals.appId = appId;
+    naf.globals.roomId = roomId;
 
     var streamOptions = {
       audio: enableAudio,
       datachannel: true
     };
     this.webrtc.setStreamOptions(streamOptions);
-    this.webrtc.joinRoom(roomId);
     this.webrtc.setDatachannelListeners(
         this.dcOpenListener.bind(this),
         this.dcCloseListener.bind(this),
@@ -48,11 +38,12 @@ class NetworkConnection {
         this.loginFailure.bind(this)
     );
     this.webrtc.setRoomOccupantListener(this.occupantsReceived.bind(this));
+    this.webrtc.joinRoom(roomId);
     this.webrtc.connect(appId);
   }
 
   loginSuccess(clientId) {
-    console.error('Networked-Aframe Client ID:', clientId);
+    naf.log.write('Networked-Aframe Client ID:', clientId);
     this.myClientId = clientId;
     this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
     if (this.showAvatar) {
@@ -61,12 +52,12 @@ class NetworkConnection {
   }
 
   loginFailure(errorCode, message) {
-    console.error(errorCode, "failure to login");
+    naf.log.error(errorCode, "failure to login");
   }
 
   occupantsReceived(roomName, occupantList, isPrimary) {
+    naf.log.write('Connected clients', occupantList);
     this.connectList = occupantList;
-    console.log('Connected clients', this.connectList);
     for (var id in this.connectList) {
       if (this.isNewClient(id) && this.myClientShouldStartConnection(id)) {
         this.webrtc.startStreamConnection(id);
@@ -74,8 +65,8 @@ class NetworkConnection {
     }
   }
 
-  getClientId() {
-    return this.myClientId;
+  isMine(id) {
+    return this.myClientId == id;
   }
 
   isNewClient(client) {
@@ -92,13 +83,13 @@ class NetworkConnection {
   }
 
   dcOpenListener(user) {
-    console.log('Opened data channel from ' + user);
+    naf.log.write('Opened data channel from ' + user);
     this.dcIsActive[user] = true;
     this.entities.syncAllEntities();
   }
 
   dcCloseListener(user) {
-    console.log('Closed data channel from ' + user);
+    naf.log.write('Closed data channel from ' + user);
     this.dcIsActive[user] = false;
     this.entities.removeEntitiesFromUser(user);
   }

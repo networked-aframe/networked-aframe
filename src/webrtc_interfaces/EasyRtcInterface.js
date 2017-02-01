@@ -1,3 +1,4 @@
+var naf = require('../NafIndex.js');
 var WebRtcInterface = require('./WebRtcInterface.js');
 
 class EasyRtcInterface extends WebRtcInterface {
@@ -5,7 +6,6 @@ class EasyRtcInterface extends WebRtcInterface {
     super();
     this.easyrtc = easyrtc;
     this.easyrtc.setSocketUrl(signallingUrl);
-    this.roomId = '';
   }
 
   /*
@@ -13,7 +13,6 @@ class EasyRtcInterface extends WebRtcInterface {
    */
 
   joinRoom(roomId) {
-    this.roomId = roomId;
     this.easyrtc.joinRoom(roomId, null);
   }
 
@@ -48,16 +47,14 @@ class EasyRtcInterface extends WebRtcInterface {
    */
 
   connect(appId) {
-    this.appId = appId;
-
     if (this.easyrtc.audioEnabled) {
-      this.connectWithAudio();
+      this.connectWithAudio(appId);
     } else {
       this.easyrtc.connect(appId, this.loginSuccess, this.loginFailure);
     }
   }
 
-  connectWithAudio() {
+  connectWithAudio(appId) {
     this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
       var audioEl = document.createElement("audio");
       audioEl.setAttribute('id', 'audio-' + easyrtcid);
@@ -73,7 +70,7 @@ class EasyRtcInterface extends WebRtcInterface {
     var that = this;
     this.easyrtc.initMediaSource(
       function(){
-        that.easyrtc.connect(that.appId, that.loginSuccess, that.loginFailure);
+        that.easyrtc.connect(appId, that.loginSuccess, that.loginFailure);
       },
       function(errorCode, errmesg){
         console.error(errorCode, errmesg);
@@ -85,7 +82,7 @@ class EasyRtcInterface extends WebRtcInterface {
     this.easyrtc.call(networkId,
       function(caller, media) {
         if (media === 'datachannel') {
-          console.log('Successfully started datachannel  to ' + caller);
+          naf.log.write('Successfully started datachannel  to ' + caller);
         }
       },
       function(errorCode, errorText) {
@@ -107,7 +104,7 @@ class EasyRtcInterface extends WebRtcInterface {
    */
 
   getRoomJoinTime(clientId) {
-    var myRoomId = this.roomId;
+    var myRoomId = naf.g.roomId;
     var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
     return joinTime;
   }

@@ -1,3 +1,4 @@
+
 module.exports.whenEntityLoaded = function(entity, callback) {
   if (entity.hasLoaded) { callback(); }
   entity.addEventListener('loaded', function () {

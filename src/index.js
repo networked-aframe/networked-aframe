@@ -1,5 +1,5 @@
-// Globals
-var networkConnection;
+// Global vars and functions
+require('./NafIndex.js');
 
 // Network components
 require('./components/network-scene.js');
