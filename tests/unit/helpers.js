@@ -21,6 +21,10 @@ module.exports.sceneFactory = function (opts) {
       assets.appendChild(el);
     });
   }
+  if (opts.entity) {
+    var entity = nafUtil.createHtmlNodeFromString(opts.entity);
+    scene.appendChild(entity);
+  };
 
   document.body.appendChild(scene);
   return scene;

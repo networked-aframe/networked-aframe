@@ -1,3 +1,5 @@
+var naf = require('../NafIndex.js');
+
 AFRAME.registerComponent('network-component', {
   schema: {
     networkId: {
@@ -24,23 +26,30 @@ AFRAME.registerComponent('network-component', {
   },
 
   isMine: function() {
-    return naf && naf.connection.isMine(this.data.owner);
+    return this.data && naf.connection.isMine(this.data.owner);
   },
 
-  sync: function(value) {
+  sync: function() {
     var entity = this.el;
     var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
     var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
-    var template = AFRAME.utils.entity.getComponentProperty(entity, 'template.src');
 
     var entityData = {
       networkId: this.data.networkId,
       owner: this.data.owner,
-      template: template,
       position: position,
       rotation: rotation
     };
+
+    if (this.hasTemplate()) {
+      var template = AFRAME.utils.entity.getComponentProperty(entity, 'template.src');
+      entityData.template = template;
+    }
     naf.connection.broadcastData('sync-entity', entityData);
+  },
+
+  hasTemplate: function() {
+    return this.el.hasAttribute('template');
   },
 
   networkUpdate: function(data) {

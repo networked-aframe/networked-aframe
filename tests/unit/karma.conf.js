@@ -10,7 +10,7 @@ var karma_conf = {
   browsers: [ 'Chrome', 'Firefox' ],
   client: {
     captureConsole: true,
-    mocha: {'ui': 'tdd'}
+    mocha: {'ui': 'tdd', timeout: 3000}
   },
   envPreprocessor: [
     'TEST_ENV'

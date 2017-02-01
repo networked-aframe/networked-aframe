@@ -40,7 +40,7 @@ class NetworkEntities {
     var template = document.querySelector('script' + templateName);
     if (template) {
       var avatar = this.createNetworkEntity(owner, templateName, '0 0 0', '0 0 0 0');
-      avatar.setAttribute('hide-geometry', '');
+      avatar.setAttribute('visible', false);
       avatar.setAttribute('follow-camera', '');
       avatar.setAttribute('id', 'naf-avatar');
       return avatar;

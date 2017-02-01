@@ -237,7 +237,7 @@ class NetworkEntities {
     var template = document.querySelector('script' + templateName);
     if (template) {
       var avatar = this.createNetworkEntity(owner, templateName, '0 0 0', '0 0 0 0');
-      avatar.setAttribute('hide-geometry', '');
+      avatar.setAttribute('visible', false);
       avatar.setAttribute('follow-camera', '');
       avatar.setAttribute('id', 'naf-avatar');
       return avatar;
@@ -325,6 +325,8 @@ AFRAME.registerComponent('hide-geometry', {
   init: function () {
     // TODO better way to call this function after template has been created
     // https://aframe.io/docs/0.4.0/core/entity.html#listening-for-child-elements-being-attached-and-detached
+
+    // TODO Just set visible to false??? after loaded
     this.delayFunction(this.removeGeometry, 100);
   },
 
@@ -345,6 +347,8 @@ AFRAME.registerComponent('hide-geometry', {
   }
 });
 },{}],10:[function(_dereq_,module,exports){
+var naf = _dereq_('../NafIndex.js');
+
 AFRAME.registerComponent('network-component', {
   schema: {
     networkId: {
@@ -371,23 +375,30 @@ AFRAME.registerComponent('network-component', {
   },
 
   isMine: function() {
-    return naf && naf.connection.isMine(this.data.owner);
+    return this.data && naf.connection.isMine(this.data.owner);
   },
 
-  sync: function(value) {
+  sync: function() {
     var entity = this.el;
     var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
     var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
-    var template = AFRAME.utils.entity.getComponentProperty(entity, 'template.src');
 
     var entityData = {
       networkId: this.data.networkId,
       owner: this.data.owner,
-      template: template,
       position: position,
       rotation: rotation
     };
+
+    if (this.hasTemplate()) {
+      var template = AFRAME.utils.entity.getComponentProperty(entity, 'template.src');
+      entityData.template = template;
+    }
     naf.connection.broadcastData('sync-entity', entityData);
+  },
+
+  hasTemplate: function() {
+    return this.el.hasAttribute('template');
   },
 
   networkUpdate: function(data) {
@@ -405,7 +416,7 @@ AFRAME.registerComponent('network-component', {
     }
   }
 });
-},{}],11:[function(_dereq_,module,exports){
+},{"../NafIndex.js":2}],11:[function(_dereq_,module,exports){
 var naf = _dereq_('../NafIndex.js');
 
 var NetworkConnection = _dereq_('../NetworkConnection.js');

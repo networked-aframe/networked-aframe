@@ -2,6 +2,7 @@
 var aframe = require('aframe');
 var helpers = require('./helpers');
 var nafUtil = require('../../src/NafUtil.js');
+var naf = require('../../src/NafIndex.js');
 var NetworkEntities = require('../../src/NetworkEntities.js');
 
 suite('NetworkEntities', function() {
@@ -31,6 +32,7 @@ suite('NetworkEntities', function() {
       rotation: '4 3 2 1'
     };
     initScene(done);
+    naf.connection.isMine = sinon.stub();
   });
 
   teardown(function() {
@@ -100,13 +102,14 @@ suite('NetworkEntities', function() {
         var template = entity.getAttribute('template');
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
-        var networkComponent = entity.getAttribute('network-component');
+        var netComp = entity.getAttribute('network-component');
 
         assert.isNotNull(entity);
         assert.equal(template, 'src:' + entityData.template);
         assert.equal(position, entityData.position);
         assert.equal(rotation, entityData.rotation);
-        assert.equal(networkComponent, 'owner:' + entityData.owner + ';networkId:' + entityData.networkId);
+        assert.equal(netComp.owner, entityData.owner);
+        assert.equal(netComp.networkId, entityData.networkId);
         done();
       });
     });
