@@ -13,7 +13,7 @@ suite('NafLogger', function() {
     test('debug on', sinon.test(function() {
       this.spy(console, 'log');
       var logger = new NafLogger();
-      logger.debug = true;
+      logger.setDebug(true);
 
       logger.write('test', 123, 456);
 
@@ -23,7 +23,7 @@ suite('NafLogger', function() {
     test('debug off', sinon.test(function() {
      this.spy(console, 'log');
       var logger = new NafLogger();
-      logger.debug = false;
+      logger.setDebug(false);
 
       logger.write('test', 123, 456);
 
@@ -36,7 +36,7 @@ suite('NafLogger', function() {
     test('debug on', sinon.test(function() {
       this.spy(console, 'error');
       var logger = new NafLogger();
-      logger.debug = true;
+      logger.setDebug(true);
 
       logger.error('test', 123, 456);
 
@@ -46,7 +46,7 @@ suite('NafLogger', function() {
     test('debug off', sinon.test(function() {
       this.spy(console, 'error');
       var logger = new NafLogger();
-      logger.debug = false;
+      logger.setDebug(false);
 
       logger.error('test', 123, 456);
 

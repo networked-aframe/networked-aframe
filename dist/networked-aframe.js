@@ -13,9 +13,9 @@ var NafLogger = _dereq_('./NafLogger.js');
 
 var naf = {};
 naf.globals = naf.g = globals;
-naf.util = util;
-naf.log = new NafLogger();
-naf.connection = {}; // Set in network-scene component
+naf.util = naf.u = util;
+naf.log = naf.l = new NafLogger();
+naf.connection = naf.c = {}; // Set in network-scene component
 
 window.naf = naf;
 module.exports = naf;
@@ -31,6 +31,10 @@ class NafLogger {
 
   constructor() {
     this.debug = false;
+  }
+
+  setDebug(debug) {
+    this.debug = debug;
   }
 
   write() {
@@ -128,7 +132,6 @@ class NetworkConnection {
   }
 
   occupantsReceived(roomName, occupantList, isPrimary) {
-    naf.log.write('Connected clients', occupantList);
     this.connectList = occupantList;
     for (var id in this.connectList) {
       if (this.isNewClient(id) && this.myClientShouldStartConnection(id)) {
@@ -137,7 +140,7 @@ class NetworkConnection {
     }
   }
 
-  isMine(id) {
+  isMineAndConnected(id) {
     return this.myClientId == id;
   }
 
@@ -214,9 +217,6 @@ class NetworkEntities {
       rotation: rotation,
     };
     var entity = this.createLocalEntity(entityData);
-    naf.util.whenEntityLoaded(entity, function() {
-      entity.emit('sync', null, false);
-    });
     return entity;
   }
 
@@ -333,6 +333,12 @@ AFRAME.registerComponent('network-component', {
     }
   },
 
+  init: function() {
+    if (this.isMine()) { // Will only succeed if object is created after connected
+      this.sync();
+    }
+  },
+
   update: function(oldData) {
     if (this.isMine()) {
       this.el.addEventListener('sync', this.sync.bind(this));
@@ -344,43 +350,51 @@ AFRAME.registerComponent('network-component', {
 
   tick: function() {
     if (this.isMine()) {
-      this.sync()
+      this.sync();
     }
   },
 
   isMine: function() {
-    return this.data && naf.connection.isMine(this.data.owner);
+    return this.data && naf.connection.isMineAndConnected(this.data.owner);
   },
 
   sync: function() {
-    var entity = this.el;
-    var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
-    var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
+    var el = this.el;
+    var position = AFRAME.utils.coordinates.stringify(el.getAttribute('position'));
+    var rotation = AFRAME.utils.coordinates.stringify(el.getAttribute('rotation'));
 
     var entityData = {
       networkId: this.data.networkId,
       owner: this.data.owner,
-      position: position,
-      rotation: rotation
+      components: this.getComponentsWithData()
     };
 
-    if (this.hasTemplate()) {
-      var template = AFRAME.utils.entity.getComponentProperty(entity, 'template.src');
-      entityData.template = template;
-    }
     naf.connection.broadcastData('sync-entity', entityData);
   },
 
-  hasTemplate: function() {
-    return this.el.hasAttribute('template');
+  getComponentsWithData: function() {
+    var comps = this.el.components;
+    var compsWithData = {};
+
+    for (var name in comps) {
+      if (comps.hasOwnProperty(name) && name != 'network-component') {
+        var component = comps[name];
+        compsWithData[name] = component.data;
+      }
+    }
+    return compsWithData;
   },
 
   networkUpdate: function(data) {
     var entityData = data.detail.entityData;
-    var oldData = this.data;
-    var entity = this.el;
-    entity.setAttribute('position', entityData.position);
-    entity.setAttribute('rotation', entityData.rotation);
+    var components = entityData.components;
+    var el = this.el;
+
+    for (var name in components) {
+      var compData = components[name];
+      console.log(name, compData);
+      el.setAttribute(name, compData);
+    }
   },
 
   remove: function () {
@@ -427,6 +441,7 @@ AFRAME.registerComponent('network-scene', {
       default: false
     }
   },
+
   init: function() {
     this.el.addEventListener('connect', this.connect.bind(this));
     if (this.data.connectOnLoad) {
@@ -438,16 +453,21 @@ AFRAME.registerComponent('network-scene', {
    * Connect to signalling server and begin connecting to other clients
    */
   connect: function () {
-    naf.globals.debug = this.data.debug;
+    if (this.el.is('calledConnect'))
+      return;
+
+    naf.log.setDebug(this.data.debug);
     naf.log.write('Networked-Aframe Connecting...');
 
-    var easyrtcInterface = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
-    var networkEntities = new NetworkEntities();
-    var connection = new NetworkConnection(easyrtcInterface, networkEntities);
+    // easyrtc.enableDebug(true);
+    var webrtc = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
+    var entities = new NetworkEntities();
+    var connection = new NetworkConnection(webrtc, entities);
     connection.enableAvatar(this.data.avatar);
     connection.connect(this.data.appId, this.data.roomId, this.data.audio);
 
-    naf.connection = connection;
+    this.el.addState('calledConnect', true);
+    naf.connection = naf.c = connection;
   }
 });
 },{"../NafIndex.js":2,"../NetworkConnection.js":6,"../NetworkEntities.js":7,"../webrtc_interfaces/EasyRtcInterface.js":12}],11:[function(_dereq_,module,exports){
@@ -546,7 +566,7 @@ class EasyRtcInterface extends WebRtcInterface {
     this.easyrtc.call(networkId,
       function(caller, media) {
         if (media === 'datachannel') {
-          naf.log.write('Successfully started datachannel  to ' + caller);
+          naf.log.write('Successfully started datachannel to ', caller);
         }
       },
       function(errorCode, errorText) {

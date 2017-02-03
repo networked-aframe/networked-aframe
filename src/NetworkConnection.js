@@ -56,7 +56,6 @@ class NetworkConnection {
   }
 
   occupantsReceived(roomName, occupantList, isPrimary) {
-    naf.log.write('Connected clients', occupantList);
     this.connectList = occupantList;
     for (var id in this.connectList) {
       if (this.isNewClient(id) && this.myClientShouldStartConnection(id)) {
@@ -65,7 +64,7 @@ class NetworkConnection {
     }
   }
 
-  isMine(id) {
+  isMineAndConnected(id) {
     return this.myClientId == id;
   }
 

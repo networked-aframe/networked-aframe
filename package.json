@@ -3,14 +3,15 @@
   "version": "0.0.1",
   "description": "A web framework for building networked A-Frame VR experiences.",
   "homepage": "",
-  "main": "dist/networked-af.js",
+  "main": "dist/networked-aframe.js",
   "scripts": {
     "browserify": "browserify src/index.js -o dist/networked-aframe.js -p browserify-derequire",
     "watchify": "watchify src/index.js -o dist/networked-aframe.js -p browserify-derequire -v",
     "easyrtc-server-init": "cd ./node_modules/easyrtc; npm install; cd ./server_example; npm install; cd ../../../",
     "easyrtc-server-run": "node ./node_modules/easyrtc/server_example/server.js",
     "unit-tests": "karma start ./tests/unit/karma.conf.js --browsers Chrome",
-    "system-tests": "./node_modules/.bin/wdio ./tests/system/wdio.conf.js"
+    "system-tests": "./node_modules/.bin/wdio ./tests/system/wdio.conf.js",
+    "dev": "npm run watchify & npm run easyrtc-server-run & python -m SimpleHTTPServer 8081"
   },
   "repository": "haydenjameslee/networked-aframe",
   "dependencies": {

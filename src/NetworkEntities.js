@@ -17,9 +17,6 @@ class NetworkEntities {
       rotation: rotation,
     };
     var entity = this.createLocalEntity(entityData);
-    naf.util.whenEntityLoaded(entity, function() {
-      entity.emit('sync', null, false);
-    });
     return entity;
   }
 

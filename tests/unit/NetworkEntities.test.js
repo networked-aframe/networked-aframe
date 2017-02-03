@@ -32,7 +32,7 @@ suite('NetworkEntities', function() {
       rotation: '4 3 2 1'
     };
     initScene(done);
-    naf.connection.isMine = sinon.stub();
+    naf.connection.isMineAndConnected = sinon.stub();
   });
 
   teardown(function() {
@@ -69,22 +69,6 @@ suite('NetworkEntities', function() {
 
       var entity = entities.createNetworkEntity(clientId, setupTemplate, setupPosition, setupRotation);
       assert.isOk(entity);
-    });
-
-    test('calls sync on new entity', function(done) {
-      var clientId = 'client';
-      var setupTemplate = 'template';
-      var setupPosition = '10 11 12';
-      var setupRotation = '14 15 16 17';
-
-      var entity = entities.createNetworkEntity(clientId, setupTemplate, setupPosition, setupRotation);
-      sinon.spy(entity, 'emit');
-
-      var checkCalled = function() {
-        assert.isTrue(entity.emit.calledWith('sync', null, false));
-        done();
-      }
-      setTimeout(checkCalled, 200);
     });
   });
 

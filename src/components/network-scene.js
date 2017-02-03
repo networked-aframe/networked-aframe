@@ -34,6 +34,7 @@ AFRAME.registerComponent('network-scene', {
       default: false
     }
   },
+
   init: function() {
     this.el.addEventListener('connect', this.connect.bind(this));
     if (this.data.connectOnLoad) {
@@ -45,15 +46,20 @@ AFRAME.registerComponent('network-scene', {
    * Connect to signalling server and begin connecting to other clients
    */
   connect: function () {
-    naf.globals.debug = this.data.debug;
+    if (this.el.is('calledConnect'))
+      return;
+
+    naf.log.setDebug(this.data.debug);
     naf.log.write('Networked-Aframe Connecting...');
 
-    var easyrtcInterface = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
-    var networkEntities = new NetworkEntities();
-    var connection = new NetworkConnection(easyrtcInterface, networkEntities);
+    // easyrtc.enableDebug(true);
+    var webrtc = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
+    var entities = new NetworkEntities();
+    var connection = new NetworkConnection(webrtc, entities);
     connection.enableAvatar(this.data.avatar);
     connection.connect(this.data.appId, this.data.roomId, this.data.audio);
 
-    naf.connection = connection;
+    this.el.addState('calledConnect', true);
+    naf.connection = naf.c = connection;
   }
 });

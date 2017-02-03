@@ -56,7 +56,7 @@ suite('NetworkConnection', function() {
 
       connection.loginSuccess(id);
 
-      assert.isTrue(connection.isMine(id));
+      assert.isTrue(connection.isMineAndConnected(id));
     });
 
     test('setting room join time', function() {
@@ -134,12 +134,12 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('isMine', function() {
+  suite('isMineAndConnected', function() {
     test('is my client id', function() {
       var testId = 'test1';
       connection.loginSuccess(testId);
 
-      var result = connection.isMine(testId);
+      var result = connection.isMineAndConnected(testId);
 
       assert.isTrue(result);
     });
@@ -148,7 +148,7 @@ suite('NetworkConnection', function() {
       var testId = 'test1';
       connection.loginSuccess(testId);
 
-      var result = connection.isMine('wrong');
+      var result = connection.isMineAndConnected('wrong');
 
       assert.isFalse(result);
     });

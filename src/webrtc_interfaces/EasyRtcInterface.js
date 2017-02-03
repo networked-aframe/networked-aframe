@@ -82,7 +82,7 @@ class EasyRtcInterface extends WebRtcInterface {
     this.easyrtc.call(networkId,
       function(caller, media) {
         if (media === 'datachannel') {
-          naf.log.write('Successfully started datachannel  to ' + caller);
+          naf.log.write('Successfully started datachannel to ', caller);
         }
       },
       function(errorCode, errorText) {

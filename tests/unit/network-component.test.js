@@ -12,7 +12,7 @@ suite('network-component', function() {
 
   function initScene(done) {
     var opts = {};
-    opts.entity = '<a-entity id="test-entity" network-component="networkId:network1;owner:owner1;" position="1 2 3" rotation="4 3 2 1" template="src:#template1;"></a-entity>';
+    opts.entity = '<a-entity id="test-entity" network-component="networkId:network1;owner:owner1;" position="1 2 3" rotation="4 3 2 1;"></a-entity>';
     scene = helpers.sceneFactory(opts);
     naf.util.whenEntityLoaded(scene, done);
   }
@@ -36,10 +36,32 @@ suite('network-component', function() {
     });
   });
 
+  suite('init', function() {
+    test('syncs when mine', sinon.test(function() {
+      naf.connection.isMineAndConnected = this.stub().returns(true);
+      this.stub(netComp, 'sync');
+
+      netComp.init();
+
+      assert.isTrue(netComp.sync.calledOnce);
+
+      naf.connection.isMineAndConnected = this.stub().returns(false);
+    }));
+
+    test('does not sync when not mine', sinon.test(function() {
+      naf.connection.isMineAndConnected = this.stub().returns(false);
+      this.stub(netComp, 'sync');
+
+      netComp.init();
+
+      assert.isFalse(netComp.sync.called);
+    }));
+  });
+
   suite('update', function() {
 
     test('adds event listeners when mine', sinon.test(function() {
-      naf.connection.isMine = this.stub().returns(true);
+      naf.connection.isMineAndConnected = this.stub().returns(true);
       naf.connection.broadcastData = this.stub();
       this.spy(entity, 'addEventListener');
       this.spy(entity, 'removeEventListener');
@@ -53,7 +75,7 @@ suite('network-component', function() {
     }));
 
     test('adds&removes event listeners when not mine', sinon.test(function() {
-      naf.connection.isMine = this.stub().returns(false);
+      naf.connection.isMineAndConnected = this.stub().returns(false);
       naf.connection.broadcastData = this.stub();
       this.spy(entity, 'addEventListener');
       this.spy(entity, 'removeEventListener');
@@ -70,16 +92,18 @@ suite('network-component', function() {
   suite('tick', function() {
 
     test('syncs when mine', sinon.test(function() {
-      naf.connection.isMine = this.stub().returns(true);
+      naf.connection.isMineAndConnected = this.stub().returns(true);
       this.stub(netComp, 'sync');
 
       netComp.tick();
 
       assert.isTrue(netComp.sync.calledOnce);
+
+      naf.connection.isMineAndConnected = this.stub().returns(false);
     }));
 
     test('does not sync when not mine', sinon.test(function() {
-      naf.connection.isMine = this.stub().returns(false);
+      naf.connection.isMineAndConnected = this.stub().returns(false);
       this.stub(netComp, 'sync');
 
       netComp.tick();
@@ -91,15 +115,15 @@ suite('network-component', function() {
   suite('isMine', function() {
 
     test('calls naf.connection.isMine', sinon.test(function() {
-      naf.connection.isMine = this.stub();
+      naf.connection.isMineAndConnected = this.stub();
 
       netComp.isMine();
 
-      assert.isTrue(naf.connection.isMine.calledWith('owner1'));
+      assert.isTrue(naf.connection.isMineAndConnected.calledWith('owner1'));
     }));
 
     test('true when owner is mine', sinon.test(function() {
-      naf.connection.isMine = this.stub().returns(true);
+      naf.connection.isMineAndConnected = this.stub().returns(true);
 
       var result = netComp.isMine();
 
@@ -107,7 +131,7 @@ suite('network-component', function() {
     }));
 
     test('false when owner is not mine', sinon.test(function() {
-      naf.connection.isMine = this.stub().returns(false);
+      naf.connection.isMineAndConnected = this.stub().returns(false);
 
       var result = netComp.isMine();
 
@@ -117,39 +141,24 @@ suite('network-component', function() {
 
   suite('sync', function() {
 
-    test('no template', sinon.test(function() {
+    test('full sync', sinon.test(function() {
       naf.connection.broadcastData = this.stub();
-      this.stub(netComp, 'hasTemplate').returns(false);
       var entityData = {
         networkId: 'network1',
         owner: 'owner1',
-        position: '1 2 3',
-        rotation: '4 3 2 1'
+        components: {
+          position: { x: 1, y: 2, z: 3 },
+          rotation: { x: 4, y: 3, z: 2, w: 1 },
+          scale: { x: 1, y: 1, z: 1 },
+          visible: true
+        }
       };
 
       netComp.sync();
 
-      assert.isTrue(naf.connection.broadcastData.calledWith('sync-entity', entityData));
+      var called = naf.connection.broadcastData.calledWith('sync-entity', entityData);
+      assert.isTrue(called);
     }));
-
-    // test('with template', function(done) {
-    //   var doFun = function() {
-    //     naf.connection.broadcastData = sinon.stub();
-    //     var entityData = {
-    //       networkId: 'network1',
-    //       owner: 'owner1',
-    //       position: '1 2 3',
-    //       rotation: '4 3 2 1',
-    //       template: '#template1'
-    //     };
-
-    //     netComp.sync();
-
-    //     assert.isTrue(naf.connection.broadcastData.calledWith('sync-entity', entityData));
-    //     done();
-    //   }
-    //   setTimeout(doFun, 1000);
-    // });
   });
 
   suite('networkUpdate', function() {
@@ -158,20 +167,31 @@ suite('network-component', function() {
       var entityData = {
         networkId: 'network1',
         owner: 'owner1',
-        position: '10 20 30',
-        rotation: '40 30 20 10'
-      };
+        components: {
+          position: { x: 10, y: 20, z: 30 },
+          rotation: { x: 40, y: 30, z: 20, w: 10 },
+          scale: { x: 5, y: 12, z: 1 },
+          visible: false
+        }
+      }
 
       netComp.networkUpdate({ detail: { entityData } });
 
-      assert.equal(entity.components['position'].data.x, 10);
-      assert.equal(entity.components['position'].data.y, 20);
-      assert.equal(entity.components['position'].data.z, 30);
+      var components = entity.components;
+      assert.equal(components['position'].data.x, 10, 'Position');
+      assert.equal(components['position'].data.y, 20, 'Position');
+      assert.equal(components['position'].data.z, 30, 'Position');
 
-      assert.equal(entity.components['rotation'].data.x, 40);
-      assert.equal(entity.components['rotation'].data.y, 30);
-      assert.equal(entity.components['rotation'].data.z, 20);
-      assert.equal(entity.components['rotation'].data.w, 10);
+      assert.equal(components['rotation'].data.x, 40, 'Rotation');
+      assert.equal(components['rotation'].data.y, 30, 'Rotation');
+      assert.equal(components['rotation'].data.z, 20, 'Rotation');
+      assert.equal(components['rotation'].data.w, 10, 'Rotation');
+
+      assert.equal(components['scale'].data.x, 5, 'Scale');
+      assert.equal(components['scale'].data.y, 12, 'Scale');
+      assert.equal(components['scale'].data.z, 1, 'Scale');
+
+      assert.equal(components['visible'].data, false, 'Visible');
     }));
   });
 
@@ -179,7 +199,7 @@ suite('network-component', function() {
 
     test('when mine broadcasts removal', sinon.test(function() {
       naf.connection.broadcastData = this.stub();
-      naf.connection.isMine = this.stub().returns(true);
+      naf.connection.isMineAndConnected = this.stub().returns(true);
 
       netComp.remove();
 
@@ -189,7 +209,7 @@ suite('network-component', function() {
 
     test('when not mine does not broadcast removal', sinon.test(function() {
       naf.connection.broadcastData = this.stub();
-      naf.connection.isMine = this.stub().returns(false);
+      naf.connection.isMineAndConnected = this.stub().returns(false);
 
       netComp.remove();
 
