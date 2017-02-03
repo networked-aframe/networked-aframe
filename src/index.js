@@ -7,4 +7,3 @@ require('./components/network-component.js');
 
 // Other components
 require('./components/follow-camera.js')
-require('./components/hide-geometry.js');

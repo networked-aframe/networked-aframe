@@ -194,7 +194,7 @@ class NetworkConnection {
 }
 
 module.exports = NetworkConnection;
-},{"./NafIndex.js":2,"./webrtc_interfaces/WebRtcInterface.js":14}],7:[function(_dereq_,module,exports){
+},{"./NafIndex.js":2,"./webrtc_interfaces/WebRtcInterface.js":13}],7:[function(_dereq_,module,exports){
 var naf = _dereq_('./NafIndex.js');
 
 class NetworkEntities {
@@ -321,32 +321,6 @@ AFRAME.registerComponent('follow-camera', {
   }
 });
 },{}],9:[function(_dereq_,module,exports){
-AFRAME.registerComponent('hide-geometry', {
-  init: function () {
-    // TODO better way to call this function after template has been created
-    // https://aframe.io/docs/0.4.0/core/entity.html#listening-for-child-elements-being-attached-and-detached
-
-    // TODO Just set visible to false??? after loaded
-    this.delayFunction(this.removeGeometry, 100);
-  },
-
-  delayFunction: function(fun, time) {
-    setTimeout(fun.bind(this), time);
-  },
-
-  removeGeometry: function() {
-    var rootEntity = this.el;
-    rootEntity.removeAttribute('geometry');
-    var entities = rootEntity.querySelectorAll('[geometry]');
-    for (var i in entities) {
-      if (entities.hasOwnProperty(i)) {
-        var childEntity = entities[i];
-        childEntity.removeAttribute('geometry');
-      }
-    }
-  }
-});
-},{}],10:[function(_dereq_,module,exports){
 var naf = _dereq_('../NafIndex.js');
 
 AFRAME.registerComponent('network-component', {
@@ -416,7 +390,7 @@ AFRAME.registerComponent('network-component', {
     }
   }
 });
-},{"../NafIndex.js":2}],11:[function(_dereq_,module,exports){
+},{"../NafIndex.js":2}],10:[function(_dereq_,module,exports){
 var naf = _dereq_('../NafIndex.js');
 
 var NetworkConnection = _dereq_('../NetworkConnection.js');
@@ -476,7 +450,7 @@ AFRAME.registerComponent('network-scene', {
     naf.connection = connection;
   }
 });
-},{"../NafIndex.js":2,"../NetworkConnection.js":6,"../NetworkEntities.js":7,"../webrtc_interfaces/EasyRtcInterface.js":13}],12:[function(_dereq_,module,exports){
+},{"../NafIndex.js":2,"../NetworkConnection.js":6,"../NetworkEntities.js":7,"../webrtc_interfaces/EasyRtcInterface.js":12}],11:[function(_dereq_,module,exports){
 // Global vars and functions
 _dereq_('./NafIndex.js');
 
@@ -486,8 +460,8 @@ _dereq_('./components/network-component.js');
 
 // Other components
 _dereq_('./components/follow-camera.js')
-_dereq_('./components/hide-geometry.js');
-},{"./NafIndex.js":2,"./components/follow-camera.js":8,"./components/hide-geometry.js":9,"./components/network-component.js":10,"./components/network-scene.js":11}],13:[function(_dereq_,module,exports){
+
+},{"./NafIndex.js":2,"./components/follow-camera.js":8,"./components/network-component.js":9,"./components/network-scene.js":10}],12:[function(_dereq_,module,exports){
 var naf = _dereq_('../NafIndex.js');
 var WebRtcInterface = _dereq_('./WebRtcInterface.js');
 
@@ -613,7 +587,7 @@ class EasyRtcInterface extends WebRtcInterface {
 }
 
 module.exports = EasyRtcInterface;
-},{"../NafIndex.js":2,"./WebRtcInterface.js":14}],14:[function(_dereq_,module,exports){
+},{"../NafIndex.js":2,"./WebRtcInterface.js":13}],13:[function(_dereq_,module,exports){
 var NafInterface = _dereq_('../NafInterface.js');
 
 class WebRtcInterface extends NafInterface {
@@ -648,4 +622,4 @@ WebRtcInterface.CONNECTING = 'CONNECTING';
 WebRtcInterface.NOT_CONNECTED = 'NOT_CONNECTED';
 
 module.exports = WebRtcInterface;
-},{"../NafInterface.js":3}]},{},[12]);
+},{"../NafInterface.js":3}]},{},[11]);
