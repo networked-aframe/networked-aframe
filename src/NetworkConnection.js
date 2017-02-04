@@ -85,7 +85,7 @@ class NetworkConnection {
   dcOpenListener(user) {
     naf.log.write('Opened data channel from ' + user);
     this.dcIsActive[user] = true;
-    this.entities.syncAllEntities();
+    this.entities.completeSync();
   }
 
   dcCloseListener(user) {
@@ -98,18 +98,30 @@ class NetworkConnection {
     return this.dcIsActive.hasOwnProperty(user) && this.dcIsActive[user];
   }
 
-  broadcastData(dataType, data) {
+  broadcastData(dataType, data, guaranteed) {
     for (var id in this.connectList) {
-      this.sendData(id, dataType, data);
+      this.sendData(id, dataType, data, guaranteed);
     }
   }
 
-  sendData(toClient, dataType, data) {
+  broadcastDataGuaranteed(dataType, data) {
+    this.broadcastData(dataType, data, true);
+  }
+
+  sendData(toClient, dataType, data, guaranteed) {
     if (this.dcIsConnectedTo(toClient)) {
-      this.webrtc.sendDataP2P(toClient, dataType, data);
+      if (guaranteed) {
+        this.webrtc.sendDataGuaranteed(toClient, dataType, data);
+      } else {
+        this.webrtc.sendDataP2P(toClient, dataType, data);
+      }
     } else {
       // console.error("NOT-CONNECTED", "not connected to " + toClient);
     }
+  }
+
+  sendDataGuaranteed(toClient, dataType, data) {
+    this.sendData(toClient, dataType, data, true);
   }
 
   dataReceived(fromClient, dataType, data) {

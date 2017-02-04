@@ -1,14 +1,142 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+var pSlice = Array.prototype.slice;
+var objectKeys = _dereq_('./lib/keys.js');
+var isArguments = _dereq_('./lib/is_arguments.js');
+
+var deepEqual = module.exports = function (actual, expected, opts) {
+  if (!opts) opts = {};
+  // 7.1. All identical values are equivalent, as determined by ===.
+  if (actual === expected) {
+    return true;
+
+  } else if (actual instanceof Date && expected instanceof Date) {
+    return actual.getTime() === expected.getTime();
+
+  // 7.3. Other pairs that do not both pass typeof value == 'object',
+  // equivalence is determined by ==.
+  } else if (!actual || !expected || typeof actual != 'object' && typeof expected != 'object') {
+    return opts.strict ? actual === expected : actual == expected;
+
+  // 7.4. For all other Object pairs, including Array objects, equivalence is
+  // determined by having the same number of owned properties (as verified
+  // with Object.prototype.hasOwnProperty.call), the same set of keys
+  // (although not necessarily the same order), equivalent values for every
+  // corresponding key, and an identical 'prototype' property. Note: this
+  // accounts for both named and indexed properties on Arrays.
+  } else {
+    return objEquiv(actual, expected, opts);
+  }
+}
+
+function isUndefinedOrNull(value) {
+  return value === null || value === undefined;
+}
+
+function isBuffer (x) {
+  if (!x || typeof x !== 'object' || typeof x.length !== 'number') return false;
+  if (typeof x.copy !== 'function' || typeof x.slice !== 'function') {
+    return false;
+  }
+  if (x.length > 0 && typeof x[0] !== 'number') return false;
+  return true;
+}
+
+function objEquiv(a, b, opts) {
+  var i, key;
+  if (isUndefinedOrNull(a) || isUndefinedOrNull(b))
+    return false;
+  // an identical 'prototype' property.
+  if (a.prototype !== b.prototype) return false;
+  //~~~I've managed to break Object.keys through screwy arguments passing.
+  //   Converting to array solves the problem.
+  if (isArguments(a)) {
+    if (!isArguments(b)) {
+      return false;
+    }
+    a = pSlice.call(a);
+    b = pSlice.call(b);
+    return deepEqual(a, b, opts);
+  }
+  if (isBuffer(a)) {
+    if (!isBuffer(b)) {
+      return false;
+    }
+    if (a.length !== b.length) return false;
+    for (i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }
+  try {
+    var ka = objectKeys(a),
+        kb = objectKeys(b);
+  } catch (e) {//happens when one is a string literal and the other isn't
+    return false;
+  }
+  // having the same number of owned properties (keys incorporates
+  // hasOwnProperty)
+  if (ka.length != kb.length)
+    return false;
+  //the same set of keys (although not necessarily the same order),
+  ka.sort();
+  kb.sort();
+  //~~~cheap key test
+  for (i = ka.length - 1; i >= 0; i--) {
+    if (ka[i] != kb[i])
+      return false;
+  }
+  //equivalent values for every corresponding key, and
+  //~~~possibly expensive deep test
+  for (i = ka.length - 1; i >= 0; i--) {
+    key = ka[i];
+    if (!deepEqual(a[key], b[key], opts)) return false;
+  }
+  return typeof a === typeof b;
+}
+
+},{"./lib/is_arguments.js":2,"./lib/keys.js":3}],2:[function(_dereq_,module,exports){
+var supportsArgumentsClass = (function(){
+  return Object.prototype.toString.call(arguments)
+})() == '[object Arguments]';
+
+exports = module.exports = supportsArgumentsClass ? supported : unsupported;
+
+exports.supported = supported;
+function supported(object) {
+  return Object.prototype.toString.call(object) == '[object Arguments]';
+};
+
+exports.unsupported = unsupported;
+function unsupported(object){
+  return object &&
+    typeof object == 'object' &&
+    typeof object.length == 'number' &&
+    Object.prototype.hasOwnProperty.call(object, 'callee') &&
+    !Object.prototype.propertyIsEnumerable.call(object, 'callee') ||
+    false;
+};
+
+},{}],3:[function(_dereq_,module,exports){
+exports = module.exports = typeof Object.keys === 'function'
+  ? Object.keys : shim;
+
+exports.shim = shim;
+function shim (obj) {
+  var keys = [];
+  for (var key in obj) keys.push(key);
+  return keys;
+}
+
+},{}],4:[function(_dereq_,module,exports){
 var globals = {
   appId: '',
   roomId: '',
   debug: false,
-  updateRate: 15, // How often the network components call `sync`
-  compressPackets: true // Compress the synced packets of network components
+  updateRate: 15 // How often the network components call `sync`
 };
 
 module.exports = globals;
-},{}],2:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 var globals = _dereq_('./NafGlobals.js');
 var util = _dereq_('./NafUtil.js');
 var NafLogger = _dereq_('./NafLogger.js');
@@ -21,14 +149,14 @@ naf.connection = naf.c = {}; // Set in network-scene component
 
 window.naf = naf;
 module.exports = naf;
-},{"./NafGlobals.js":1,"./NafLogger.js":4,"./NafUtil.js":5}],3:[function(_dereq_,module,exports){
+},{"./NafGlobals.js":4,"./NafLogger.js":7,"./NafUtil.js":8}],6:[function(_dereq_,module,exports){
 class NafInterface {
   notImplemented() {
     console.error('Interface method not implemented.');
   }
 }
 module.exports = NafInterface;
-},{}],4:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 class NafLogger {
 
   constructor() {
@@ -53,7 +181,7 @@ class NafLogger {
 }
 
 module.exports = NafLogger;
-},{}],5:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 
 module.exports.whenEntityLoaded = function(entity, callback) {
   if (entity.hasLoaded) { callback(); }
@@ -79,7 +207,7 @@ module.exports.getNetworkOwner = function(entity) {
 module.exports.now = function() {
   return Date.now();
 };
-},{}],6:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 var naf = _dereq_('./NafIndex.js');
 var WebRtcInterface = _dereq_('./webrtc_interfaces/WebRtcInterface.js');
 
@@ -167,7 +295,7 @@ class NetworkConnection {
   dcOpenListener(user) {
     naf.log.write('Opened data channel from ' + user);
     this.dcIsActive[user] = true;
-    this.entities.syncAllEntities();
+    this.entities.completeSync();
   }
 
   dcCloseListener(user) {
@@ -180,18 +308,30 @@ class NetworkConnection {
     return this.dcIsActive.hasOwnProperty(user) && this.dcIsActive[user];
   }
 
-  broadcastData(dataType, data) {
+  broadcastData(dataType, data, guaranteed) {
     for (var id in this.connectList) {
-      this.sendData(id, dataType, data);
+      this.sendData(id, dataType, data, guaranteed);
     }
   }
 
-  sendData(toClient, dataType, data) {
+  broadcastDataGuaranteed(dataType, data) {
+    this.broadcastData(dataType, data, true);
+  }
+
+  sendData(toClient, dataType, data, guaranteed) {
     if (this.dcIsConnectedTo(toClient)) {
-      this.webrtc.sendDataP2P(toClient, dataType, data);
+      if (guaranteed) {
+        this.webrtc.sendDataGuaranteed(toClient, dataType, data);
+      } else {
+        this.webrtc.sendDataP2P(toClient, dataType, data);
+      }
     } else {
       // console.error("NOT-CONNECTED", "not connected to " + toClient);
     }
+  }
+
+  sendDataGuaranteed(toClient, dataType, data) {
+    this.sendData(toClient, dataType, data, true);
   }
 
   dataReceived(fromClient, dataType, data) {
@@ -204,7 +344,7 @@ class NetworkConnection {
 }
 
 module.exports = NetworkConnection;
-},{"./NafIndex.js":2,"./webrtc_interfaces/WebRtcInterface.js":13}],7:[function(_dereq_,module,exports){
+},{"./NafIndex.js":5,"./webrtc_interfaces/WebRtcInterface.js":16}],10:[function(_dereq_,module,exports){
 var naf = _dereq_('./NafIndex.js');
 
 class NetworkEntities {
@@ -263,10 +403,10 @@ class NetworkEntities {
     }
   }
 
-  syncAllEntities() {
+  completeSync() {
     for (var id in this.entities) {
       if (this.entities.hasOwnProperty(id)) {
-        this.entities[id].emit('sync', null, false);
+        this.entities[id].emit('syncAll', null, false);
       }
     }
   }
@@ -311,7 +451,7 @@ class NetworkEntities {
 }
 
 module.exports = NetworkEntities;
-},{"./NafIndex.js":2}],8:[function(_dereq_,module,exports){
+},{"./NafIndex.js":5}],11:[function(_dereq_,module,exports){
 AFRAME.registerComponent('follow-camera', {
   camera: {},
 
@@ -327,46 +467,46 @@ AFRAME.registerComponent('follow-camera', {
     this.el.setAttribute('rotation', rotation);
   }
 });
-},{}],9:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 var naf = _dereq_('../NafIndex.js');
+var deepEqual = _dereq_('deep-equal');
 
 AFRAME.registerComponent('network', {
   schema: {
-    networkId: {
-      type: 'string'
-    },
-    owner: {
-      type: 'string'
-    },
-    components: {
-      type: 'array',
-      default: ['position', 'rotation', 'scale']
-    },
+    networkId: {type: 'string'},
+    owner: {type: 'string'},
+    components: {default:['position', 'rotation', 'scale']},
 
     /* Private fields */
-    nextSyncTime: {
-      type: 'number'
-    }
+    nextSyncTime: {type: 'number'},
+    cachedData: {default: [],
+                parse: function(value) { return value }}
   },
 
   init: function() {
     if (this.isMine()) {
-      this.sync();
+      this.syncAll();
     }
   },
 
   update: function(oldData) {
+    this.bindEvents();
+  },
+
+  bindEvents: function() {
     if (this.isMine()) {
-      this.el.addEventListener('sync', this.sync.bind(this));
+      this.el.addEventListener('sync', this.syncDirty.bind(this));
+      this.el.addEventListener('syncAll', this.syncAll.bind(this));
     } else {
-      this.el.removeEventListener('sync', this.sync);
+      this.el.removeEventListener('sync', this.syncDirty);
+      this.el.removeEventListener('syncAll', this.syncAll);
     }
     this.el.addEventListener('networkUpdate', this.networkUpdate.bind(this));
   },
 
   tick: function() {
     if (this.isMine() && this.needsToSync()) {
-      this.sync();
+      this.syncDirty();
     }
   },
 
@@ -376,20 +516,59 @@ AFRAME.registerComponent('network', {
 
   // Will only succeed if object is created after connected
   isMine: function() {
-    return this.data && naf.connection.isMineAndConnected(this.data.owner);
+    return this.hasOwnProperty('data')
+        && naf.connection.isMineAndConnected(this.data.owner);
   },
 
-  sync: function() {
-    var data = this.getSyncData();
-    naf.connection.broadcastData('sync-entity', data);
+  syncAll: function() {
+    var components = this.getComponentsData(this.data.components);
+    var syncData = this.createSyncData(components);
+    naf.connection.broadcastDataGuaranteed('sync-entity', syncData);
+    this.updateCache(components);
     this.updateNextSyncTime();
+    this.data.cachedComponentData = components;
   },
 
-  getSyncData: function() {
+  syncDirty: function() {
+    this.updateNextSyncTime();
+    var dirtyComps = this.getDirtyComponents();
+    if (dirtyComps.length == 0) {
+      return;
+    }
+    var components = this.getComponentsData(dirtyComps);
+    var syncData = this.createSyncData(components);
+    naf.connection.broadcastData('sync-entity', syncData);
+    this.updateCache(components);
+  },
+
+  getDirtyComponents: function() {
+    var newComps = this.el.components;
+    var syncedComps = this.data.components;
+    var dirtyComps = [];
+
+    for (var i in syncedComps) {
+      var name = syncedComps[i];
+      if (!newComps.hasOwnProperty(name)) {
+        continue;
+      }
+      if (!this.data.cachedData.hasOwnProperty(name)) {
+        dirtyComps.push(name);
+        continue;
+      }
+      var oldCompData = this.data.cachedData[name];
+      var newCompData = newComps[name].data;
+      if (!deepEqual(oldCompData, newCompData)) {
+        dirtyComps.push(name);
+      }
+    }
+    return dirtyComps;
+  },
+
+  createSyncData: function(components) {
     var entityData = {
       networkId: this.data.networkId,
       owner: this.data.owner,
-      components: this.getSyncableComponents()
+      components: components
     };
     if (this.hasTemplate()) {
       entityData.template = this.el.components.template.data.src;
@@ -397,19 +576,24 @@ AFRAME.registerComponent('network', {
     return entityData;
   },
 
-  getSyncableComponents: function() {
-    var syncables = this.data.components;
-    var components = this.el.components;
+  getComponentsData: function(components) {
+    var elComponents = this.el.components;
     var compsWithData = {};
 
-    for (var i in syncables) {
-      var name = syncables[i];
-      if (components.hasOwnProperty(name)) {
-        var component = components[name];
+    for (var i in components) {
+      var name = components[i];
+      if (elComponents.hasOwnProperty(name)) {
+        var component = elComponents[name];
         compsWithData[name] = component.data;
       }
     }
     return compsWithData;
+  },
+
+  updateCache: function(components) {
+    for (var name in components) {
+      this.data.cachedData[name] = components[name];
+    }
   },
 
   hasTemplate: function() {
@@ -448,7 +632,7 @@ AFRAME.registerComponent('network', {
     }
   }
 });
-},{"../NafIndex.js":2}],10:[function(_dereq_,module,exports){
+},{"../NafIndex.js":5,"deep-equal":1}],13:[function(_dereq_,module,exports){
 var naf = _dereq_('../NafIndex.js');
 
 var NetworkConnection = _dereq_('../NetworkConnection.js');
@@ -457,33 +641,13 @@ var EasyRtcInterface = _dereq_('../webrtc_interfaces/EasyRtcInterface.js');
 
 AFRAME.registerComponent('network-scene', {
   schema: {
-    appId: {
-      type: 'string',
-      default: 'default'
-    },
-    roomId: {
-      type: 'string',
-      default: 'default'
-    },
-    connectOnLoad: {
-      type: 'boolean',
-      default: true
-    },
-    signallingUrl: {
-      type: 'string'
-    },
-    audio: {
-      type: 'boolean',
-      default: false
-    },
-    avatar: {
-      type: 'boolean',
-      default: true
-    },
-    debug: {
-      type: 'boolean',
-      default: false
-    }
+    appId: {default: 'default'},
+    roomId: {default: 'default'},
+    connectOnLoad: {default: true},
+    signallingUrl: {type: 'string'},
+    audio: {default: false},
+    avatar: {default: true},
+    debug: {default: false}
   },
 
   init: function() {
@@ -514,7 +678,7 @@ AFRAME.registerComponent('network-scene', {
     naf.connection = naf.c = connection;
   }
 });
-},{"../NafIndex.js":2,"../NetworkConnection.js":6,"../NetworkEntities.js":7,"../webrtc_interfaces/EasyRtcInterface.js":12}],11:[function(_dereq_,module,exports){
+},{"../NafIndex.js":5,"../NetworkConnection.js":9,"../NetworkEntities.js":10,"../webrtc_interfaces/EasyRtcInterface.js":15}],14:[function(_dereq_,module,exports){
 // Global vars and functions
 _dereq_('./NafIndex.js');
 
@@ -525,7 +689,7 @@ _dereq_('./components/network-component.js');
 // Other components
 _dereq_('./components/follow-camera.js')
 
-},{"./NafIndex.js":2,"./components/follow-camera.js":8,"./components/network-component.js":9,"./components/network-scene.js":10}],12:[function(_dereq_,module,exports){
+},{"./NafIndex.js":5,"./components/follow-camera.js":11,"./components/network-component.js":12,"./components/network-scene.js":13}],15:[function(_dereq_,module,exports){
 var naf = _dereq_('../NafIndex.js');
 var WebRtcInterface = _dereq_('./WebRtcInterface.js');
 
@@ -627,6 +791,10 @@ class EasyRtcInterface extends WebRtcInterface {
     this.easyrtc.sendDataP2P(networkId, dataType, data);
   }
 
+  sendDataGuaranteed(networkId, dataType, data) {
+    this.easyrtc.sendDataWS(networkId, dataType, data);
+  }
+
   /*
    * Getters
    */
@@ -651,7 +819,7 @@ class EasyRtcInterface extends WebRtcInterface {
 }
 
 module.exports = EasyRtcInterface;
-},{"../NafIndex.js":2,"./WebRtcInterface.js":13}],13:[function(_dereq_,module,exports){
+},{"../NafIndex.js":5,"./WebRtcInterface.js":16}],16:[function(_dereq_,module,exports){
 var NafInterface = _dereq_('../NafInterface.js');
 
 class WebRtcInterface extends NafInterface {
@@ -675,6 +843,7 @@ class WebRtcInterface extends NafInterface {
   connect(appId) {this.notImplemented()}
   startStreamConnection(otherNetworkId) {this.notImplemented()}
   sendDataP2P(networkId, dataType, data) {this.notImplemented()}
+  sendDataGuaranteed(networkId, dataType, data) {this.notImplemented()}
 
   // Getters
   getRoomJoinTime(clientId) {this.notImplemented()}
@@ -686,4 +855,4 @@ WebRtcInterface.CONNECTING = 'CONNECTING';
 WebRtcInterface.NOT_CONNECTED = 'NOT_CONNECTED';
 
 module.exports = WebRtcInterface;
-},{"../NafInterface.js":3}]},{},[11]);
+},{"../NafInterface.js":6}]},{},[14]);

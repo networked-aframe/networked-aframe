@@ -157,10 +157,10 @@ suite('NetworkEntities', function() {
     });
   });
 
-  suite('syncAllEntities', function() {
+  suite('completeSync', function() {
 
     test('no network entities', function() {
-      entities.syncAllEntities();
+      entities.completeSync();
     });
 
     test('emits sync on 3 entities', function() {
@@ -171,9 +171,9 @@ suite('NetworkEntities', function() {
         entityList.push(entity);
         sinon.spy(entity, 'emit');
       }
-      entities.syncAllEntities();
+      entities.completeSync();
       for (var i = 0; i < 3; i++) {
-        assert.isTrue(entityList[i].emit.calledWith('sync'))
+        assert.isTrue(entityList[i].emit.calledWith('syncAll'))
       }
     });
 
@@ -185,9 +185,9 @@ suite('NetworkEntities', function() {
         entityList.push(entity);
         sinon.spy(entity, 'emit');
       }
-      entities.syncAllEntities();
+      entities.completeSync();
       for (var i = 0; i < 20; i++) {
-        assert.isTrue(entityList[i].emit.calledWith('sync'))
+        assert.isTrue(entityList[i].emit.calledWith('syncAll'))
       }
     });
 
@@ -196,9 +196,9 @@ suite('NetworkEntities', function() {
       sinon.spy(entity, 'emit');
       entities.removeEntity(entityData.networkId);
 
-      entities.syncAllEntities();
+      entities.completeSync();
 
-      assert.isFalse(entity.emit.calledWith('sync'));
+      assert.isFalse(entity.emit.calledWith('syncAll'));
     });
   });
 

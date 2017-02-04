@@ -38,27 +38,36 @@ suite('network-component', function() {
 
   suite('init', function() {
     test('syncs when mine', sinon.test(function() {
-      naf.connection.isMineAndConnected = this.stub().returns(true);
-      this.stub(netComp, 'sync');
+      this.stub(netComp, 'isMine').returns(true);
+      this.stub(netComp, 'syncAll');
 
       netComp.init();
 
-      assert.isTrue(netComp.sync.calledOnce);
-
-      naf.connection.isMineAndConnected = this.stub().returns(false);
+      assert.isTrue(netComp.syncAll.calledOnce);
     }));
 
     test('does not sync when not mine', sinon.test(function() {
       naf.connection.isMineAndConnected = this.stub().returns(false);
-      this.stub(netComp, 'sync');
+      this.stub(netComp, 'syncAll');
 
       netComp.init();
 
-      assert.isFalse(netComp.sync.called);
+      assert.isFalse(netComp.syncAll.called);
     }));
   });
 
   suite('update', function() {
+
+    test('binds events', sinon.test(function() {
+      this.spy(netComp, 'bindEvents');
+
+      netComp.update();
+
+      assert.isTrue(netComp.bindEvents.called);
+    }));
+  });
+
+  suite('bindEvents', function() {
 
     test('adds event listeners when mine', sinon.test(function() {
       naf.connection.isMineAndConnected = this.stub().returns(true);
@@ -66,12 +75,15 @@ suite('network-component', function() {
       this.spy(entity, 'addEventListener');
       this.spy(entity, 'removeEventListener');
 
-      netComp.update();
+      netComp.bindEvents();
 
       assert.isTrue(entity.addEventListener.calledWith('sync'));
+      assert.isTrue(entity.addEventListener.calledWith('syncAll'));
       assert.isTrue(entity.addEventListener.calledWith('networkUpdate'));
-      assert.isTrue(entity.addEventListener.calledTwice);
+      assert.isTrue(entity.addEventListener.calledThrice);
       assert.isFalse(entity.removeEventListener.called);
+
+      naf.connection.isMineAndConnected = this.stub().returns(false);
     }));
 
     test('adds & removes event listeners when not mine', sinon.test(function() {
@@ -80,9 +92,10 @@ suite('network-component', function() {
       this.spy(entity, 'addEventListener');
       this.spy(entity, 'removeEventListener');
 
-      netComp.update();
+      netComp.bindEvents();
 
       assert.isFalse(entity.addEventListener.calledWith('sync'));
+      assert.isFalse(entity.addEventListener.calledWith('syncAll'));
       assert.isTrue(entity.addEventListener.calledWith('networkUpdate'));
       assert.isTrue(entity.addEventListener.calledOnce);
       assert.isTrue(entity.removeEventListener.calledWith('sync'));
@@ -94,11 +107,11 @@ suite('network-component', function() {
     test('syncs when mine and needsToSync', sinon.test(function() {
       naf.connection.isMineAndConnected = this.stub().returns(true);
       this.stub(netComp, 'needsToSync').returns(true);
-      this.stub(netComp, 'sync');
+      this.stub(netComp, 'syncDirty');
 
       netComp.tick();
 
-      assert.isTrue(netComp.sync.calledOnce);
+      assert.isTrue(netComp.syncDirty.calledOnce);
 
       naf.connection.isMineAndConnected = this.stub().returns(false);
     }));
@@ -106,21 +119,23 @@ suite('network-component', function() {
     test('does not sync when not mine', sinon.test(function() {
       naf.connection.isMineAndConnected = this.stub().returns(false);
       this.stub(netComp, 'needsToSync').returns(true);
-      this.stub(netComp, 'sync');
+      this.stub(netComp, 'syncDirty');
 
       netComp.tick();
 
-      assert.isFalse(netComp.sync.called);
+      assert.isFalse(netComp.syncDirty.called);
     }));
 
     test('does not sync when not needsToSync', sinon.test(function() {
       naf.connection.isMineAndConnected = this.stub().returns(true);
       this.stub(netComp, 'needsToSync').returns(false);
-      this.stub(netComp, 'sync');
+      this.stub(netComp, 'syncDirty');
 
       netComp.tick();
 
-      assert.isFalse(netComp.sync.called);
+      assert.isFalse(netComp.syncDirty.called);
+
+      naf.connection.isMineAndConnected = this.stub().returns(false);
     }));
   });
 
@@ -170,6 +185,8 @@ suite('network-component', function() {
       var result = netComp.isMine();
 
       assert.isTrue(result);
+
+      naf.connection.isMineAndConnected = this.stub().returns(false);
     }));
 
     test('false when owner is not mine', sinon.test(function() {
@@ -181,46 +198,177 @@ suite('network-component', function() {
     }));
   });
 
-  suite('sync', function() {
+  suite('syncDirty', function() {
 
     test('broadcasts correct data', sinon.test(function() {
       naf.connection.broadcastData = this.stub();
-      var testData = { test: { test2: true } };
-      this.stub(netComp, 'getSyncData').returns(testData);
+      var oldData = {
+        position: { x: 1, y: 2, z: 5 /* changed */ },
+        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
+      var newComponents = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2, w: 1 }
+      };
+      var entityData = {
+        networkId: 'network1',
+        owner: 'owner1',
+        components: newComponents
+      };
 
-      netComp.sync();
+      netComp.syncDirty();
 
-      var called = naf.connection.broadcastData.calledWith('sync-entity', testData);
+      var called = naf.connection.broadcastData.calledWithExactly('sync-entity', entityData);
       assert.isTrue(called);
     }));
 
     test('sets next sync time', sinon.test(function() {
+      var oldData = {
+        position: { x: 1, y: 2, z: 5 /* changed */ },
+        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
       naf.connection.broadcastData = this.stub();
       this.spy(netComp, 'updateNextSyncTime');
 
-      netComp.sync();
+      netComp.syncDirty();
 
       assert.isTrue(netComp.updateNextSyncTime.calledOnce);
     }));
+
+    test('updates cache', sinon.test(function() {
+      var oldData = {
+        position: { x: 1, y: 2, z: 5 /* changed */ },
+        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
+      naf.connection.broadcastData = this.stub();
+      this.spy(netComp, 'updateCache');
+
+      netComp.syncDirty();
+
+      assert.isTrue(netComp.updateCache.calledOnce);
+    }));
+
+    test('returns early if no dirty components', sinon.test(function() {
+      naf.connection.broadcastData = this.stub();
+      this.spy(netComp, 'updateCache');
+      this.spy(netComp, 'updateNextSyncTime');
+      var oldData = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
+
+      netComp.syncDirty();
+
+      assert.isTrue(netComp.updateNextSyncTime.calledOnce);
+      assert.isFalse(naf.connection.broadcastData.called);
+      assert.isFalse(netComp.updateCache.calledOnce);
+    }));
   });
 
-  suite('getSyncData', function() {
+  suite('getDirtyComponents', function() {
 
-    test('collects correct data', sinon.test(function() {
-      naf.connection.broadcastData = this.stub();
+    test('creates correct dirty list with one element', sinon.test(function() {
+      var oldData = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
+
+      var result = netComp.getDirtyComponents();
+
+      assert.deepEqual(result, ['rotation']);
+    }));
+
+    test('creates correct dirty list with two elements', sinon.test(function() {
+      var oldData = {
+        position: { x: 1, y: 2, z: 5 /* changed */ },
+        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
+
+      var result = netComp.getDirtyComponents();
+
+      assert.deepEqual(result, ['position', 'rotation']);
+    }));
+
+    test('creates correct dirty list when one component is not cached', sinon.test(function() {
+      var oldData = {
+        position: { x: 1, y: 2, z: 5 /* changed */ },
+      };
+      netComp.data.cachedData = oldData;
+
+      var result = netComp.getDirtyComponents();
+
+      assert.deepEqual(result, ['position', 'rotation']);
+    }));
+
+    test('adds no components to dirty list', sinon.test(function() {
+      var oldData = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
+
+      var result = netComp.getDirtyComponents();
+
+      assert.deepEqual(result, []);
+    }));
+  });
+
+  suite('createSyncData', function() {
+
+    test('creates correct data', sinon.test(function() {
+      var components = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2, w: 1 }
+      };
       var entityData = {
         networkId: 'network1',
         owner: 'owner1',
-        components: {
-          position: { x: 1, y: 2, z: 3 },
-          rotation: { x: 4, y: 3, z: 2, w: 1 }
-        }
+        components: components
       };
 
-      var result = netComp.getSyncData();
+      var result = netComp.createSyncData(components);
 
       assert.deepEqual(result, entityData);
     }));
+  });
+
+  suite('getComponentsData', function() {
+
+    test('collects correct data', function() {
+      var compData = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2, w: 1 }
+      };
+
+      var result = netComp.getComponentsData(['position', 'rotation']);
+
+      assert.deepEqual(result, compData);
+    });
+  });
+
+  suite('updateCache', function() {
+
+    test('resets dirty components field', function() {
+      var oldData = {
+        position: { x: 1, y: 2, z: 5 /* changed */ },
+        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
+      var newComponents = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2, w: 1 }
+      };
+
+      netComp.updateCache(newComponents);
+
+      assert.deepEqual(netComp.data.cachedData, newComponents);
+    });
   });
 
   suite('updateNextSyncTime', function() {
@@ -285,6 +433,8 @@ suite('network-component', function() {
 
       var data = { networkId: 'network1' }
       assert.isTrue(naf.connection.broadcastData.calledWith('remove-entity', data));
+
+      naf.connection.isMineAndConnected = this.stub().returns(false);
     }));
 
     test('when not mine does not broadcast removal', sinon.test(function() {

@@ -21,6 +21,7 @@ class WebRtcInterface extends NafInterface {
   connect(appId) {this.notImplemented()}
   startStreamConnection(otherNetworkId) {this.notImplemented()}
   sendDataP2P(networkId, dataType, data) {this.notImplemented()}
+  sendDataGuaranteed(networkId, dataType, data) {this.notImplemented()}
 
   // Getters
   getRoomJoinTime(clientId) {this.notImplemented()}

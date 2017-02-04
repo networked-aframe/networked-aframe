@@ -99,6 +99,10 @@ class EasyRtcInterface extends WebRtcInterface {
     this.easyrtc.sendDataP2P(networkId, dataType, data);
   }
 
+  sendDataGuaranteed(networkId, dataType, data) {
+    this.easyrtc.sendDataWS(networkId, dataType, data);
+  }
+
   /*
    * Getters
    */

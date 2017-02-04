@@ -6,33 +6,13 @@ var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
 
 AFRAME.registerComponent('network-scene', {
   schema: {
-    appId: {
-      type: 'string',
-      default: 'default'
-    },
-    roomId: {
-      type: 'string',
-      default: 'default'
-    },
-    connectOnLoad: {
-      type: 'boolean',
-      default: true
-    },
-    signallingUrl: {
-      type: 'string'
-    },
-    audio: {
-      type: 'boolean',
-      default: false
-    },
-    avatar: {
-      type: 'boolean',
-      default: true
-    },
-    debug: {
-      type: 'boolean',
-      default: false
-    }
+    appId: {default: 'default'},
+    roomId: {default: 'default'},
+    connectOnLoad: {default: true},
+    signallingUrl: {type: 'string'},
+    audio: {default: false},
+    avatar: {default: true},
+    debug: {default: false}
   },
 
   init: function() {

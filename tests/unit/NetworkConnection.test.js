@@ -9,10 +9,9 @@ suite('NetworkConnection', function() {
 
   function NetworkEntitiesStub() {
     this.createAvatar = sinon.stub();
-    this.syncAllEntities = sinon.stub();
+    this.completeSync = sinon.stub();
     this.removeEntitiesFromUser = sinon.stub();
     this.updateEntity = sinon.stub();
-    this.syncAllEntities = sinon.stub();
     this.removeEntity = sinon.stub();
   }
 
@@ -25,6 +24,7 @@ suite('NetworkConnection', function() {
     this.connect = sinon.stub();
     this.getRoomJoinTime = sinon.stub();
     this.sendDataP2P = sinon.stub();
+    this.sendDataGuaranteed = sinon.stub();
   }
 
   setup(function() {
@@ -244,7 +244,7 @@ suite('NetworkConnection', function() {
 
       var dcIsConnected = connection.dcIsConnectedTo(clientId);
       assert.isTrue(dcIsConnected);
-      assert.isTrue(entities.syncAllEntities.called);
+      assert.isTrue(entities.completeSync.called);
     });
 
     test('is not connected to', function() {
@@ -255,7 +255,7 @@ suite('NetworkConnection', function() {
 
       var dcIsConnected = connection.dcIsConnectedTo(wrongClientId);
       assert.isFalse(dcIsConnected);
-      assert.isTrue(entities.syncAllEntities.called);
+      assert.isTrue(entities.completeSync.called);
     });
   });
 
@@ -360,17 +360,44 @@ suite('NetworkConnection', function() {
     });
   });
 
+  suite('broadcastDataGuaranteed', function() {
+
+    test('sends guaranteed data to each client', function() {
+      var data = {things:true};
+      var clients = { 'c1': {}, 'c2': {}, 'c3': {} };
+      sinon.stub(connection, 'broadcastData');
+      connection.connectList = clients;
+
+      connection.broadcastDataGuaranteed('sync-entity', data);
+
+      assert.isTrue(connection.broadcastData.calledWith('sync-entity', data, true));
+    });
+  });
+
   suite('sendData', function() {
 
-    test('is connected', function() {
+    test('is connected, not guaranteed', function() {
       var clientId = 'client1';
       var dataType = 'sync-entity';
       var data = {};
       sinon.stub(connection, 'dcIsConnectedTo').returns(true);
 
-      connection.sendData(clientId, dataType, data);
+      connection.sendData(clientId, dataType, data, false);
 
+      assert.isFalse(connection.webrtc.sendDataGuaranteed.called);
       assert.isTrue(connection.webrtc.sendDataP2P.calledWith(clientId, dataType, data));
+    });
+
+    test('is connected, guaranteed', function() {
+      var clientId = 'client1';
+      var dataType = 'sync-entity';
+      var data = {};
+      sinon.stub(connection, 'dcIsConnectedTo').returns(true);
+
+      connection.sendData(clientId, dataType, data, true);
+
+      assert.isFalse(connection.webrtc.sendDataP2P.called);
+      assert.isTrue(connection.webrtc.sendDataGuaranteed.calledWith(clientId, dataType, data));
     });
 
     test('not connected', function() {
@@ -382,6 +409,23 @@ suite('NetworkConnection', function() {
       connection.sendData(clientId, dataType, data);
 
       assert.isFalse(connection.webrtc.sendDataP2P.called);
+      assert.isFalse(connection.webrtc.sendDataGuaranteed.called);
     });
+  });
+
+  suite('sendDataGuaranteed', function() {
+
+    test('sends data guaranteed', function() {
+      var clientId = 'client1';
+      var dataType = 'sync-entity';
+      var data = {};
+      sinon.stub(connection, 'dcIsConnectedTo').returns(true);
+      sinon.spy(connection, 'sendData');
+
+      connection.sendDataGuaranteed(clientId, dataType, data);
+
+      assert.isTrue(connection.sendData.calledWith(clientId, dataType, data, true));
+    });
+
   });
 });

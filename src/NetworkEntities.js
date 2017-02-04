@@ -56,10 +56,10 @@ class NetworkEntities {
     }
   }
 
-  syncAllEntities() {
+  completeSync() {
     for (var id in this.entities) {
       if (this.entities.hasOwnProperty(id)) {
-        this.entities[id].emit('sync', null, false);
+        this.entities[id].emit('syncAll', null, false);
       }
     }
   }
