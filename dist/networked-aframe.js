@@ -2,7 +2,8 @@
 var globals = {
   appId: '',
   roomId: '',
-  debug: false
+  debug: false,
+  updateRate: 15
 };
 
 module.exports = globals;
@@ -13,7 +14,7 @@ var NafLogger = _dereq_('./NafLogger.js');
 
 var naf = {};
 naf.globals = naf.g = globals;
-naf.util = naf.u = util;
+naf.util = naf.utils = naf.u = util;
 naf.log = naf.l = new NafLogger();
 naf.connection = naf.c = {}; // Set in network-scene component
 
@@ -73,6 +74,10 @@ module.exports.getNetworkOwner = function(entity) {
   }
   return null;
 }
+
+module.exports.now = function() {
+  return Date.now();
+};
 },{}],6:[function(_dereq_,module,exports){
 var naf = _dereq_('./NafIndex.js');
 var WebRtcInterface = _dereq_('./webrtc_interfaces/WebRtcInterface.js');
@@ -334,6 +339,11 @@ AFRAME.registerComponent('network', {
     components: {
       type: 'array',
       default: ['position', 'rotation', 'scale']
+    },
+
+    /* Private fields */
+    nextSyncTime: {
+      type: 'number'
     }
   },
 
@@ -353,9 +363,13 @@ AFRAME.registerComponent('network', {
   },
 
   tick: function() {
-    if (this.isMine()) {
+    if (this.isMine() && this.needsToSync()) {
       this.sync();
     }
+  },
+
+  needsToSync: function() {
+    return naf.util.now() >= this.data.nextSyncTime;
   },
 
   // Will only succeed if object is created after connected
@@ -374,11 +388,13 @@ AFRAME.registerComponent('network', {
       components: this.getSyncableComponents()
     };
 
-    if (el.components.hasOwnProperty('template')) {
+    if (this.hasTemplate()) {
       entityData.template = el.components.template.data.src;
     }
 
     naf.connection.broadcastData('sync-entity', entityData);
+
+    this.data.nextSyncTime = naf.util.now() + 1000 / naf.globals.updateRate;
   },
 
   getSyncableComponents: function() {
@@ -396,18 +412,23 @@ AFRAME.registerComponent('network', {
     return compsWithData;
   },
 
+  hasTemplate: function() {
+    return this.el.components.hasOwnProperty('template');
+  },
+
   networkUpdate: function(data) {
     var entityData = data.detail.entityData;
     var components = entityData.components;
     var el = this.el;
 
-    el.setAttribute('template', 'src:' + entityData.template);
+    if (entityData.hasOwnProperty('template')) {
+      el.setAttribute('template', 'src:' + entityData.template);
+    }
 
     for (var name in components) {
       if (this.isSyncableComponent(name)) {
         var compData = components[name];
         el.setAttribute(name, compData);
-        // console.log(name, compData);
       }
     }
   },

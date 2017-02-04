@@ -19,3 +19,7 @@ module.exports.getNetworkOwner = function(entity) {
   }
   return null;
 }
+
+module.exports.now = function() {
+  return Date.now();
+};

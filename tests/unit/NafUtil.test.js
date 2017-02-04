@@ -85,4 +85,15 @@ suite('NafUtil', function() {
     });
   });
 
+  suite('now', function() {
+
+    test('returns current time in ms', function() {
+      var time = Date.now();
+
+      var result = nafUtil.now();
+
+      assert.equal(result, time);
+    });
+  });
+
 });

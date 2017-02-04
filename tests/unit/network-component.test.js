@@ -91,8 +91,9 @@ suite('network-component', function() {
 
   suite('tick', function() {
 
-    test('syncs when mine', sinon.test(function() {
+    test('syncs when mine and needsToSync', sinon.test(function() {
       naf.connection.isMineAndConnected = this.stub().returns(true);
+      this.stub(netComp, 'needsToSync').returns(true);
       this.stub(netComp, 'sync');
 
       netComp.tick();
@@ -104,11 +105,52 @@ suite('network-component', function() {
 
     test('does not sync when not mine', sinon.test(function() {
       naf.connection.isMineAndConnected = this.stub().returns(false);
+      this.stub(netComp, 'needsToSync').returns(true);
       this.stub(netComp, 'sync');
 
       netComp.tick();
 
       assert.isFalse(netComp.sync.called);
+    }));
+
+    test('does not sync when not needsToSync', sinon.test(function() {
+      naf.connection.isMineAndConnected = this.stub().returns(true);
+      this.stub(netComp, 'needsToSync').returns(false);
+      this.stub(netComp, 'sync');
+
+      netComp.tick();
+
+      assert.isFalse(netComp.sync.called);
+    }));
+  });
+
+  suite('needsToSync', function() {
+
+    test('next sync time equals current time', sinon.test(function() {
+      this.stub(naf.util, 'now').returns(5);
+      netComp.data.nextSyncTime = 5;
+
+      var result = netComp.needsToSync();
+
+      assert.isTrue(result);
+    }));
+
+    test('next sync time just under current time', sinon.test(function() {
+      this.stub(naf.util, 'now').returns(5);
+      netComp.data.nextSyncTime = 4.9;
+
+      var result = netComp.needsToSync();
+
+      assert.isTrue(result);
+    }));
+
+    test('next sync time just over current time', sinon.test(function() {
+      this.stub(naf.util, 'now').returns(5);
+      netComp.data.nextSyncTime = 5.1;
+
+      var result = netComp.needsToSync();
+
+      assert.isFalse(result);
     }));
   });
 
@@ -156,6 +198,16 @@ suite('network-component', function() {
 
       var called = naf.connection.broadcastData.calledWith('sync-entity', entityData);
       assert.isTrue(called);
+    }));
+
+    test('sets nextSyncTime correctly', sinon.test(function() {
+      this.stub(naf.util, 'now').returns(5000);
+      naf.connection.broadcastData = this.stub();
+      naf.globals.updateRate = 1;
+
+      netComp.sync();
+
+      assert.approximately(netComp.data.nextSyncTime, 6000, 0.00001);
     }));
   });
 
