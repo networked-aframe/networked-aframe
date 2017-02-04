@@ -50,10 +50,6 @@ AFRAME.registerComponent('network', {
   },
 
   sync: function() {
-    var el = this.el;
-    var position = AFRAME.utils.coordinates.stringify(el.getAttribute('position'));
-    var rotation = AFRAME.utils.coordinates.stringify(el.getAttribute('rotation'));
-
     var entityData = {
       networkId: this.data.networkId,
       owner: this.data.owner,
@@ -61,7 +57,7 @@ AFRAME.registerComponent('network', {
     };
 
     if (this.hasTemplate()) {
-      entityData.template = el.components.template.data.src;
+      entityData.template = this.el.components.template.data.src;
     }
 
     naf.connection.broadcastData('sync-entity', entityData);

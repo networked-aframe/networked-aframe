@@ -55,11 +55,13 @@ class EasyRtcInterface extends WebRtcInterface {
   }
 
   connectWithAudio(appId) {
+    var that = this;
+
     this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
       var audioEl = document.createElement("audio");
       audioEl.setAttribute('id', 'audio-' + easyrtcid);
       document.body.appendChild(audioEl);
-      this.easyrtc.setVideoObjectSrc(audioEl,stream);
+      that.easyrtc.setVideoObjectSrc(audioEl,stream);
     });
 
     this.easyrtc.setOnStreamClosed(function (easyrtcid) {
@@ -67,7 +69,6 @@ class EasyRtcInterface extends WebRtcInterface {
       audioEl.parentNode.removeChild(audioEl);
     });
 
-    var that = this;
     this.easyrtc.initMediaSource(
       function(){
         that.easyrtc.connect(appId, that.loginSuccess, that.loginFailure);
@@ -97,7 +98,6 @@ class EasyRtcInterface extends WebRtcInterface {
   sendDataP2P(networkId, dataType, data) {
     this.easyrtc.sendDataP2P(networkId, dataType, data);
   }
-
 
   /*
    * Getters

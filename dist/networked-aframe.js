@@ -106,6 +106,7 @@ class NetworkConnection {
 
     var streamOptions = {
       audio: enableAudio,
+      video: false,
       datachannel: true
     };
     this.webrtc.setStreamOptions(streamOptions);
@@ -378,10 +379,6 @@ AFRAME.registerComponent('network', {
   },
 
   sync: function() {
-    var el = this.el;
-    var position = AFRAME.utils.coordinates.stringify(el.getAttribute('position'));
-    var rotation = AFRAME.utils.coordinates.stringify(el.getAttribute('rotation'));
-
     var entityData = {
       networkId: this.data.networkId,
       owner: this.data.owner,
@@ -389,7 +386,7 @@ AFRAME.registerComponent('network', {
     };
 
     if (this.hasTemplate()) {
-      entityData.template = el.components.template.data.src;
+      entityData.template = this.el.components.template.data.src;
     }
 
     naf.connection.broadcastData('sync-entity', entityData);
@@ -579,11 +576,13 @@ class EasyRtcInterface extends WebRtcInterface {
   }
 
   connectWithAudio(appId) {
+    var that = this;
+
     this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
       var audioEl = document.createElement("audio");
       audioEl.setAttribute('id', 'audio-' + easyrtcid);
       document.body.appendChild(audioEl);
-      this.easyrtc.setVideoObjectSrc(audioEl,stream);
+      that.easyrtc.setVideoObjectSrc(audioEl,stream);
     });
 
     this.easyrtc.setOnStreamClosed(function (easyrtcid) {
@@ -591,7 +590,6 @@ class EasyRtcInterface extends WebRtcInterface {
       audioEl.parentNode.removeChild(audioEl);
     });
 
-    var that = this;
     this.easyrtc.initMediaSource(
       function(){
         that.easyrtc.connect(appId, that.loginSuccess, that.loginFailure);
@@ -621,7 +619,6 @@ class EasyRtcInterface extends WebRtcInterface {
   sendDataP2P(networkId, dataType, data) {
     this.easyrtc.sendDataP2P(networkId, dataType, data);
   }
-
 
   /*
    * Getters

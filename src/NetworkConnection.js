@@ -25,6 +25,7 @@ class NetworkConnection {
 
     var streamOptions = {
       audio: enableAudio,
+      video: false,
       datachannel: true
     };
     this.webrtc.setStreamOptions(streamOptions);
