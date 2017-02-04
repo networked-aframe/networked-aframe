@@ -74,7 +74,7 @@ suite('network-component', function() {
       assert.isFalse(entity.removeEventListener.called);
     }));
 
-    test('adds&removes event listeners when not mine', sinon.test(function() {
+    test('adds & removes event listeners when not mine', sinon.test(function() {
       naf.connection.isMineAndConnected = this.stub().returns(false);
       naf.connection.broadcastData = this.stub();
       this.spy(entity, 'addEventListener');
@@ -183,7 +183,30 @@ suite('network-component', function() {
 
   suite('sync', function() {
 
-    test('full sync', sinon.test(function() {
+    test('broadcasts correct data', sinon.test(function() {
+      naf.connection.broadcastData = this.stub();
+      var testData = { test: { test2: true } };
+      this.stub(netComp, 'getSyncData').returns(testData);
+
+      netComp.sync();
+
+      var called = naf.connection.broadcastData.calledWith('sync-entity', testData);
+      assert.isTrue(called);
+    }));
+
+    test('sets next sync time', sinon.test(function() {
+      naf.connection.broadcastData = this.stub();
+      this.spy(netComp, 'updateNextSyncTime');
+
+      netComp.sync();
+
+      assert.isTrue(netComp.updateNextSyncTime.calledOnce);
+    }));
+  });
+
+  suite('getSyncData', function() {
+
+    test('collects correct data', sinon.test(function() {
       naf.connection.broadcastData = this.stub();
       var entityData = {
         networkId: 'network1',
@@ -194,18 +217,19 @@ suite('network-component', function() {
         }
       };
 
-      netComp.sync();
+      var result = netComp.getSyncData();
 
-      var called = naf.connection.broadcastData.calledWith('sync-entity', entityData);
-      assert.isTrue(called);
+      assert.deepEqual(result, entityData);
     }));
+  });
+
+  suite('updateNextSyncTime', function() {
 
     test('sets nextSyncTime correctly', sinon.test(function() {
       this.stub(naf.util, 'now').returns(5000);
-      naf.connection.broadcastData = this.stub();
       naf.globals.updateRate = 1;
 
-      netComp.sync();
+      netComp.updateNextSyncTime();
 
       assert.approximately(netComp.data.nextSyncTime, 6000, 0.00001);
     }));

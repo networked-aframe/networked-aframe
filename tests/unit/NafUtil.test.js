@@ -92,7 +92,7 @@ suite('NafUtil', function() {
 
       var result = nafUtil.now();
 
-      assert.equal(result, time);
+      assert.approximately(result, time, 1);
     });
   });
 

@@ -3,7 +3,8 @@ var globals = {
   appId: '',
   roomId: '',
   debug: false,
-  updateRate: 15
+  updateRate: 15, // How often the network components call `sync`
+  compressPackets: true // Compress the synced packets of network components
 };
 
 module.exports = globals;
@@ -379,19 +380,21 @@ AFRAME.registerComponent('network', {
   },
 
   sync: function() {
+    var data = this.getSyncData();
+    naf.connection.broadcastData('sync-entity', data);
+    this.updateNextSyncTime();
+  },
+
+  getSyncData: function() {
     var entityData = {
       networkId: this.data.networkId,
       owner: this.data.owner,
       components: this.getSyncableComponents()
     };
-
     if (this.hasTemplate()) {
       entityData.template = this.el.components.template.data.src;
     }
-
-    naf.connection.broadcastData('sync-entity', entityData);
-
-    this.data.nextSyncTime = naf.util.now() + 1000 / naf.globals.updateRate;
+    return entityData;
   },
 
   getSyncableComponents: function() {
@@ -411,6 +414,10 @@ AFRAME.registerComponent('network', {
 
   hasTemplate: function() {
     return this.el.components.hasOwnProperty('template');
+  },
+
+  updateNextSyncTime: function() {
+    this.data.nextSyncTime = naf.util.now() + 1000 / naf.globals.updateRate;
   },
 
   networkUpdate: function(data) {
