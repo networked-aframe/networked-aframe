@@ -12,7 +12,7 @@ suite('network-component', function() {
 
   function initScene(done) {
     var opts = {};
-    opts.entity = '<a-entity id="test-entity" network="networkId:network1;owner:owner1;sync:position,rotation" position="1 2 3" rotation="4 3 2 1;"></a-entity>';
+    opts.entity = '<a-entity id="test-entity" network="networkId:network1;owner:owner1;components:position,rotation" position="1 2 3" rotation="4 3 2 1;" template="src:#template1;"></a-entity>';
     scene = helpers.sceneFactory(opts);
     naf.util.whenEntityLoaded(scene, done);
   }
@@ -149,8 +149,6 @@ suite('network-component', function() {
         components: {
           position: { x: 1, y: 2, z: 3 },
           rotation: { x: 4, y: 3, z: 2, w: 1 }
-          // scale: { x: 1, y: 1, z: 1 },
-          // visible: true
         }
       };
 

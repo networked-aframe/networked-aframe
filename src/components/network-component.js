@@ -8,9 +8,9 @@ AFRAME.registerComponent('network', {
     owner: {
       type: 'string'
     },
-    sync: {
+    components: {
       type: 'array',
-      default: ['position, rotation, scale']
+      default: ['position', 'rotation', 'scale']
     }
   },
 
@@ -48,33 +48,37 @@ AFRAME.registerComponent('network', {
     var entityData = {
       networkId: this.data.networkId,
       owner: this.data.owner,
-      components: this.getComponentsWithData()
+      components: this.getSyncableComponents()
     };
+
+    if (el.components.hasOwnProperty('template')) {
+      entityData.template = el.components.template.data.src;
+    }
 
     naf.connection.broadcastData('sync-entity', entityData);
   },
 
-  getComponentsWithData: function() {
-    var comps = this.el.components;
+  getSyncableComponents: function() {
+    var syncables = this.data.components;
+    var components = this.el.components;
     var compsWithData = {};
 
-    for (var name in comps) {
-      if (comps.hasOwnProperty(name) && this.isSyncableComponent(name)) {
-        var component = comps[name];
+    for (var i in syncables) {
+      var name = syncables[i];
+      if (components.hasOwnProperty(name)) {
+        var component = components[name];
         compsWithData[name] = component.data;
       }
     }
     return compsWithData;
   },
 
-  isSyncableComponent: function(name) {
-    return this.data.sync.indexOf(name) != -1;
-  },
-
   networkUpdate: function(data) {
     var entityData = data.detail.entityData;
     var components = entityData.components;
     var el = this.el;
+
+    el.setAttribute('template', 'src:' + entityData.template);
 
     for (var name in components) {
       if (this.isSyncableComponent(name)) {
@@ -83,6 +87,10 @@ AFRAME.registerComponent('network', {
         // console.log(name, compData);
       }
     }
+  },
+
+  isSyncableComponent: function(name) {
+    return this.data.components.indexOf(name) != -1;
   },
 
   remove: function () {
