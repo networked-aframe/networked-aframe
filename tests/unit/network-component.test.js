@@ -12,7 +12,7 @@ suite('network-component', function() {
 
   function initScene(done) {
     var opts = {};
-    opts.entity = '<a-entity id="test-entity" network-component="networkId:network1;owner:owner1;" position="1 2 3" rotation="4 3 2 1;"></a-entity>';
+    opts.entity = '<a-entity id="test-entity" network="networkId:network1;owner:owner1;sync:position,rotation" position="1 2 3" rotation="4 3 2 1;"></a-entity>';
     scene = helpers.sceneFactory(opts);
     naf.util.whenEntityLoaded(scene, done);
   }
@@ -20,7 +20,7 @@ suite('network-component', function() {
   setup(function(done) {
     initScene(function() {
       entity = document.querySelector('#test-entity');
-      netComp = entity.components['network-component'];
+      netComp = entity.components['network'];
       done();
     });
   });
@@ -148,9 +148,9 @@ suite('network-component', function() {
         owner: 'owner1',
         components: {
           position: { x: 1, y: 2, z: 3 },
-          rotation: { x: 4, y: 3, z: 2, w: 1 },
-          scale: { x: 1, y: 1, z: 1 },
-          visible: true
+          rotation: { x: 4, y: 3, z: 2, w: 1 }
+          // scale: { x: 1, y: 1, z: 1 },
+          // visible: true
         }
       };
 
@@ -187,11 +187,17 @@ suite('network-component', function() {
       assert.equal(components['rotation'].data.z, 20, 'Rotation');
       assert.equal(components['rotation'].data.w, 10, 'Rotation');
 
-      assert.equal(components['scale'].data.x, 5, 'Scale');
-      assert.equal(components['scale'].data.y, 12, 'Scale');
+      // assert.equal(components['scale'].data.x, 5, 'Scale');
+      // assert.equal(components['scale'].data.y, 12, 'Scale');
+      // assert.equal(components['scale'].data.z, 1, 'Scale');
+
+      // assert.equal(components['visible'].data, false, 'Visible');
+
+      assert.equal(components['scale'].data.x, 1, 'Scale');
+      assert.equal(components['scale'].data.y, 1, 'Scale');
       assert.equal(components['scale'].data.z, 1, 'Scale');
 
-      assert.equal(components['visible'].data, false, 'Visible');
+      assert.equal(components['visible'].data, true, 'Visible');
     }));
   });
 

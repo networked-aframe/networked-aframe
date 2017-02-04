@@ -1,17 +1,21 @@
 var naf = require('../NafIndex.js');
 
-AFRAME.registerComponent('network-component', {
+AFRAME.registerComponent('network', {
   schema: {
     networkId: {
       type: 'string'
     },
     owner: {
       type: 'string'
+    },
+    sync: {
+      type: 'array',
+      default: ['position, rotation, scale']
     }
   },
 
   init: function() {
-    if (this.isMine()) { // Will only succeed if object is created after connected
+    if (this.isMine()) {
       this.sync();
     }
   },
@@ -31,6 +35,7 @@ AFRAME.registerComponent('network-component', {
     }
   },
 
+  // Will only succeed if object is created after connected
   isMine: function() {
     return this.data && naf.connection.isMineAndConnected(this.data.owner);
   },
@@ -54,12 +59,16 @@ AFRAME.registerComponent('network-component', {
     var compsWithData = {};
 
     for (var name in comps) {
-      if (comps.hasOwnProperty(name) && name != 'network-component') {
+      if (comps.hasOwnProperty(name) && this.isSyncableComponent(name)) {
         var component = comps[name];
         compsWithData[name] = component.data;
       }
     }
     return compsWithData;
+  },
+
+  isSyncableComponent: function(name) {
+    return this.data.sync.indexOf(name) != -1;
   },
 
   networkUpdate: function(data) {
@@ -68,9 +77,11 @@ AFRAME.registerComponent('network-component', {
     var el = this.el;
 
     for (var name in components) {
-      var compData = components[name];
-      console.log(name, compData);
-      el.setAttribute(name, compData);
+      if (this.isSyncableComponent(name)) {
+        var compData = components[name];
+        el.setAttribute(name, compData);
+        // console.log(name, compData);
+      }
     }
   },
 

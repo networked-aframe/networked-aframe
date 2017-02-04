@@ -67,7 +67,7 @@ suite('NafUtil', function() {
       var owner = 'test';
       var entity = {
         components: {
-          'network-component' : { data: { owner: owner}}
+          'network' : { data: { owner: owner}}
         }
       };
 
@@ -76,7 +76,7 @@ suite('NafUtil', function() {
       assert.equal(result, owner);
     });
 
-    test('no network-component', function() {
+    test('no network component', function() {
       var entity = { components: {}};
 
       var result = nafUtil.getNetworkOwner(entity);

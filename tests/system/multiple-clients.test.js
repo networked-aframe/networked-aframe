@@ -9,7 +9,7 @@ suite('Multiple clients on localhost', function() {
 
 
   test('check for avatars', function() {
-    var avatars = browser.elements('a-entity[network-component]');
+    var avatars = browser.elements('a-entity[network]');
     assert.equal(avatars.chrome.value.length, 2);
     assert.equal(avatars.firefox.value.length, 2);
   });

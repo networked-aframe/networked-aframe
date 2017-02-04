@@ -86,7 +86,7 @@ suite('NetworkEntities', function() {
         var template = entity.getAttribute('template');
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
-        var netComp = entity.getAttribute('network-component');
+        var netComp = entity.getAttribute('network');
 
         assert.isNotNull(entity);
         assert.equal(template, 'src:' + entityData.template);
