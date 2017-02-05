@@ -198,10 +198,10 @@ suite('network-component', function() {
     }));
   });
 
-  suite('syncDirty', function() {
+  suite('syncAll', function() {
 
-    test('broadcasts correct data', sinon.test(function() {
-      naf.connection.broadcastData = this.stub();
+    test('broadcasts uncompressed data', sinon.test(function() {
+      naf.connection.broadcastDataGuaranteed = this.stub();
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
@@ -212,14 +212,95 @@ suite('network-component', function() {
         rotation: { x: 4, y: 3, z: 2, w: 1 }
       };
       var entityData = {
+        0: 0,
         networkId: 'network1',
         owner: 'owner1',
+        template: '',
+        components: newComponents
+      };
+
+      netComp.syncAll();
+
+      var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('s', entityData);
+      assert.isTrue(called);
+    }));
+
+    test('sets next sync time', sinon.test(function() {
+      naf.connection.broadcastDataGuaranteed = this.stub();
+      this.spy(netComp, 'updateNextSyncTime');
+
+      netComp.syncAll();
+
+      assert.isTrue(netComp.updateNextSyncTime.calledOnce);
+    }));
+
+    test('updates cache', sinon.test(function() {
+      var oldData = {
+        position: { x: 1, y: 2, z: 5 /* changed */ },
+        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
+      naf.connection.broadcastDataGuaranteed = this.stub();
+      this.spy(netComp, 'updateCache');
+
+      netComp.syncAll();
+
+      assert.isTrue(netComp.updateCache.calledOnce);
+    }));
+  });
+
+  suite('syncDirty', function() {
+
+    test('broadcasts uncompressed data', sinon.test(function() {
+      naf.connection.broadcastData = this.stub();
+      naf.globals.compressSyncPackets = false;
+      var oldData = {
+        position: { x: 1, y: 2, z: 5 /* changed */ },
+        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
+      var newComponents = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2, w: 1 }
+      };
+      var entityData = {
+        0: 0,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '',
         components: newComponents
       };
 
       netComp.syncDirty();
 
-      var called = naf.connection.broadcastData.calledWithExactly('sync-entity', entityData);
+      var called = naf.connection.broadcastData.calledWithExactly('s', entityData);
+      assert.isTrue(called);
+    }));
+
+    test('broadcasts compressed data', sinon.test(function() {
+      naf.connection.broadcastData = this.stub();
+      naf.globals.compressSyncPackets = true;
+      var oldData = {
+        position: { x: 1, y: 2, z: 5 /* changed */ },
+        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+      };
+      netComp.data.cachedData = oldData;
+      var newComponents = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2, w: 1 }
+      };
+      var entityData = {
+        0: 1,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '',
+        components: newComponents
+      };
+      var compressed = netComp.compressSyncData(entityData);
+
+      netComp.syncDirty();
+
+      var called = naf.connection.broadcastData.calledWithExactly('s', compressed);
       assert.isTrue(called);
     }));
 
@@ -327,8 +408,10 @@ suite('network-component', function() {
         rotation: { x: 4, y: 3, z: 2, w: 1 }
       };
       var entityData = {
+        0: 0,
         networkId: 'network1',
         owner: 'owner1',
+        template: '',
         components: components
       };
 
@@ -336,6 +419,168 @@ suite('network-component', function() {
 
       assert.deepEqual(result, entityData);
     }));
+  });
+
+  suite('compressSyncData', function() {
+
+    test('example packet', function() {
+      var components = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2, w: 1 }
+      };
+      var entityData = {
+        0: 1,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '',
+        components: components
+      };
+      var compressed = [
+        1,
+        entityData.networkId,
+        entityData.owner,
+        entityData.template,
+        {
+          0: components.position,
+          1: components.rotation
+        }
+      ];
+
+      var result = netComp.compressSyncData(entityData);
+
+      assert.deepEqual(result, compressed);
+    });
+
+    test('example packet with non-sequential components', function() {
+      netComp.data.components.push('scale');
+      var components = {
+        position: { x: 1, y: 2, z: 3 },
+        scale: { x: 10, y: 11, z: 12 }
+      };
+      var entityData = {
+        0: 1,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '',
+        components: components
+      };
+      var compressed = [
+        1,
+        entityData.networkId,
+        entityData.owner,
+        entityData.template,
+        {
+          0: components.position,
+          2: components.scale
+        }
+      ];
+
+      var result = netComp.compressSyncData(entityData);
+
+      assert.deepEqual(result, compressed);
+    });
+
+    test('example packet with no components', function() {
+      var entityData = {
+        0: 1,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '#template1',
+        components: {}
+      };
+      var compressed = [
+        1,
+        entityData.networkId,
+        entityData.owner,
+        entityData.template,
+        {}
+      ];
+
+      var result = netComp.compressSyncData(entityData);
+
+      assert.deepEqual(result, compressed);
+    });
+  });
+
+  suite('decompressSyncData', function() {
+
+    test('example packet', function() {
+      var components = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2, w: 1 }
+      };
+      var entityData = {
+        0: 1,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '',
+        components: components
+      };
+      var compressed = [
+        1,
+        entityData.networkId,
+        entityData.owner,
+        entityData.template,
+        {
+          0: components.position,
+          1: components.rotation
+        }
+      ];
+
+      var result = netComp.decompressSyncData(compressed);
+
+      assert.deepEqual(result, entityData);
+    });
+
+    test('example packet with non-sequential components', function() {
+      netComp.data.components.push('scale');
+      var components = {
+        position: { x: 1, y: 2, z: 3 },
+        scale: { x: 10, y: 11, z: 12 }
+      };
+      var entityData = {
+        0: 1,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '',
+        components: components
+      };
+      var compressed = [
+        1,
+        entityData.networkId,
+        entityData.owner,
+        entityData.template,
+        {
+          0: components.position,
+          2: components.scale
+        }
+      ];
+
+      var result = netComp.decompressSyncData(compressed);
+
+      assert.deepEqual(result, entityData);
+    });
+
+    test('example packet with no components', function() {
+      var entityData = {
+        0: 1,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '#template1',
+        components: {}
+      };
+      var compressed = [
+        1,
+        entityData.networkId,
+        entityData.owner,
+        entityData.template,
+        {}
+      ];
+
+      var result = netComp.decompressSyncData(compressed);
+
+      assert.deepEqual(result, entityData);
+    });
   });
 
   suite('getComponentsData', function() {
@@ -385,10 +630,12 @@ suite('network-component', function() {
 
   suite('networkUpdate', function() {
 
-    test('sets correct data', sinon.test(function() {
+    test('sets correct uncompressed data', sinon.test(function() {
       var entityData = {
+        0: 0,
         networkId: 'network1',
         owner: 'owner1',
+        template: '',
         components: {
           position: { x: 10, y: 20, z: 30 },
           rotation: { x: 40, y: 30, z: 20, w: 10 },
@@ -397,7 +644,7 @@ suite('network-component', function() {
         }
       }
 
-      netComp.networkUpdate({ detail: { entityData } });
+      netComp.networkUpdate({ detail: { entityData: entityData } });
 
       var components = entity.components;
       assert.equal(components['position'].data.x, 10, 'Position');
@@ -409,11 +656,48 @@ suite('network-component', function() {
       assert.equal(components['rotation'].data.z, 20, 'Rotation');
       assert.equal(components['rotation'].data.w, 10, 'Rotation');
 
-      // assert.equal(components['scale'].data.x, 5, 'Scale');
-      // assert.equal(components['scale'].data.y, 12, 'Scale');
-      // assert.equal(components['scale'].data.z, 1, 'Scale');
+      assert.equal(components['scale'].data.x, 1, 'Scale');
+      assert.equal(components['scale'].data.y, 1, 'Scale');
+      assert.equal(components['scale'].data.z, 1, 'Scale');
 
-      // assert.equal(components['visible'].data, false, 'Visible');
+      assert.equal(components['visible'].data, true, 'Visible');
+    }));
+
+    test('sets correct compressed data', sinon.test(function() {
+      var entityData = {
+        0: 1,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '',
+        components: {
+          position: { x: 10, y: 20, z: 30 },
+          rotation: { x: 40, y: 30, z: 20, w: 10 },
+          scale: { x: 5, y: 12, z: 1 },
+          visible: false
+        }
+      };
+      var compressed = [
+        1,
+        'network1',
+        'owner1',
+        '',
+        {
+          0: { x: 10, y: 20, z: 30 },
+          1: { x: 40, y: 30, z: 20, w: 10 }
+        }
+      ];
+
+      netComp.networkUpdate({ detail: { entityData: compressed } });
+
+      var components = entity.components;
+      assert.equal(components['position'].data.x, 10, 'Position');
+      assert.equal(components['position'].data.y, 20, 'Position');
+      assert.equal(components['position'].data.z, 30, 'Position');
+
+      assert.equal(components['rotation'].data.x, 40, 'Rotation');
+      assert.equal(components['rotation'].data.y, 30, 'Rotation');
+      assert.equal(components['rotation'].data.z, 20, 'Rotation');
+      assert.equal(components['rotation'].data.w, 10, 'Rotation');
 
       assert.equal(components['scale'].data.x, 1, 'Scale');
       assert.equal(components['scale'].data.y, 1, 'Scale');
@@ -432,7 +716,7 @@ suite('network-component', function() {
       netComp.remove();
 
       var data = { networkId: 'network1' }
-      assert.isTrue(naf.connection.broadcastData.calledWith('remove-entity', data));
+      assert.isTrue(naf.connection.broadcastData.calledWith('r', data));
 
       naf.connection.isMineAndConnected = this.stub().returns(false);
     }));

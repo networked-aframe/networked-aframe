@@ -13,6 +13,7 @@ suite('NetworkConnection', function() {
     this.removeEntitiesFromUser = sinon.stub();
     this.updateEntity = sinon.stub();
     this.removeEntity = sinon.stub();
+    this.dataReceived = sinon.stub();
   }
 
   function WebRtcStub() {
@@ -29,9 +30,7 @@ suite('NetworkConnection', function() {
 
   setup(function() {
     var webrtcStub = new WebRtcStub();
-
     entities = new NetworkEntitiesStub();
-
     connection = new NetworkConnection(webrtcStub, entities);
   });
 
@@ -313,30 +312,6 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('dataReceived', function() {
-
-    test('sync entity', function() {
-      connection.dataReceived('client', 'sync-entity', {testData:true});
-
-      assert.isTrue(entities.updateEntity.called);
-      assert.isFalse(entities.removeEntity.called);
-    });
-
-    test('remove entity', function() {
-      connection.dataReceived('client', 'remove-entity', {testData:true});
-
-      assert.isFalse(entities.updateEntity.called);
-      assert.isTrue(entities.removeEntity.called);
-    });
-
-    test('unknown msg type', function() {
-      connection.dataReceived('client', 'unknown', {testData:true});
-
-      assert.isFalse(entities.updateEntity.called);
-      assert.isFalse(entities.removeEntity.called);
-    });
-  });
-
   suite('broadcastData', function() {
     test('sends data to each client', function() {
       var data = {things:true};
@@ -344,17 +319,17 @@ suite('NetworkConnection', function() {
       sinon.stub(connection, 'sendData');
       connection.connectList = clients;
 
-      connection.broadcastData('sync-entity', data);
+      connection.broadcastData('s', data);
 
-      assert.isTrue(connection.sendData.calledWith('c1', 'sync-entity', data));
-      assert.isTrue(connection.sendData.calledWith('c2', 'sync-entity', data));
-      assert.isTrue(connection.sendData.calledWith('c3', 'sync-entity', data));
+      assert.isTrue(connection.sendData.calledWith('c1', 's', data));
+      assert.isTrue(connection.sendData.calledWith('c2', 's', data));
+      assert.isTrue(connection.sendData.calledWith('c3', 's', data));
     });
 
     test('no connected clients', function() {
       var data = {things:true};
       sinon.spy(connection, 'sendData');
-      connection.broadcastData('sync-entity', data);
+      connection.broadcastData('s', data);
 
       assert.isFalse(connection.sendData.called);
     });
@@ -368,9 +343,9 @@ suite('NetworkConnection', function() {
       sinon.stub(connection, 'broadcastData');
       connection.connectList = clients;
 
-      connection.broadcastDataGuaranteed('sync-entity', data);
+      connection.broadcastDataGuaranteed('s', data);
 
-      assert.isTrue(connection.broadcastData.calledWith('sync-entity', data, true));
+      assert.isTrue(connection.broadcastData.calledWith('s', data, true));
     });
   });
 
@@ -378,7 +353,7 @@ suite('NetworkConnection', function() {
 
     test('is connected, not guaranteed', function() {
       var clientId = 'client1';
-      var dataType = 'sync-entity';
+      var dataType = 's';
       var data = {};
       sinon.stub(connection, 'dcIsConnectedTo').returns(true);
 
@@ -390,7 +365,7 @@ suite('NetworkConnection', function() {
 
     test('is connected, guaranteed', function() {
       var clientId = 'client1';
-      var dataType = 'sync-entity';
+      var dataType = 's';
       var data = {};
       sinon.stub(connection, 'dcIsConnectedTo').returns(true);
 
@@ -402,7 +377,7 @@ suite('NetworkConnection', function() {
 
     test('not connected', function() {
       var clientId = 'client1';
-      var dataType = 'sync-entity';
+      var dataType = 's';
       var data = {};
       sinon.stub(connection, 'dcIsConnectedTo').returns(false);
 
@@ -417,7 +392,7 @@ suite('NetworkConnection', function() {
 
     test('sends data guaranteed', function() {
       var clientId = 'client1';
-      var dataType = 'sync-entity';
+      var dataType = 's';
       var data = {};
       sinon.stub(connection, 'dcIsConnectedTo').returns(true);
       sinon.spy(connection, 'sendData');

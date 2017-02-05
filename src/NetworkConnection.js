@@ -32,7 +32,7 @@ class NetworkConnection {
     this.webrtc.setDatachannelListeners(
         this.dcOpenListener.bind(this),
         this.dcCloseListener.bind(this),
-        this.dataReceived.bind(this)
+        this.entities.dataReceived.bind(this.entities)
     );
     this.webrtc.setLoginListeners(
         this.loginSuccess.bind(this),
@@ -122,14 +122,6 @@ class NetworkConnection {
 
   sendDataGuaranteed(toClient, dataType, data) {
     this.sendData(toClient, dataType, data, true);
-  }
-
-  dataReceived(fromClient, dataType, data) {
-    if (dataType == 'sync-entity') {
-      this.entities.updateEntity(data);
-    } else if (dataType == 'remove-entity') {
-      this.entities.removeEntity(data);
-    }
   }
 }
 

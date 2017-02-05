@@ -132,7 +132,8 @@ var globals = {
   appId: '',
   roomId: '',
   debug: false,
-  updateRate: 15 // How often the network components call `sync`
+  updateRate: 15, // How often the network components call `sync`
+  compressSyncPackets: true // compress network component sync packet json
 };
 
 module.exports = globals;
@@ -242,7 +243,7 @@ class NetworkConnection {
     this.webrtc.setDatachannelListeners(
         this.dcOpenListener.bind(this),
         this.dcCloseListener.bind(this),
-        this.dataReceived.bind(this)
+        this.entities.dataReceived.bind(this.entities)
     );
     this.webrtc.setLoginListeners(
         this.loginSuccess.bind(this),
@@ -333,14 +334,6 @@ class NetworkConnection {
   sendDataGuaranteed(toClient, dataType, data) {
     this.sendData(toClient, dataType, data, true);
   }
-
-  dataReceived(fromClient, dataType, data) {
-    if (dataType == 'sync-entity') {
-      this.entities.updateEntity(data);
-    } else if (dataType == 'remove-entity') {
-      this.entities.removeEntity(data);
-    }
-  }
 }
 
 module.exports = NetworkConnection;
@@ -394,11 +387,26 @@ class NetworkEntities {
     }
   }
 
+  /**
+   dataType mappings:
+   s = sync entity
+   r = remove entity
+  */
+  dataReceived(fromClient, dataType, data) {
+    if (dataType == 's') {
+      this.updateEntity(data);
+    } else if (dataType == 'r') {
+      this.removeEntity(data);
+    }
+  }
+
   updateEntity(entityData) {
-    if (this.hasEntity(entityData.networkId)) {
-      this.entities[entityData.networkId]
-          .emit('networkUpdate', {entityData: entityData}, false);
-    } else {
+    var isCompressed = entityData[0] == 1;
+    var networkId = isCompressed ? entityData[1] : entityData.networkId;
+
+    if (this.hasEntity(networkId)) {
+      this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
+    } else if (!isCompressed) {
       this.createLocalEntity(entityData);
     }
   }
@@ -521,12 +529,11 @@ AFRAME.registerComponent('network', {
   },
 
   syncAll: function() {
+    this.updateNextSyncTime();
     var components = this.getComponentsData(this.data.components);
     var syncData = this.createSyncData(components);
-    naf.connection.broadcastDataGuaranteed('sync-entity', syncData);
+    naf.connection.broadcastDataGuaranteed('s', syncData);
     this.updateCache(components);
-    this.updateNextSyncTime();
-    this.data.cachedComponentData = components;
   },
 
   syncDirty: function() {
@@ -537,7 +544,10 @@ AFRAME.registerComponent('network', {
     }
     var components = this.getComponentsData(dirtyComps);
     var syncData = this.createSyncData(components);
-    naf.connection.broadcastData('sync-entity', syncData);
+    if (naf.globals.compressSyncPackets) {
+      syncData = this.compressSyncData(syncData);
+    }
+    naf.connection.broadcastData('s', syncData);
     this.updateCache(components);
   },
 
@@ -565,14 +575,64 @@ AFRAME.registerComponent('network', {
   },
 
   createSyncData: function(components) {
-    var entityData = {
+    var data = {
+      0: 0, // 0 for not compressed
       networkId: this.data.networkId,
       owner: this.data.owner,
+      template: '',
       components: components
     };
     if (this.hasTemplate()) {
-      entityData.template = this.el.components.template.data.src;
+      data.template = this.el.components.template.data.src;
     }
+    return data;
+  },
+
+  /**
+    Packet structure:
+    [
+      0 / 1 // 0 for compressed, 1 for not compressed
+      entityId,
+      clientId,
+      template,
+      {
+        0: data, // key maps to index of synced components in network component schema
+        3: data
+      }
+    ]
+  */
+  compressSyncData: function(syncData) {
+    var compressed = [];
+    compressed.push(1);
+    compressed.push(syncData.networkId);
+    compressed.push(syncData.owner);
+    compressed.push(syncData.template);
+
+    var compMap = {};
+    for (var name in syncData.components) {
+      var index = this.data.components.indexOf(name);
+      var component = syncData.components[name];
+      compMap[index] = component;
+    }
+    compressed.push(compMap);
+
+    return compressed;
+  },
+
+  decompressSyncData: function(compressed) {
+    var entityData = {};
+    entityData[0] = 1;
+    entityData.networkId = compressed[1];
+    entityData.owner = compressed[2];
+    entityData.template = compressed[3];
+
+    var components = {};
+    for (var i in compressed[4]) {
+      var name = this.data.components[i];
+      components[name] = compressed[4][i];
+    }
+    entityData.components = components;
+
     return entityData;
   },
 
@@ -606,10 +666,14 @@ AFRAME.registerComponent('network', {
 
   networkUpdate: function(data) {
     var entityData = data.detail.entityData;
+    if (entityData[0] == 1) {
+      entityData = this.decompressSyncData(entityData);
+    }
+
     var components = entityData.components;
     var el = this.el;
 
-    if (entityData.hasOwnProperty('template')) {
+    if (entityData.template != '') {
       el.setAttribute('template', 'src:' + entityData.template);
     }
 
@@ -628,7 +692,7 @@ AFRAME.registerComponent('network', {
   remove: function () {
     if (this.isMine()) {
       var data = { networkId: this.data.networkId };
-      naf.connection.broadcastData('remove-entity', data);
+      naf.connection.broadcastData('r', data);
     }
   }
 });

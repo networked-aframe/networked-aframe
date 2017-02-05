@@ -47,11 +47,26 @@ class NetworkEntities {
     }
   }
 
+  /**
+   dataType mappings:
+   s = sync entity
+   r = remove entity
+  */
+  dataReceived(fromClient, dataType, data) {
+    if (dataType == 's') {
+      this.updateEntity(data);
+    } else if (dataType == 'r') {
+      this.removeEntity(data);
+    }
+  }
+
   updateEntity(entityData) {
-    if (this.hasEntity(entityData.networkId)) {
-      this.entities[entityData.networkId]
-          .emit('networkUpdate', {entityData: entityData}, false);
-    } else {
+    var isCompressed = entityData[0] == 1;
+    var networkId = isCompressed ? entityData[1] : entityData.networkId;
+
+    if (this.hasEntity(networkId)) {
+      this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
+    } else if (!isCompressed) {
       this.createLocalEntity(entityData);
     }
   }

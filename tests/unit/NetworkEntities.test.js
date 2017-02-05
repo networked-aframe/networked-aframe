@@ -9,6 +9,7 @@ suite('NetworkEntities', function() {
   var scene;
   var entities;
   var entityData;
+  var compressedData;
 
   function initScene(done) {
     var opts = {
@@ -25,12 +26,23 @@ suite('NetworkEntities', function() {
   setup(function(done) {
     entities = new NetworkEntities();
     entityData = {
+      0: 0,
       networkId: 'test1',
       owner: 'abcdefg',
       template: 'template1',
       position: '1 2 3',
       rotation: '4 3 2 1'
     };
+    compressedData = [
+      1,
+      'test1',
+      'abcdefg',
+      'template1',
+      {
+        0: '1 2 3',
+        1: '4 3 2 1'
+      }
+    ];
     initScene(done);
     naf.connection.isMineAndConnected = sinon.stub();
   });
@@ -74,7 +86,7 @@ suite('NetworkEntities', function() {
 
   suite('createLocalEntity', function() {
 
-    test('returns entity', function() {
+    test('creates entity', function() {
       var entity = entities.createLocalEntity(entityData);
       assert.isOk(entity);
     });
@@ -137,17 +149,46 @@ suite('NetworkEntities', function() {
     });
   });
 
-  suite('updateEntity', function() {
+  suite('dataReceived', function() {
 
-    test('first update creates new entity', function() {
-      entities.updateEntity(entityData);
-
-      var entity = entities.getEntity(entityData.networkId);
-
-      assert.isOk(entity);
+    setup(function() {
+      sinon.spy(entities, 'updateEntity');
+      sinon.spy(entities, 'removeEntity');
     });
 
-    test('second update updates entity', function() {
+    test('sync entity', function() {
+      entities.dataReceived('client', 's', {testData:true});
+
+      assert.isTrue(entities.updateEntity.called);
+      assert.isFalse(entities.removeEntity.called);
+    });
+
+    test('remove entity', function() {
+      entities.dataReceived('client', 'r', {testData:true});
+
+      assert.isFalse(entities.updateEntity.called);
+      assert.isTrue(entities.removeEntity.called);
+    });
+
+    test('unknown msg type', function() {
+      entities.dataReceived('client', 'unknown', {testData:true});
+
+      assert.isFalse(entities.updateEntity.called);
+      assert.isFalse(entities.removeEntity.called);
+    });
+  });
+
+  suite('updateEntity', function() {
+
+    test('first uncompressed update creates new entity', sinon.test(function() {
+      this.spy(entities, 'createLocalEntity');
+
+      entities.updateEntity(entityData);
+
+      assert.isTrue(entities.createLocalEntity.calledWith(entityData));
+    }));
+
+    test('second uncompressed update updates entity', function() {
       entities.updateEntity(entityData); // creates entity
       var entity = entities.getEntity(entityData.networkId);
       sinon.spy(entity, 'emit');
@@ -155,6 +196,26 @@ suite('NetworkEntities', function() {
 
       assert.isTrue(entity.emit.calledWith('networkUpdate'));
     });
+
+    test('compressed data when entity not created, does not fail', sinon.test(function() {
+      this.spy(entities, 'createLocalEntity');
+
+      entities.updateEntity(compressedData);
+
+      assert.isFalse(entities.createLocalEntity.called);
+    }));
+
+    test('compressed data updates entity', sinon.test(function() {
+      this.spy(entities, 'createLocalEntity');
+      entities.updateEntity(entityData); // creates entity
+      var entity = entities.getEntity(entityData.networkId);
+      sinon.spy(entity, 'emit');
+
+      entities.updateEntity(compressedData);
+
+      assert.isTrue(entities.createLocalEntity.called);
+      assert.isTrue(entity.emit.calledWith('networkUpdate'));
+    }));
   });
 
   suite('completeSync', function() {
