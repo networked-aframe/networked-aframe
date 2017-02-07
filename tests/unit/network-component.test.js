@@ -12,7 +12,7 @@ suite('network-component', function() {
 
   function initScene(done) {
     var opts = {};
-    opts.entity = '<a-entity id="test-entity" network="networkId:network1;owner:owner1;components:position,rotation" position="1 2 3" rotation="4 3 2 1;" template="src:#template1;"></a-entity>';
+    opts.entity = '<a-entity id="test-entity" network="networkId:network1;owner:owner1;components:position,rotation" position="1 2 3" rotation="4 3 2" template="src:#template1;"></a-entity>';
     scene = helpers.sceneFactory(opts);
     naf.util.whenEntityLoaded(scene, done);
   }
@@ -204,12 +204,12 @@ suite('network-component', function() {
       naf.connection.broadcastDataGuaranteed = this.stub();
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+        rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
       netComp.cachedData = oldData;
       var newComponents = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 3, z: 2, w: 1 }
+        rotation: { x: 4, y: 3, z: 2 }
       };
       var entityData = {
         0: 0,
@@ -237,7 +237,7 @@ suite('network-component', function() {
     test('updates cache', sinon.test(function() {
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+        rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
       netComp.cachedData = oldData;
       naf.connection.broadcastDataGuaranteed = this.stub();
@@ -256,12 +256,12 @@ suite('network-component', function() {
       naf.globals.compressSyncPackets = false;
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+        rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
       netComp.cachedData = oldData;
       var newComponents = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 3, z: 2, w: 1 }
+        rotation: { x: 4, y: 3, z: 2 }
       };
       var entityData = {
         0: 0,
@@ -282,12 +282,12 @@ suite('network-component', function() {
       naf.globals.compressSyncPackets = true;
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+        rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
       netComp.cachedData = oldData;
       var newComponents = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 3, z: 2, w: 1 }
+        rotation: { x: 4, y: 3, z: 2 }
       };
       var entityData = {
         0: 1,
@@ -307,7 +307,7 @@ suite('network-component', function() {
     test('sets next sync time', sinon.test(function() {
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+        rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
       netComp.cachedData = oldData;
       naf.connection.broadcastData = this.stub();
@@ -321,7 +321,7 @@ suite('network-component', function() {
     test('updates cache', sinon.test(function() {
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+        rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
       netComp.cachedData = oldData;
       naf.connection.broadcastData = this.stub();
@@ -338,7 +338,7 @@ suite('network-component', function() {
       this.spy(netComp, 'updateNextSyncTime');
       var oldData = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 3, z: 2, w: 1 }
+        rotation: { x: 4, y: 3, z: 2 }
       };
       netComp.cachedData = oldData;
 
@@ -355,7 +355,7 @@ suite('network-component', function() {
     test('creates correct dirty list with one element', sinon.test(function() {
       var oldData = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+        rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
       netComp.cachedData = oldData;
 
@@ -367,7 +367,7 @@ suite('network-component', function() {
     test('creates correct dirty list with two elements', sinon.test(function() {
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+        rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
       netComp.cachedData = oldData;
 
@@ -390,7 +390,7 @@ suite('network-component', function() {
     test('adds no components to dirty list', sinon.test(function() {
       var oldData = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 3, z: 2, w: 1 }
+        rotation: { x: 4, y: 3, z: 2 }
       };
       netComp.cachedData = oldData;
 
@@ -405,7 +405,7 @@ suite('network-component', function() {
     test('creates correct data', sinon.test(function() {
       var components = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 3, z: 2, w: 1 }
+        rotation: { x: 4, y: 3, z: 2 }
       };
       var entityData = {
         0: 0,
@@ -426,7 +426,7 @@ suite('network-component', function() {
     test('example packet', function() {
       var components = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 3, z: 2, w: 1 }
+        rotation: { x: 4, y: 3, z: 2 }
       };
       var entityData = {
         0: 1,
@@ -507,7 +507,7 @@ suite('network-component', function() {
     test('example packet', function() {
       var components = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 3, z: 2, w: 1 }
+        rotation: { x: 4, y: 3, z: 2 }
       };
       var entityData = {
         0: 1,
@@ -588,7 +588,7 @@ suite('network-component', function() {
     test('collects correct data', function() {
       var compData = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 3, z: 2, w: 1 }
+        rotation: { x: 4, y: 3, z: 2 }
       };
 
       var result = netComp.getComponentsData(['position', 'rotation']);
@@ -602,12 +602,12 @@ suite('network-component', function() {
     test('resets dirty components field', function() {
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
+        rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
       netComp.cachedData = oldData;
       var newComponents = {
         position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 3, z: 2, w: 1 }
+        rotation: { x: 4, y: 3, z: 2 }
       };
 
       netComp.updateCache(newComponents);
@@ -638,7 +638,7 @@ suite('network-component', function() {
         template: '',
         components: {
           position: { x: 10, y: 20, z: 30 },
-          rotation: { x: 40, y: 30, z: 20, w: 10 },
+          rotation: { x: 40, y: 30, z: 20 },
           scale: { x: 5, y: 12, z: 1 },
           visible: false
         }
@@ -654,7 +654,6 @@ suite('network-component', function() {
       assert.equal(components['rotation'].data.x, 40, 'Rotation');
       assert.equal(components['rotation'].data.y, 30, 'Rotation');
       assert.equal(components['rotation'].data.z, 20, 'Rotation');
-      assert.equal(components['rotation'].data.w, 10, 'Rotation');
 
       assert.equal(components['scale'].data.x, 1, 'Scale');
       assert.equal(components['scale'].data.y, 1, 'Scale');
@@ -671,7 +670,7 @@ suite('network-component', function() {
         template: '',
         components: {
           position: { x: 10, y: 20, z: 30 },
-          rotation: { x: 40, y: 30, z: 20, w: 10 },
+          rotation: { x: 40, y: 30, z: 20 },
           scale: { x: 5, y: 12, z: 1 },
           visible: false
         }
@@ -683,7 +682,7 @@ suite('network-component', function() {
         '',
         {
           0: { x: 10, y: 20, z: 30 },
-          1: { x: 40, y: 30, z: 20, w: 10 }
+          1: { x: 40, y: 30, z: 20 }
         }
       ];
 
@@ -697,7 +696,6 @@ suite('network-component', function() {
       assert.equal(components['rotation'].data.x, 40, 'Rotation');
       assert.equal(components['rotation'].data.y, 30, 'Rotation');
       assert.equal(components['rotation'].data.z, 20, 'Rotation');
-      assert.equal(components['rotation'].data.w, 10, 'Rotation');
 
       assert.equal(components['scale'].data.x, 1, 'Scale');
       assert.equal(components['scale'].data.y, 1, 'Scale');

@@ -31,7 +31,7 @@ suite('NetworkEntities', function() {
       owner: 'abcdefg',
       template: 'template1',
       position: '1 2 3',
-      rotation: '4 3 2 1'
+      rotation: '4 3 2'
     };
     compressedData = [
       1,
@@ -40,7 +40,7 @@ suite('NetworkEntities', function() {
       'template1',
       {
         0: '1 2 3',
-        1: '4 3 2 1'
+        1: '4 3 2'
       }
     ];
     initScene(done);
@@ -57,7 +57,7 @@ suite('NetworkEntities', function() {
       var clientId = 'client';
       var setupTemplate = 'template';
       var setupPosition = '10 11 12';
-      var setupRotation = '14 15 16 17';
+      var setupRotation = '14 15 16';
 
       var entity = entities.createNetworkEntity(clientId, setupTemplate, setupPosition, setupRotation);
 
@@ -77,7 +77,7 @@ suite('NetworkEntities', function() {
       var clientId = 'client';
       var setupTemplate = 'template';
       var setupPosition = '10 11 12';
-      var setupRotation = '14 15 16 17';
+      var setupRotation = '14 15 16';
 
       var entity = entities.createNetworkEntity(clientId, setupTemplate, setupPosition, setupRotation);
       assert.isOk(entity);
