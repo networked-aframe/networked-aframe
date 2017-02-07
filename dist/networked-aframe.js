@@ -1568,9 +1568,7 @@ class NafLogger {
   }
 
   error() {
-    if (this.debug) {
-      console.error.apply(this, arguments);
-    }
+    console.error.apply(this, arguments);
   }
 }
 
@@ -1615,8 +1613,16 @@ class NetworkConnection {
     this.myRoomJoinTime = 0;
     this.connectList = {};
     this.dcIsActive = {};
+    this.setupDefaultDCSubs();
 
     this.showAvatar = true;
+  }
+
+  setupDefaultDCSubs() {
+    this.dcSubscribers = {
+      'u': this.entities.updateEntity.bind(this.entities),
+      'r': this.entities.removeEntity.bind(this.entities)
+    };
   }
 
   enableAvatar(enable) {
@@ -1636,7 +1642,7 @@ class NetworkConnection {
     this.webrtc.setDatachannelListeners(
         this.dcOpenListener.bind(this),
         this.dcCloseListener.bind(this),
-        this.entities.dataReceived.bind(this.entities)
+        this.receiveDataChannelMessage.bind(this)
     );
     this.webrtc.setLoginListeners(
         this.loginSuccess.bind(this),
@@ -1727,6 +1733,30 @@ class NetworkConnection {
   sendDataGuaranteed(toClient, dataType, data) {
     this.sendData(toClient, dataType, data, true);
   }
+
+  subscribeToDataChannel(dataType, callback) {
+    if (dataType == 'u' || dataType == 'r') {
+      naf.log.error('NetworkConnection@subscribeToDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
+      return;
+    }
+    this.dcSubscribers[dataType] = callback;
+  }
+
+  unsubscribeFromDataChannel(dataType) {
+    if (dataType == 'u' || dataType == 'r') {
+      naf.log.error('NetworkConnection@unsubscribeFromDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
+      return;
+    }
+    delete this.dcSubscribers[dataType];
+  }
+
+  receiveDataChannelMessage(fromClient, dataType, data) {
+    if (this.dcSubscribers.hasOwnProperty(dataType)) {
+      this.dcSubscribers[dataType](fromClient, dataType, data);
+    } else {
+      naf.log.error('NetworkConnection@receiveDataChannelMessage: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
+    }
+  }
 }
 
 module.exports = NetworkConnection;
@@ -1763,6 +1793,7 @@ class NetworkEntities {
     entity.setAttribute('rotation', entityData.rotation);
     entity.setAttribute('network', 'owner:' + entityData.owner + ';networkId:' + entityData.networkId);
     entity.setAttribute('lerp', '');
+
     scene.appendChild(entity);
     this.entities[entityData.networkId] = entity;
     return entity;
@@ -1785,20 +1816,7 @@ class NetworkEntities {
     }
   }
 
-  /**
-   dataType mappings:
-   s = sync entity
-   r = remove entity
-  */
-  dataReceived(fromClient, dataType, data) {
-    if (dataType == 's') {
-      this.updateEntity(data);
-    } else if (dataType == 'r') {
-      this.removeEntity(data);
-    }
-  }
-
-  updateEntity(entityData) {
+  updateEntity(client, dataType, entityData) {
     var isCompressed = entityData[0] == 1;
     var networkId = isCompressed ? entityData[1] : entityData.networkId;
 
@@ -1928,7 +1946,7 @@ AFRAME.registerComponent('network', {
     this.updateNextSyncTime();
     var components = this.getComponentsData(this.data.components);
     var syncData = this.createSyncData(components);
-    naf.connection.broadcastDataGuaranteed('s', syncData);
+    naf.connection.broadcastDataGuaranteed('u', syncData);
     this.updateCache(components);
   },
 
@@ -1943,7 +1961,7 @@ AFRAME.registerComponent('network', {
     if (naf.globals.compressSyncPackets) {
       syncData = this.compressSyncData(syncData);
     }
-    naf.connection.broadcastData('s', syncData);
+    naf.connection.broadcastData('u', syncData);
     this.updateCache(components);
   },
 

@@ -165,50 +165,22 @@ suite('NetworkEntities', function() {
     });
   });
 
-  suite('dataReceived', function() {
-
-    setup(function() {
-      sinon.spy(entities, 'updateEntity');
-      sinon.spy(entities, 'removeEntity');
-    });
-
-    test('sync entity', function() {
-      entities.dataReceived('client', 's', {testData:true});
-
-      assert.isTrue(entities.updateEntity.called);
-      assert.isFalse(entities.removeEntity.called);
-    });
-
-    test('remove entity', function() {
-      entities.dataReceived('client', 'r', {testData:true});
-
-      assert.isFalse(entities.updateEntity.called);
-      assert.isTrue(entities.removeEntity.called);
-    });
-
-    test('unknown msg type', function() {
-      entities.dataReceived('client', 'unknown', {testData:true});
-
-      assert.isFalse(entities.updateEntity.called);
-      assert.isFalse(entities.removeEntity.called);
-    });
-  });
-
   suite('updateEntity', function() {
 
     test('first uncompressed update creates new entity', sinon.test(function() {
       this.spy(entities, 'createLocalEntity');
 
-      entities.updateEntity(entityData);
+      entities.updateEntity('client', 'u', entityData);
 
       assert.isTrue(entities.createLocalEntity.calledWith(entityData));
     }));
 
     test('second uncompressed update updates entity', function() {
-      entities.updateEntity(entityData); // creates entity
+      entities.updateEntity('client', 'u', entityData); // creates entity
       var entity = entities.getEntity(entityData.networkId);
       sinon.spy(entity, 'emit');
-      entities.updateEntity(entityData); // updates entity
+
+      entities.updateEntity('client', 'u', entityData); // updates entity
 
       assert.isTrue(entity.emit.calledWith('networkUpdate'));
     });
@@ -216,18 +188,18 @@ suite('NetworkEntities', function() {
     test('compressed data when entity not created, does not fail', sinon.test(function() {
       this.spy(entities, 'createLocalEntity');
 
-      entities.updateEntity(compressedData);
+      entities.updateEntity('client', 'u', compressedData);
 
       assert.isFalse(entities.createLocalEntity.called);
     }));
 
     test('compressed data updates entity', sinon.test(function() {
       this.spy(entities, 'createLocalEntity');
-      entities.updateEntity(entityData); // creates entity
+      entities.updateEntity('client', 'u', entityData); // creates entity
       var entity = entities.getEntity(entityData.networkId);
       sinon.spy(entity, 'emit');
 
-      entities.updateEntity(compressedData);
+      entities.updateEntity('client', 'u', compressedData);
 
       assert.isTrue(entities.createLocalEntity.called);
       assert.isTrue(entity.emit.calledWith('networkUpdate'));

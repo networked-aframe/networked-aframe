@@ -15,9 +15,7 @@ class NafLogger {
   }
 
   error() {
-    if (this.debug) {
-      console.error.apply(this, arguments);
-    }
+    console.error.apply(this, arguments);
   }
 }
 

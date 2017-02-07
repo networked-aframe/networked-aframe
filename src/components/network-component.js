@@ -52,7 +52,7 @@ AFRAME.registerComponent('network', {
     this.updateNextSyncTime();
     var components = this.getComponentsData(this.data.components);
     var syncData = this.createSyncData(components);
-    naf.connection.broadcastDataGuaranteed('s', syncData);
+    naf.connection.broadcastDataGuaranteed('u', syncData);
     this.updateCache(components);
   },
 
@@ -67,7 +67,7 @@ AFRAME.registerComponent('network', {
     if (naf.globals.compressSyncPackets) {
       syncData = this.compressSyncData(syncData);
     }
-    naf.connection.broadcastData('s', syncData);
+    naf.connection.broadcastData('u', syncData);
     this.updateCache(components);
   },
 

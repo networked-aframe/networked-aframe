@@ -13,7 +13,6 @@ suite('NetworkConnection', function() {
     this.removeEntitiesFromUser = sinon.stub();
     this.updateEntity = sinon.stub();
     this.removeEntity = sinon.stub();
-    this.dataReceived = sinon.stub();
   }
 
   function WebRtcStub() {
@@ -32,6 +31,16 @@ suite('NetworkConnection', function() {
     var webrtcStub = new WebRtcStub();
     entities = new NetworkEntitiesStub();
     connection = new NetworkConnection(webrtcStub, entities);
+  });
+
+  suite('setupDefaultDCSubs', function() {
+
+    test('subscribes to NetworkEntities DC callbacks', function() {
+      var actualSync = connection.dcSubscribers['u'];
+      var actualRemove = connection.dcSubscribers['r'];
+      assert.isOk(actualSync);
+      assert.isOk(actualRemove);
+    });
   });
 
   suite('connect', function() {
@@ -401,6 +410,66 @@ suite('NetworkConnection', function() {
 
       assert.isTrue(connection.sendData.calledWith(clientId, dataType, data, true));
     });
+  });
 
+  suite('subscribeToDataChannel', function() {
+
+    test('is added to datachannel subscribers', function() {
+      var dataType = 'method1';
+      var callback = function() { return 'callback' };
+
+      connection.subscribeToDataChannel(dataType, callback);
+
+      var actual = connection.dcSubscribers[dataType];
+      assert.deepEqual(actual, callback);
+    });
+  });
+
+  suite('unsubscribeFromDataChannel', function() {
+
+    test('is removed from datachannel subscribers', function() {
+      var dataType = 'method1';
+      var callback = function() { return 'callback' };
+      connection.dcSubscribers[dataType] = callback;
+
+      connection.unsubscribeFromDataChannel(dataType);
+
+      assert.isFalse(connection.dcSubscribers.hasOwnProperty(dataType));
+    });
+  });
+
+  suite('receiveDataChannelMessage', function() {
+
+    test('sync entity', function() {
+      connection.receiveDataChannelMessage('client', 'u', {testData:true});
+
+      assert.isTrue(entities.updateEntity.called);
+      assert.isFalse(entities.removeEntity.called);
+    });
+
+    test('remove entity', function() {
+      connection.receiveDataChannelMessage('client', 'r', {testData:true});
+
+      assert.isFalse(entities.updateEntity.called);
+      assert.isTrue(entities.removeEntity.called);
+    });
+
+    test('unknown msg type', function() {
+      connection.receiveDataChannelMessage('client', 'unknown', {testData:true});
+
+      assert.isFalse(entities.updateEntity.called);
+      assert.isFalse(entities.removeEntity.called);
+    });
+
+    test('subscribe then call', function() {
+      var dataType = 'method1';
+      var stub = sinon.stub();
+      var data = { test: true };
+      connection.subscribeToDataChannel(dataType, stub);
+
+      connection.receiveDataChannelMessage('client1', dataType, data);
+
+      assert.isTrue(stub.calledWith('client1', dataType, data));
+    });
   });
 });

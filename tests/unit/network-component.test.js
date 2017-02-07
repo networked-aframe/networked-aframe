@@ -221,7 +221,7 @@ suite('network-component', function() {
 
       netComp.syncAll();
 
-      var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('s', entityData);
+      var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('u', entityData);
       assert.isTrue(called);
     }));
 
@@ -273,7 +273,7 @@ suite('network-component', function() {
 
       netComp.syncDirty();
 
-      var called = naf.connection.broadcastData.calledWithExactly('s', entityData);
+      var called = naf.connection.broadcastData.calledWithExactly('u', entityData);
       assert.isTrue(called);
     }));
 
@@ -300,7 +300,7 @@ suite('network-component', function() {
 
       netComp.syncDirty();
 
-      var called = naf.connection.broadcastData.calledWithExactly('s', compressed);
+      var called = naf.connection.broadcastData.calledWithExactly('u', compressed);
       assert.isTrue(called);
     }));
 

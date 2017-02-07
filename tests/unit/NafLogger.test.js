@@ -50,7 +50,7 @@ suite('NafLogger', function() {
 
       logger.error('test', 123, 456);
 
-      assert.isFalse(console.error.called);
+      assert.isTrue(console.error.called);
     }));
   });
 });

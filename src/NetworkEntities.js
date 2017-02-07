@@ -30,6 +30,7 @@ class NetworkEntities {
     entity.setAttribute('rotation', entityData.rotation);
     entity.setAttribute('network', 'owner:' + entityData.owner + ';networkId:' + entityData.networkId);
     entity.setAttribute('lerp', '');
+
     scene.appendChild(entity);
     this.entities[entityData.networkId] = entity;
     return entity;
@@ -52,20 +53,7 @@ class NetworkEntities {
     }
   }
 
-  /**
-   dataType mappings:
-   s = sync entity
-   r = remove entity
-  */
-  dataReceived(fromClient, dataType, data) {
-    if (dataType == 's') {
-      this.updateEntity(data);
-    } else if (dataType == 'r') {
-      this.removeEntity(data);
-    }
-  }
-
-  updateEntity(entityData) {
+  updateEntity(client, dataType, entityData) {
     var isCompressed = entityData[0] == 1;
     var networkId = isCompressed ? entityData[1] : entityData.networkId;
 
