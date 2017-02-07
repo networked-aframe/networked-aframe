@@ -7,3 +7,5 @@ require('./components/network-component.js');
 
 // Other components
 require('./components/follow-camera.js')
+require('aframe-template-component');
+require('aframe-lerp-component');

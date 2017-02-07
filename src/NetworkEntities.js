@@ -27,6 +27,7 @@ class NetworkEntities {
     entity.setAttribute('position', entityData.position);
     entity.setAttribute('rotation', entityData.rotation);
     entity.setAttribute('network', 'owner:' + entityData.owner + ';networkId:' + entityData.networkId);
+    entity.setAttribute('lerp', '');
     scene.appendChild(entity);
     this.entities[entityData.networkId] = entity;
     return entity;

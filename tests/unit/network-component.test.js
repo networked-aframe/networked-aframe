@@ -143,7 +143,7 @@ suite('network-component', function() {
 
     test('next sync time equals current time', sinon.test(function() {
       this.stub(naf.util, 'now').returns(5);
-      netComp.data.nextSyncTime = 5;
+      netComp.nextSyncTime = 5;
 
       var result = netComp.needsToSync();
 
@@ -152,7 +152,7 @@ suite('network-component', function() {
 
     test('next sync time just under current time', sinon.test(function() {
       this.stub(naf.util, 'now').returns(5);
-      netComp.data.nextSyncTime = 4.9;
+      netComp.nextSyncTime = 4.9;
 
       var result = netComp.needsToSync();
 
@@ -161,7 +161,7 @@ suite('network-component', function() {
 
     test('next sync time just over current time', sinon.test(function() {
       this.stub(naf.util, 'now').returns(5);
-      netComp.data.nextSyncTime = 5.1;
+      netComp.nextSyncTime = 5.1;
 
       var result = netComp.needsToSync();
 
@@ -206,7 +206,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
       var newComponents = {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 3, z: 2, w: 1 }
@@ -239,7 +239,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
       naf.connection.broadcastDataGuaranteed = this.stub();
       this.spy(netComp, 'updateCache');
 
@@ -258,7 +258,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
       var newComponents = {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 3, z: 2, w: 1 }
@@ -284,7 +284,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
       var newComponents = {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 3, z: 2, w: 1 }
@@ -309,7 +309,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
       naf.connection.broadcastData = this.stub();
       this.spy(netComp, 'updateNextSyncTime');
 
@@ -323,7 +323,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
       naf.connection.broadcastData = this.stub();
       this.spy(netComp, 'updateCache');
 
@@ -340,7 +340,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 3, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
 
       netComp.syncDirty();
 
@@ -357,7 +357,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
 
       var result = netComp.getDirtyComponents();
 
@@ -369,7 +369,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
 
       var result = netComp.getDirtyComponents();
 
@@ -380,7 +380,7 @@ suite('network-component', function() {
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
 
       var result = netComp.getDirtyComponents();
 
@@ -392,7 +392,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 3, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
 
       var result = netComp.getDirtyComponents();
 
@@ -604,7 +604,7 @@ suite('network-component', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2, w: 1 }
       };
-      netComp.data.cachedData = oldData;
+      netComp.cachedData = oldData;
       var newComponents = {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 3, z: 2, w: 1 }
@@ -612,7 +612,7 @@ suite('network-component', function() {
 
       netComp.updateCache(newComponents);
 
-      assert.deepEqual(netComp.data.cachedData, newComponents);
+      assert.deepEqual(netComp.cachedData, newComponents);
     });
   });
 
@@ -624,7 +624,7 @@ suite('network-component', function() {
 
       netComp.updateNextSyncTime();
 
-      assert.approximately(netComp.data.nextSyncTime, 6000, 0.00001);
+      assert.approximately(netComp.nextSyncTime, 6000, 0.00001);
     }));
   });
 

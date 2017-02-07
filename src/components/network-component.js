@@ -5,15 +5,13 @@ AFRAME.registerComponent('network', {
   schema: {
     networkId: {type: 'string'},
     owner: {type: 'string'},
-    components: {default:['position', 'rotation', 'scale']},
-
-    /* Private fields */
-    nextSyncTime: {type: 'number'},
-    cachedData: {default: [],
-                parse: function(value) { return value }}
+    components: {default:['position', 'rotation', 'scale']}
   },
 
   init: function() {
+    this.nextSyncTime = 0;
+    this.cachedData = {};
+
     if (this.isMine()) {
       this.syncAll();
     }
@@ -41,7 +39,7 @@ AFRAME.registerComponent('network', {
   },
 
   needsToSync: function() {
-    return naf.util.now() >= this.data.nextSyncTime;
+    return naf.util.now() >= this.nextSyncTime;
   },
 
   // Will only succeed if object is created after connected
@@ -83,12 +81,12 @@ AFRAME.registerComponent('network', {
       if (!newComps.hasOwnProperty(name)) {
         continue;
       }
-      if (!this.data.cachedData.hasOwnProperty(name)) {
+      if (!this.cachedData.hasOwnProperty(name)) {
         dirtyComps.push(name);
         continue;
       }
-      var oldCompData = this.data.cachedData[name];
-      var newCompData = newComps[name].data;
+      var oldCompData = this.cachedData[name];
+      var newCompData = newComps[name].getData();
       if (!deepEqual(oldCompData, newCompData)) {
         dirtyComps.push(name);
       }
@@ -111,9 +109,9 @@ AFRAME.registerComponent('network', {
   },
 
   /**
-    Packet structure:
+    Compressed packet structure:
     [
-      0 / 1 // 0 for compressed, 1 for not compressed
+      0 / 1, // 0 for not compressed, 1 for compressed
       entityId,
       clientId,
       template,
@@ -166,7 +164,7 @@ AFRAME.registerComponent('network', {
       var name = components[i];
       if (elComponents.hasOwnProperty(name)) {
         var component = elComponents[name];
-        compsWithData[name] = component.data;
+        compsWithData[name] = component.getData();
       }
     }
     return compsWithData;
@@ -174,7 +172,7 @@ AFRAME.registerComponent('network', {
 
   updateCache: function(components) {
     for (var name in components) {
-      this.data.cachedData[name] = components[name];
+      this.cachedData[name] = components[name];
     }
   },
 
@@ -183,7 +181,7 @@ AFRAME.registerComponent('network', {
   },
 
   updateNextSyncTime: function() {
-    this.data.nextSyncTime = naf.util.now() + 1000 / naf.globals.updateRate;
+    this.nextSyncTime = naf.util.now() + 1000 / naf.globals.updateRate;
   },
 
   networkUpdate: function(data) {

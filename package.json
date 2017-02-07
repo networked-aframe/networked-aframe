@@ -1,9 +1,14 @@
 {
   "name": "networked-aframe",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A web framework for building networked A-Frame VR experiences.",
   "homepage": "",
   "main": "dist/networked-aframe.js",
+  "author": "Hayden Lee <haydenjameslee@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/haydenjameslee/networked-aframe/issues"
+  },
   "scripts": {
     "browserify": "browserify src/index.js -o dist/networked-aframe.js -p browserify-derequire",
     "watchify": "watchify src/index.js -o dist/networked-aframe.js -p browserify-derequire -v",
@@ -21,6 +26,7 @@
     "aframe-template-component": "3.1.2"
   },
   "devDependencies": {
+    "aframe-lerp-component": "^1.0.1",
     "browserify": "^14.0.0",
     "browserify-derequire": "^0.9.4",
     "browserify-istanbul": "^2.0.0",
