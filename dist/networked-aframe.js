@@ -1737,6 +1737,7 @@ class NetworkEntities {
 
   constructor() {
     this.entities = {};
+    this.avatar = null;
   }
 
   createNetworkEntity(clientId, template, position, rotation) {
@@ -1756,6 +1757,7 @@ class NetworkEntities {
   createLocalEntity(entityData) {
     var scene = document.querySelector('a-scene');
     var entity = document.createElement('a-entity');
+    entity.setAttribute('id', 'naf-' + entityData.networkId);
     entity.setAttribute('template', 'src:' + entityData.template);
     entity.setAttribute('position', entityData.position);
     entity.setAttribute('rotation', entityData.rotation);
@@ -1773,7 +1775,9 @@ class NetworkEntities {
       var avatar = this.createNetworkEntity(owner, templateName, '0 0 0', '0 0 0 0');
       avatar.setAttribute('visible', false);
       avatar.setAttribute('follow-camera', '');
-      avatar.setAttribute('id', 'naf-avatar');
+      avatar.className += ' local-avatar';
+      avatar.removeAttribute('lerp');
+      this.avatar = avatar;
       return avatar;
     } else {
       naf.log.error('NetworkEntities@createAvatar: Could not find template with src="#avatar"');

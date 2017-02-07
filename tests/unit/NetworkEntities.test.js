@@ -99,8 +99,12 @@ suite('NetworkEntities', function() {
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
         var netComp = entity.getAttribute('network');
+        var lerp = entity.getAttribute('lerp');
+        var id = entity.getAttribute('id');
 
         assert.isNotNull(entity);
+        assert.isNotNull(lerp);
+        assert.equal(id, 'naf-test1');
         assert.equal(template, 'src:' + entityData.template);
         assert.equal(position, entityData.position);
         assert.equal(rotation, entityData.rotation);
@@ -127,7 +131,7 @@ suite('NetworkEntities', function() {
 
       var avatar = entities.createAvatar();
 
-      var avatarEl = document.querySelector('#naf-avatar');
+      var avatarEl = document.querySelector('.local-avatar');
       assert.equal(avatar, avatarEl);
     });
 
@@ -146,6 +150,18 @@ suite('NetworkEntities', function() {
       var avatar = entities.createAvatar();
 
       assert.isOk(avatar);
+    });
+
+    test('sets entities.avatar', function() {
+      var template = document.createElement('script');
+      template.setAttribute('id', 'avatar');
+      var assets = document.querySelector('a-assets');
+      assets.appendChild(template);
+
+      var avatar = entities.createAvatar();
+      var avatar2 = entities.avatar;
+
+      assert.equal(avatar, avatar2);
     });
   });
 
