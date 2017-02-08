@@ -54,3 +54,6 @@ tmp
 
 # Testing suites
 errorShots
+
+# Temp build file
+examples/build.js

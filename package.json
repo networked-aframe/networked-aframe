@@ -10,26 +10,37 @@
     "url": "https://github.com/haydenjameslee/networked-aframe/issues"
   },
   "scripts": {
-    "browserify": "browserify src/index.js -o dist/networked-aframe.js -p browserify-derequire",
-    "watchify": "watchify src/index.js -o dist/networked-aframe.js -p browserify-derequire -v",
+    "build": "browserify src/index.js -o examples/build.js",
     "easyrtc-server-init": "cd ./node_modules/easyrtc; npm install; cd ./server_example; npm install; cd ../../../",
     "easyrtc-server-run": "node ./node_modules/easyrtc/server_example/server.js",
-    "unit-tests": "karma start ./tests/unit/karma.conf.js --browsers Chrome",
-    "system-tests": "./node_modules/.bin/wdio ./tests/system/wdio.conf.js",
-    "dev": "npm run watchify & npm run easyrtc-server-run & python -m SimpleHTTPServer 8081"
+    "dev": "npm run watch & npm run easyrtc-server-run & budo examples/build.js --dir . --port 8081 --live --open",
+    "dist": "webpack --config webpack.config.js && webpack -p --config webpack.prod.config.js",
+    "lint": "semistandard -v | snazzy",
+    "prepublish": "npm run dist",
+    "preghpages": "npm run build && shx rm -rf gh-pages && shx mkdir gh-pages && shx cp -r examples/* gh-pages",
+    "ghpages": "npm run preghpages && ghpages -p gh-pages",
+    "start": "npm run dev",
+    "test": "karma start ./tests/karma.conf.js",
+    "test:firefox": "karma start ./tests/karma.conf.js --browsers Firefox",
+    "test:chrome": "karma start ./tests/karma.conf.js --browsers Chrome",
+    "watch": "watchify src/index.js -o examples/build.js -v"
   },
   "repository": "haydenjameslee/networked-aframe",
   "dependencies": {
     "easyrtc": "1.1.0",
     "socket.io-client": "1.7.2",
     "aframe": "0.4.1",
+    "aframe-lerp-component": "^1.0.1",
     "aframe-template-component": "3.1.2"
   },
   "devDependencies": {
-    "aframe-lerp-component": "^1.0.1",
+    "babel-core": "^6.22.1",
+    "babel-loader": "^6.2.10",
+    "babel-preset-es2015": "^6.22.0",
     "browserify": "^14.0.0",
     "browserify-derequire": "^0.9.4",
     "browserify-istanbul": "^2.0.0",
+    "budo": "^9.4.7",
     "chai": "^3.5.0",
     "chai-shallow-deep-equal": "^1.4.0",
     "chalk": "^1.1.3",
@@ -46,12 +57,12 @@
     "karma-sinon-chai": "^1.2.4",
     "mocha": "^3.2.0",
     "node-fetch": "^1.6.3",
+    "semistandard": "^8.0.0",
     "sinon": "^1.17.5",
     "sinon-chai": "^2.8.0",
+    "snazzy": "^6.0.0",
     "watchify": "^3.9.0",
-    "wdio-mocha-framework": "^0.5.8",
-    "wdio-spec-reporter": "0.0.5",
-    "webdriverio": "^4.6.2"
+    "webpack": "^1.13.0"
   },
   "keywords": [
     "3d",
@@ -74,5 +85,8 @@
   "engines": {
     "node": ">= 7.4.0",
     "npm": "^4.0.5"
+  },
+  "babel": {
+    "presets": ["es2015"]
   }
 }
