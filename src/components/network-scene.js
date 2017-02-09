@@ -40,6 +40,8 @@ AFRAME.registerComponent('network-scene', {
     connection.connect(this.data.appId, this.data.roomId, this.data.audio);
 
     this.el.addState('calledConnect', true);
+
     naf.connection = naf.c = connection;
+    naf.entities = naf.e = entities;
   }
 });
