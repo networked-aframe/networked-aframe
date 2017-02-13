@@ -1,13 +1,12 @@
 <html>
   <head>
-    <!-- JS libraries -->
-    <script src="../node_modules/socket.io-client/dist/socket.io.min.js"></script>
-    <script src="../node_modules/easyrtc/api/easyrtc.js"></script>
-
     <!-- Required Aframe libraries -->
-    <script src="../node_modules/aframe/dist/aframe-master.min.js"></script>
+    <script src="https://aframe.io/releases/0.4.0/aframe.min.js"></script>
 
-    <script src="./build.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
+
+    <script src="/build.js"></script>
     <!-- <script src="../dist/networked-aframe.js"></script> -->
     <!-- <script src="../dist/networked-aframe.min.js"></script> -->
 
@@ -18,7 +17,6 @@
   <body>
 
     <a-scene network-scene="
-      signallingUrl: http://localhost:8080;
       debug: true;
       audio: false;
     ">

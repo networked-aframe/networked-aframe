@@ -9,7 +9,7 @@ AFRAME.registerComponent('network-scene', {
     appId: {default: 'default'},
     roomId: {default: 'default'},
     connectOnLoad: {default: true},
-    signallingUrl: {type: 'string'},
+    signallingUrl: {default: '/'},
     audio: {default: false},
     avatar: {default: true},
     debug: {default: false}

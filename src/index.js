@@ -1,3 +1,7 @@
+// Dependencies
+require('aframe-template-component');
+require('aframe-lerp-component');
+
 // Global vars and functions
 require('./NafIndex.js');
 
@@ -7,5 +11,4 @@ require('./components/network-component.js');
 
 // Other components
 require('./components/follow-camera.js')
-require('aframe-template-component');
-require('aframe-lerp-component');
+

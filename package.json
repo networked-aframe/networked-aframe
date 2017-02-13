@@ -10,10 +10,10 @@
     "url": "https://github.com/haydenjameslee/networked-aframe/issues"
   },
   "scripts": {
-    "build": "browserify src/index.js -o examples/build.js",
+    "build": "browserify src/index.js -o server/static/build.js",
     "easyrtc-server-init": "cd ./node_modules/easyrtc; npm install; cd ../../server; npm install; cd ../",
     "easyrtc-server-run": "node ./server/server.js",
-    "dev": "npm run watch & npm run easyrtc-server-run & budo examples/build.js --dir . --port 8081 --live --open",
+    "dev": "npm run watch & npm run easyrtc-server-run",
     "dist": "webpack --config webpack.config.js && webpack -p --config webpack.prod.config.js",
     "lint": "semistandard -v | snazzy",
     "prepublish": "npm run dist",
@@ -23,24 +23,26 @@
     "test": "karma start ./tests/unit/karma.conf.js",
     "test:firefox": "karma start ./tests/unit/karma.conf.js --browsers Firefox",
     "test:chrome": "karma start ./tests/unit/karma.conf.js --browsers Chrome",
-    "watch": "watchify src/index.js -o examples/build.js -v"
+    "watch": "watchify src/index.js -o server/static/build.js -v"
   },
   "repository": "haydenjameslee/networked-aframe",
   "dependencies": {
     "easyrtc": "1.1.0",
-    "socket.io-client": "1.7.2",
-    "aframe": "0.4.1",
+    "express": "^4.10.7",
     "aframe-lerp-component": "^1.0.1",
-    "aframe-template-component": "3.1.2"
+    "aframe-template-component": "3.1.2",
+    "serve-static": "^1.8.0",
+    "socket.io": "^1.4.5",
+    "socket.io-client": "^1.4.5"
   },
   "devDependencies": {
+    "aframe": "0.4.1",
     "babel-core": "^6.22.1",
     "babel-loader": "^6.2.10",
     "babel-preset-es2015": "^6.22.0",
     "browserify": "^14.0.0",
     "browserify-derequire": "^0.9.4",
     "browserify-istanbul": "^2.0.0",
-    "budo": "^9.4.7",
     "chai": "^3.5.0",
     "chai-shallow-deep-equal": "^1.4.0",
     "chalk": "^1.1.3",
