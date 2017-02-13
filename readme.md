@@ -1,10 +1,5 @@
 
 
-
-
-
-
-
 # API
 
 ### Scene setup
@@ -20,12 +15,15 @@ avatar: {default: true},
 debug: {default: false}
 
 
+### Avatar
+
+
 ### Create networked entity
 
 `naf.entities.createNetworkEntity(template, position, rotation)`
 
 
-### Send message
+### Send message to other clients
 
 `naf.connection.subscribeToDataChannel(dataType, callback)`
 `naf.connection.unsubscribeToDataChannel(dataType)`
@@ -34,9 +32,6 @@ debug: {default: false}
 `naf.connection.broadcastDataGuaranteed(dataType, data)`
 `naf.connection.sendData(toClient, dataType, data)`
 `naf.connection.sendDataGuaranteed(toClient, dataType, data)`
-
-`naf.connection.isConnectedTo(client)`
-
 
 
 
@@ -49,3 +44,12 @@ A-Frame
 A-Frame Templates: https://github.com/ngokevin/kframe/tree/master/components/template
 
 EasyRTC
+
+
+# Other A-Frame networking libraries
+
+broadcast
+
+firebase
+
+incheon
