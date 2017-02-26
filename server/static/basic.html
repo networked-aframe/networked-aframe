@@ -1,48 +1,44 @@
 <html>
   <head>
-    <!-- Required Aframe libraries -->
     <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
-
     <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
-
     <script src="/build.js"></script>
-    <!-- <script src="../dist/networked-aframe.js"></script> -->
-    <!-- <script src="../dist/networked-aframe.min.js"></script> -->
-
   </head>
   <body>
 
     <a-scene network-scene="
+      room: basic,
       debug: true;
       audio: false;
     ">
 
       <a-assets>
 
-        <img id="city" crossorigin="anonymous" src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/city.jpg">
+        <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
+        <img id="sky" src="https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
 
         <!-- Templates -->
+
         <script id="avatar" type="text/html">
           <a-entity class="head">
             <a-box color="red"></a-box>
           </a-entity>
         </script>
+
         <!-- /Templates -->
-
       </a-assets>
-
-      <a-sky id="image-360" radius="100" src="#city"></a-sky>
 
       <a-camera></a-camera>
 
-      <!-- <a-plane color="black" rotation="-90 0 0" width="30" height="30" repeat="10 10"></a-plane> -->
-      <a-entity text="value: Networked-Aframe Basic; font: exo2bold; color: #000" position="2.34 1 -3" scale="10 10 10"></a-entity>
-      <a-plane color position="0 0.91 -3.01" scale="6.11 1 1"></a-plane>
+      <a-entity position="0 0 0"
+        geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
+        material="src: #grid; repeat: 10000 10000; transparent: true; metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;"></a-entity>
 
+      <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>
+      <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity>
 
-      <a-light type="ambient" color="#445451"></a-light>
-      <a-light type="point" intensity="2" position="2 4 4" color="red"></a-light>
+      <a-sky src="#sky" rotation="0 -90 0"></a-sky>
     </a-scene>
 
     <!-- GitHub Corner. -->

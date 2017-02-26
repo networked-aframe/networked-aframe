@@ -2121,7 +2121,7 @@ var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
 AFRAME.registerComponent('network-scene', {
   schema: {
     appId: {default: 'default'},
-    roomId: {default: 'default'},
+    room: {default: 'default'},
     connectOnLoad: {default: true},
     signallingUrl: {default: '/'},
     audio: {default: false},
@@ -2151,7 +2151,7 @@ AFRAME.registerComponent('network-scene', {
     var entities = new NetworkEntities();
     var connection = new NetworkConnection(webrtc, entities);
     connection.enableAvatar(this.data.avatar);
-    connection.connect(this.data.appId, this.data.roomId, this.data.audio);
+    connection.connect(this.data.appId, this.data.room, this.data.audio);
 
     this.el.addState('calledConnect', true);
 
