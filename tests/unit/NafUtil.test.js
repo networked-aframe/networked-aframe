@@ -95,5 +95,4 @@ suite('NafUtil', function() {
       assert.approximately(result, time, 1);
     });
   });
-
 });

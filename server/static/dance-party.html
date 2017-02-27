@@ -12,6 +12,7 @@
 
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
     <script src="https://unpkg.com/aframe-audioanalyser-component@^3.0.0/dist/aframe-audioanalyser-component.min.js"></script>
+    <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
 
     <!-- From ngokevin's audio analyser example https://github.com/ngokevin/kframe/tree/master/components/audioanalyser -->
     <script src="./dance-party-components/audioanalyser-levels-scale.js"></script>
@@ -22,11 +23,9 @@
     <script src="./dance-party-components/scale-y-color.js"></script>
 
     <script>
-
       function onConnect () {
         naf.entities.createAvatar('#avatar-template', '0 1.6 0', '0 0 0');
       }
-
     </script>
   </head>
   <body>
@@ -37,7 +36,7 @@
     ">
       <a-assets>
         <!-- By Tours. From http://freemusicarchive.org/music/Tours/Enthusiast/Tours_-_Enthusiast. CC Attribution License. -->
-        <audio id="song" crossorigin autoplay loop src="Tours-Enthusiast.mp3"></audio>
+        <!-- <audio id="song" crossorigin autoplay loop src="Tours-Enthusiast.mp3"></audio> -->
         <img id="floor" src="https://cdn.aframe.io/a-painter/images/floor.jpg" crossOrigin="anonymous">
         <img id="skymap" src="https://cdn.aframe.io/a-painter/images/sky.jpg" crossOrigin="anonymous">
         <a-mixin id="bar"
@@ -47,12 +46,12 @@
         ></a-mixin>
 
         <!-- Templates -->
-        <script id="avatar-template" type="text/html">
+        <script id="avatar-template" sync-components="['position', 'rotation']" type="text/html">
           <!-- Avatar -->
           <a-entity class="avatar">
             <a-sphere class="head"
-              color="#5985ff"
               scale="0.45 0.5 0.4"
+              random-color
             ></a-sphere>
             <a-entity class="face"
               position="0 0.05 0"

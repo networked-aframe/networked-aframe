@@ -14,8 +14,8 @@ suite('NetworkEntities', function() {
   function initScene(done) {
     var opts = {
       assets: [
-        '<script id="template1" type="text/html"><a-entity></a-entity></script>',
-        '<script id="template2" type="text/html"><a-box></a-box></script>',
+        '<script id="template1" lerp type="text/html"><a-entity></a-entity></script>',
+        '<script id="template2" sync-components="[\'position\']" type="text/html"><a-box></a-box></script>',
         '<script id="template3" type="text/html"><a-sphere></a-sphere></script>'
       ]
     };
@@ -29,7 +29,7 @@ suite('NetworkEntities', function() {
       0: 0,
       networkId: 'test1',
       owner: 'abcdefg',
-      template: 'template1',
+      template: '#template1',
       position: '1 2 3',
       rotation: '4 3 2'
     };
@@ -37,7 +37,7 @@ suite('NetworkEntities', function() {
       1,
       'test1',
       'abcdefg',
-      'template1',
+      '#template1',
       {
         0: '1 2 3',
         1: '4 3 2'
@@ -55,7 +55,7 @@ suite('NetworkEntities', function() {
 
     test('creates entity', function(done) {
       naf.globals.clientId = 'client1';
-      var setupTemplate = 'template';
+      var setupTemplate = '#template1';
       var setupPosition = '10 11 12';
       var setupRotation = '14 15 16';
 
@@ -87,7 +87,7 @@ suite('NetworkEntities', function() {
   suite('createAvatar', function() {
 
     test('creates avatar with correct attributes', function(done) {
-      var setupTemplate = 'template';
+      var setupTemplate = '#template1';
       var setupPosition = '10 11 12';
       var setupRotation = '14 15 16';
       var avatar = entities.createAvatar(setupTemplate, setupPosition, setupRotation);
@@ -95,7 +95,6 @@ suite('NetworkEntities', function() {
       nafUtil.whenEntityLoaded(avatar, function() {
         var position = AFRAME.utils.coordinates.stringify(avatar.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(avatar.getAttribute('rotation'));
-        var netComp = avatar.getAttribute('network');
         var hasLerp = avatar.hasAttribute('lerp');
         var hasFollowCamera = avatar.hasAttribute('follow-camera');
         var isVisible = avatar.getAttribute('visible');
@@ -120,13 +119,14 @@ suite('NetworkEntities', function() {
     });
 
     test('entity has correct attributes', function(done) {
+      entityData.template = '#template2';
       var entity = entities.createLocalEntity(entityData);
 
       nafUtil.whenEntityLoaded(entity, function() {
         var template = entity.getAttribute('template');
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
-        var netComp = entity.getAttribute('network');
+        var network = entity.getAttribute('network');
         var lerp = entity.getAttribute('lerp');
         var id = entity.getAttribute('id');
 
@@ -136,8 +136,32 @@ suite('NetworkEntities', function() {
         assert.equal(template, 'src:' + entityData.template);
         assert.equal(position, entityData.position);
         assert.equal(rotation, entityData.rotation);
-        assert.equal(netComp.owner, entityData.owner);
-        assert.equal(netComp.networkId, entityData.networkId);
+        assert.equal(network.owner, entityData.owner);
+        assert.equal(network.networkId, entityData.networkId);
+        done();
+      });
+    });
+
+    test('entity has correct components', function(done) {
+      entityData.template = '#template2';
+      var entity = entities.createLocalEntity(entityData);
+
+      nafUtil.whenEntityLoaded(entity, function() {
+        var network = entity.getAttribute('network');
+
+        assert.deepEqual(network.components, ['position']);
+        done();
+      });
+    });
+
+    test('entity has correct components when no components tag', function(done) {
+      entityData.template = '#template3';
+      var entity = entities.createLocalEntity(entityData);
+
+      nafUtil.whenEntityLoaded(entity, function() {
+        var network = entity.getAttribute('network');
+
+        assert.deepEqual(network.components, ['position', 'rotation', 'scale']);
         done();
       });
     });

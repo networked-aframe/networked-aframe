@@ -1776,7 +1776,7 @@ class NetworkEntities {
     this.entities = {};
   }
 
-  createNetworkEntity(template, position, rotation) {
+  createNetworkEntity(template, position, rotation, componentsToSync) {
     var networkId = this.createEntityId();
     naf.log.write('Created network entity', networkId);
     var entityData = {
@@ -1786,6 +1786,9 @@ class NetworkEntities {
       position: position,
       rotation: rotation,
     };
+    if (componentsToSync) {
+      entityData.components = componentsToSync;
+    }
     var entity = this.createLocalEntity(entityData);
     return entity;
   }
@@ -1803,11 +1806,29 @@ class NetworkEntities {
     var scene = document.querySelector('a-scene');
     var entity = document.createElement('a-entity');
     entity.setAttribute('id', 'naf-' + entityData.networkId);
-    entity.setAttribute('template', 'src:' + entityData.template);
     entity.setAttribute('position', entityData.position);
     entity.setAttribute('rotation', entityData.rotation);
-    entity.setAttribute('network', 'owner:' + entityData.owner + ';networkId:' + entityData.networkId);
     entity.setAttribute('lerp', '');
+
+    var templateEl = document.querySelector(entityData.template);
+    var components = ['position', 'rotation', 'scale'];
+    if (templateEl) {
+      entity.setAttribute('template', 'src:' + entityData.template);
+      if (templateEl.hasAttribute('sync-components')) {
+        var attr = templateEl.getAttribute('sync-components');
+        attr = attr.replace(/'/g, '"');
+        components = JSON.parse(attr);
+      }
+    } else {
+      naf.log.error('NetworkEntities@createLocalEntity: Template not found: ' + entityData.template);
+    }
+
+    var networkData = {
+      owner: entityData.owner,
+      networkId: entityData.networkId,
+      components: components
+    };
+    entity.setAttribute('network', networkData);
 
     scene.appendChild(entity);
     this.entities[entityData.networkId] = entity;
