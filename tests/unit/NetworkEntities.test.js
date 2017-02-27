@@ -54,12 +54,12 @@ suite('NetworkEntities', function() {
   suite('createNetworkEntity', function() {
 
     test('creates entity', function(done) {
-      var clientId = 'client';
+      naf.globals.clientId = 'client1';
       var setupTemplate = 'template';
       var setupPosition = '10 11 12';
       var setupRotation = '14 15 16';
 
-      var entity = entities.createNetworkEntity(clientId, setupTemplate, setupPosition, setupRotation);
+      var entity = entities.createNetworkEntity(setupTemplate, setupPosition, setupRotation);
 
       nafUtil.whenEntityLoaded(entity, function() {
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
@@ -74,13 +74,41 @@ suite('NetworkEntities', function() {
     });
 
     test('returns entity', function() {
-      var clientId = 'client';
+      naf.globals.clientId = 'client1';
       var setupTemplate = 'template';
       var setupPosition = '10 11 12';
       var setupRotation = '14 15 16';
 
-      var entity = entities.createNetworkEntity(clientId, setupTemplate, setupPosition, setupRotation);
+      var entity = entities.createNetworkEntity(setupTemplate, setupPosition, setupRotation);
       assert.isOk(entity);
+    });
+  });
+
+  suite('createAvatar', function() {
+
+    test('creates avatar with correct attributes', function(done) {
+      var setupTemplate = 'template';
+      var setupPosition = '10 11 12';
+      var setupRotation = '14 15 16';
+      var avatar = entities.createAvatar(setupTemplate, setupPosition, setupRotation);
+
+      nafUtil.whenEntityLoaded(avatar, function() {
+        var position = AFRAME.utils.coordinates.stringify(avatar.getAttribute('position'));
+        var rotation = AFRAME.utils.coordinates.stringify(avatar.getAttribute('rotation'));
+        var netComp = avatar.getAttribute('network');
+        var hasLerp = avatar.hasAttribute('lerp');
+        var hasFollowCamera = avatar.hasAttribute('follow-camera');
+        var isVisible = avatar.getAttribute('visible');
+        var template = avatar.getAttribute('template');
+
+        assert.isFalse(isVisible);
+        assert.isFalse(hasLerp);
+        assert.isTrue(hasFollowCamera);
+        assert.equal(template, 'src:' + setupTemplate);
+        assert.equal(position, setupPosition);
+        assert.equal(rotation, setupRotation);
+        done();
+      });
     });
   });
 

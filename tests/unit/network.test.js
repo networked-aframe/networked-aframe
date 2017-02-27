@@ -3,9 +3,9 @@ var aframe = require('aframe');
 var helpers = require('./helpers.js');
 var naf = require('../../src/NafIndex.js');
 
-require('../../src/components/network-component.js');
+require('../../src/components/network.js');
 
-suite('network-component', function() {
+suite('network', function() {
   var scene;
   var entity;
   var netComp;

@@ -1,6 +1,7 @@
 var globals = {
-  appId: '',
-  roomId: '',
+  app: '',
+  room: '',
+  clientId: '',
   debug: false,
   updateRate: 15, // How often network components call `sync`
   compressSyncPackets: true // compress network component sync packet json

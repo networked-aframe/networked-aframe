@@ -1522,8 +1522,9 @@ module.exports = primitiveSet.apply(null,
 arguments[4][3][0].apply(exports,arguments)
 },{"dup":3,"es5-ext/object/assign":18,"es5-ext/object/is-callable":21,"es5-ext/object/normalize-options":25,"es5-ext/string/#/contains":29}],49:[function(require,module,exports){
 var globals = {
-  appId: '',
-  roomId: '',
+  app: '',
+  room: '',
+  clientId: '',
   debug: false,
   updateRate: 15, // How often network components call `sync`
   compressSyncPackets: true // compress network component sync packet json
@@ -1610,11 +1611,13 @@ class NetworkConnection {
     this.webrtc = webrtcInterface;
     this.entities = networkEntities;
 
-    this.myClientId = '';
     this.myRoomJoinTime = 0;
     this.connectList = {};
     this.dcIsActive = {};
     this.setupDefaultDCSubs();
+
+    this.loggedIn = false;
+    this.onLoggedInEvent = new Event('loggedIn');
   }
 
   setupDefaultDCSubs() {
@@ -1625,8 +1628,8 @@ class NetworkConnection {
   }
 
   connect(appId, roomId, enableAudio = false) {
-    naf.globals.appId = appId;
-    naf.globals.roomId = roomId;
+    naf.globals.app = appId;
+    naf.globals.room = roomId;
 
     var streamOptions = {
       audio: enableAudio,
@@ -1648,14 +1651,26 @@ class NetworkConnection {
     this.webrtc.connect(appId);
   }
 
+  onLogin(callback) {
+    if (this.loggedIn) {
+      callback();
+    } else {
+      document.body.addEventListener('loggedIn', callback, false);
+    }
+  }
+
   loginSuccess(clientId) {
     naf.log.write('Networked-Aframe Client ID:', clientId);
-    this.myClientId = clientId;
+    naf.globals.clientId = clientId;
     this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
+    this.loggedIn = true;
+
+    document.body.dispatchEvent(this.onLoggedInEvent);
   }
 
   loginFailure(errorCode, message) {
     naf.log.error(errorCode, "failure to login");
+    this.loggedIn = false;
   }
 
   occupantsReceived(roomName, occupantList, isPrimary) {
@@ -1668,7 +1683,7 @@ class NetworkConnection {
   }
 
   isMineAndConnected(id) {
-    return this.myClientId == id;
+    return naf.globals.clientId == id;
   }
 
   isNewClient(client) {
@@ -1761,18 +1776,27 @@ class NetworkEntities {
     this.entities = {};
   }
 
-  createNetworkEntity(clientId, template, position, rotation) {
+  createNetworkEntity(template, position, rotation) {
     var networkId = this.createEntityId();
     naf.log.write('Created network entity', networkId);
     var entityData = {
       networkId: networkId,
-      owner: clientId,
+      owner: naf.globals.clientId,
       template: template,
       position: position,
       rotation: rotation,
     };
     var entity = this.createLocalEntity(entityData);
     return entity;
+  }
+
+  createAvatar(template, position, rotation) {
+    var avatar = this.createNetworkEntity(template, position, rotation);
+    avatar.setAttribute('visible', false);
+    avatar.setAttribute('follow-camera', '');
+    avatar.className += ' local-avatar';
+    avatar.removeAttribute('lerp');
+    return avatar;
   }
 
   createLocalEntity(entityData) {
@@ -1867,6 +1891,51 @@ AFRAME.registerComponent('follow-camera', {
 });
 },{}],57:[function(require,module,exports){
 var naf = require('../NafIndex.js');
+
+var NetworkConnection = require('../NetworkConnection.js');
+var NetworkEntities = require('../NetworkEntities.js');
+var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
+
+AFRAME.registerComponent('network-scene', {
+  schema: {
+    app: {default: 'default'},
+    room: {default: 'default'},
+    connectOnLoad: {default: true},
+    signallingUrl: {default: '/'},
+    audio: {default: false},
+    debug: {default: false},
+    onConnect: {default: 'onConnect'}
+  },
+
+  init: function() {
+    this.el.addEventListener('connect', this.connect.bind(this));
+    if (this.data.connectOnLoad) {
+      this.el.emit('connect', null, false);
+    }
+  },
+
+  /**
+   * Connect to signalling server and begin connecting to other clients
+   */
+  connect: function () {
+    naf.log.setDebug(this.data.debug);
+    naf.log.write('Networked-Aframe Connecting...');
+
+    // easyrtc.enableDebug(true);
+    var webrtc = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
+    var entities = new NetworkEntities();
+    var connection = new NetworkConnection(webrtc, entities);
+    if (this.data.onConnect != '' && window.hasOwnProperty(this.data.onConnect)) {
+      connection.onLogin(window[this.data.onConnect]);
+    }
+    connection.connect(this.data.app, this.data.room, this.data.audio);
+
+    naf.connection = naf.c = connection;
+    naf.entities = naf.e = entities;
+  }
+});
+},{"../NafIndex.js":50,"../NetworkConnection.js":54,"../NetworkEntities.js":55,"../webrtc_interfaces/EasyRtcInterface.js":61}],58:[function(require,module,exports){
+var naf = require('../NafIndex.js');
 var deepEqual = require('deep-equal');
 
 AFRAME.registerComponent('network', {
@@ -1922,7 +1991,6 @@ AFRAME.registerComponent('network', {
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
     this.updateCache(components);
-    console.error('sync all ', syncData);
   },
 
   syncDirty: function() {
@@ -2054,8 +2122,6 @@ AFRAME.registerComponent('network', {
   },
 
   networkUpdate: function(data) {
-    console.error(data);
-
     var entityData = data.detail.entityData;
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
@@ -2087,53 +2153,7 @@ AFRAME.registerComponent('network', {
     }
   }
 });
-},{"../NafIndex.js":50,"deep-equal":4}],58:[function(require,module,exports){
-var naf = require('../NafIndex.js');
-
-var NetworkConnection = require('../NetworkConnection.js');
-var NetworkEntities = require('../NetworkEntities.js');
-var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
-
-AFRAME.registerComponent('network-scene', {
-  schema: {
-    app: {default: 'default'},
-    room: {default: 'default'},
-    connectOnLoad: {default: true},
-    signallingUrl: {default: '/'},
-    audio: {default: false},
-    debug: {default: false}
-  },
-
-  init: function() {
-    this.el.addEventListener('connect', this.connect.bind(this));
-    if (this.data.connectOnLoad) {
-      this.el.emit('connect', null, false);
-    }
-  },
-
-  /**
-   * Connect to signalling server and begin connecting to other clients
-   */
-  connect: function () {
-    if (this.el.is('calledConnect'))
-      return;
-
-    naf.log.setDebug(this.data.debug);
-    naf.log.write('Networked-Aframe Connecting...');
-
-    // easyrtc.enableDebug(true);
-    var webrtc = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
-    var entities = new NetworkEntities();
-    var connection = new NetworkConnection(webrtc, entities);
-    connection.connect(this.data.app, this.data.room, this.data.audio);
-
-    this.el.addState('calledConnect', true);
-
-    naf.connection = naf.c = connection;
-    naf.entities = naf.e = entities;
-  }
-});
-},{"../NafIndex.js":50,"../NetworkConnection.js":54,"../NetworkEntities.js":55,"../webrtc_interfaces/EasyRtcInterface.js":61}],59:[function(require,module,exports){
+},{"../NafIndex.js":50,"deep-equal":4}],59:[function(require,module,exports){
 
 AFRAME.registerComponent('show-child', {
   schema: {
@@ -2168,7 +2188,7 @@ require('./NafIndex.js');
 
 // Network components
 require('./components/network-scene.js');
-require('./components/network-component.js');
+require('./components/network.js');
 
 // Other components
 require('./components/follow-camera.js');
@@ -2176,7 +2196,7 @@ require('./components/show-child.js');
 
 
 
-},{"./NafIndex.js":50,"./components/follow-camera.js":56,"./components/network-component.js":57,"./components/network-scene.js":58,"./components/show-child.js":59,"aframe-lerp-component":1,"aframe-template-component":2}],61:[function(require,module,exports){
+},{"./NafIndex.js":50,"./components/follow-camera.js":56,"./components/network-scene.js":57,"./components/network.js":58,"./components/show-child.js":59,"aframe-lerp-component":1,"aframe-template-component":2}],61:[function(require,module,exports){
 var naf = require('../NafIndex.js');
 var WebRtcInterface = require('./WebRtcInterface.js');
 
@@ -2287,7 +2307,7 @@ class EasyRtcInterface extends WebRtcInterface {
    */
 
   getRoomJoinTime(clientId) {
-    var myRoomId = naf.g.roomId;
+    var myRoomId = naf.globals.room;
     var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
     return joinTime;
   }

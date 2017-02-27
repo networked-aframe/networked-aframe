@@ -7,7 +7,7 @@ require('./NafIndex.js');
 
 // Network components
 require('./components/network-scene.js');
-require('./components/network-component.js');
+require('./components/network.js');
 
 // Other components
 require('./components/follow-camera.js');

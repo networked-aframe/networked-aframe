@@ -7,11 +7,13 @@ class NetworkConnection {
     this.webrtc = webrtcInterface;
     this.entities = networkEntities;
 
-    this.myClientId = '';
     this.myRoomJoinTime = 0;
     this.connectList = {};
     this.dcIsActive = {};
     this.setupDefaultDCSubs();
+
+    this.loggedIn = false;
+    this.onLoggedInEvent = new Event('loggedIn');
   }
 
   setupDefaultDCSubs() {
@@ -22,8 +24,8 @@ class NetworkConnection {
   }
 
   connect(appId, roomId, enableAudio = false) {
-    naf.globals.appId = appId;
-    naf.globals.roomId = roomId;
+    naf.globals.app = appId;
+    naf.globals.room = roomId;
 
     var streamOptions = {
       audio: enableAudio,
@@ -45,14 +47,26 @@ class NetworkConnection {
     this.webrtc.connect(appId);
   }
 
+  onLogin(callback) {
+    if (this.loggedIn) {
+      callback();
+    } else {
+      document.body.addEventListener('loggedIn', callback, false);
+    }
+  }
+
   loginSuccess(clientId) {
     naf.log.write('Networked-Aframe Client ID:', clientId);
-    this.myClientId = clientId;
+    naf.globals.clientId = clientId;
     this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
+    this.loggedIn = true;
+
+    document.body.dispatchEvent(this.onLoggedInEvent);
   }
 
   loginFailure(errorCode, message) {
     naf.log.error(errorCode, "failure to login");
+    this.loggedIn = false;
   }
 
   occupantsReceived(roomName, occupantList, isPrimary) {
@@ -65,7 +79,7 @@ class NetworkConnection {
   }
 
   isMineAndConnected(id) {
-    return this.myClientId == id;
+    return naf.globals.clientId == id;
   }
 
   isNewClient(client) {

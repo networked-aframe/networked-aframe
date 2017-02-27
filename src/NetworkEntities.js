@@ -6,18 +6,27 @@ class NetworkEntities {
     this.entities = {};
   }
 
-  createNetworkEntity(clientId, template, position, rotation) {
+  createNetworkEntity(template, position, rotation) {
     var networkId = this.createEntityId();
     naf.log.write('Created network entity', networkId);
     var entityData = {
       networkId: networkId,
-      owner: clientId,
+      owner: naf.globals.clientId,
       template: template,
       position: position,
       rotation: rotation,
     };
     var entity = this.createLocalEntity(entityData);
     return entity;
+  }
+
+  createAvatar(template, position, rotation) {
+    var avatar = this.createNetworkEntity(template, position, rotation);
+    avatar.setAttribute('visible', false);
+    avatar.setAttribute('follow-camera', '');
+    avatar.className += ' local-avatar';
+    avatar.removeAttribute('lerp');
+    return avatar;
   }
 
   createLocalEntity(entityData) {

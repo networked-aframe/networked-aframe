@@ -56,6 +56,60 @@ suite('NetworkConnection', function() {
     });
   });
 
+  suite('subscribeToLoginSuccess', function () {
+
+    test('callback is called immediately if already logged in', function() {
+      var stub = sinon.stub();
+
+      connection.loginSuccess('test-id');
+      connection.onLogin(stub);
+
+      assert.isTrue(stub.called);
+    });
+
+    test('callback is not called immediately if not logged in', function() {
+      var stub = sinon.stub();
+
+      connection.onLogin(stub);
+
+      assert.isFalse(stub.called);
+    });
+
+    test('callback is fired when logged in', function() {
+      var stub = sinon.stub();
+
+      connection.onLogin(stub);
+      assert.isFalse(stub.called);
+
+      connection.loginSuccess('test-id');
+      assert.isTrue(stub.called);
+    });
+
+    test('multiple callbacks are fired when logged in', function() {
+      var stub = sinon.stub();
+      var stub2 = sinon.stub();
+
+      connection.onLogin(stub);
+      connection.onLogin(stub2);
+      assert.isFalse(stub.called);
+      assert.isFalse(stub2.called);
+
+      connection.loginSuccess('test-id');
+      assert.isTrue(stub.called);
+      assert.isTrue(stub2.called);
+    });
+
+    test('callback is not fired when logged in unsuccessful', function() {
+      var stub = sinon.stub();
+
+      connection.onLogin(stub);
+      assert.isFalse(stub.called);
+
+      connection.loginFailure('test-id');
+      assert.isFalse(stub.called);
+    });
+  });
+
   suite('loginSuccess', function() {
 
     test('setting client id', function() {

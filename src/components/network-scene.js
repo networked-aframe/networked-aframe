@@ -11,7 +11,8 @@ AFRAME.registerComponent('network-scene', {
     connectOnLoad: {default: true},
     signallingUrl: {default: '/'},
     audio: {default: false},
-    debug: {default: false}
+    debug: {default: false},
+    onConnect: {default: 'onConnect'}
   },
 
   init: function() {
@@ -25,9 +26,6 @@ AFRAME.registerComponent('network-scene', {
    * Connect to signalling server and begin connecting to other clients
    */
   connect: function () {
-    if (this.el.is('calledConnect'))
-      return;
-
     naf.log.setDebug(this.data.debug);
     naf.log.write('Networked-Aframe Connecting...');
 
@@ -35,9 +33,10 @@ AFRAME.registerComponent('network-scene', {
     var webrtc = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
     var entities = new NetworkEntities();
     var connection = new NetworkConnection(webrtc, entities);
+    if (this.data.onConnect != '' && window.hasOwnProperty(this.data.onConnect)) {
+      connection.onLogin(window[this.data.onConnect]);
+    }
     connection.connect(this.data.app, this.data.room, this.data.audio);
-
-    this.el.addState('calledConnect', true);
 
     naf.connection = naf.c = connection;
     naf.entities = naf.e = entities;
