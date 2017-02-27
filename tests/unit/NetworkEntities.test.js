@@ -121,51 +121,6 @@ suite('NetworkEntities', function() {
     });
   });
 
-  suite('createAvatar', function() {
-
-    test('works with template', function() {
-      var template = document.createElement('script');
-      template.setAttribute('id', 'avatar-template');
-      var assets = document.querySelector('a-assets');
-      assets.appendChild(template);
-
-      var avatar = entities.createAvatar();
-
-      var avatarEl = document.querySelector('.local-avatar');
-      assert.equal(avatar, avatarEl);
-      assert.isOk(avatar);
-    });
-
-    test('no template', function() {
-      var avatar = entities.createAvatar();
-
-      assert.isNull(avatar);
-    });
-
-    test('returns avatar', function() {
-      var template = document.createElement('script');
-      template.setAttribute('id', 'avatar-template');
-      var assets = document.querySelector('a-assets');
-      assets.appendChild(template);
-
-      var avatar = entities.createAvatar();
-
-      assert.isOk(avatar);
-    });
-
-    test('sets entities.avatar', function() {
-      var template = document.createElement('script');
-      template.setAttribute('id', 'avatar-template');
-      var assets = document.querySelector('a-assets');
-      assets.appendChild(template);
-
-      var avatar = entities.createAvatar();
-      var avatar2 = entities.avatar;
-
-      assert.equal(avatar, avatar2);
-    });
-  });
-
   suite('updateEntity', function() {
 
     test('first uncompressed update creates new entity', sinon.test(function() {

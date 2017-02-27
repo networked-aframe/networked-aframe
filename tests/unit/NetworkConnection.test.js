@@ -8,7 +8,6 @@ suite('NetworkConnection', function() {
   var entities;
 
   function NetworkEntitiesStub() {
-    this.createAvatar = sinon.stub();
     this.completeSync = sinon.stub();
     this.removeEntitiesFromUser = sinon.stub();
     this.updateEntity = sinon.stub();
@@ -76,24 +75,6 @@ suite('NetworkConnection', function() {
 
       var result = connection.myRoomJoinTime;
       assert.equal(result, 12345);
-    });
-
-    test('with avatar', function() {
-      connection.enableAvatar(true);
-
-      var id = 'testId';
-      connection.loginSuccess(id);
-
-      assert.isTrue(entities.createAvatar.called);
-    });
-
-    test('without avatar', function() {
-      connection.enableAvatar(false);
-
-      var id = 'testId';
-      connection.loginSuccess(id);
-
-      assert.isFalse(entities.createAvatar.called);
     });
   });
 

@@ -12,8 +12,6 @@ class NetworkConnection {
     this.connectList = {};
     this.dcIsActive = {};
     this.setupDefaultDCSubs();
-
-    this.showAvatar = true;
   }
 
   setupDefaultDCSubs() {
@@ -21,10 +19,6 @@ class NetworkConnection {
       'u': this.entities.updateEntity.bind(this.entities),
       'r': this.entities.removeEntity.bind(this.entities)
     };
-  }
-
-  enableAvatar(enable) {
-    this.showAvatar = enable;
   }
 
   connect(appId, roomId, enableAudio = false) {
@@ -55,9 +49,6 @@ class NetworkConnection {
     naf.log.write('Networked-Aframe Client ID:', clientId);
     this.myClientId = clientId;
     this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
-    if (this.showAvatar) {
-      this.entities.createAvatar(clientId);
-    }
   }
 
   loginFailure(errorCode, message) {

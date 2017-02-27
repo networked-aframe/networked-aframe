@@ -54,6 +54,7 @@ AFRAME.registerComponent('network', {
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
     this.updateCache(components);
+    console.error('sync all ', syncData);
   },
 
   syncDirty: function() {
@@ -185,6 +186,8 @@ AFRAME.registerComponent('network', {
   },
 
   networkUpdate: function(data) {
+    console.error(data);
+
     var entityData = data.detail.entityData;
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);

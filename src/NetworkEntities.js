@@ -4,7 +4,6 @@ class NetworkEntities {
 
   constructor() {
     this.entities = {};
-    this.avatar = null;
   }
 
   createNetworkEntity(clientId, template, position, rotation) {
@@ -34,23 +33,6 @@ class NetworkEntities {
     scene.appendChild(entity);
     this.entities[entityData.networkId] = entity;
     return entity;
-  }
-
-  createAvatar(owner) {
-    var templateName = '#avatar-template';
-    var template = document.querySelector('script' + templateName);
-    if (template) {
-      var avatar = this.createNetworkEntity(owner, templateName, '0 0 0', '0 0 0 0');
-      avatar.setAttribute('visible', false);
-      avatar.setAttribute('follow-camera', '');
-      avatar.className += ' local-avatar';
-      avatar.removeAttribute('lerp');
-      this.avatar = avatar;
-      return avatar;
-    } else {
-      naf.log.error('NetworkEntities@createAvatar: Could not find template with src="#avatar-template"');
-      return null;
-    }
   }
 
   updateEntity(client, dataType, entityData) {

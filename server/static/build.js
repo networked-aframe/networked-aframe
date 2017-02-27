@@ -1615,8 +1615,6 @@ class NetworkConnection {
     this.connectList = {};
     this.dcIsActive = {};
     this.setupDefaultDCSubs();
-
-    this.showAvatar = true;
   }
 
   setupDefaultDCSubs() {
@@ -1624,10 +1622,6 @@ class NetworkConnection {
       'u': this.entities.updateEntity.bind(this.entities),
       'r': this.entities.removeEntity.bind(this.entities)
     };
-  }
-
-  enableAvatar(enable) {
-    this.showAvatar = enable;
   }
 
   connect(appId, roomId, enableAudio = false) {
@@ -1658,9 +1652,6 @@ class NetworkConnection {
     naf.log.write('Networked-Aframe Client ID:', clientId);
     this.myClientId = clientId;
     this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
-    if (this.showAvatar) {
-      this.entities.createAvatar(clientId);
-    }
   }
 
   loginFailure(errorCode, message) {
@@ -1768,7 +1759,6 @@ class NetworkEntities {
 
   constructor() {
     this.entities = {};
-    this.avatar = null;
   }
 
   createNetworkEntity(clientId, template, position, rotation) {
@@ -1798,23 +1788,6 @@ class NetworkEntities {
     scene.appendChild(entity);
     this.entities[entityData.networkId] = entity;
     return entity;
-  }
-
-  createAvatar(owner) {
-    var templateName = '#avatar-template';
-    var template = document.querySelector('script' + templateName);
-    if (template) {
-      var avatar = this.createNetworkEntity(owner, templateName, '0 0 0', '0 0 0 0');
-      avatar.setAttribute('visible', false);
-      avatar.setAttribute('follow-camera', '');
-      avatar.className += ' local-avatar';
-      avatar.removeAttribute('lerp');
-      this.avatar = avatar;
-      return avatar;
-    } else {
-      naf.log.error('NetworkEntities@createAvatar: Could not find template with src="#avatar-template"');
-      return null;
-    }
   }
 
   updateEntity(client, dataType, entityData) {
@@ -1949,6 +1922,7 @@ AFRAME.registerComponent('network', {
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
     this.updateCache(components);
+    console.error('sync all ', syncData);
   },
 
   syncDirty: function() {
@@ -2080,6 +2054,8 @@ AFRAME.registerComponent('network', {
   },
 
   networkUpdate: function(data) {
+    console.error(data);
+
     var entityData = data.detail.entityData;
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
@@ -2120,12 +2096,11 @@ var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
 
 AFRAME.registerComponent('network-scene', {
   schema: {
-    appId: {default: 'default'},
+    app: {default: 'default'},
     room: {default: 'default'},
     connectOnLoad: {default: true},
     signallingUrl: {default: '/'},
     audio: {default: false},
-    avatar: {default: true},
     debug: {default: false}
   },
 
@@ -2150,8 +2125,7 @@ AFRAME.registerComponent('network-scene', {
     var webrtc = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
     var entities = new NetworkEntities();
     var connection = new NetworkConnection(webrtc, entities);
-    connection.enableAvatar(this.data.avatar);
-    connection.connect(this.data.appId, this.data.room, this.data.audio);
+    connection.connect(this.data.app, this.data.room, this.data.audio);
 
     this.el.addState('calledConnect', true);
 
