@@ -37,7 +37,7 @@ class NetworkEntities {
   }
 
   createAvatar(owner) {
-    var templateName = '#avatar';
+    var templateName = '#avatar-template';
     var template = document.querySelector('script' + templateName);
     if (template) {
       var avatar = this.createNetworkEntity(owner, templateName, '0 0 0', '0 0 0 0');
@@ -48,7 +48,7 @@ class NetworkEntities {
       this.avatar = avatar;
       return avatar;
     } else {
-      naf.log.error('NetworkEntities@createAvatar: Could not find template with src="#avatar"');
+      naf.log.error('NetworkEntities@createAvatar: Could not find template with src="#avatar-template"');
       return null;
     }
   }

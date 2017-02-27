@@ -32,7 +32,11 @@ suite('network-component', function() {
   suite('Setup', function() {
 
     test('creates entity', function() {
-      assert.isNotNull(entity);
+      assert.isOk(entity);
+    });
+
+    test('creates component', function() {
+      assert.isOk(netComp);
     });
   });
 

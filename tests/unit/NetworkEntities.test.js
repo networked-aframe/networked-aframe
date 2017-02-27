@@ -125,7 +125,7 @@ suite('NetworkEntities', function() {
 
     test('works with template', function() {
       var template = document.createElement('script');
-      template.setAttribute('id', 'avatar');
+      template.setAttribute('id', 'avatar-template');
       var assets = document.querySelector('a-assets');
       assets.appendChild(template);
 
@@ -133,6 +133,7 @@ suite('NetworkEntities', function() {
 
       var avatarEl = document.querySelector('.local-avatar');
       assert.equal(avatar, avatarEl);
+      assert.isOk(avatar);
     });
 
     test('no template', function() {
@@ -143,7 +144,7 @@ suite('NetworkEntities', function() {
 
     test('returns avatar', function() {
       var template = document.createElement('script');
-      template.setAttribute('id', 'avatar');
+      template.setAttribute('id', 'avatar-template');
       var assets = document.querySelector('a-assets');
       assets.appendChild(template);
 
@@ -154,7 +155,7 @@ suite('NetworkEntities', function() {
 
     test('sets entities.avatar', function() {
       var template = document.createElement('script');
-      template.setAttribute('id', 'avatar');
+      template.setAttribute('id', 'avatar-template');
       var assets = document.querySelector('a-assets');
       assets.appendChild(template);
 
