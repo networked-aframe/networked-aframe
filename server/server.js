@@ -19,10 +19,10 @@ var webServer = http.createServer(app).listen(8080);
 var socketServer = socketIo.listen(webServer, {"log level":1});
 
 var myIceServers = [
-  {"url":"stun.l.google.com:19302"},
-  {"url":"stun1.l.google.com:19302"},
-  {"url":"stun2.l.google.com:19302"},
-  {"url":"stun3.l.google.com:19302"}
+  {"url":"stun:stun.l.google.com:19302"},
+  {"url":"stun:stun1.l.google.com:19302"},
+  {"url":"stun:stun2.l.google.com:19302"},
+  {"url":"stun:stun3.l.google.com:19302"}
   // {
   //   "url":"turn:[ADDRESS]:[PORT]",
   //   "username":"[USERNAME]",
