@@ -18,6 +18,23 @@ var webServer = http.createServer(app).listen(8080);
 // Start Socket.io so it attaches itself to Express server
 var socketServer = socketIo.listen(webServer, {"log level":1});
 
+var myIceServers = [
+  {"url":"stun.l.google.com:19302"},
+  {"url":"stun1.l.google.com:19302"},
+  {"url":"stun2.l.google.com:19302"},
+  {"url":"stun3.l.google.com:19302"}
+  // {
+  //   "url":"turn:[ADDRESS]:[PORT]",
+  //   "username":"[USERNAME]",
+  //   "credential":"[CREDENTIAL]"
+  // },
+  // {
+  //   "url":"turn:[ADDRESS]:[PORT][?transport=tcp]",
+  //   "username":"[USERNAME]",
+  //   "credential":"[CREDENTIAL]"
+  // }
+];
+easyrtc.setOption("appIceServers", myIceServers);
 easyrtc.setOption("logLevel", "debug");
 easyrtc.setOption("demosEnable", false);
 
