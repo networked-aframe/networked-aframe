@@ -7,20 +7,20 @@
     <!-- <script src="./aframe.min.js"></script> -->
     <!-- <script src="/socket.io.min.js"></script> -->
 
-    <script src="/easyrtc/easyrtc.js"></script>
-    <script src="/build.js"></script>
+    <script src="easyrtc/easyrtc.js"></script>
+    <script src="build.js"></script>
 
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
     <script src="https://unpkg.com/aframe-audioanalyser-component@^3.0.0/dist/aframe-audioanalyser-component.min.js"></script>
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
 
     <!-- From ngokevin's audio analyser example https://github.com/ngokevin/kframe/tree/master/components/audioanalyser -->
-    <script src="./dance-party-components/audioanalyser-levels-scale.js"></script>
-    <script src="./dance-party-components/audioanalyser-volume-bind.js"></script>
-    <script src="./dance-party-components/audioanalyser-volume-scale.js"></script>
-    <script src="./dance-party-components/audioanalyser-waveform.js"></script>
-    <script src="./dance-party-components/ring-on-beat.js"></script>
-    <script src="./dance-party-components/scale-y-color.js"></script>
+    <script src="dance-party-components/audioanalyser-levels-scale.js"></script>
+    <script src="dance-party-components/audioanalyser-volume-bind.js"></script>
+    <script src="dance-party-components/audioanalyser-volume-scale.js"></script>
+    <script src="dance-party-components/audioanalyser-waveform.js"></script>
+    <script src="dance-party-components/ring-on-beat.js"></script>
+    <script src="dance-party-components/scale-y-color.js"></script>
 
     <script>
       function onConnect () {
@@ -178,12 +178,12 @@
       ></a-entity>
 
       <!-- Spectrum visualization. -->
-      <!-- <a-entity
+      <a-entity
         audioanalyser-levels-scale="analyserEl: #analyser; max: 50; multiplier: 0.06"
         entity-generator="mixin: bar; num: 128"
         layout="type: circle; radius: 10"
         rotation="0 180 0"
-      ></a-entity> -->
+      ></a-entity>
 
       <!-- Lights, sky, ground. -->
       <a-light type="ambient" color="#222"></a-light>
