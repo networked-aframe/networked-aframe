@@ -111,8 +111,8 @@ AFRAME.registerComponent('network', {
   /**
     Compressed packet structure:
     [
-      0 / 1, // 0 for not compressed, 1 for compressed
-      entityId,
+      1, // 1 for compressed
+      networkId,
       clientId,
       template,
       {
@@ -139,6 +139,19 @@ AFRAME.registerComponent('network', {
     return compressed;
   },
 
+  /**
+    Uncompressed packet structure:
+    [
+      0: 0, // 0 for uncompressed
+      networkId: networkId,
+      owner: clientId,
+      template: template,
+      components: {
+        position: data,
+        scale: data
+      }
+    ]
+  */
   decompressSyncData: function(compressed) {
     var entityData = {};
     entityData[0] = 1;
