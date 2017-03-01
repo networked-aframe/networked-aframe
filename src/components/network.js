@@ -185,7 +185,6 @@ AFRAME.registerComponent('network', {
   },
 
   networkUpdate: function(data) {
-    console.log('networked update', data);
     var entityData = data.detail.entityData;
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
