@@ -31,6 +31,11 @@ class NetworkEntities {
     avatar.setAttribute('follow-camera', '');
     avatar.className += ' local-avatar';
     avatar.removeAttribute('lerp');
+
+    var camera = document.querySelector('[camera]');
+    camera.setAttribute('position', position);
+    camera.setAttribute('rotation', rotation);
+
     return avatar;
   }
 

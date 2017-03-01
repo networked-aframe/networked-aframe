@@ -5,11 +5,31 @@
     <script src="easyrtc/easyrtc.js"></script>
     <script src="build.js"></script>
 
+    <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
 
     <script>
       function onConnect () {
-        naf.entities.createAvatar('#avatar-template', '0 1.6 0', '0 0 0');
+        // Get random angle
+        var angleRad = Math.random()*Math.PI*2;
+
+        // Get position around a circle
+        var position = randomPointOnCircle(3, angleRad);
+        var positionStr = position.x + ' 1.6 ' + position.y;
+
+        // Get rotation towards center of circle
+        var angleDeg = angleRad * 180 / Math.PI;
+        var angleToCenter = -1 * angleDeg + 90;
+        var rotationStr = '0 ' + angleToCenter + ' 0';
+
+        // Create avatar with this position and rotation
+        naf.entities.createAvatar('#avatar-template', positionStr, rotationStr);
+      }
+
+      function randomPointOnCircle(radius, angleRad) {
+        x = Math.cos(angleRad)*radius;
+        y = Math.sin(angleRad)*radius;
+        return {x: x, y: y};
       }
     </script>
   </head>
@@ -32,6 +52,7 @@
             <a-sphere class="head"
               color="#5985ff"
               scale="0.45 0.5 0.4"
+              random-color
             ></a-sphere>
             <a-entity class="face"
               position="0 0.05 0"
@@ -149,6 +170,8 @@
 
         <!-- /Templates -->
       </a-assets>
+
+      <a-camera></a-camera>
 
       <a-entity position="0 0 0"
         geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"

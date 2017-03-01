@@ -112,6 +112,23 @@ suite('NetworkEntities', function() {
         done();
       });
     });
+
+    test('sets camera to position and rotation', function(done) {
+      var setupTemplate = '#template1';
+      var setupPosition = '10 11 12';
+      var setupRotation = '14 15 16';
+      var avatar = entities.createAvatar(setupTemplate, setupPosition, setupRotation);
+
+      nafUtil.whenEntityLoaded(avatar, function() {
+        var camera = document.querySelector('[camera]');
+        var position = AFRAME.utils.coordinates.stringify(camera.getAttribute('position'));
+        var rotation = AFRAME.utils.coordinates.stringify(camera.getAttribute('rotation'));
+
+        assert.equal(position, setupPosition);
+        assert.equal(rotation, setupRotation);
+        done();
+      });
+    });
   });
 
   suite('createLocalEntity', function() {

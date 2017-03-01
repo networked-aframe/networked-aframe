@@ -1527,7 +1527,7 @@ var globals = {
   clientId: '',
   debug: false,
   updateRate: 15, // How often network components call `sync`
-  compressSyncPackets: true // compress network component sync packet json
+  compressSyncPackets: false // compress network component sync packet json
 };
 
 module.exports = globals;
@@ -1801,6 +1801,11 @@ class NetworkEntities {
     avatar.setAttribute('follow-camera', '');
     avatar.className += ' local-avatar';
     avatar.removeAttribute('lerp');
+
+    var camera = document.querySelector('[camera]');
+    camera.setAttribute('position', position);
+    camera.setAttribute('rotation', rotation);
+
     return avatar;
   }
 
@@ -2083,8 +2088,8 @@ AFRAME.registerComponent('network', {
   /**
     Compressed packet structure:
     [
-      0 / 1, // 0 for not compressed, 1 for compressed
-      entityId,
+      1, // 1 for compressed
+      networkId,
       clientId,
       template,
       {
@@ -2111,6 +2116,19 @@ AFRAME.registerComponent('network', {
     return compressed;
   },
 
+  /**
+    Uncompressed packet structure:
+    [
+      0: 0, // 0 for uncompressed
+      networkId: networkId,
+      owner: clientId,
+      template: template,
+      components: {
+        position: data,
+        scale: data
+      }
+    ]
+  */
   decompressSyncData: function(compressed) {
     var entityData = {};
     entityData[0] = 1;
@@ -2157,7 +2175,6 @@ AFRAME.registerComponent('network', {
   },
 
   networkUpdate: function(data) {
-    console.log('networked update', data);
     var entityData = data.detail.entityData;
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
