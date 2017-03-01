@@ -16,7 +16,8 @@ suite('NetworkEntities', function() {
       assets: [
         '<script id="template1" lerp type="text/html"><a-entity></a-entity></script>',
         '<script id="template2" sync-components="[\'position\']" type="text/html"><a-box></a-box></script>',
-        '<script id="template3" type="text/html"><a-sphere></a-sphere></script>'
+        '<script id="template3" type="text/html"><a-sphere></a-sphere></script>',
+        '<script id="template4" sync-components="[\'scale\']" type="text/html"><a-sphere></a-sphere></script>'
       ]
     };
     scene = helpers.sceneFactory(opts);
@@ -30,8 +31,10 @@ suite('NetworkEntities', function() {
       networkId: 'test1',
       owner: 'abcdefg',
       template: '#template1',
-      position: '1 2 3',
-      rotation: '4 3 2'
+      components: {
+        position: '1 2 3',
+        rotation: '4 3 2'
+      }
     };
     compressedData = [
       1,
@@ -113,7 +116,7 @@ suite('NetworkEntities', function() {
 
   suite('createLocalEntity', function() {
 
-    test('creates entity', function() {
+    test('returns entity', function() {
       var entity = entities.createLocalEntity(entityData);
       assert.isOk(entity);
     });
@@ -134,10 +137,27 @@ suite('NetworkEntities', function() {
         assert.isNotNull(lerp);
         assert.equal(id, 'naf-test1');
         assert.equal(template, 'src:' + entityData.template);
-        assert.equal(position, entityData.position);
-        assert.equal(rotation, entityData.rotation);
+        assert.equal(position, entityData.components.position);
+        assert.equal(rotation, '0 0 0');
         assert.equal(network.owner, entityData.owner);
         assert.equal(network.networkId, entityData.networkId);
+        done();
+      });
+    });
+
+    test('entity created with syncing only scale', function(done) {
+      entityData.template = '#template4';
+      entityData.components = { scale: '4 5 6' };
+      var entity = entities.createLocalEntity(entityData);
+
+      nafUtil.whenEntityLoaded(entity, function() {
+        var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
+        var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
+        var scale = AFRAME.utils.coordinates.stringify(entity.getAttribute('scale'));
+
+        assert.equal(position, '0 0 0');
+        assert.equal(rotation, '0 0 0');
+        assert.equal(scale, '4 5 6');
         done();
       });
     });

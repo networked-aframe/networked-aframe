@@ -56,5 +56,4 @@ tmp
 errorShots
 
 # Temp build file
-examples/build.js
 server/static/build.js

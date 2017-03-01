@@ -13,8 +13,10 @@ class NetworkEntities {
       networkId: networkId,
       owner: naf.globals.clientId,
       template: template,
-      position: position,
-      rotation: rotation,
+      components: {
+        position: position,
+        rotation: rotation
+      }
     };
     if (componentsToSync) {
       entityData.components = componentsToSync;
@@ -36,8 +38,6 @@ class NetworkEntities {
     var scene = document.querySelector('a-scene');
     var entity = document.createElement('a-entity');
     entity.setAttribute('id', 'naf-' + entityData.networkId);
-    entity.setAttribute('position', entityData.position);
-    entity.setAttribute('rotation', entityData.rotation);
     entity.setAttribute('lerp', '');
 
     var templateEl = document.querySelector(entityData.template);
@@ -51,6 +51,13 @@ class NetworkEntities {
       }
     } else {
       naf.log.error('NetworkEntities@createLocalEntity: Template not found: ' + entityData.template);
+    }
+
+    for (var name in entityData.components) {
+      if (components.indexOf(name) != -1) {
+        var data = entityData.components[name];
+        entity.setAttribute(name, data);
+      }
     }
 
     var networkData = {
