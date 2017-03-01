@@ -24,7 +24,26 @@
 
     <script>
       function onConnect () {
-        naf.entities.createAvatar('#avatar-template', '0 1.6 0', '0 0 0');
+        // Get random angle
+        var angleRad = Math.random()*Math.PI*2;
+
+        // Get position around a circle
+        var position = randomPointOnCircle(3, angleRad);
+        var positionStr = position.x + ' 1.6 ' + position.y;
+
+        // Get rotation towards center of circle
+        var angleDeg = angleRad * 180 / Math.PI;
+        var angleToCenter = -1 * angleDeg + 90;
+        var rotationStr = '0 ' + angleToCenter + ' 0';
+
+        // Create avatar with this position and rotation
+        naf.entities.createAvatar('#avatar-template', positionStr, rotationStr);
+      }
+
+      function randomPointOnCircle(radius, angleRad) {
+        x = Math.cos(angleRad)*radius;
+        y = Math.sin(angleRad)*radius;
+        return {x: x, y: y};
       }
     </script>
   </head>
