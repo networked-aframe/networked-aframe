@@ -2,40 +2,123 @@
 Networked A-Frame
 =======
 
-**Bringing Social VR to the Web!**
+**Bringing Social VR to the Web**
 
 Write fully featured Social VR experiences on the web, with minimal networking knowledge required.
 
-
 Features
 --------
-* Includes everything you need to create your own networked / multiplayer / social WebVR apps.
+* Includes everything you need to create networked / multiplayer / social WebVR apps and games.
 * WebRTC with no experience required. Take advantage of low-latency, peer-to-peer networking over UDP with minimal effort.
-* Templating system for creating detailed, synchronized entities.
-* Extendable API that gives you advanced control over the WebRTC datachannel.
-* Audio streaming for easily implementing VoIP.
+* Audio streaming to let your users talk in-app.
+* Bandwidth sensitive. Only sends network updates when a synced component has changed. Option to compress network updates.
+* Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
 
 
 Getting Started
 ---------------
  ```sh
 git clone https://github.com/haydenjameslee/networked-aframe.git  # Clone the repository.
-cd networked-aframe && npm install && npm run easyrtc install  # Install dependencies.
+cd networked-aframe && npm install && npm run easyrtc-install  # Install dependencies.
 npm start  # Start the local development server.
 ```
 With the server running, browse the examples at `http://localhost:8080`. Open another browser tab and point it to the same URL to see the other client.
 
 
+Basic Example
+-------------
+```html
+<!-- Download server and run first -->
+<html>
+  <head>
+    <title>My Networked A-Frame Scene</title>
+    <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="easyrtc/easyrtc.js"></script>
+    <script src="xxx/networked-aframe.min.js"></script>
+    <script>
+      function onConnect () {
+        naf.entities.createAvatar('#avatar-template', '0 1.6 0', '0 0 0');
+      }
+    </script>
+  </head>
+  <body>
+    <a-scene network-scene>
+      <a-assets>
+        <script id="avatar-template" type="text/html">
+          <a-entity class="avatar">
+            <a-box class="head"
+              color="#5985ff"
+              scale="0.45 0.5 0.4"
+            ></a-sphere>
+          </a-entity>
+        </script>
+      </a-assets>
+    </a-scene>
+  </body>
+</html>
+```
+
+
 Documentation
 -------------
 
-### Create networked entities
+#### Network-Scene component
+
+```html
+<a-scene network-scene="
+  app: <appId>;
+  room: <roomName>;
+  audio: false;
+  debug: false;
+  onConnect: onConnect;
+  connectOnLoad: true;
+  signallingUrl: /;
+">
+  ...
+</a-scene>
+```
+
+| Property | Description | Default Value |
+| -------- | ----------- | ------------- |
+| app  | A unique app name | default |
+| room  | A unique room name. Can be multiple per app. | default |
+| audio  | Turn on / off microphone audio streaming for your app | false |
+| debug  | Turn on / off Networked A-Frame debug logs | false |
+| onConnect  | Function to be called when client has successfully connected to the server | 'onConnect' |
+| connectOnLoad  | Connect to the server as soon as the webpage loads  | true |
+| signallingUrl  | Customize where the signalling server is located | '/' |
+
+
+#### Creating Entities
 
 `naf.entities.createAvatar(template, position, rotation)`
+
+Create an avatar that follows the camera's movements. Should only be used once per scene. The avatar is hidden for you but visible for other players.
+
 `naf.entities.createNetworkEntity(template, position, rotation)`
 
+Create an instance of a template to be synced across clients. The position, rotation and scale will be synced by default.
 
-### Broadcast messages to other clients
+| Parameter | Description
+| -------- | -----------
+| template  | A css selector to a script tag stored in `<a-assets>`
+| position  | An A-Frame position string for the initial position of the entity, eg. '0 0 0'
+| rotation  | An A-Frame rotation string for the initial rotation of the entity, eg '0 45 0'
+
+##### Templates
+
+The templating library is Kevin Ngo's `aframe-template-component`(https://github.com/ngokevin/kframe/tree/master/components/template). [See here for template documentation.](https://github.com/ngokevin/kframe/tree/master/components/template)
+
+
+#### Syncing Custom Components
+
+By default, the A-Frame `position`, `rotation` and `scale` components are synced when a network entity is created.
+
+TBD
+
+
+#### Broadcasting Custom Messages
 
 `naf.connection.subscribeToDataChannel(dataType, callback)`
 `naf.connection.unsubscribeToDataChannel(dataType)`
@@ -43,9 +126,26 @@ Documentation
 `naf.connection.broadcastData(dataType, data)`
 `naf.connection.broadcastDataGuaranteed(dataType, data)`
 
+Subscribe and unsubscribe callbacks to network messages specified by `dataType`. Send messages to other clients with the `broadcastData` functions.
 
-### network-scene component
+`broadcastData` messages are sent P2P using UDP and are not guaranteed to make it to any clients (although they will most of the time). [See why.](https://en.wikipedia.org/wiki/User_Datagram_Protocol) `broadcastDataGuaranteed` messages are currently sent via the websocket connection to the server using TCP, and hence not using WebRTC at all. These messages are guaranteed to be delivered to all connected clients. In the future a reliable protocol may be added that utilizes UDP instead of relying on the websocket connection.
 
+| Parameter | Description
+| -------- | -----------
+| dataType  | String to identify a network message. `u` is a reserved data type, don't use it.
+| callback  | Function to be called when message of type `dataType` is received.
+| data | JSON object to be sent to all other clients
+
+
+#### Settings
+
+`naf.globals.updateRate`
+
+Frequency the network component `sync` function is called per second. 10-20 is normal for most Social VR applications. Default is `15`.
+
+`naf.globals.compressSyncPackets
+
+Compress each sync packet into a minimized but harder to read JSON object for saving bandwidth. Default is `false`.
 
 
 Folder Structure
@@ -64,16 +164,16 @@ Folder Structure
  * /tests/
    * Unit tests
 
-
-
-Links for help and information
+Help and more Information
 ------------------------------
 
 * Live demo site:
   * [http://haydenlee.io/networked-aframe](http://haydenlee.io/networked-aframe)
 * Bugs and requests can be filed on this github page:
   * [https://github.com/haydenjameslee/networked-aframe/issues](https://github.com/haydenjameslee/networked-aframe/issues)
-* The EasyRTC website is at:
+* A-Frame:
+  * [https://aframe.io/](https://aframe.io/)
+* EasyRTC WebRTC library:
   * [http://www.easyrtc.com/](http://www.easyrtc.com/)
 
 
@@ -83,6 +183,21 @@ Stay in Touch
 - [Follow Hayden on Twitter](https://twitter.com/haydenlee37).
 - To hang out with the A-Frame community, [join the A-Frame Slack](https://aframevr-slack.herokuapp.com).
 - Let us know if you've made something with Networked A-Frame! We'd love to see it!
+
+
+Why WebRTC?
+-----------
+
+UDP
+
+P2P
+
+
+Roadmap
+-------
+
+* positional audio
+* scene entities and master client concept
 
 
 License
