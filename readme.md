@@ -4,16 +4,16 @@ Networked A-Frame
 
 **Bringing Social VR to the Web!**
 
-Write fully featured social VR experiences and games on the web with minimal networking experience required.
+Write fully featured Social VR experiences on the web, with minimal networking knowledge required.
 
 
 Features
 --------
-* Includes everything you need to create your own networked / multiplayer / social WebVR experience.
+* Includes everything you need to create your own networked / multiplayer / social WebVR apps.
 * WebRTC with no experience required. Take advantage of low-latency, peer-to-peer networking over UDP with minimal effort.
-* Templating system for instantiating complex networked objects on all connected clients.
+* Templating system for creating detailed, synchronized entities.
 * Extendable API that gives you advanced control over the WebRTC datachannel.
-* Audio streaming for easily implementing VoIP in your WebVR apps.
+* Audio streaming for easily implementing VoIP.
 
 
 Getting Started
@@ -32,7 +32,6 @@ Documentation
 ### Create networked entities
 
 `naf.entities.createAvatar(template, position, rotation)`
-
 `naf.entities.createNetworkEntity(template, position, rotation)`
 
 
@@ -46,7 +45,6 @@ Documentation
 
 
 ### network-scene component
-
 
 
 
