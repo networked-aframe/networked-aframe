@@ -11,6 +11,8 @@ Write full-featured Social VR experiences on the web, with minimal networking kn
   &mdash;
   <a href="#getting-started">Getting Started</a>
   &mdash;
+  <a href="#more-examples">Examples</a>
+  &mdash;
   <a href="#documentation">Documentation</a>
   &mdash;
   <a href="#stay-in-touch">Contact</a>
@@ -18,7 +20,7 @@ Write full-featured Social VR experiences on the web, with minimal networking kn
 
 Features
 --------
-* Includes everything you need to create networked / multiplayer / social WebVR apps and games.
+* Includes everything you need to create multiplayer / social WebVR apps and games.
 * WebRTC with no experience required. Take advantage of low-latency, peer-to-peer networking over UDP with minimal effort.
 * Audio streaming to let your users talk in-app.
 * Bandwidth sensitive. Only sends network updates when a synced component has changed. Option to compress network updates.
@@ -67,6 +69,19 @@ Basic Example
   </body>
 </html>
 ```
+
+More Examples
+-------------
+
+Open in two tabs if nobody else is online.
+
+#### Simple
+
+[http://haydenlee.io/networked-aframe/basic.html](http://haydenlee.io/networked-aframe/basic.html)
+
+#### Dance Party!
+
+[http://haydenlee.io/networked-aframe/dance-party.html](http://haydenlee.io/networked-aframe/dance-party.html)
 
 
 Documentation
@@ -117,7 +132,7 @@ Create an instance of a template to be synced across clients. The position, rota
 
 ##### Templates
 
-The templating library is Kevin Ngo's [`aframe-template-component`](https://github.com/ngokevin/kframe/tree/master/components/template). [See here for template documentation.](https://github.com/ngokevin/kframe/tree/master/components/template)
+The templating library is Kevin Ngo's [`aframe-template-component`](https://github.com/ngokevin/kframe/tree/master/components/template). [Complete template documentation.](https://github.com/ngokevin/kframe/tree/master/components/template)
 
 
 #### Syncing Custom Components
