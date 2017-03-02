@@ -6,6 +6,16 @@ Networked A-Frame
 
 Write full-featured Social VR experiences on the web, with minimal networking knowledge required.
 
+<div>
+  <a href="#features">Features</a>
+  &mdash;
+  <a href="#getting-started">Getting Started</a>
+  &mdash;
+  <a href="#documentation">Documentation</a>
+  &mdash;
+  <a href="#stay-in-touch">Contact</a>
+</div>
+
 Features
 --------
 * Includes everything you need to create networked / multiplayer / social WebVR apps and games.
@@ -184,18 +194,8 @@ Stay in Touch
 -------------
 
 - [Follow Hayden on Twitter](https://twitter.com/haydenlee37).
-- Hang out with the A-Frame community, [join the A-Frame Slack](https://aframevr-slack.herokuapp.com).
+- Hang out with the A-Frame community: [join the A-Frame Slack](https://aframevr-slack.herokuapp.com).
 - Let us know if you've made something with Networked A-Frame! We'd love to see it!
-
-
-Why WebRTC?
------------
-
-UDP
-
-P2P
-
-TBD
 
 
 Roadmap
