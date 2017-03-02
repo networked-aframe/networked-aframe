@@ -1,55 +1,102 @@
 
+Networked A-Frame
+=======
 
-# API
+**Bringing Social VR to the Web!**
 
-### Scene setup
-
-<a-scene network-scene="...">
-
-appId: {default: 'default'},
-roomId: {default: 'default'},
-connectOnLoad: {default: true},
-signallingUrl: {type: 'string'},
-audio: {default: false},
-avatar: {default: true},
-debug: {default: false}
+Write fully featured social VR experiences and games on the web with minimal networking experience required.
 
 
-### Avatar
+Features
+--------
+* Includes everything you need to create your own networked / multiplayer / social WebVR experience.
+* WebRTC with no experience required. Take advantage of low-latency, peer-to-peer networking over UDP with minimal effort.
+* Templating system for instantiating complex networked objects on all connected clients.
+* Extendable API that gives you advanced control over the WebRTC datachannel.
+* Audio streaming for easily implementing VoIP in your WebVR apps.
 
 
-### Create networked entity
+Getting Started
+---------------
+ ```sh
+git clone https://github.com/haydenjameslee/networked-aframe.git  # Clone the repository.
+cd networked-aframe && npm install && npm run easyrtc install  # Install dependencies.
+npm start  # Start the local development server.
+```
+With the server running, browse the examples at `http://localhost:8080`. Open another browser tab and point it to the same URL to see the other client.
+
+
+Documentation
+-------------
+
+### Create networked entities
+
+`naf.entities.createAvatar(template, position, rotation)`
 
 `naf.entities.createNetworkEntity(template, position, rotation)`
 
 
-### Send message to other clients
+### Broadcast messages to other clients
 
 `naf.connection.subscribeToDataChannel(dataType, callback)`
 `naf.connection.unsubscribeToDataChannel(dataType)`
 
 `naf.connection.broadcastData(dataType, data)`
 `naf.connection.broadcastDataGuaranteed(dataType, data)`
-`naf.connection.sendData(toClient, dataType, data)`
-`naf.connection.sendDataGuaranteed(toClient, dataType, data)`
+
+
+### network-scene component
 
 
 
 
+Folder Structure
+----------------
 
-# Dependencies
+ * / (root)
+   * Licenses and package information
+ * /dist/
+   * Packaged source code for deployment
+ * /server/
+   * Server code
+ * /server/static/
+   * Examples (basic.html & dance-party.html)
+ * /src/
+   * Client source code
+ * /tests/
+   * Unit tests
 
-A-Frame
-
-A-Frame Templates: https://github.com/ngokevin/kframe/tree/master/components/template
-
-EasyRTC
 
 
-# Other A-Frame networking libraries
+Links for help and information
+------------------------------
 
-broadcast
+* Live demo site:
+  * [http://haydenlee.io/networked-aframe](http://haydenlee.io/networked-aframe)
+* Bugs and requests can be filed on this github page:
+  * [https://github.com/haydenjameslee/networked-aframe/issues](https://github.com/haydenjameslee/networked-aframe/issues)
+* The EasyRTC website is at:
+  * [http://www.easyrtc.com/](http://www.easyrtc.com/)
 
-firebase
 
-incheon
+Stay in Touch
+-------------
+
+- [Follow Hayden on Twitter](https://twitter.com/haydenlee37).
+- To hang out with the A-Frame community, [join the A-Frame Slack](https://aframevr-slack.herokuapp.com).
+- Let us know if you've made something with Networked A-Frame! We'd love to see it!
+
+
+License
+-------
+
+This program is free software and is distributed under an [MIT License](LICENSE).
+
+
+Other A-Frame Networking Libraries
+----------------------------------
+
+[aframe-firebase-component](https://github.com/ngokevin/kframe/tree/master/components/firebase)
+
+[aframe-webrtc](https://github.com/takahirox/aframe-webrtc)
+
