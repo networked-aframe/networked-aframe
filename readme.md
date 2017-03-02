@@ -4,7 +4,7 @@ Networked A-Frame
 
 **Bringing Social VR to the Web**
 
-Write fully featured Social VR experiences on the web, with minimal networking knowledge required.
+Write full-featured Social VR experiences on the web, with minimal networking knowledge required.
 
 Features
 --------
@@ -28,7 +28,6 @@ With the server running, browse the examples at `http://localhost:8080`. Open an
 Basic Example
 -------------
 ```html
-<!-- Download server and run first -->
 <html>
   <head>
     <title>My Networked A-Frame Scene</title>
@@ -81,8 +80,8 @@ Documentation
 
 | Property | Description | Default Value |
 | -------- | ----------- | ------------- |
-| app  | A unique app name | default |
-| room  | A unique room name. Can be multiple per app. | default |
+| app  | Unique app name | default |
+| room  | Unique room name. Can be multiple per app | default |
 | audio  | Turn on / off microphone audio streaming for your app | false |
 | debug  | Turn on / off Networked A-Frame debug logs | false |
 | onConnect  | Function to be called when client has successfully connected to the server | 'onConnect' |
@@ -94,11 +93,11 @@ Documentation
 
 `naf.entities.createAvatar(template, position, rotation)`
 
-Create an avatar that follows the camera's movements. Should only be used once per scene. The avatar is hidden for you but visible for other players.
+Create an avatar that follows the camera's movements. Should only be used once. The avatar is hidden for you but visible for other players.
 
 `naf.entities.createNetworkEntity(template, position, rotation)`
 
-Create an instance of a template to be synced across clients. The position, rotation and scale will be synced by default.
+Create an instance of a template to be synced across clients. The position, rotation and scale will be synced by default. The [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is added to allow for less network updates while keeping smooth motion.
 
 | Parameter | Description
 | -------- | -----------
@@ -108,7 +107,7 @@ Create an instance of a template to be synced across clients. The position, rota
 
 ##### Templates
 
-The templating library is Kevin Ngo's `aframe-template-component`(https://github.com/ngokevin/kframe/tree/master/components/template). [See here for template documentation.](https://github.com/ngokevin/kframe/tree/master/components/template)
+The templating library is Kevin Ngo's [`aframe-template-component`](https://github.com/ngokevin/kframe/tree/master/components/template). [See here for template documentation.](https://github.com/ngokevin/kframe/tree/master/components/template)
 
 
 #### Syncing Custom Components
@@ -121,18 +120,20 @@ TBD
 #### Broadcasting Custom Messages
 
 `naf.connection.subscribeToDataChannel(dataType, callback)`
+
 `naf.connection.unsubscribeToDataChannel(dataType)`
 
 `naf.connection.broadcastData(dataType, data)`
+
 `naf.connection.broadcastDataGuaranteed(dataType, data)`
 
 Subscribe and unsubscribe callbacks to network messages specified by `dataType`. Send messages to other clients with the `broadcastData` functions.
 
-`broadcastData` messages are sent P2P using UDP and are not guaranteed to make it to any clients (although they will most of the time). [See why.](https://en.wikipedia.org/wiki/User_Datagram_Protocol) `broadcastDataGuaranteed` messages are currently sent via the websocket connection to the server using TCP, and hence not using WebRTC at all. These messages are guaranteed to be delivered to all connected clients. In the future a reliable protocol may be added that utilizes UDP instead of relying on the websocket connection.
+`broadcastData` messages are sent P2P using UDP and are not guaranteed to make it to other clients (although they will most of the time). [See why.](https://en.wikipedia.org/wiki/User_Datagram_Protocol) `broadcastDataGuaranteed` messages are currently sent via the websocket connection to the server using TCP, and hence not using WebRTC at all. These messages are guaranteed to be delivered to all connected clients. In the future a reliable protocol may be added on top of UDP instead of relying on the TCP websocket connection.
 
 | Parameter | Description
 | -------- | -----------
-| dataType  | String to identify a network message. `u` is a reserved data type, don't use it.
+| dataType  | String to identify a network message. `u` is a reserved data type, don't use it pls
 | callback  | Function to be called when message of type `dataType` is received.
 | data | JSON object to be sent to all other clients
 
@@ -143,9 +144,11 @@ Subscribe and unsubscribe callbacks to network messages specified by `dataType`.
 
 Frequency the network component `sync` function is called per second. 10-20 is normal for most Social VR applications. Default is `15`.
 
-`naf.globals.compressSyncPackets
+`naf.globals.compressSyncPackets`
 
 Compress each sync packet into a minimized but harder to read JSON object for saving bandwidth. Default is `false`.
+
+To measure bandwidth usage, run two clients and visit chrome://webrtc-internals on Chrome.
 
 
 Folder Structure
@@ -169,7 +172,7 @@ Help and more Information
 
 * Live demo site:
   * [http://haydenlee.io/networked-aframe](http://haydenlee.io/networked-aframe)
-* Bugs and requests can be filed on this github page:
+* Bugs and requests can be filed here:
   * [https://github.com/haydenjameslee/networked-aframe/issues](https://github.com/haydenjameslee/networked-aframe/issues)
 * A-Frame:
   * [https://aframe.io/](https://aframe.io/)
@@ -181,7 +184,7 @@ Stay in Touch
 -------------
 
 - [Follow Hayden on Twitter](https://twitter.com/haydenlee37).
-- To hang out with the A-Frame community, [join the A-Frame Slack](https://aframevr-slack.herokuapp.com).
+- Hang out with the A-Frame community, [join the A-Frame Slack](https://aframevr-slack.herokuapp.com).
 - Let us know if you've made something with Networked A-Frame! We'd love to see it!
 
 
@@ -192,12 +195,14 @@ UDP
 
 P2P
 
+TBD
+
 
 Roadmap
 -------
 
-* positional audio
-* scene entities and master client concept
+* Positional audio
+* Scene entities that can be defined in the static HTML page and are owned by a master client (longest person in room). Host migration to switch ownership when master client disconnects.
 
 
 License
