@@ -103,7 +103,7 @@ Documentation
 
 `naf.entities.createAvatar(template, position, rotation)`
 
-Create an avatar that follows the camera's movements. Should only be used once. The avatar is hidden for you but visible for other players.
+Create an avatar that follows your camera's movements. Should only be called once. The avatar is hidden for you but visible for other players.
 
 `naf.entities.createNetworkEntity(template, position, rotation)`
 
@@ -177,7 +177,7 @@ Folder Structure
  * /tests/
    * Unit tests
 
-Help and more Information
+Help and More Information
 ------------------------------
 
 * Live demo site:
@@ -193,8 +193,8 @@ Help and more Information
 Stay in Touch
 -------------
 
-- [Follow Hayden on Twitter](https://twitter.com/haydenlee37).
-- Hang out with the A-Frame community: [join the A-Frame Slack](https://aframevr-slack.herokuapp.com).
+- [Follow Hayden on Twitter](https://twitter.com/haydenlee37)
+- Hang out with the A-Frame community: [join the A-Frame Slack](https://aframevr-slack.herokuapp.com)
 - Let us know if you've made something with Networked A-Frame! We'd love to see it!
 
 
@@ -202,7 +202,7 @@ Roadmap
 -------
 
 * Positional audio
-* Scene entities that can be defined in the static HTML page and are owned by a master client (longest person in room). Host migration to switch ownership when master client disconnects.
+* Scene entities that can be defined in the static HTML page
 
 
 License
