@@ -87,7 +87,9 @@ Open in two tabs if nobody else is online.
 Documentation
 -------------
 
-#### Network-Scene component
+### Network-Scene component
+
+Required on the A-Frame `<a-scene>` component.
 
 ```html
 <a-scene network-scene="
@@ -109,12 +111,12 @@ Documentation
 | room  | Unique room name. Can be multiple per app | default |
 | audio  | Turn on / off microphone audio streaming for your app | false |
 | debug  | Turn on / off Networked A-Frame debug logs | false |
-| onConnect  | Function to be called when client has successfully connected to the server | 'onConnect' |
+| onConnect  | Function to be called when client has successfully connected to the server | onConnect |
 | connectOnLoad  | Connect to the server as soon as the webpage loads  | true |
-| signallingUrl  | Customize where the signalling server is located | '/' |
+| signallingUrl  | Customize where the signalling server is located | / |
 
 
-#### Creating Entities
+### Creating Entities
 
 `naf.entities.createAvatar(template, position, rotation)`
 
@@ -126,54 +128,47 @@ Create an instance of a template to be synced across clients. The position, rota
 
 | Parameter | Description
 | -------- | -----------
-| template  | A css selector to a script tag stored in `<a-assets>`
+| template  | A css selector to a script tag stored in `<a-assets>`. [Documentation](https://github.com/ngokevin/kframe/tree/master/components/template)
 | position  | An A-Frame position string for the initial position of the entity, eg. '0 0 0'
 | rotation  | An A-Frame rotation string for the initial rotation of the entity, eg '0 45 0'
 
-##### Templates
 
-The templating library is Kevin Ngo's [`aframe-template-component`](https://github.com/ngokevin/kframe/tree/master/components/template). [Complete template documentation.](https://github.com/ngokevin/kframe/tree/master/components/template)
-
-
-#### Syncing Custom Components
+### Syncing Custom Components
 
 By default, the A-Frame `position`, `rotation` and `scale` components are synced when a network entity is created.
 
 TBD
 
 
-#### Broadcasting Custom Messages
+### Broadcasting Custom Messages
 
-`naf.connection.subscribeToDataChannel(dataType, callback)`
-
-`naf.connection.unsubscribeToDataChannel(dataType)`
-
-`naf.connection.broadcastData(dataType, data)`
-
-`naf.connection.broadcastDataGuaranteed(dataType, data)`
+```naf.connection.subscribeToDataChannel(dataType, callback)
+naf.connection.unsubscribeToDataChannel(dataType)
+naf.connection.broadcastData(dataType, data)
+naf.connection.broadcastDataGuaranteed(dataType, data)```
 
 Subscribe and unsubscribe callbacks to network messages specified by `dataType`. Send messages to other clients with the `broadcastData` functions.
 
-`broadcastData` messages are sent P2P using UDP and are not guaranteed to make it to other clients (although they will most of the time). [See why.](https://en.wikipedia.org/wiki/User_Datagram_Protocol) `broadcastDataGuaranteed` messages are currently sent via the websocket connection to the server using TCP, and hence not using WebRTC at all. These messages are guaranteed to be delivered to all connected clients. In the future a reliable protocol may be added on top of UDP instead of relying on the TCP websocket connection.
+`broadcastData` messages are sent P2P using UDP and are not guaranteed to make it to other clients (although they will most of the time, [see why](https://en.wikipedia.org/wiki/User_Datagram_Protocol)). `broadcastDataGuaranteed` messages are currently sent via the websocket connection to the server using TCP, and hence not using WebRTC at all. These messages are guaranteed to be delivered to all connected clients. In the future a reliable protocol may be added on top of UDP instead of relying on the TCP websocket connection.
 
 | Parameter | Description
 | -------- | -----------
 | dataType  | String to identify a network message. `u` is a reserved data type, don't use it pls
 | callback  | Function to be called when message of type `dataType` is received.
-| data | JSON object to be sent to all other clients
+| data | Object to be sent to all other clients
 
 
-#### Settings
+### Settings
 
 `naf.globals.updateRate`
 
-Frequency the network component `sync` function is called per second. 10-20 is normal for most Social VR applications. Default is `15`.
+Frequency the network component `sync` function is called, per second. 10-20 is normal for most Social VR applications. Default is `15`.
 
 `naf.globals.compressSyncPackets`
 
 Compress each sync packet into a minimized but harder to read JSON object for saving bandwidth. Default is `false`.
 
-To measure bandwidth usage, run two clients and visit chrome://webrtc-internals on Chrome.
+To measure bandwidth usage, run two clients on Chrome and visit chrome://webrtc-internals
 
 
 Folder Structure
