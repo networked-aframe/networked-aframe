@@ -124,18 +124,18 @@ Create an avatar that follows your camera's movements. Should only be called onc
 
 `naf.entities.createNetworkEntity(template, position, rotation)`
 
-Create an instance of a template to be synced across clients. The position, rotation and scale will be synced by default. The [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is added to allow for less network updates while keeping smooth motion.
+Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is added to allow for less network updates while keeping smooth motion.
 
 | Parameter | Description
 | -------- | -----------
-| template  | A css selector to a script tag stored in `<a-assets>`. [Documentation](https://github.com/ngokevin/kframe/tree/master/components/template)
+| template  | A css selector to a script tag stored in `<a-assets>` - [template documentation](https://github.com/ngokevin/kframe/tree/master/components/template)
 | position  | An A-Frame position string for the initial position of the entity, eg. '0 0 0'
 | rotation  | An A-Frame rotation string for the initial rotation of the entity, eg '0 45 0'
 
 
 ### Syncing Custom Components
 
-By default, the A-Frame `position`, `rotation` and `scale` components are synced when a network entity is created.
+By default, the A-Frame `position` and `rotation` components are synced when a network entity is created.
 
 TBD
 

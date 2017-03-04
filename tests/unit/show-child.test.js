@@ -36,7 +36,6 @@ suite('show-child', function() {
     });
   });
 
-
   suite('Schema', function() {
 
     test('Returns correct index', function() {
@@ -78,6 +77,26 @@ suite('show-child', function() {
 
       assert.isFalse(result0);
       assert.isTrue(result1);
+      assert.isFalse(result2);
+    });
+  });
+
+  suite('show', function() {
+
+    test('Handles index too large', function() {
+      var child0 = document.querySelector('#zero');
+      var child1 = document.querySelector('#one');
+      var child2 = document.querySelector('#two');
+
+      comp.hideAll();
+      comp.show(4);
+
+      var result0 = child0.getAttribute('visible');
+      var result1 = child1.getAttribute('visible');
+      var result2 = child2.getAttribute('visible');
+
+      assert.isFalse(result0);
+      assert.isFalse(result1);
       assert.isFalse(result2);
     });
   });

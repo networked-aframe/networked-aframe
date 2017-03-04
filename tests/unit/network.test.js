@@ -12,7 +12,7 @@ suite('network', function() {
 
   function initScene(done) {
     var opts = {};
-    opts.entity = '<a-entity id="test-entity" network="networkId:network1;owner:owner1;components:position,rotation" position="1 2 3" rotation="4 3 2" template="src:#template1;"></a-entity>';
+    opts.entity = '<a-entity id="test-entity" network="networkId:network1;owner:owner1;components:position,rotation" position="1 2 3" rotation="4 3 2" template="src:#template1;"><a-box class="head" visible="false"></a-box</a-entity>';
     scene = helpers.sceneFactory(opts);
     naf.util.whenEntityLoaded(scene, done);
   }
@@ -26,6 +26,8 @@ suite('network', function() {
   });
 
   teardown(function() {
+    netComp.isMine = sinon.stub().returns(false);
+    naf.connection.isMineAndConnected = sinon.stub().returns(false);
     scene.parentElement.removeChild(scene);
   });
 
@@ -41,23 +43,29 @@ suite('network', function() {
   });
 
   suite('init', function() {
-    test('syncs when mine', sinon.test(function() {
+
+    test('first sync when mine', sinon.test(function() {
       this.stub(netComp, 'isMine').returns(true);
-      this.stub(netComp, 'syncAll');
+      this.stub(netComp, 'waitForLoadThenFirstSync');
 
       netComp.init();
 
-      assert.isTrue(netComp.syncAll.calledOnce);
+      assert.isTrue(netComp.waitForLoadThenFirstSync.calledOnce);
     }));
 
-    test('does not sync when not mine', sinon.test(function() {
-      naf.connection.isMineAndConnected = this.stub().returns(false);
-      this.stub(netComp, 'syncAll');
+    // test('does not sync when not mine, after 50ms', sinon.test(function(done) {
+    //   naf.connection.isMineAndConnected = this.stub().returns(false);
+    //   this.stub(netComp, 'syncAll');
 
-      netComp.init();
+    //   netComp.init();
 
-      assert.isFalse(netComp.syncAll.called);
-    }));
+    //   var check = function() {
+    //     assert.isFalse(netComp.syncAll.called);
+    //     done();
+    //   };
+
+    //   setTimeout(check.bind(this), 100);
+    // }));
   });
 
   suite('update', function() {
@@ -484,6 +492,43 @@ suite('network', function() {
       assert.deepEqual(result, compressed);
     });
 
+    test('example packet with child components', function() {
+      var childComponent = {
+        selector: '.head',
+        component: 'visible'
+      };
+      netComp.data.components.push('scale');
+      netComp.data.components.push(childComponent);
+      var components = {
+        position: { x: 1, y: 2, z: 3 },
+        scale: { x: 10, y: 11, z: 12 }
+      };
+      var childKey = '.head'+naf.util.delimiter+'visible';
+      components[childKey] = false;
+      var entityData = {
+        0: 1,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '',
+        components: components
+      };
+      var compressed = [
+        1,
+        entityData.networkId,
+        entityData.owner,
+        entityData.template,
+        {
+          0: components.position,
+          2: components.scale,
+          3: components[childKey]
+        }
+      ];
+
+      var result = netComp.compressSyncData(entityData);
+
+      assert.deepEqual(result, compressed);
+    });
+
     test('example packet with no components', function() {
       var entityData = {
         0: 1,
@@ -565,6 +610,43 @@ suite('network', function() {
       assert.deepEqual(result, entityData);
     });
 
+    test('example packet with child component', function() {
+      var childComponent = {
+        selector: '.head',
+        component: 'visible'
+      };
+      netComp.data.components.push('scale');
+      netComp.data.components.push(childComponent);
+      var components = {
+        position: { x: 1, y: 2, z: 3 },
+        scale: { x: 10, y: 11, z: 12 }
+      };
+      var childKey = '.head'+naf.util.delimiter+'visible';
+      components[childKey] = false;
+      var entityData = {
+        0: 1,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '',
+        components: components
+      };
+      var compressed = [
+        1,
+        entityData.networkId,
+        entityData.owner,
+        entityData.template,
+        {
+          0: components.position,
+          2: components.scale,
+          3: components[childKey]
+        }
+      ];
+
+      var result = netComp.decompressSyncData(compressed);
+
+      assert.deepEqual(result, entityData);
+    });
+
     test('example packet with no components', function() {
       var entityData = {
         0: 1,
@@ -589,13 +671,33 @@ suite('network', function() {
 
   suite('getComponentsData', function() {
 
-    test('collects correct data', function() {
+    test('collects correct data from simple list', function() {
       var compData = {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 3, z: 2 }
       };
 
       var result = netComp.getComponentsData(['position', 'rotation']);
+
+      assert.deepEqual(result, compData);
+    });
+
+    test('collects correct data with child components', function() {
+
+      var childComponent = {
+        selector: '.head',
+        component: 'visible'
+      };
+      var components = ['position', 'rotation', childComponent];
+
+      var result = netComp.getComponentsData(components);
+
+      var compData = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2 },
+      };
+      var key = '.head'+naf.util.delimiter+'visible';
+      compData[key] = false;
 
       assert.deepEqual(result, compData);
     });
@@ -664,6 +766,36 @@ suite('network', function() {
       assert.equal(components['scale'].data.z, 1, 'Scale');
 
       assert.equal(components['visible'].data, true, 'Visible');
+    }));
+
+    test('sets correct uncompressed data with child components', sinon.test(function() {
+      // Setup
+      var entityData = {
+        0: 0,
+        networkId: 'network1',
+        owner: 'owner1',
+        template: '',
+        components: {
+          position: { x: 10, y: 20, z: 30 },
+          rotation: { x: 40, y: 30, z: 20 },
+          scale: { x: 5, y: 12, z: 1 },
+          visible: false
+        }
+      };
+      var childComponent = {
+        selector: '.head',
+        component: 'visible'
+      };
+      netComp.data.components.push(childComponent);
+      var childKey = '.head'+naf.util.delimiter+'visible';
+      entityData.components[childKey] = true;
+
+      // SUT
+      netComp.networkUpdate({ detail: { entityData: entityData } });
+
+      // Assert
+      var visible = entity.querySelector('.head').components.visible.getData();
+      assert.equal(visible, true);
     }));
 
     test('sets correct compressed data', sinon.test(function() {

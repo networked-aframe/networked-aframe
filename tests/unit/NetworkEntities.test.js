@@ -1,8 +1,8 @@
 /* global assert, process, setup, suite, test */
 var aframe = require('aframe');
 var helpers = require('./helpers');
-var nafUtil = require('../../src/NafUtil.js');
 var naf = require('../../src/NafIndex.js');
+
 var NetworkEntities = require('../../src/NetworkEntities.js');
 
 suite('NetworkEntities', function() {
@@ -15,16 +15,17 @@ suite('NetworkEntities', function() {
     var opts = {
       assets: [
         '<script id="template1" lerp type="text/html"><a-entity></a-entity></script>',
-        '<script id="template2" sync-components="[\'position\']" type="text/html"><a-box></a-box></script>',
+        '<script id="template2" type="text/html"><a-box></a-box></script>',
         '<script id="template3" type="text/html"><a-sphere></a-sphere></script>',
-        '<script id="template4" sync-components="[\'scale\']" type="text/html"><a-sphere></a-sphere></script>'
+        '<script id="template4" type="text/html"><a-sphere><a-entity class="test-child"></a-entity></a-sphere></script>'
       ]
     };
     scene = helpers.sceneFactory(opts);
-    nafUtil.whenEntityLoaded(scene, done);
+    naf.util.whenEntityLoaded(scene, done);
   }
 
   setup(function(done) {
+    naf.schemas.clear();
     entities = new NetworkEntities();
     entityData = {
       0: 0,
@@ -64,7 +65,7 @@ suite('NetworkEntities', function() {
 
       var entity = entities.createNetworkEntity(setupTemplate, setupPosition, setupRotation);
 
-      nafUtil.whenEntityLoaded(entity, function() {
+      naf.util.whenEntityLoaded(entity, function() {
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
         var template = entity.getAttribute('template');
@@ -95,7 +96,7 @@ suite('NetworkEntities', function() {
       var setupRotation = '14 15 16';
       var avatar = entities.createAvatar(setupTemplate, setupPosition, setupRotation);
 
-      nafUtil.whenEntityLoaded(avatar, function() {
+      naf.util.whenEntityLoaded(avatar, function() {
         var position = AFRAME.utils.coordinates.stringify(avatar.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(avatar.getAttribute('rotation'));
         var hasLerp = avatar.hasAttribute('lerp');
@@ -119,7 +120,7 @@ suite('NetworkEntities', function() {
       var setupRotation = '14 15 16';
       var avatar = entities.createAvatar(setupTemplate, setupPosition, setupRotation);
 
-      nafUtil.whenEntityLoaded(avatar, function() {
+      naf.util.whenEntityLoaded(avatar, function() {
         var camera = document.querySelector('[camera]');
         var position = AFRAME.utils.coordinates.stringify(camera.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(camera.getAttribute('rotation'));
@@ -139,10 +140,18 @@ suite('NetworkEntities', function() {
     });
 
     test('entity has correct attributes', function(done) {
+      var schema = {
+        template: '#template2',
+        components: [
+          'position'
+        ]
+      };
+      naf.schemas.add(schema);
       entityData.template = '#template2';
+
       var entity = entities.createLocalEntity(entityData);
 
-      nafUtil.whenEntityLoaded(entity, function() {
+      naf.util.whenEntityLoaded(entity, function() {
         var template = entity.getAttribute('template');
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
@@ -163,11 +172,19 @@ suite('NetworkEntities', function() {
     });
 
     test('entity created with syncing only scale', function(done) {
+      var schema = {
+        template: '#template4',
+        components: [
+          'scale'
+        ]
+      };
+      naf.schemas.add(schema);
+
       entityData.template = '#template4';
       entityData.components = { scale: '4 5 6' };
       var entity = entities.createLocalEntity(entityData);
 
-      nafUtil.whenEntityLoaded(entity, function() {
+      naf.util.whenEntityLoaded(entity, function() {
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
         var scale = AFRAME.utils.coordinates.stringify(entity.getAttribute('scale'));
@@ -179,11 +196,19 @@ suite('NetworkEntities', function() {
       });
     });
 
-    test('entity has correct components', function(done) {
+    test('entity has correct simple components', function(done) {
       entityData.template = '#template2';
+      var schema = {
+        template: '#template2',
+        components: [
+          'position'
+        ]
+      };
+      naf.schemas.add(schema);
+
       var entity = entities.createLocalEntity(entityData);
 
-      nafUtil.whenEntityLoaded(entity, function() {
+      naf.util.whenEntityLoaded(entity, function() {
         var network = entity.getAttribute('network');
 
         assert.deepEqual(network.components, ['position']);
@@ -191,14 +216,68 @@ suite('NetworkEntities', function() {
       });
     });
 
-    test('entity has correct components when no components tag', function(done) {
+    test('entity has correct advanced components', function(done) {
+      entityData.template = '#template2';
+      var schema = {
+        template: '#template2',
+        components: [
+          'position',
+          {
+            selector: '.test-child',
+            component: 'visible'
+          }
+        ]
+      };
+      naf.schemas.add(schema);
+
+      var entity = entities.createLocalEntity(entityData);
+
+      naf.util.whenEntityLoaded(entity, function() {
+        var network = entity.getAttribute('network');
+
+        assert.deepEqual(network.components, schema.components);
+        done();
+      });
+    });
+
+    // test('entity inits child component', function(done) {
+    //   entityData.template = '#template4';
+    //   var childComponent = {
+    //     selector: '.test-child',
+    //     component: 'visible'
+    //   };
+    //   var childKey = '.test-child'+naf.util.delimiter+'visible';
+    //   entityData.components[childKey] = false;
+
+    //   var schema = {
+    //     template: '#template4',
+    //     components: [
+    //       'position',
+    //       childComponent
+    //     ]
+    //   };
+    //   naf.schemas.add(schema);
+
+    //   var entity = entities.createLocalEntity(entityData);
+    //   console.log('222222222222');
+
+    //   naf.util.whenEntityLoaded(entity, function() {
+    //     console.log('asdmaskmdsaklmdlsakmdlsakmd');
+    //     var visible = entity.getAttribute('visible');
+
+    //     assert.isFalse(visible);
+    //     done();
+    //   });
+    // });
+
+    test('entity has correct components when no components schema defined', function(done) {
       entityData.template = '#template3';
       var entity = entities.createLocalEntity(entityData);
 
-      nafUtil.whenEntityLoaded(entity, function() {
+      naf.util.whenEntityLoaded(entity, function() {
         var network = entity.getAttribute('network');
 
-        assert.deepEqual(network.components, ['position', 'rotation', 'scale']);
+        assert.deepEqual(network.components, ['position', 'rotation']);
         done();
       });
     });
@@ -316,7 +395,6 @@ suite('NetworkEntities', function() {
       var result = entities.removeEntity('wrong');
       assert.isNull(result);
     });
-
   });
 
   suite('removeEntitiesFromUser', function() {
@@ -328,7 +406,7 @@ suite('NetworkEntities', function() {
         var entity = entities.createLocalEntity(entityData);
         entityList.push(entity);
       }
-      this.stub(nafUtil, 'getNetworkOwner').returns(entityData.owner);
+      this.stub(naf.util, 'getNetworkOwner').returns(entityData.owner);
 
       var removedEntities = entities.removeEntitiesFromUser(entityData.owner);
 
@@ -337,7 +415,7 @@ suite('NetworkEntities', function() {
 
     test('other entities', sinon.test(function() {
       var entity = entities.createLocalEntity(entityData);
-      this.stub(nafUtil, 'getNetworkOwner').returns('a');
+      this.stub(naf.util, 'getNetworkOwner').returns('a');
 
       var removedEntities = entities.removeEntitiesFromUser('b');
 

@@ -40,41 +40,48 @@ class NetworkEntities {
   }
 
   createLocalEntity(entityData) {
-    var scene = document.querySelector('a-scene');
     var entity = document.createElement('a-entity');
     entity.setAttribute('id', 'naf-' + entityData.networkId);
     entity.setAttribute('lerp', '');
 
-    var templateEl = document.querySelector(entityData.template);
-    var components = ['position', 'rotation', 'scale'];
+    var template = entityData.template;
+    this.setTemplate(entity, template);
+
+    var components = this.getComponents(template);
+    entity.initNafData = entityData;
+
+    this.setNetworkData(entity, entityData, components);
+
+    var scene = document.querySelector('a-scene');
+    scene.appendChild(entity);
+    this.entities[entityData.networkId] = entity;
+    return entity;
+  }
+
+  setTemplate(entity, template) {
+    var templateEl = document.querySelector(template);
     if (templateEl) {
-      entity.setAttribute('template', 'src:' + entityData.template);
-      if (templateEl.hasAttribute('sync-components')) {
-        var attr = templateEl.getAttribute('sync-components');
-        attr = attr.replace(/'/g, '"');
-        components = JSON.parse(attr);
-      }
+      entity.setAttribute('template', 'src:' + template);
     } else {
-      naf.log.error('NetworkEntities@createLocalEntity: Template not found: ' + entityData.template);
+      naf.log.error('NetworkEntities@createLocalEntity: Template not found: ' + template);
     }
+  }
 
-    for (var name in entityData.components) {
-      if (components.indexOf(name) != -1) {
-        var data = entityData.components[name];
-        entity.setAttribute(name, data);
-      }
+  getComponents(template) {
+    var components = ['position', 'rotation'];
+    if (naf.schemas.hasTemplate(template)) {
+      components = naf.schemas.getComponents(template);
     }
+    return components;
+  }
 
+  setNetworkData(entity, entityData, components) {
     var networkData = {
       owner: entityData.owner,
       networkId: entityData.networkId,
       components: components
     };
     entity.setAttribute('network', networkData);
-
-    scene.appendChild(entity);
-    this.entities[entityData.networkId] = entity;
-    return entity;
   }
 
   updateEntity(client, dataType, entityData) {
@@ -84,6 +91,7 @@ class NetworkEntities {
     if (this.hasEntity(networkId)) {
       this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
     } else if (!isCompressed) {
+      naf.log.write('Creating remote entity', entityData);
       this.createLocalEntity(entityData);
     }
   }

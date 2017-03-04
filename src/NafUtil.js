@@ -1,4 +1,3 @@
-
 module.exports.whenEntityLoaded = function(entity, callback) {
   if (entity.hasLoaded) { callback(); }
   entity.addEventListener('loaded', function () {
@@ -23,3 +22,5 @@ module.exports.getNetworkOwner = function(entity) {
 module.exports.now = function() {
   return Date.now();
 };
+
+module.exports.delimiter = '|||';

@@ -1535,17 +1535,19 @@ module.exports = globals;
 var globals = require('./NafGlobals.js');
 var util = require('./NafUtil.js');
 var NafLogger = require('./NafLogger.js');
+var Schemas = require('./Schemas.js');
 
 var naf = {};
 naf.globals = naf.g = globals;
 naf.util = naf.utils = naf.u = util;
 naf.log = naf.l = new NafLogger();
+naf.schemas = new Schemas();
 naf.connection = naf.c = {}; // Set in network-scene component
 naf.entities = naf.e = {}; // Set in network-scene component
 
 window.naf = naf;
 module.exports = naf;
-},{"./NafGlobals.js":49,"./NafLogger.js":52,"./NafUtil.js":53}],51:[function(require,module,exports){
+},{"./NafGlobals.js":49,"./NafLogger.js":52,"./NafUtil.js":53,"./Schemas.js":56}],51:[function(require,module,exports){
 class NafInterface {
   notImplemented() {
     console.error('Interface method not implemented.');
@@ -1576,7 +1578,6 @@ class NafLogger {
 
 module.exports = NafLogger;
 },{}],53:[function(require,module,exports){
-
 module.exports.whenEntityLoaded = function(entity, callback) {
   if (entity.hasLoaded) { callback(); }
   entity.addEventListener('loaded', function () {
@@ -1601,6 +1602,8 @@ module.exports.getNetworkOwner = function(entity) {
 module.exports.now = function() {
   return Date.now();
 };
+
+module.exports.delimiter = '|||';
 },{}],54:[function(require,module,exports){
 var naf = require('./NafIndex.js');
 var WebRtcInterface = require('./webrtc_interfaces/WebRtcInterface.js');
@@ -1767,7 +1770,7 @@ class NetworkConnection {
 }
 
 module.exports = NetworkConnection;
-},{"./NafIndex.js":50,"./webrtc_interfaces/WebRtcInterface.js":62}],55:[function(require,module,exports){
+},{"./NafIndex.js":50,"./webrtc_interfaces/WebRtcInterface.js":63}],55:[function(require,module,exports){
 var naf = require('./NafIndex.js');
 
 class NetworkEntities {
@@ -1810,41 +1813,48 @@ class NetworkEntities {
   }
 
   createLocalEntity(entityData) {
-    var scene = document.querySelector('a-scene');
     var entity = document.createElement('a-entity');
     entity.setAttribute('id', 'naf-' + entityData.networkId);
     entity.setAttribute('lerp', '');
 
-    var templateEl = document.querySelector(entityData.template);
-    var components = ['position', 'rotation', 'scale'];
+    var template = entityData.template;
+    this.setTemplate(entity, template);
+
+    var components = this.getComponents(template);
+    entity.initNafData = entityData;
+
+    this.setNetworkData(entity, entityData, components);
+
+    var scene = document.querySelector('a-scene');
+    scene.appendChild(entity);
+    this.entities[entityData.networkId] = entity;
+    return entity;
+  }
+
+  setTemplate(entity, template) {
+    var templateEl = document.querySelector(template);
     if (templateEl) {
-      entity.setAttribute('template', 'src:' + entityData.template);
-      if (templateEl.hasAttribute('sync-components')) {
-        var attr = templateEl.getAttribute('sync-components');
-        attr = attr.replace(/'/g, '"');
-        components = JSON.parse(attr);
-      }
+      entity.setAttribute('template', 'src:' + template);
     } else {
-      naf.log.error('NetworkEntities@createLocalEntity: Template not found: ' + entityData.template);
+      naf.log.error('NetworkEntities@createLocalEntity: Template not found: ' + template);
     }
+  }
 
-    for (var name in entityData.components) {
-      if (components.indexOf(name) != -1) {
-        var data = entityData.components[name];
-        entity.setAttribute(name, data);
-      }
+  getComponents(template) {
+    var components = ['position', 'rotation'];
+    if (naf.schemas.hasTemplate(template)) {
+      components = naf.schemas.getComponents(template);
     }
+    return components;
+  }
 
+  setNetworkData(entity, entityData, components) {
     var networkData = {
       owner: entityData.owner,
       networkId: entityData.networkId,
       components: components
     };
     entity.setAttribute('network', networkData);
-
-    scene.appendChild(entity);
-    this.entities[entityData.networkId] = entity;
-    return entity;
   }
 
   updateEntity(client, dataType, entityData) {
@@ -1854,6 +1864,7 @@ class NetworkEntities {
     if (this.hasEntity(networkId)) {
       this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
     } else if (!isCompressed) {
+      naf.log.write('Creating remote entity', entityData);
       this.createLocalEntity(entityData);
     }
   }
@@ -1907,6 +1918,51 @@ class NetworkEntities {
 
 module.exports = NetworkEntities;
 },{"./NafIndex.js":50}],56:[function(require,module,exports){
+class Schemas {
+
+  constructor() {
+    this.dict = {};
+  }
+
+  add(schema) {
+    if (this.validate(schema)) {
+      this.dict[schema.template] = schema;
+    } else {
+      naf.log.error('Schema not valid: ', schema);
+      naf.log.error('See https://github.com/haydenjameslee/networked-aframe#syncing-custom-components')
+    }
+  }
+
+  hasTemplate(template) {
+    return this.dict.hasOwnProperty(template);
+  }
+
+  getComponents(template) {
+    if (this.hasTemplate(template)) {
+      return this.dict[template].components;
+    } else {
+      naf.log.error('Schema with template '+template+' has not been added to naf.schemas yet');
+      return null;
+    }
+  }
+
+  validate(schema) {
+    return schema.hasOwnProperty('template')
+      && schema.hasOwnProperty('components')
+      ;
+  }
+
+  remove(template) {
+    delete this.dict[template];
+  }
+
+  clear() {
+    this.dict = {};
+  }
+}
+
+module.exports = Schemas;
+},{}],57:[function(require,module,exports){
 AFRAME.registerComponent('follow-camera', {
   camera: {},
 
@@ -1929,7 +1985,7 @@ AFRAME.registerComponent('follow-camera', {
     this.camera = document.querySelector('a-camera') || document.querySelector('[camera]');
   }
 });
-},{}],57:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 var naf = require('../NafIndex.js');
 
 var NetworkConnection = require('../NetworkConnection.js');
@@ -1974,7 +2030,7 @@ AFRAME.registerComponent('network-scene', {
     naf.entities = naf.e = entities;
   }
 });
-},{"../NafIndex.js":50,"../NetworkConnection.js":54,"../NetworkEntities.js":55,"../webrtc_interfaces/EasyRtcInterface.js":61}],58:[function(require,module,exports){
+},{"../NafIndex.js":50,"../NetworkConnection.js":54,"../NetworkEntities.js":55,"../webrtc_interfaces/EasyRtcInterface.js":62}],59:[function(require,module,exports){
 var naf = require('../NafIndex.js');
 var deepEqual = require('deep-equal');
 
@@ -1982,16 +2038,37 @@ AFRAME.registerComponent('network', {
   schema: {
     networkId: {type: 'string'},
     owner: {type: 'string'},
-    components: {default:['position', 'rotation', 'scale']}
+    components: {default:['position', 'rotation']}
   },
 
   init: function() {
-    this.nextSyncTime = 0;
+    this.nextSyncTime = naf.util.now() + 100000; // Gets properly set by first syncAll
     this.cachedData = {};
 
-    if (this.isMine()) {
-      this.syncAll();
+    if (this.el.initNafData) {
+      this.networkUpdateNaked(this.el.initNafData); // update root element
+      this.waitForTemplateAndUpdateChildren();
     }
+
+    if (this.isMine()) {
+      this.waitForLoadThenFirstSync();
+    }
+  },
+
+  waitForTemplateAndUpdateChildren: function() {
+    var that = this;
+    var callback = function() {
+      that.networkUpdateNaked(that.el.initNafData);
+    };
+    setTimeout(callback, 50);
+  },
+
+  waitForLoadThenFirstSync: function() {
+    var that = this;
+    var callback = function() {
+      that.syncAll();
+    };
+    setTimeout(callback, 100);
   },
 
   update: function(oldData) {
@@ -2094,7 +2171,8 @@ AFRAME.registerComponent('network', {
       template,
       {
         0: data, // key maps to index of synced components in network component schema
-        3: data
+        3: data,
+        4: data
       }
     ]
   */
@@ -2105,15 +2183,28 @@ AFRAME.registerComponent('network', {
     compressed.push(syncData.owner);
     compressed.push(syncData.template);
 
-    var compMap = {};
-    for (var name in syncData.components) {
-      var index = this.data.components.indexOf(name);
-      var component = syncData.components[name];
-      compMap[index] = component;
-    }
+    var compMap = this.compressComponents(syncData.components);
+
     compressed.push(compMap);
 
     return compressed;
+  },
+
+  compressComponents: function(syncComponents) {
+    var compMap = {};
+    var components = this.data.components;
+    for (var i = 0; i < components.length; i++) {
+      var name;
+      if (typeof components[i] === 'string') {
+        name = components[i];
+      } else {
+        name = this.childSchemaToKey(components[i]);
+      }
+      if (syncComponents.hasOwnProperty(name)) {
+        compMap[i] = syncComponents[name];
+      }
+    }
+    return compMap;
   },
 
   /**
@@ -2125,7 +2216,8 @@ AFRAME.registerComponent('network', {
       template: template,
       components: {
         position: data,
-        scale: data
+        scale: data,
+        .head|||visible: data
       }
     ]
   */
@@ -2136,25 +2228,54 @@ AFRAME.registerComponent('network', {
     entityData.owner = compressed[2];
     entityData.template = compressed[3];
 
-    var components = {};
-    for (var i in compressed[4]) {
-      var name = this.data.components[i];
-      components[name] = compressed[4][i];
-    }
+    var compressedComps = compressed[4];
+    var components = this.decompressComponents(compressedComps);
     entityData.components = components;
 
     return entityData;
   },
 
-  getComponentsData: function(components) {
+  decompressComponents: function(compressed) {
+    var decompressed = {};
+    var schemaComponents = this.data.components;
+    for (var i in compressed) {
+      var name;
+      var schemaComp = schemaComponents[i];
+      if (typeof schemaComp === "string") {
+        name = schemaComp;
+      } else {
+        name = this.childSchemaToKey(schemaComp);
+      }
+      decompressed[name] = compressed[i];
+    }
+    return decompressed;
+  },
+
+  getComponentsData: function(schemaComponents) {
     var elComponents = this.el.components;
     var compsWithData = {};
 
-    for (var i in components) {
-      var name = components[i];
-      if (elComponents.hasOwnProperty(name)) {
-        var component = elComponents[name];
-        compsWithData[name] = component.getData();
+    for (var i in schemaComponents) {
+      var element = schemaComponents[i];
+
+      if (typeof element === 'string') {
+        if (elComponents.hasOwnProperty(element)) {
+          var name = element;
+          var elComponent = elComponents[name];
+          compsWithData[name] = elComponent.getData();
+        }
+      } else {
+        var childKey = this.childSchemaToKey(element);
+        var child = this.el.querySelector(element.selector);
+        if (child) {
+          var comp = child.components[element.component];
+          if (comp) {
+            var data = comp.getData();
+            compsWithData[childKey] = data;
+          } else {
+            naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
+          }
+        }
       }
     }
     return compsWithData;
@@ -2176,27 +2297,45 @@ AFRAME.registerComponent('network', {
 
   networkUpdate: function(data) {
     var entityData = data.detail.entityData;
+    this.networkUpdateNaked(entityData);
+  },
+
+  networkUpdateNaked: function(entityData) {
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
     }
 
-    var components = entityData.components;
     var el = this.el;
 
     if (entityData.template != '') {
       el.setAttribute('template', 'src:' + entityData.template);
     }
 
-    for (var name in components) {
-      if (this.isSyncableComponent(name)) {
-        var compData = components[name];
-        el.setAttribute(name, compData);
+    this.updateComponents(entityData.components);
+  },
+
+  updateComponents: function(components) {
+    for (var key in components) {
+      if (this.isSyncableComponent(key)) {
+        var data = components[key];
+        if (this.isChildSchemaKey(key)) {
+          var schema = this.keyToChildSchema(key);
+          var childEl = this.el.querySelector(schema.selector);
+          childEl.setAttribute(schema.component, data);
+        } else {
+          this.el.setAttribute(key, data);
+        }
       }
     }
   },
 
-  isSyncableComponent: function(name) {
-    return this.data.components.indexOf(name) != -1;
+  isSyncableComponent: function(key) {
+    if (this.isChildSchemaKey(key)) {
+      var schema = this.keyToChildSchema(key);
+      return this.hasChildSchema(schema);
+    } else {
+      return this.data.components.indexOf(key) != -1;
+    }
   },
 
   remove: function () {
@@ -2204,19 +2343,57 @@ AFRAME.registerComponent('network', {
       var data = { networkId: this.data.networkId };
       naf.connection.broadcastData('r', data);
     }
+  },
+
+  hasChildSchema: function(schema) {
+    var schemaComponents = this.data.components;
+    for (var i in schemaComponents) {
+      var localChildSchema = schemaComponents[i];
+      if (this.childSchemaEqual(localChildSchema, schema)) {
+        return true;
+      }
+    }
+    return false;
+  },
+
+  childSchemaToKey: function(childSchema) {
+    return childSchema.selector + naf.util.delimiter + childSchema.component;
+  },
+
+  keyToChildSchema: function(key) {
+    var split = key.split(naf.util.delimiter);
+    return {
+      selector: split[0],
+      component: split[1]
+    };
+  },
+
+  isChildSchemaKey: function(key) {
+    return key.indexOf(naf.util.delimiter) != -1;
+  },
+
+  childSchemaEqual: function(a, b) {
+    return a.selector == b.selector && a.component == b.component;
   }
 });
-},{"../NafIndex.js":50,"deep-equal":4}],59:[function(require,module,exports){
-
+},{"../NafIndex.js":50,"deep-equal":4}],60:[function(require,module,exports){
 AFRAME.registerComponent('show-child', {
   schema: {
-    type: 'number',
+    type: 'int',
     default: 0,
   },
 
   update: function() {
-    this.hideAll();
     this.show(this.data);
+  },
+
+  show: function(index) {
+    if (index < this.el.children.length) {
+      this.hideAll();
+      this.el.children[index].setAttribute('visible', true);
+    } else {
+      console.error('show-child@show: invalid index: ', index);
+    }
   },
 
   hideAll: function() {
@@ -2224,14 +2401,9 @@ AFRAME.registerComponent('show-child', {
     for (var i = 0; i < el.children.length; i++) {
       el.children[i].setAttribute('visible', false);
     }
-  },
-
-  show: function(index) {
-    this.el.children[index].setAttribute('visible', true);
   }
-
 });
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 // Dependencies
 require('aframe-template-component');
 require('aframe-lerp-component');
@@ -2249,7 +2421,7 @@ require('./components/show-child.js');
 
 
 
-},{"./NafIndex.js":50,"./components/follow-camera.js":56,"./components/network-scene.js":57,"./components/network.js":58,"./components/show-child.js":59,"aframe-lerp-component":1,"aframe-template-component":2}],61:[function(require,module,exports){
+},{"./NafIndex.js":50,"./components/follow-camera.js":57,"./components/network-scene.js":58,"./components/network.js":59,"./components/show-child.js":60,"aframe-lerp-component":1,"aframe-template-component":2}],62:[function(require,module,exports){
 var naf = require('../NafIndex.js');
 var WebRtcInterface = require('./WebRtcInterface.js');
 
@@ -2379,7 +2551,7 @@ class EasyRtcInterface extends WebRtcInterface {
 }
 
 module.exports = EasyRtcInterface;
-},{"../NafIndex.js":50,"./WebRtcInterface.js":62}],62:[function(require,module,exports){
+},{"../NafIndex.js":50,"./WebRtcInterface.js":63}],63:[function(require,module,exports){
 var NafInterface = require('../NafInterface.js');
 
 class WebRtcInterface extends NafInterface {
@@ -2415,4 +2587,4 @@ WebRtcInterface.CONNECTING = 'CONNECTING';
 WebRtcInterface.NOT_CONNECTED = 'NOT_CONNECTED';
 
 module.exports = WebRtcInterface;
-},{"../NafInterface.js":51}]},{},[60]);
+},{"../NafInterface.js":51}]},{},[61]);

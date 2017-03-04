@@ -1,13 +1,20 @@
-
 AFRAME.registerComponent('show-child', {
   schema: {
-    type: 'number',
+    type: 'int',
     default: 0,
   },
 
   update: function() {
-    this.hideAll();
     this.show(this.data);
+  },
+
+  show: function(index) {
+    if (index < this.el.children.length) {
+      this.hideAll();
+      this.el.children[index].setAttribute('visible', true);
+    } else {
+      console.error('show-child@show: invalid index: ', index);
+    }
   },
 
   hideAll: function() {
@@ -15,10 +22,5 @@ AFRAME.registerComponent('show-child', {
     for (var i = 0; i < el.children.length; i++) {
       el.children[i].setAttribute('visible', false);
     }
-  },
-
-  show: function(index) {
-    this.el.children[index].setAttribute('visible', true);
   }
-
 });
