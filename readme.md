@@ -211,8 +211,9 @@ Stay in Touch
 Roadmap
 -------
 
-* Positional audio
+* Master client concept
 * Scene entities that can be defined in the static HTML page
+* Positional audio
 
 
 License
