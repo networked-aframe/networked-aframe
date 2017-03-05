@@ -128,16 +128,40 @@ Create an instance of a template to be synced across clients. The position and r
 
 | Parameter | Description
 | -------- | -----------
-| template  | A css selector to a script tag stored in `<a-assets>` - [template documentation](https://github.com/ngokevin/kframe/tree/master/components/template)
+| template  | A css selector to a script tag stored in `<a-assets>` - [Template documentation](https://github.com/ngokevin/kframe/tree/master/components/template)
 | position  | An A-Frame position string for the initial position of the entity, eg. '0 0 0'
 | rotation  | An A-Frame rotation string for the initial rotation of the entity, eg '0 45 0'
 
 
 ### Syncing Custom Components
 
-By default, the A-Frame `position` and `rotation` components are synced when a network entity is created.
+By default, the A-Frame `position` and `rotation` components on the root entity are synced when a network entity is created.
 
-TBD
+To sync other components and components of child entities you need to define a schema per template. Here's how to define and add a schema:
+
+```javascript
+var avatarSchema = {
+  template: '#avatar-template',
+  components: [
+    'position',
+    'rotation',
+    'scale',
+    {
+      selector: '.head',
+      component: 'material'
+    },
+    {
+      selector: '.hairs',
+      component: 'show-child'
+    }
+  ]
+};
+naf.schemas.add(avatarSchema);
+```
+
+Components of the root entity can be defined with the name of the component. Components of child entities can be defined with an object with both the `selector` field, which uses a standard CSS selector to be used by `document.querySelector`, and the `component` field which specifies the name of the component.
+
+Once you've defined the schema then add it to the list of schemas by calling `naf.schemas.add(YOUR_SCHEMA)`.
 
 
 ### Broadcasting Custom Messages
