@@ -118,12 +118,16 @@ Required on the A-Frame `<a-scene>` component.
 
 ### Creating Networked Entities
 
-`naf.entities.createAvatar(template, position, rotation)`
+```javascript
+naf.entities.createAvatar(template, position, rotation)
+```
 
 Create an avatar that follows your camera's movements. Should only be called once. The avatar is hidden for you but visible for other players.
 
-`naf.entities.createNetworkEntity(template, position, rotation)`
+```javascript
 
+naf.entities.createNetworkEntity(template, position, rotation)
+```
 Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is added to allow for less network updates while keeping smooth motion.
 
 | Parameter | Description
@@ -166,10 +170,12 @@ Once you've defined the schema then add it to the list of schemas by calling `na
 
 ### Broadcasting Custom Messages
 
-```naf.connection.subscribeToDataChannel(dataType, callback)
+```javascript
+naf.connection.subscribeToDataChannel(dataType, callback)
 naf.connection.unsubscribeToDataChannel(dataType)
 naf.connection.broadcastData(dataType, data)
-naf.connection.broadcastDataGuaranteed(dataType, data)```
+naf.connection.broadcastDataGuaranteed(dataType, data)
+```
 
 Subscribe and unsubscribe callbacks to network messages specified by `dataType`. Send messages to other clients with the `broadcastData` functions.
 
@@ -184,11 +190,15 @@ Subscribe and unsubscribe callbacks to network messages specified by `dataType`.
 
 ### Settings
 
-`naf.globals.updateRate`
+```javascript
+naf.globals.updateRate
+```
 
 Frequency the network component `sync` function is called, per second. 10-20 is normal for most Social VR applications. Default is `15`.
 
-`naf.globals.compressSyncPackets`
+```javascript
+naf.globals.compressSyncPackets
+```
 
 Compress each sync packet into a minimized but harder to read JSON object for saving bandwidth. Default is `false`.
 
