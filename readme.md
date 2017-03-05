@@ -116,7 +116,7 @@ Required on the A-Frame `<a-scene>` component.
 | signallingUrl  | Customize where the signalling server is located | / |
 
 
-### Creating Entities
+### Creating Networked Entities
 
 `naf.entities.createAvatar(template, position, rotation)`
 

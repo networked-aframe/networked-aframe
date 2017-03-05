@@ -53,19 +53,38 @@ suite('network', function() {
       assert.isTrue(netComp.waitForLoadThenFirstSync.calledOnce);
     }));
 
-    // test('does not sync when not mine, after 50ms', sinon.test(function(done) {
-    //   naf.connection.isMineAndConnected = this.stub().returns(false);
-    //   this.stub(netComp, 'syncAll');
+    test('does not sync when not mine', sinon.test(function() {
+      this.stub(netComp, 'isMine').returns(false);
+      this.stub(netComp, 'waitForLoadThenFirstSync');
 
-    //   netComp.init();
+      netComp.init();
 
-    //   var check = function() {
-    //     assert.isFalse(netComp.syncAll.called);
-    //     done();
-    //   };
+      assert.isFalse(netComp.waitForLoadThenFirstSync.called);
+    }));
 
-    //   setTimeout(check.bind(this), 100);
-    // }));
+    test('updates root immediately', sinon.test(function() {
+      this.stub(netComp, 'isMine').returns(false);
+      this.stub(netComp, 'networkUpdateNaked');
+      this.stub(netComp, 'waitForTemplateAndUpdateChildren');
+      var testData = {test: "testing"};
+      entity.initNafData = testData;
+
+      netComp.init();
+
+      assert.isTrue(netComp.networkUpdateNaked.calledWith(testData));
+    }));
+
+    test('updates root after template is created', sinon.test(function() {
+      this.stub(netComp, 'isMine').returns(false);
+      this.stub(netComp, 'networkUpdateNaked');
+      this.stub(netComp, 'waitForTemplateAndUpdateChildren');
+      var testData = {test: "testing"};
+      entity.initNafData = testData;
+
+      netComp.init();
+
+      assert.isTrue(netComp.waitForTemplateAndUpdateChildren.called);
+    }));
   });
 
   suite('update', function() {
