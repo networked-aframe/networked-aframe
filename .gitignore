@@ -57,3 +57,6 @@ errorShots
 
 # Temp build file
 server/static/build.js
+
+stderror.txt
+stdout.txt
