@@ -25,6 +25,7 @@ Features
 * Audio streaming to let your users talk in-app.
 * Bandwidth sensitive. Only sends network updates when a synced component has changed. Option to compress network updates.
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
+* Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard supported.
 
 
 Getting Started
@@ -57,12 +58,7 @@ Basic Example
     <a-scene network-scene>
       <a-assets>
         <script id="avatar-template" type="text/html">
-          <a-entity class="avatar">
-            <a-box class="head"
-              color="#5985ff"
-              scale="0.45 0.5 0.4"
-            ></a-sphere>
-          </a-entity>
+          <a-sphere></a-sphere>
         </script>
       </a-assets>
     </a-scene>
@@ -75,7 +71,6 @@ More Examples
 
 Open in two tabs if nobody else is online.
 
-* [Index](http://haydenlee.io/networked-aframe/)
 * [Basic](http://haydenlee.io/networked-aframe/basic.html)
 * [Dance Party!](http://haydenlee.io/networked-aframe/dance-party.html)
 
@@ -220,7 +215,7 @@ Help and More Information
 ------------------------------
 
 * [Live demo site](http://haydenlee.io/networked-aframe)
-* Bugs and requests can be filed on [github issues](https://github.com/haydenjameslee/networked-aframe/issues)
+* Bugs and requests can be filed on [Github Issues](https://github.com/haydenjameslee/networked-aframe/issues)
 * [A-Frame](https://aframe.io/)
 * [WebVR](https://webvr.info/)
 * [EasyRTC WebRTC library](http://www.easyrtc.com/)
@@ -253,12 +248,6 @@ Roadmap
 Interesting in adding features? Shoot me a message on [twitter](https://twitter.com/haydenlee37) or send a pull request.
 
 
-License
--------
-
-This program is free software and is distributed under an [MIT License](LICENSE).
-
-
 Other A-Frame Networking Libraries
 ----------------------------------
 
@@ -266,3 +255,8 @@ Other A-Frame Networking Libraries
 
 [aframe-webrtc](https://github.com/takahirox/aframe-webrtc)
 
+
+License
+-------
+
+This program is free software and is distributed under an [MIT License](LICENSE).
