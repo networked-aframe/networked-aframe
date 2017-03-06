@@ -89,7 +89,7 @@ Documentation
 
 ### Overview
 
-Networked A-Frame works by syncing entities and their components to all connected clients. All the connection and syncing logic happens under the hood. To connect to a room you need to add the `network-scene` component to the [A-Frame <a-scene> element](#scene-component). For an entity to be synced, you need to create a [networked entity](#creating-networked-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a component schema, as explained in the [Syncing Custom Components](#syncing-custom-components) section. For more advanced control over the WebRTC datachannel see the section on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Settings](#settings).
+Networked A-Frame works by syncing entities and their components to other connected clients. To connect to a room you need to add the [`network-scene` component](#scene-component) to the A-Frame a-scene element. For an entity to be synced, you need to create a [networked entity](#creating-networked-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the WebRTC datachannel see the section on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Settings](#settings).
 
 
 ### Scene component
