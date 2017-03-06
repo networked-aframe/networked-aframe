@@ -1,10 +1,10 @@
 
-Networked A-Frame
+Networked-Aframe
 =======
 
 **Bringing Social VR to the Web**
 
-Write full-featured Social VR experiences on the web, with minimal networking knowledge required.
+Write full-featured Social VR experiences on the web, with minimal networking knowledge required. Built on top of the wonderful [A-Frame](https://aframe.io/).
 
 <div>
   <a href="#features">Features</a>
@@ -43,7 +43,7 @@ Basic Example
 ```html
 <html>
   <head>
-    <title>My Networked A-Frame Scene</title>
+    <title>My Networked-Aframe Scene</title>
     <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="easyrtc/easyrtc.js"></script>
@@ -80,7 +80,7 @@ Documentation
 
 ### Overview
 
-Networked A-Frame works by syncing entities and their components to other connected clients. To connect to a room you need to add the [`network-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, you need to create a [networked entity](#creating-networked-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the WebRTC datachannel see the section on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Settings](#settings).
+Networked-Aframe works by syncing entities and their components to other connected clients. To connect to a room you need to add the [`network-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, you need to create a [networked entity](#creating-networked-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the WebRTC datachannel see the section on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Settings](#settings).
 
 
 ### Scene component
@@ -106,7 +106,7 @@ Required on the A-Frame `<a-scene>` component.
 | app  | Unique app name | default |
 | room  | Unique room name. Can be multiple per app | default |
 | audio  | Turn on / off microphone audio streaming for your app | false |
-| debug  | Turn on / off Networked A-Frame debug logs | false |
+| debug  | Turn on / off Networked-Aframe debug logs | false |
 | onConnect  | Function to be called when client has successfully connected to the server | onConnect |
 | connectOnLoad  | Connect to the server as soon as the webpage loads  | true |
 | signallingUrl  | Customize where the signalling server is located | / |
@@ -208,7 +208,7 @@ Stay in Touch
 
 - [Follow Hayden on Twitter](https://twitter.com/haydenlee37)
 - Hang out with the A-Frame community: [join the A-Frame Slack](https://aframevr-slack.herokuapp.com)
-- Let us know if you've made something with Networked A-Frame! We'd love to see it!
+- Let us know if you've made something with Networked-Aframe! We'd love to see it!
 
 
 Help and More Information
