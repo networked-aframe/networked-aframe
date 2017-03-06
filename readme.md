@@ -28,6 +28,9 @@ Features
 * Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard supported.
 
 
+![GIF Example](http://i.imgur.com/7ddbE0q.gif)
+
+
 Getting Started
 ---------------
  ```sh
@@ -73,6 +76,9 @@ Open in two tabs if nobody else is online.
 
 * [Basic](http://haydenlee.io/networked-aframe/basic.html)
 * [Dance Party!](http://haydenlee.io/networked-aframe/dance-party.html)
+* [Pellet Shooter](http://haydenlee.io/networked-aframe/shoot.html)
+* [360 Image](http://haydenlee.io/networked-aframe/360.html)
+* Made something with Networked Aframe? Tweet at [@HaydenLee37](https://twitter.com/haydenlee37) and I'll include it here!
 
 
 Documentation
@@ -186,6 +192,15 @@ Subscribe and unsubscribe callbacks to network messages specified by `dataType`.
 | data | Object to be sent to all other clients
 
 
+### Misc
+
+```javascript
+naf.connection.isConnected()
+```
+
+Returns true if a connection has been established to the signalling server. Don't create entities before this is true.
+
+
 ### Settings
 
 ```javascript
@@ -215,7 +230,7 @@ Help and More Information
 ------------------------------
 
 * [Live demo site](http://haydenlee.io/networked-aframe)
-* Bugs and requests can be filed on [Github Issues](https://github.com/haydenjameslee/networked-aframe/issues)
+* Bugs and requests can be filed on [GitHub Issues](https://github.com/haydenjameslee/networked-aframe/issues)
 * [A-Frame](https://aframe.io/)
 * [WebVR](https://webvr.info/)
 * [EasyRTC WebRTC library](http://www.easyrtc.com/)
@@ -244,8 +259,9 @@ Roadmap
 * Master client concept
 * Scene entities that can be defined in the HTML
 * Positional audio
+* Minimal physics
 
-Interesting in adding features? Shoot me a message on [twitter](https://twitter.com/haydenlee37) or send a pull request.
+Interested in contributing? Shoot me a message on [twitter](https://twitter.com/haydenlee37) or send a pull request.
 
 
 Other A-Frame Networking Libraries
