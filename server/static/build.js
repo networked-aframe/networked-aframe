@@ -1685,6 +1685,10 @@ class NetworkConnection {
     }
   }
 
+  isConnected() {
+    return this.loggedIn;
+  }
+
   isMineAndConnected(id) {
     return naf.globals.clientId == id;
   }
@@ -1877,7 +1881,8 @@ class NetworkEntities {
     }
   }
 
-  removeEntity(id) {
+  removeEntity(toClient, dataType, data) {
+    var id = data.networkId;
     if (this.hasEntity(id)) {
       var entity = this.entities[id];
       delete this.entities[id];
@@ -2046,7 +2051,7 @@ AFRAME.registerComponent('network', {
     this.cachedData = {};
 
     if (this.el.initNafData) {
-      this.networkUpdateNaked(this.el.initNafData); // update root element
+      this.networkUpdateNaked(this.el.initNafData); // updates root element
       this.waitForTemplateAndUpdateChildren();
     }
 

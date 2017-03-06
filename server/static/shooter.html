@@ -9,13 +9,9 @@
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
 
     <script>
-      function randomPointOnCircle(radius, angleRad) {
-        x = Math.cos(angleRad)*radius;
-        y = Math.sin(angleRad)*radius;
-        return {x: x, y: y};
-      }
+      var avatar;
 
-      // Define custom schema for syncing avatar color, set by random-color
+      // Define custom schema for syncing avatar components
       var avatarSchema = {
         template: '#avatar-template',
         components: [
@@ -44,14 +40,44 @@
         var rotationStr = '0 ' + angleToCenter + ' 0';
 
         // Create avatar with this position and rotation
-        naf.entities.createAvatar('#avatar-template', positionStr, rotationStr);
+        avatar = naf.entities.createAvatar('#avatar-template', positionStr, rotationStr);
+
+        // Detect trigger pulled (spacebar)
+        document.body.onkeyup = function(e){
+          if(e.keyCode == 32){
+            shoot();
+          }
+        }
+      }
+
+      function randomPointOnCircle(radius, angleRad) {
+        x = Math.cos(angleRad)*radius;
+        y = Math.sin(angleRad)*radius;
+        return {x: x, y: y};
+      }
+
+      function shoot() {
+        var tip = avatar.querySelector('.gun-tip');
+        var position = tip.getAttribute('position');
+
+        var worldPos = new THREE.Vector3();
+        worldPos.setFromMatrixPosition(tip.object3D.matrixWorld);
+        var bullet = naf.entities.createNetworkEntity('#bullet-template', worldPos, '0 0 0');
+
+        setTimeout(function() {
+          bullet.parentElement.removeChild(bullet);
+        }, 5000);
+      }
+
+      function moveForward() {
+
       }
     </script>
   </head>
   <body>
 
-    <a-scene network-scene="
-      room: basic;
+    <a-scene shooter-input network-scene="
+      room: shooter;
       debug: true;
       audio: false;
     ">
@@ -96,7 +122,25 @@
                 ></a-sphere>
               </a-sphere>
             </a-entity>
+            <a-entity class="gun">
+              <a-box
+                position="0.51 -0.13 -0.29"
+                scale="0.19 0.23 0.67"
+                color="#000"
+              ></a-box>
+              <a-entity class="gun-tip"
+                position="0.51 -0.10 -0.64"
+              ></a-entity>
+            </a-entity>
           </a-entity>
+        </script>
+
+        <!-- Bullet -->
+        <script id="bullet-template" type="text/html">
+          <a-sphere class="bullet"
+            scale="0.1 0.1 0.1"
+            color="#fff"
+          ></a-sphere>
         </script>
 
         <!-- /Templates -->

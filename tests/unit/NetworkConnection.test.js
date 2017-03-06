@@ -507,4 +507,21 @@ suite('NetworkConnection', function() {
       assert.isTrue(stub.calledWith('client1', dataType, data));
     });
   });
+
+  suite('isConnected', function() {
+
+    test('true when connected', function() {
+      connection.loginSuccess('testid');
+
+      var result = connection.isConnected();
+
+      assert.isTrue(result);
+    });
+
+    test('false when not connected', function() {
+      var result = connection.isConnected();
+
+      assert.isFalse(result);
+    });
+  });
 });

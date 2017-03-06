@@ -78,6 +78,10 @@ class NetworkConnection {
     }
   }
 
+  isConnected() {
+    return this.loggedIn;
+  }
+
   isMineAndConnected(id) {
     return naf.globals.clientId == id;
   }

@@ -41,6 +41,7 @@
       };
       naf.schemas.add(avatarSchema);
 
+      // Called by Networked-Aframe when connected to server
       function onConnect () {
         // Get random angle
         var angleRad = Math.random()*Math.PI*2;
@@ -57,7 +58,7 @@
         // Create avatar with this position and rotation
         var avatar = naf.entities.createAvatar('#avatar-template', positionStr, rotationStr);
 
-        // Set random hair
+        // Set random hair style after avatar has loaded... yuck... TODO remove setTimeout
         setTimeout(function() {
           var r = getRandomInt(0, 2);
           avatar.querySelector('.hairs').setAttribute('show-child', r);
@@ -95,8 +96,9 @@
         ></a-mixin>
 
         <!-- Templates -->
+
+        <!-- Avatar -->
         <script id="avatar-template" sync-components="['position', 'rotation']" type="text/html">
-          <!-- Avatar -->
           <a-entity class="avatar">
             <a-sphere class="head"
               scale="0.45 0.5 0.4"

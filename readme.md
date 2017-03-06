@@ -79,10 +79,10 @@ More Examples
 Open in two tabs if nobody else is online.
 
 * [Basic](http://haydenlee.io/networked-aframe/basic.html)
-* [Dance Party!](http://haydenlee.io/networked-aframe/dance-party.html)
-* [Pellet Shooter](http://haydenlee.io/networked-aframe/shoot.html)
+* [Shooter](http://haydenlee.io/networked-aframe/shooter.html)
 * [360 Image](http://haydenlee.io/networked-aframe/360.html)
-* Made something with Networked Aframe? Tweet at [@HaydenLee37](https://twitter.com/haydenlee37) and I'll include it here!
+* [WIP: Dance Party!](http://haydenlee.io/networked-aframe/dance-party.html)
+* Made something with Networked-Aframe? Tweet at [@HaydenLee37](https://twitter.com/haydenlee37) and I'll include it here!
 
 
 Documentation
@@ -141,6 +141,11 @@ Create an instance of a template to be synced across clients. The position and r
 | template  | A css selector to a script tag stored in `<a-assets>` - [Template documentation](https://github.com/ngokevin/kframe/tree/master/components/template)
 | position  | An A-Frame position string for the initial position of the entity, eg. '0 0 0'
 | rotation  | An A-Frame rotation string for the initial rotation of the entity, eg '0 45 0'
+
+
+### Deleting Networked Entities
+
+Currently only the creator of a networked entity can delete it. To delete, simply delete the element from the HTML and Networked-Aframe will handle the syncing automatically.
 
 
 ### Syncing Custom Components
@@ -263,7 +268,7 @@ Roadmap
 * Master client concept
 * Scene entities that can be defined in the HTML
 * Positional audio
-* Minimal physics
+* Support physics libraries
 
 Interested in contributing? Shoot me a message on [twitter](https://twitter.com/haydenlee37) or send a pull request.
 

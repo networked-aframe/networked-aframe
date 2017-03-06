@@ -104,7 +104,8 @@ class NetworkEntities {
     }
   }
 
-  removeEntity(id) {
+  removeEntity(toClient, dataType, data) {
+    var id = data.networkId;
     if (this.hasEntity(id)) {
       var entity = this.entities[id];
       delete this.entities[id];
