@@ -1,10 +1,14 @@
+<img src="http://i.imgur.com/7ddbE0q.gif" width="300">
+
 
 Networked-Aframe
 =======
 
 **Bringing Social VR to the Web**
 
-Write full-featured Social VR experiences on the web, with minimal networking knowledge required. Built on top of the wonderful [A-Frame](https://aframe.io/).
+Write full-featured Social VR experiences on the web, with minimal networking knowledge required.
+
+Built on top of the wonderful [A-Frame](https://aframe.io/).
 
 <div>
   <a href="#features">Features</a>
@@ -18,9 +22,7 @@ Write full-featured Social VR experiences on the web, with minimal networking kn
   <a href="#stay-in-touch">Contact</a>
 </div>
 
-<br><br>
-
-<img src="http://i.imgur.com/7ddbE0q.gif" width="300">
+<br>
 
 
 Features
