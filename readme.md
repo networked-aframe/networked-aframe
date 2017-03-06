@@ -15,7 +15,7 @@ Write full-featured Social VR experiences on the web, with minimal networking kn
   &mdash;
   <a href="#documentation">Documentation</a>
   &mdash;
-  <a href="#stay-in-touch">Contact</a>
+  <a href="#stay-in-touch">Stay in touch</a>
 </div>
 
 Features
@@ -44,7 +44,7 @@ Basic Example
   <head>
     <title>My Networked A-Frame Scene</title>
     <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
-    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="easyrtc/easyrtc.js"></script>
     <script src="xxx/networked-aframe.min.js"></script>
     <script>
@@ -87,7 +87,12 @@ Open in two tabs if nobody else is online.
 Documentation
 -------------
 
-### Network-Scene component
+### Overview
+
+Networked A-Frame works by syncing entities and their components to all connected clients. All the connection and syncing logic happens under the hood. To connect to a room you need to add the `network-scene` component to the [A-Frame <a-scene> element](#scene-component). For an entity to be synced, you need to create a [networked entity](#creating-networked-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a component schema, as explained in the [Syncing Custom Components](#syncing-custom-components) section. For more advanced control over the WebRTC datachannel see the section on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Settings](#settings).
+
+
+### Scene component
 
 Required on the A-Frame `<a-scene>` component.
 
@@ -167,6 +172,8 @@ Components of the root entity can be defined with the name of the component. Com
 
 Once you've defined the schema then add it to the list of schemas by calling `naf.schemas.add(YOUR_SCHEMA)`.
 
+Component data is retrieved by the A-Frame `getData` function. During the network tick each component's data is checked against its previous synced value; if the data object has changed at all it will be synced across the network.
+
 
 ### Broadcasting Custom Messages
 
@@ -205,6 +212,29 @@ Compress each sync packet into a minimized but harder to read JSON object for sa
 To measure bandwidth usage, run two clients on Chrome and visit chrome://webrtc-internals
 
 
+Stay in Touch
+-------------
+
+- [Follow Hayden on Twitter](https://twitter.com/haydenlee37)
+- Hang out with the A-Frame community: [join the A-Frame Slack](https://aframevr-slack.herokuapp.com)
+- Let us know if you've made something with Networked A-Frame! We'd love to see it!
+
+
+Help and More Information
+------------------------------
+
+* Live demo site:
+  * [http://haydenlee.io/networked-aframe](http://haydenlee.io/networked-aframe)
+* Bugs and requests can be filed here:
+  * [https://github.com/haydenjameslee/networked-aframe/issues](https://github.com/haydenjameslee/networked-aframe/issues)
+* A-Frame:
+  * [https://aframe.io/](https://aframe.io/)
+* WebVR:
+  * [https://webvr.info/](https://webvr.info/)
+* EasyRTC WebRTC library:
+  * [http://www.easyrtc.com/](http://www.easyrtc.com/)
+
+
 Folder Structure
 ----------------
 
@@ -221,33 +251,15 @@ Folder Structure
  * /tests/
    * Unit tests
 
-Help and More Information
-------------------------------
-
-* Live demo site:
-  * [http://haydenlee.io/networked-aframe](http://haydenlee.io/networked-aframe)
-* Bugs and requests can be filed here:
-  * [https://github.com/haydenjameslee/networked-aframe/issues](https://github.com/haydenjameslee/networked-aframe/issues)
-* A-Frame:
-  * [https://aframe.io/](https://aframe.io/)
-* EasyRTC WebRTC library:
-  * [http://www.easyrtc.com/](http://www.easyrtc.com/)
-
-
-Stay in Touch
--------------
-
-- [Follow Hayden on Twitter](https://twitter.com/haydenlee37)
-- Hang out with the A-Frame community: [join the A-Frame Slack](https://aframevr-slack.herokuapp.com)
-- Let us know if you've made something with Networked A-Frame! We'd love to see it!
-
 
 Roadmap
 -------
 
 * Master client concept
-* Scene entities that can be defined in the static HTML page
+* Scene entities that can be defined in the HTML
 * Positional audio
+
+Interesting in adding features? Shoot me a message on [twitter](https://twitter.com/haydenlee37) or send a pull request.
 
 
 License
