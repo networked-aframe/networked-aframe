@@ -75,13 +75,9 @@ More Examples
 
 Open in two tabs if nobody else is online.
 
-#### Simple
-
-[http://haydenlee.io/networked-aframe/basic.html](http://haydenlee.io/networked-aframe/basic.html)
-
-#### Dance Party!
-
-[http://haydenlee.io/networked-aframe/dance-party.html](http://haydenlee.io/networked-aframe/dance-party.html)
+* [Index](http://haydenlee.io/networked-aframe/)
+* [Basic](http://haydenlee.io/networked-aframe/basic.html)
+* [Dance Party!](http://haydenlee.io/networked-aframe/dance-party.html)
 
 
 Documentation
@@ -89,7 +85,7 @@ Documentation
 
 ### Overview
 
-Networked A-Frame works by syncing entities and their components to other connected clients. To connect to a room you need to add the [`network-scene` component](#scene-component) to the A-Frame a-scene element. For an entity to be synced, you need to create a [networked entity](#creating-networked-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the WebRTC datachannel see the section on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Settings](#settings).
+Networked A-Frame works by syncing entities and their components to other connected clients. To connect to a room you need to add the [`network-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, you need to create a [networked entity](#creating-networked-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the WebRTC datachannel see the section on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Settings](#settings).
 
 
 ### Scene component
@@ -223,32 +219,27 @@ Stay in Touch
 Help and More Information
 ------------------------------
 
-* Live demo site:
-  * [http://haydenlee.io/networked-aframe](http://haydenlee.io/networked-aframe)
-* Bugs and requests can be filed here:
-  * [https://github.com/haydenjameslee/networked-aframe/issues](https://github.com/haydenjameslee/networked-aframe/issues)
-* A-Frame:
-  * [https://aframe.io/](https://aframe.io/)
-* WebVR:
-  * [https://webvr.info/](https://webvr.info/)
-* EasyRTC WebRTC library:
-  * [http://www.easyrtc.com/](http://www.easyrtc.com/)
+* [Live demo site](http://haydenlee.io/networked-aframe)
+* Bugs and requests can be filed on [github issues](https://github.com/haydenjameslee/networked-aframe/issues)
+* [A-Frame](https://aframe.io/)
+* [WebVR](https://webvr.info/)
+* [EasyRTC WebRTC library](http://www.easyrtc.com/)
 
 
 Folder Structure
 ----------------
 
- * / (root)
+ * `/ (root)`
    * Licenses and package information
- * /dist/
+ * `/dist/`
    * Packaged source code for deployment
- * /server/
+ * `/server/`
    * Server code
- * /server/static/
+ * `/server/static/`
    * Examples (basic.html & dance-party.html)
- * /src/
+ * `/src/`
    * Client source code
- * /tests/
+ * `/tests/`
    * Unit tests
 
 
