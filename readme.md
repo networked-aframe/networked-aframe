@@ -18,7 +18,9 @@ Write full-featured Social VR experiences on the web, with minimal networking kn
   <a href="#stay-in-touch">Contact</a>
 </div>
 
-<img style="margin-top:30px" src="http://i.imgur.com/7ddbE0q.gif" width="300">
+<br><br>
+
+<img src="http://i.imgur.com/7ddbE0q.gif" width="300">
 
 
 Features
