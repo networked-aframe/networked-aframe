@@ -15,12 +15,10 @@ Write full-featured Social VR experiences on the web, with minimal networking kn
   &mdash;
   <a href="#documentation">Documentation</a>
   &mdash;
-  <a href="#stay-in-touch">Stay in touch</a>
+  <a href="#stay-in-touch">Contact</a>
 </div>
 
-
-
-![GIF Example](http://i.imgur.com/7ddbE0q.gif)
+<img style="margin-top:30px" src="http://i.imgur.com/7ddbE0q.gif" width="300">
 
 
 Features
