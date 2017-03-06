@@ -18,6 +18,11 @@ Write full-featured Social VR experiences on the web, with minimal networking kn
   <a href="#stay-in-touch">Stay in touch</a>
 </div>
 
+
+
+![GIF Example](http://i.imgur.com/7ddbE0q.gif)
+
+
 Features
 --------
 * Includes everything you need to create multiplayer / social WebVR apps and games.
@@ -26,9 +31,6 @@ Features
 * Bandwidth sensitive. Only sends network updates when a synced component has changed. Option to compress network updates.
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
 * Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard supported.
-
-
-![GIF Example](http://i.imgur.com/7ddbE0q.gif)
 
 
 Getting Started
