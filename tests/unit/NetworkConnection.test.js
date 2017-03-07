@@ -11,6 +11,7 @@ suite('NetworkConnection', function() {
     this.completeSync = sinon.stub();
     this.removeEntitiesFromUser = sinon.stub();
     this.updateEntity = sinon.stub();
+    this.removeRemoteEntity = sinon.stub();
     this.removeEntity = sinon.stub();
   }
 
@@ -486,7 +487,7 @@ suite('NetworkConnection', function() {
       connection.receiveDataChannelMessage('client', 'r', {testData:true});
 
       assert.isFalse(entities.updateEntity.called);
-      assert.isTrue(entities.removeEntity.called);
+      assert.isTrue(entities.removeRemoteEntity.called);
     });
 
     test('unknown msg type', function() {

@@ -27,7 +27,7 @@ Built on top of the wonderful [A-Frame](https://aframe.io/).
 
 Features
 --------
-* Includes everything you need to create multiplayer / social WebVR apps and games.
+* Includes everything you need to create multi-user WebVR apps and games.
 * WebRTC with no experience required. Take advantage of low-latency, peer-to-peer networking over UDP with minimal effort.
 * Audio streaming to let your users talk in-app.
 * Bandwidth sensitive. Only sends network updates when a synced component has changed. Option to compress network updates.

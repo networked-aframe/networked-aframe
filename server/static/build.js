@@ -1626,7 +1626,7 @@ class NetworkConnection {
   setupDefaultDCSubs() {
     this.dcSubscribers = {
       'u': this.entities.updateEntity.bind(this.entities),
-      'r': this.entities.removeEntity.bind(this.entities)
+      'r': this.entities.removeRemoteEntity.bind(this.entities)
     };
   }
 
@@ -1881,8 +1881,12 @@ class NetworkEntities {
     }
   }
 
-  removeEntity(toClient, dataType, data) {
+  removeRemoteEntity(toClient, dataType, data) {
     var id = data.networkId;
+    return this.removeEntity(id);
+  }
+
+  removeEntity(id) {
     if (this.hasEntity(id)) {
       var entity = this.entities[id];
       delete this.entities[id];

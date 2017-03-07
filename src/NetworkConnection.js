@@ -19,7 +19,7 @@ class NetworkConnection {
   setupDefaultDCSubs() {
     this.dcSubscribers = {
       'u': this.entities.updateEntity.bind(this.entities),
-      'r': this.entities.removeEntity.bind(this.entities)
+      'r': this.entities.removeRemoteEntity.bind(this.entities)
     };
   }
 

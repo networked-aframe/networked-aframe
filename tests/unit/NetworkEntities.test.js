@@ -397,6 +397,18 @@ suite('NetworkEntities', function() {
     });
   });
 
+  suite('removeRemoteEntity', function() {
+
+    test('calls removeEntity with id', function() {
+      var data = { networkId: 'testId' };
+      entities.removeEntity = sinon.stub();
+
+      entities.removeRemoteEntity('client1', 'type1', data);
+
+      assert.isTrue(entities.removeEntity.calledWith('testId'));
+    });
+  });
+
   suite('removeEntitiesFromUser', function() {
 
     test('removing many entities', sinon.test(function() {
