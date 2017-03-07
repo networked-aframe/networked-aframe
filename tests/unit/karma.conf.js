@@ -28,6 +28,7 @@ var karma_conf = {
     'src/**/*.js': 'coverage'
   },
   reporters: ['mocha', 'coverage']
+  // restartOnFileChange: true
 };
 
 // Apply configuration

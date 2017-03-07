@@ -35,7 +35,7 @@ suite('NafUtil', function() {
         done();
       };
 
-      setTimeout(checkCalled, 100);
+      setTimeout(checkCalled, 10);
     });
 
     test('callback gets called when has already loaded', function() {
@@ -45,7 +45,6 @@ suite('NafUtil', function() {
 
       nafUtil.whenEntityLoaded(entity, callback);
       assert.isTrue(callback.called);
-
     });
   });
 

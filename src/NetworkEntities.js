@@ -52,6 +52,7 @@ class NetworkEntities {
     var scene = document.querySelector('a-scene');
     scene.appendChild(entity);
     this.entities[entityData.networkId] = entity;
+
     return entity;
   }
 

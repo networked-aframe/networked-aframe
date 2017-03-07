@@ -1783,7 +1783,7 @@ class NetworkEntities {
     this.entities = {};
   }
 
-  createNetworkEntity(template, position, rotation, componentsToSync) {
+  createNetworkEntity(template, position, rotation) {
     var networkId = this.createEntityId();
     naf.log.write('Created network entity', networkId);
     var entityData = {
@@ -1795,9 +1795,6 @@ class NetworkEntities {
         rotation: rotation
       }
     };
-    if (componentsToSync) {
-      entityData.components = componentsToSync;
-    }
     var entity = this.createLocalEntity(entityData);
     return entity;
   }
@@ -1832,6 +1829,7 @@ class NetworkEntities {
     var scene = document.querySelector('a-scene');
     scene.appendChild(entity);
     this.entities[entityData.networkId] = entity;
+
     return entity;
   }
 

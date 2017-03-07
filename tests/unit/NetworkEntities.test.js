@@ -240,35 +240,11 @@ suite('NetworkEntities', function() {
       });
     });
 
-    // test('entity inits child component', function(done) {
-    //   entityData.template = '#template4';
-    //   var childComponent = {
-    //     selector: '.test-child',
-    //     component: 'visible'
-    //   };
-    //   var childKey = '.test-child'+naf.util.delimiter+'visible';
-    //   entityData.components[childKey] = false;
+    test('entity sets correct init data', function() {
+      var entity = entities.createLocalEntity(entityData);
 
-    //   var schema = {
-    //     template: '#template4',
-    //     components: [
-    //       'position',
-    //       childComponent
-    //     ]
-    //   };
-    //   naf.schemas.add(schema);
-
-    //   var entity = entities.createLocalEntity(entityData);
-    //   console.log('222222222222');
-
-    //   naf.util.whenEntityLoaded(entity, function() {
-    //     console.log('asdmaskmdsaklmdlsakmdlsakmd');
-    //     var visible = entity.getAttribute('visible');
-
-    //     assert.isFalse(visible);
-    //     done();
-    //   });
-    // });
+      assert.equal(entity.initNafData, entityData);
+    });
 
     test('entity has correct components when no components schema defined', function(done) {
       entityData.template = '#template3';
