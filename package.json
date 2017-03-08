@@ -1,7 +1,7 @@
 {
   "name": "networked-aframe",
   "version": "0.1.0",
-  "description": "A web framework for building networked A-Frame VR experiences.",
+  "description": "A web framework for building multi-user virtual reality experiences.",
   "homepage": "",
   "main": "dist/networked-aframe.js",
   "author": "Hayden Lee <haydenjameslee@gmail.com>",
