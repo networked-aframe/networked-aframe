@@ -14,7 +14,7 @@ suite('network', function() {
     var opts = {};
     opts.entity = '<a-entity id="test-entity" network="networkId:network1;owner:owner1;components:position,rotation" position="1 2 3" rotation="4 3 2" template="src:#template1;"><a-box class="head" visible="false"></a-box</a-entity>';
     scene = helpers.sceneFactory(opts);
-    naf.util.whenEntityLoaded(scene, done);
+    naf.utils.whenEntityLoaded(scene, done);
   }
 
   setup(function(done) {
@@ -173,7 +173,7 @@ suite('network', function() {
   suite('needsToSync', function() {
 
     test('next sync time equals current time', sinon.test(function() {
-      this.stub(naf.util, 'now').returns(5);
+      this.stub(naf.utils, 'now').returns(5);
       netComp.nextSyncTime = 5;
 
       var result = netComp.needsToSync();
@@ -182,7 +182,7 @@ suite('network', function() {
     }));
 
     test('next sync time just under current time', sinon.test(function() {
-      this.stub(naf.util, 'now').returns(5);
+      this.stub(naf.utils, 'now').returns(5);
       netComp.nextSyncTime = 4.9;
 
       var result = netComp.needsToSync();
@@ -191,7 +191,7 @@ suite('network', function() {
     }));
 
     test('next sync time just over current time', sinon.test(function() {
-      this.stub(naf.util, 'now').returns(5);
+      this.stub(naf.utils, 'now').returns(5);
       netComp.nextSyncTime = 5.1;
 
       var result = netComp.needsToSync();
@@ -522,7 +522,7 @@ suite('network', function() {
         position: { x: 1, y: 2, z: 3 },
         scale: { x: 10, y: 11, z: 12 }
       };
-      var childKey = '.head'+naf.util.delimiter+'visible';
+      var childKey = '.head'+naf.utils.delimiter+'visible';
       components[childKey] = false;
       var entityData = {
         0: 1,
@@ -640,7 +640,7 @@ suite('network', function() {
         position: { x: 1, y: 2, z: 3 },
         scale: { x: 10, y: 11, z: 12 }
       };
-      var childKey = '.head'+naf.util.delimiter+'visible';
+      var childKey = '.head'+naf.utils.delimiter+'visible';
       components[childKey] = false;
       var entityData = {
         0: 1,
@@ -715,7 +715,7 @@ suite('network', function() {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 3, z: 2 },
       };
-      var key = '.head'+naf.util.delimiter+'visible';
+      var key = '.head'+naf.utils.delimiter+'visible';
       compData[key] = false;
 
       assert.deepEqual(result, compData);
@@ -744,7 +744,7 @@ suite('network', function() {
   suite('updateNextSyncTime', function() {
 
     test('sets nextSyncTime correctly', sinon.test(function() {
-      this.stub(naf.util, 'now').returns(5000);
+      this.stub(naf.utils, 'now').returns(5000);
       naf.options.updateRate = 1;
 
       netComp.updateNextSyncTime();
@@ -806,7 +806,7 @@ suite('network', function() {
         component: 'visible'
       };
       netComp.data.components.push(childComponent);
-      var childKey = '.head'+naf.util.delimiter+'visible';
+      var childKey = '.head'+naf.utils.delimiter+'visible';
       entityData.components[childKey] = true;
 
       // SUT

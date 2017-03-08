@@ -1,5 +1,5 @@
 /* global suite */
-var nafUtil = require('../../src/NafUtil');
+var utils = require('../../src/NafUtil');
 
 
 /**
@@ -17,12 +17,12 @@ module.exports.sceneFactory = function (opts) {
 
   if (opts.assets) {
     opts.assets.forEach(function (asset) {
-      var el = nafUtil.createHtmlNodeFromString(asset);
+      var el = utils.createHtmlNodeFromString(asset);
       assets.appendChild(el);
     });
   }
   if (opts.entity) {
-    var entity = nafUtil.createHtmlNodeFromString(opts.entity);
+    var entity = utils.createHtmlNodeFromString(opts.entity);
     scene.appendChild(entity);
   };
 

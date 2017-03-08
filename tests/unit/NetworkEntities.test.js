@@ -21,7 +21,7 @@ suite('NetworkEntities', function() {
       ]
     };
     scene = helpers.sceneFactory(opts);
-    naf.util.whenEntityLoaded(scene, done);
+    naf.utils.whenEntityLoaded(scene, done);
   }
 
   setup(function(done) {
@@ -66,7 +66,7 @@ suite('NetworkEntities', function() {
 
       var entity = entities.createNetworkEntity(setupTemplate, setupPosition, setupRotation);
 
-      naf.util.whenEntityLoaded(entity, function() {
+      naf.utils.whenEntityLoaded(entity, function() {
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
         var template = entity.getAttribute('template');
@@ -97,7 +97,7 @@ suite('NetworkEntities', function() {
       var setupRotation = '14 15 16';
       var avatar = entities.createAvatar(setupTemplate, setupPosition, setupRotation);
 
-      naf.util.whenEntityLoaded(avatar, function() {
+      naf.utils.whenEntityLoaded(avatar, function() {
         var position = AFRAME.utils.coordinates.stringify(avatar.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(avatar.getAttribute('rotation'));
         var hasLerp = avatar.hasAttribute('lerp');
@@ -121,7 +121,7 @@ suite('NetworkEntities', function() {
       var setupRotation = '14 15 16';
       var avatar = entities.createAvatar(setupTemplate, setupPosition, setupRotation);
 
-      naf.util.whenEntityLoaded(avatar, function() {
+      naf.utils.whenEntityLoaded(avatar, function() {
         var camera = document.querySelector('[camera]');
         var position = AFRAME.utils.coordinates.stringify(camera.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(camera.getAttribute('rotation'));
@@ -159,7 +159,7 @@ suite('NetworkEntities', function() {
       naf.options.useLerp = false;
       var entity = entities.createLocalEntity(entityData);
 
-      naf.util.whenEntityLoaded(entity, function() {
+      naf.utils.whenEntityLoaded(entity, function() {
         var hasLerp = entity.hasAttribute('lerp');
 
         assert.isFalse(hasLerp);
@@ -179,7 +179,7 @@ suite('NetworkEntities', function() {
 
       var entity = entities.createLocalEntity(entityData);
 
-      naf.util.whenEntityLoaded(entity, function() {
+      naf.utils.whenEntityLoaded(entity, function() {
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
         var network = entity.getAttribute('network');
@@ -207,7 +207,7 @@ suite('NetworkEntities', function() {
       entityData.components = { scale: '4 5 6' };
       var entity = entities.createLocalEntity(entityData);
 
-      naf.util.whenEntityLoaded(entity, function() {
+      naf.utils.whenEntityLoaded(entity, function() {
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
         var scale = AFRAME.utils.coordinates.stringify(entity.getAttribute('scale'));
@@ -231,7 +231,7 @@ suite('NetworkEntities', function() {
 
       var entity = entities.createLocalEntity(entityData);
 
-      naf.util.whenEntityLoaded(entity, function() {
+      naf.utils.whenEntityLoaded(entity, function() {
         var network = entity.getAttribute('network');
 
         assert.deepEqual(network.components, ['position']);
@@ -255,7 +255,7 @@ suite('NetworkEntities', function() {
 
       var entity = entities.createLocalEntity(entityData);
 
-      naf.util.whenEntityLoaded(entity, function() {
+      naf.utils.whenEntityLoaded(entity, function() {
         var network = entity.getAttribute('network');
 
         assert.deepEqual(network.components, schema.components);
@@ -273,7 +273,7 @@ suite('NetworkEntities', function() {
       entityData.template = '#template3';
       var entity = entities.createLocalEntity(entityData);
 
-      naf.util.whenEntityLoaded(entity, function() {
+      naf.utils.whenEntityLoaded(entity, function() {
         var network = entity.getAttribute('network');
 
         assert.deepEqual(network.components, ['position', 'rotation']);
@@ -417,7 +417,7 @@ suite('NetworkEntities', function() {
         var entity = entities.createLocalEntity(entityData);
         entityList.push(entity);
       }
-      this.stub(naf.util, 'getNetworkOwner').returns(entityData.owner);
+      this.stub(naf.utils, 'getNetworkOwner').returns(entityData.owner);
 
       var removedEntities = entities.removeEntitiesFromUser(entityData.owner);
 
@@ -426,7 +426,7 @@ suite('NetworkEntities', function() {
 
     test('other entities', sinon.test(function() {
       var entity = entities.createLocalEntity(entityData);
-      this.stub(naf.util, 'getNetworkOwner').returns('a');
+      this.stub(naf.utils, 'getNetworkOwner').returns('a');
 
       var removedEntities = entities.removeEntitiesFromUser('b');
 

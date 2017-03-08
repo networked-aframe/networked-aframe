@@ -10,9 +10,9 @@ var naf = {};
 naf.app = '';
 naf.room = '';
 naf.clientId = '';
-naf.options = naf.o = options;
-naf.util = naf.utils = naf.u = util;
-naf.log = naf.l = new NafLogger();
+naf.options = options;
+naf.utils = util;
+naf.log = new NafLogger();
 naf.schemas = new Schemas();
 naf.version = package.version;
 

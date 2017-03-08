@@ -71,7 +71,7 @@
           bullet.setAttribute('position', newPosition);
         };
 
-        NAF.util.whenEntityLoaded(bullet, function() {
+        NAF.utils.whenEntityLoaded(bullet, function() {
           var moveInterval = setInterval(moveForward, 100);
 
           var removeBullet = function() {

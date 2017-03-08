@@ -14,7 +14,7 @@ suite('show-child', function() {
     var opts = {};
     opts.entity = '<a-entity id="test-entity" show-child="2"><a-entity id="zero"></a-entity><a-entity id="one"></a-entity><a-entity id="two"></a-entity></a-entity>';
     scene = helpers.sceneFactory(opts);
-    naf.util.whenEntityLoaded(scene, done);
+    naf.utils.whenEntityLoaded(scene, done);
   }
 
   setup(function(done) {

@@ -83,7 +83,7 @@ Open in two tabs if nobody else is online.
 * [Shooter](http://haydenlee.io/networked-aframe/shooter.html)
 * [360 Image](http://haydenlee.io/networked-aframe/360.html)
 * [Dance Party! - WIP](http://haydenlee.io/networked-aframe/dance-party.html)
-* Made something with Networked-Aframe? Tweet at [@HaydenLee37](https://twitter.com/haydenlee37) and I'll include it here!
+* Made something awesome with Networked-Aframe? [Let me know](https://twitter.com/haydenlee37) and I'll include it here!
 
 
 Documentation
@@ -276,7 +276,7 @@ Roadmap
 * Positional audio
 * Support physics libraries
 
-Interested in contributing? Shoot me a message on [twitter](https://twitter.com/haydenlee37) or send a pull request.
+Interested in contributing? [Shoot me a message](https://twitter.com/haydenlee37) or send a pull request.
 
 
 Other A-Frame Networking Libraries

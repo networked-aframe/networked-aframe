@@ -1629,9 +1629,9 @@ var naf = {};
 naf.app = '';
 naf.room = '';
 naf.clientId = '';
-naf.options = naf.o = options;
-naf.util = naf.utils = naf.u = util;
-naf.log = naf.l = new NafLogger();
+naf.options = options;
+naf.utils = util;
+naf.log = new NafLogger();
 naf.schemas = new Schemas();
 naf.version = package.version;
 
@@ -1649,7 +1649,7 @@ class NafInterface {
 }
 module.exports = NafInterface;
 },{}],52:[function(require,module,exports){
-class NafLogger {
+class Logger {
 
   constructor() {
     this.debug = false;
@@ -1670,7 +1670,7 @@ class NafLogger {
   }
 }
 
-module.exports = NafLogger;
+module.exports = Logger;
 },{}],53:[function(require,module,exports){
 var options = {
   debug: false,
@@ -2021,7 +2021,7 @@ class NetworkEntities {
   removeEntitiesFromUser(user) {
     var entityList = [];
     for (var id in this.entities) {
-      var entityOwner = NAF.util.getNetworkOwner(this.entities[id]);
+      var entityOwner = NAF.utils.getNetworkOwner(this.entities[id]);
       if (entityOwner == user) {
         var entity = this.removeEntity(id);
         entityList.push(entity);
@@ -2166,7 +2166,7 @@ AFRAME.registerComponent('network', {
   },
 
   init: function() {
-    this.nextSyncTime = naf.util.now() + 100000; // Gets properly set by first syncAll
+    this.nextSyncTime = naf.utils.now() + 100000; // Gets properly set by first syncAll
     this.cachedData = {};
 
     if (this.el.initNafData) {
@@ -2217,7 +2217,7 @@ AFRAME.registerComponent('network', {
   },
 
   needsToSync: function() {
-    return naf.util.now() >= this.nextSyncTime;
+    return naf.utils.now() >= this.nextSyncTime;
   },
 
   // Will only succeed if object is created after connected
@@ -2416,7 +2416,7 @@ AFRAME.registerComponent('network', {
   },
 
   updateNextSyncTime: function() {
-    this.nextSyncTime = naf.util.now() + 1000 / naf.options.updateRate;
+    this.nextSyncTime = naf.utils.now() + 1000 / naf.options.updateRate;
   },
 
   networkUpdate: function(data) {
@@ -2481,11 +2481,11 @@ AFRAME.registerComponent('network', {
   },
 
   childSchemaToKey: function(childSchema) {
-    return childSchema.selector + naf.util.delimiter + childSchema.component;
+    return childSchema.selector + naf.utils.delimiter + childSchema.component;
   },
 
   keyToChildSchema: function(key) {
-    var split = key.split(naf.util.delimiter);
+    var split = key.split(naf.utils.delimiter);
     return {
       selector: split[0],
       component: split[1]
@@ -2493,7 +2493,7 @@ AFRAME.registerComponent('network', {
   },
 
   isChildSchemaKey: function(key) {
-    return key.indexOf(naf.util.delimiter) != -1;
+    return key.indexOf(naf.utils.delimiter) != -1;
   },
 
   childSchemaEqual: function(a, b) {

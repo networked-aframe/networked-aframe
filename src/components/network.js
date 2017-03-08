@@ -9,7 +9,7 @@ AFRAME.registerComponent('network', {
   },
 
   init: function() {
-    this.nextSyncTime = naf.util.now() + 100000; // Gets properly set by first syncAll
+    this.nextSyncTime = naf.utils.now() + 100000; // Gets properly set by first syncAll
     this.cachedData = {};
 
     if (this.el.initNafData) {
@@ -60,7 +60,7 @@ AFRAME.registerComponent('network', {
   },
 
   needsToSync: function() {
-    return naf.util.now() >= this.nextSyncTime;
+    return naf.utils.now() >= this.nextSyncTime;
   },
 
   // Will only succeed if object is created after connected
@@ -259,7 +259,7 @@ AFRAME.registerComponent('network', {
   },
 
   updateNextSyncTime: function() {
-    this.nextSyncTime = naf.util.now() + 1000 / naf.options.updateRate;
+    this.nextSyncTime = naf.utils.now() + 1000 / naf.options.updateRate;
   },
 
   networkUpdate: function(data) {
@@ -324,11 +324,11 @@ AFRAME.registerComponent('network', {
   },
 
   childSchemaToKey: function(childSchema) {
-    return childSchema.selector + naf.util.delimiter + childSchema.component;
+    return childSchema.selector + naf.utils.delimiter + childSchema.component;
   },
 
   keyToChildSchema: function(key) {
-    var split = key.split(naf.util.delimiter);
+    var split = key.split(naf.utils.delimiter);
     return {
       selector: split[0],
       component: split[1]
@@ -336,7 +336,7 @@ AFRAME.registerComponent('network', {
   },
 
   isChildSchemaKey: function(key) {
-    return key.indexOf(naf.util.delimiter) != -1;
+    return key.indexOf(naf.utils.delimiter) != -1;
   },
 
   childSchemaEqual: function(a, b) {

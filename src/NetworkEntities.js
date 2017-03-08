@@ -139,7 +139,7 @@ class NetworkEntities {
   removeEntitiesFromUser(user) {
     var entityList = [];
     for (var id in this.entities) {
-      var entityOwner = NAF.util.getNetworkOwner(this.entities[id]);
+      var entityOwner = NAF.utils.getNetworkOwner(this.entities[id]);
       if (entityOwner == user) {
         var entity = this.removeEntity(id);
         entityList.push(entity);
