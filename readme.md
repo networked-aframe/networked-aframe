@@ -236,7 +236,8 @@ To measure bandwidth usage, run two clients on Chrome and visit chrome://webrtc-
 Stay in Touch
 -------------
 
-- [Follow Hayden on Twitter](https://twitter.com/haydenlee37)
+- Follow Hayden on [Twitter](https://twitter.com/haydenlee37)
+- Follow changes on [GitHub](https://github.com/haydenjameslee/networked-aframe/subscription)
 - Hang out with the A-Frame community: [join the A-Frame Slack](https://aframevr-slack.herokuapp.com)
 - Let us know if you've made something with Networked-Aframe! We'd love to see it!
 
