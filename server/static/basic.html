@@ -27,7 +27,7 @@
           }
         ]
       };
-      naf.schemas.add(avatarSchema);
+      NAF.schemas.add(avatarSchema);
 
       // Called by Networked-Aframe when connected to server
       function onConnect () {
@@ -44,7 +44,7 @@
         var rotationStr = '0 ' + angleToCenter + ' 0';
 
         // Create avatar with this position and rotation
-        naf.entities.createAvatar('#avatar-template', positionStr, rotationStr);
+        NAF.entities.createAvatar('#avatar-template', positionStr, rotationStr);
       }
     </script>
   </head>

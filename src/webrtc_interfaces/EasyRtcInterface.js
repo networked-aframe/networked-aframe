@@ -108,7 +108,7 @@ class EasyRtcInterface extends WebRtcInterface {
    */
 
   getRoomJoinTime(clientId) {
-    var myRoomId = naf.globals.room;
+    var myRoomId = naf.room;
     var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
     return joinTime;
   }

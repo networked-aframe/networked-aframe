@@ -14,7 +14,7 @@ suite('NetworkEntities', function() {
   function initScene(done) {
     var opts = {
       assets: [
-        '<script id="template1" lerp type="text/html"><a-entity></a-entity></script>',
+        '<script id="template1" type="text/html"><a-entity></a-entity></script>',
         '<script id="template2" type="text/html"><a-box></a-box></script>',
         '<script id="template3" type="text/html"><a-sphere></a-sphere></script>',
         '<script id="template4" type="text/html"><a-sphere><a-entity class="test-child"></a-entity></a-sphere></script>'
@@ -25,6 +25,7 @@ suite('NetworkEntities', function() {
   }
 
   setup(function(done) {
+    naf.options.useLerp = true;
     naf.schemas.clear();
     entities = new NetworkEntities();
     entityData = {
@@ -58,7 +59,7 @@ suite('NetworkEntities', function() {
   suite('createNetworkEntity', function() {
 
     test('creates entity', function(done) {
-      naf.globals.clientId = 'client1';
+      naf.clientId = 'client1';
       var setupTemplate = '#template1';
       var setupPosition = '10 11 12';
       var setupRotation = '14 15 16';
@@ -78,7 +79,7 @@ suite('NetworkEntities', function() {
     });
 
     test('returns entity', function() {
-      naf.globals.clientId = 'client1';
+      naf.clientId = 'client1';
       var setupTemplate = 'template';
       var setupPosition = '10 11 12';
       var setupRotation = '14 15 16';
@@ -139,7 +140,34 @@ suite('NetworkEntities', function() {
       assert.isOk(entity);
     });
 
-    test('entity has correct attributes', function(done) {
+    test('entity components set immediately', function() {
+      var entity = entities.createLocalEntity(entityData);
+
+      var template = entity.getAttribute('template');
+      var position = entity.components.position.attrValue;
+      var rotation = entity.components.rotation.attrValue;
+      var id = entity.getAttribute('id');
+
+      assert.isOk(entity);
+      assert.equal(id, 'naf-test1');
+      assert.equal(template, 'src:#template1');
+      assert.deepEqual(position, {x: 1, y: 2, z: 3});
+      assert.deepEqual(rotation, {x: 4, y: 3, z: 2});
+    });
+
+    test('entity does not have lerp if global setting', function(done) {
+      naf.options.useLerp = false;
+      var entity = entities.createLocalEntity(entityData);
+
+      naf.util.whenEntityLoaded(entity, function() {
+        var hasLerp = entity.hasAttribute('lerp');
+
+        assert.isFalse(hasLerp);
+        done();
+      });
+    });
+
+    test('entity has correct attributes after loaded', function(done) {
       var schema = {
         template: '#template2',
         components: [
@@ -152,21 +180,16 @@ suite('NetworkEntities', function() {
       var entity = entities.createLocalEntity(entityData);
 
       naf.util.whenEntityLoaded(entity, function() {
-        var template = entity.getAttribute('template');
         var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
         var network = entity.getAttribute('network');
-        var lerp = entity.getAttribute('lerp');
-        var id = entity.getAttribute('id');
+        var hasLerp = entity.hasAttribute('lerp');
 
-        assert.isNotNull(entity);
-        assert.isNotNull(lerp);
-        assert.equal(id, 'naf-test1');
-        assert.equal(template, 'src:' + entityData.template);
-        assert.equal(position, entityData.components.position);
-        assert.equal(rotation, '0 0 0');
-        assert.equal(network.owner, entityData.owner);
-        assert.equal(network.networkId, entityData.networkId);
+        assert.isOk(hasLerp);
+        assert.equal(position, '1 2 3');
+        assert.equal(rotation, '4 3 2'); // This will be set because position and rotation are always set initially if provided
+        assert.equal(network.owner, 'abcdefg');
+        assert.equal(network.networkId, 'test1');
         done();
       });
     });

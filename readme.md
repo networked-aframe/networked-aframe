@@ -39,7 +39,8 @@ Getting Started
 ---------------
  ```sh
 git clone https://github.com/haydenjameslee/networked-aframe.git  # Clone the repository.
-cd networked-aframe && npm install && npm run easyrtc-install  # Install dependencies.
+cd networked-aframe
+npm install && npm run easyrtc-install  # Install dependencies.
 npm start  # Start the local development server.
 ```
 With the server running, browse the examples at `http://localhost:8080`. Open another browser tab and point it to the same URL to see the other client.
@@ -57,7 +58,7 @@ Basic Example
     <script src="xxx/networked-aframe.min.js"></script>
     <script>
       function onConnect () {
-        naf.entities.createAvatar('#avatar-template', '0 1.6 0', '0 0 0');
+        NAF.entities.createAvatar('#avatar-template', '0 1.6 0', '0 0 0');
       }
     </script>
   </head>
@@ -81,7 +82,7 @@ Open in two tabs if nobody else is online.
 * [Basic](http://haydenlee.io/networked-aframe/basic.html)
 * [Shooter](http://haydenlee.io/networked-aframe/shooter.html)
 * [360 Image](http://haydenlee.io/networked-aframe/360.html)
-* [WIP: Dance Party!](http://haydenlee.io/networked-aframe/dance-party.html)
+* [Dance Party! - WIP](http://haydenlee.io/networked-aframe/dance-party.html)
 * Made something with Networked-Aframe? Tweet at [@HaydenLee37](https://twitter.com/haydenlee37) and I'll include it here!
 
 
@@ -90,7 +91,7 @@ Documentation
 
 ### Overview
 
-Networked-Aframe works by syncing entities and their components to other connected clients. To connect to a room you need to add the [`network-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, you need to create a [networked entity](#creating-networked-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the WebRTC datachannel see the section on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Settings](#settings).
+Networked-Aframe works by syncing entities and their components to connected users. To connect to a room you need to add the [`network-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, you need to create a [networked entity](#creating-networked-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the WebRTC datachannel see the section on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Options](#options).
 
 
 ### Scene component
@@ -125,14 +126,14 @@ Required on the A-Frame `<a-scene>` component.
 ### Creating Networked Entities
 
 ```javascript
-naf.entities.createAvatar(template, position, rotation)
+NAF.entities.createAvatar(template, position, rotation)
 ```
 
 Create an avatar that follows your camera's movements. Should only be called once. The avatar is hidden for you but visible for other players.
 
 ```javascript
 
-naf.entities.createNetworkEntity(template, position, rotation)
+NAF.entities.createNetworkEntity(template, position, rotation)
 ```
 Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is added to allow for less network updates while keeping smooth motion.
 
@@ -171,12 +172,12 @@ var avatarSchema = {
     }
   ]
 };
-naf.schemas.add(avatarSchema);
+NAF.schemas.add(avatarSchema);
 ```
 
 Components of the root entity can be defined with the name of the component. Components of child entities can be defined with an object with both the `selector` field, which uses a standard CSS selector to be used by `document.querySelector`, and the `component` field which specifies the name of the component.
 
-Once you've defined the schema then add it to the list of schemas by calling `naf.schemas.add(YOUR_SCHEMA)`.
+Once you've defined the schema then add it to the list of schemas by calling `NAF.schemas.add(YOUR_SCHEMA)`.
 
 Component data is retrieved by the A-Frame `getData` function. During the network tick each component's data is checked against its previous synced value; if the data object has changed at all it will be synced across the network.
 
@@ -184,10 +185,10 @@ Component data is retrieved by the A-Frame `getData` function. During the networ
 ### Broadcasting Custom Messages
 
 ```javascript
-naf.connection.subscribeToDataChannel(dataType, callback)
-naf.connection.unsubscribeToDataChannel(dataType)
-naf.connection.broadcastData(dataType, data)
-naf.connection.broadcastDataGuaranteed(dataType, data)
+NAF.connection.subscribeToDataChannel(dataType, callback)
+NAF.connection.unsubscribeToDataChannel(dataType)
+NAF.connection.broadcastData(dataType, data)
+NAF.connection.broadcastDataGuaranteed(dataType, data)
 ```
 
 Subscribe and unsubscribe callbacks to network messages specified by `dataType`. Send messages to other clients with the `broadcastData` functions.
@@ -204,28 +205,33 @@ Subscribe and unsubscribe callbacks to network messages specified by `dataType`.
 ### Misc
 
 ```javascript
-naf.connection.isConnected()
+NAF.connection.isConnected()
 ```
 
 Returns true if a connection has been established to the signalling server. Don't create entities before this is true.
 
 
-### Settings
+### Options
 
 ```javascript
-naf.globals.updateRate
+NAF.options.updateRate
 ```
 
 Frequency the network component `sync` function is called, per second. 10-20 is normal for most Social VR applications. Default is `15`.
 
 ```javascript
-naf.globals.compressSyncPackets
+NAF.options.useLerp
+```
+
+By default when an entity is created the [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is attached to smooth out position and rotation network updates. Set this to false if you don't want the lerp component to be attached on creation.
+
+```javascript
+NAF.options.compressSyncPackets
 ```
 
 Compress each sync packet into a minimized but harder to read JSON object for saving bandwidth. Default is `false`.
 
 To measure bandwidth usage, run two clients on Chrome and visit chrome://webrtc-internals
-
 
 Stay in Touch
 -------------

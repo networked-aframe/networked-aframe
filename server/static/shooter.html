@@ -10,6 +10,7 @@
 
     <script>
       var avatar;
+      var bulletSpeed = 3;
 
       // Define custom schema for syncing avatar components
       var avatarSchema = {
@@ -23,7 +24,7 @@
           }
         ]
       };
-      naf.schemas.add(avatarSchema);
+      NAF.schemas.add(avatarSchema);
 
       // Called by Networked-Aframe when connected to server
       function onConnect () {
@@ -40,7 +41,7 @@
         var rotationStr = '0 ' + angleToCenter + ' 0';
 
         // Create avatar with this position and rotation
-        avatar = naf.entities.createAvatar('#avatar-template', positionStr, rotationStr);
+        avatar = NAF.entities.createAvatar('#avatar-template', positionStr, rotationStr);
 
         // Detect trigger pulled (spacebar)
         document.body.onkeyup = function(e){
@@ -53,22 +54,32 @@
       function shoot() {
         var tip = avatar.querySelector('.gun-tip');
         var position = tip.getAttribute('position');
+        var worldDirection = new THREE.Vector3();
+        tip.object3D.getWorldDirection(worldDirection);
+        worldDirection.multiplyScalar(-1);
 
         var worldPos = new THREE.Vector3();
         worldPos.setFromMatrixPosition(tip.object3D.matrixWorld);
-        var bullet = naf.entities.createNetworkEntity('#bullet-template', worldPos, '0 0 0');
+        var bullet = NAF.entities.createNetworkEntity('#bullet-template', worldPos, '0 0 0');
 
         var moveForward = function() {
-          // get world rotation of gun tip above
-          // move bullet forward ~5m/s
+          var currentPosition = bullet.getAttribute('position');
+          var newPosition = worldDirection
+                              .clone()
+                              .multiplyScalar(bulletSpeed)
+                              .add(currentPosition);
+          bullet.setAttribute('position', newPosition);
         };
-        var moveInterval = setInterval(moveForward, 100);
 
-        var removeBullet = function() {
-          clearInterval(moveInterval);
-          bullet.parentElement.removeChild(bullet);
-        };
-        setTimeout(removeBullet, 5000);
+        NAF.util.whenEntityLoaded(bullet, function() {
+          var moveInterval = setInterval(moveForward, 100);
+
+          var removeBullet = function() {
+            clearInterval(moveInterval);
+            bullet.parentElement.removeChild(bullet);
+          };
+          setTimeout(removeBullet, 3000);
+        })
       }
 
       function randomPointOnCircle(radius, angleRad) {

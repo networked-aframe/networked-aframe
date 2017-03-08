@@ -1,5 +1,3 @@
-var naf = require('./NafIndex.js');
-
 class NetworkEntities {
 
   constructor() {
@@ -8,10 +6,10 @@ class NetworkEntities {
 
   createNetworkEntity(template, position, rotation) {
     var networkId = this.createEntityId();
-    naf.log.write('Created network entity', networkId);
+    NAF.log.write('Created network entity', networkId);
     var entityData = {
       networkId: networkId,
-      owner: naf.globals.clientId,
+      owner: NAF.clientId,
       template: template,
       components: {
         position: position,
@@ -39,15 +37,19 @@ class NetworkEntities {
   createLocalEntity(entityData) {
     var entity = document.createElement('a-entity');
     entity.setAttribute('id', 'naf-' + entityData.networkId);
-    entity.setAttribute('lerp', '');
+    if (NAF.options.useLerp) {
+      entity.setAttribute('lerp', '');
+    }
 
     var template = entityData.template;
     this.setTemplate(entity, template);
 
     var components = this.getComponents(template);
-    entity.initNafData = entityData;
-
+    this.initPosition(entity, entityData.components);
+    this.initRotation(entity, entityData.components);
     this.setNetworkData(entity, entityData, components);
+
+    entity.initNafData = entityData;
 
     var scene = document.querySelector('a-scene');
     scene.appendChild(entity);
@@ -61,16 +63,32 @@ class NetworkEntities {
     if (templateEl) {
       entity.setAttribute('template', 'src:' + template);
     } else {
-      naf.log.error('NetworkEntities@createLocalEntity: Template not found: ' + template);
+      NAF.log.error('NetworkEntities@createLocalEntity: Template not found: ' + template);
     }
   }
 
   getComponents(template) {
     var components = ['position', 'rotation'];
-    if (naf.schemas.hasTemplate(template)) {
-      components = naf.schemas.getComponents(template);
+    if (NAF.schemas.hasTemplate(template)) {
+      components = NAF.schemas.getComponents(template);
     }
     return components;
+  }
+
+  initPosition(entity, componentData) {
+    var hasPosition = componentData.hasOwnProperty('position');
+    if (hasPosition) {
+      var position = componentData.position;
+      entity.setAttribute('position', position);
+    }
+  }
+
+  initRotation(entity, componentData) {
+    var hasRotation = componentData.hasOwnProperty('rotation');
+    if (hasRotation) {
+      var rotation = componentData.rotation;
+      entity.setAttribute('rotation', rotation);
+    }
   }
 
   setNetworkData(entity, entityData, components) {
@@ -89,7 +107,7 @@ class NetworkEntities {
     if (this.hasEntity(networkId)) {
       this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
     } else if (!isCompressed) {
-      naf.log.write('Creating remote entity', entityData);
+      NAF.log.write('Creating remote entity', entityData);
       this.createLocalEntity(entityData);
     }
   }
@@ -121,7 +139,7 @@ class NetworkEntities {
   removeEntitiesFromUser(user) {
     var entityList = [];
     for (var id in this.entities) {
-      var entityOwner = naf.util.getNetworkOwner(this.entities[id]);
+      var entityOwner = NAF.util.getNetworkOwner(this.entities[id]);
       if (entityOwner == user) {
         var entity = this.removeEntity(id);
         entityList.push(entity);

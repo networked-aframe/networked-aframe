@@ -284,7 +284,7 @@ suite('network', function() {
 
     test('broadcasts uncompressed data', sinon.test(function() {
       naf.connection.broadcastData = this.stub();
-      naf.globals.compressSyncPackets = false;
+      naf.options.compressSyncPackets = false;
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
@@ -310,7 +310,7 @@ suite('network', function() {
 
     test('broadcasts compressed data', sinon.test(function() {
       naf.connection.broadcastData = this.stub();
-      naf.globals.compressSyncPackets = true;
+      naf.options.compressSyncPackets = true;
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
@@ -745,7 +745,7 @@ suite('network', function() {
 
     test('sets nextSyncTime correctly', sinon.test(function() {
       this.stub(naf.util, 'now').returns(5000);
-      naf.globals.updateRate = 1;
+      naf.options.updateRate = 1;
 
       netComp.updateNextSyncTime();
 

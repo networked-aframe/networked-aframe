@@ -3,8 +3,6 @@ var naf = require('../../src/NafIndex.js');
 
 var Schemas = require('../../src/Schemas.js');
 
-
-
 suite('Schemas', function() {
   var schemas;
 

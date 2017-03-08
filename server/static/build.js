@@ -1521,33 +1521,127 @@ module.exports = primitiveSet.apply(null,
 },{"./ws-eol":45,"./ws-inline":46,"es5-ext/object/primitive-set":26}],48:[function(require,module,exports){
 arguments[4][3][0].apply(exports,arguments)
 },{"dup":3,"es5-ext/object/assign":18,"es5-ext/object/is-callable":21,"es5-ext/object/normalize-options":25,"es5-ext/string/#/contains":29}],49:[function(require,module,exports){
-var globals = {
-  app: '',
-  room: '',
-  clientId: '',
-  debug: false,
-  updateRate: 15, // How often network components call `sync`
-  compressSyncPackets: false // compress network component sync packet json
-};
+module.exports={
+  "name": "networked-aframe",
+  "version": "0.1.0",
+  "description": "A web framework for building networked A-Frame VR experiences.",
+  "homepage": "",
+  "main": "dist/networked-aframe.js",
+  "author": "Hayden Lee <haydenjameslee@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/haydenjameslee/networked-aframe/issues"
+  },
+  "scripts": {
+    "build": "browserify src/index.js -o server/static/build.js",
+    "easyrtc-install": "cd ./node_modules/easyrtc; npm install; cd ../../server; npm install; cd ../",
+    "easyrtc-start": "node ./server/server.js",
+    "dev": "npm run watch & npm run easyrtc-start",
+    "dist": "webpack --config webpack.config.js && webpack -p --config webpack.prod.config.js",
+    "lint": "semistandard -v | snazzy",
+    "prepublish": "npm run dist",
+    "preghpages": "npm run build && shx rm -rf gh-pages && shx mkdir gh-pages && shx cp -r examples/* gh-pages",
+    "ghpages": "npm run preghpages && ghpages -p gh-pages",
+    "start": "npm run dev",
+    "test": "karma start ./tests/unit/karma.conf.js",
+    "test:firefox": "karma start ./tests/unit/karma.conf.js --browsers Firefox",
+    "test:chrome": "karma start ./tests/unit/karma.conf.js --browsers Chrome",
+    "watch": "watchify src/index.js -o server/static/build.js -v"
+  },
+  "repository": "haydenjameslee/networked-aframe",
+  "dependencies": {
+    "easyrtc": "1.1.0",
+    "express": "^4.10.7",
+    "aframe-lerp-component": "^1.0.1",
+    "aframe-template-component": "3.1.2",
+    "serve-static": "^1.8.0",
+    "socket.io": "^1.4.5",
+    "socket.io-client": "^1.4.5"
+  },
+  "devDependencies": {
+    "aframe": "0.5.0",
+    "babel-core": "^6.22.1",
+    "babel-loader": "^6.2.10",
+    "babel-preset-es2015": "^6.22.0",
+    "browserify": "^14.0.0",
+    "browserify-derequire": "^0.9.4",
+    "browserify-istanbul": "^2.0.0",
+    "chai": "^3.5.0",
+    "chai-shallow-deep-equal": "^1.4.0",
+    "chalk": "^1.1.3",
+    "deep-equal": "^1.0.1",
+    "karma": "^1.4.1",
+    "karma-browserify": "^5.1.1",
+    "karma-chai-shallow-deep-equal": "0.0.4",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-coverage": "^1.1.1",
+    "karma-env-preprocessor": "^0.1.1",
+    "karma-firefox-launcher": "^1.0.0",
+    "karma-mocha": "^1.3.0",
+    "karma-mocha-reporter": "^2.1.0",
+    "karma-sinon-chai": "^1.2.4",
+    "mocha": "^3.2.0",
+    "node-fetch": "^1.6.3",
+    "semistandard": "^8.0.0",
+    "sinon": "^1.17.5",
+    "sinon-chai": "^2.8.0",
+    "snazzy": "^6.0.0",
+    "watchify": "^3.9.0",
+    "webpack": "^1.13.0"
+  },
+  "keywords": [
+    "3d",
+    "aframe",
+    "cardboard",
+    "components",
+    "multiplayer",
+    "networked",
+    "networking",
+    "oculus",
+    "three",
+    "three.js",
+    "rift",
+    "social",
+    "vive",
+    "vr",
+    "web-components",
+    "webvr"
+  ],
+  "engines": {
+    "node": ">= 7.4.0",
+    "npm": "^4.0.5"
+  },
+  "babel": {
+    "presets": ["es2015"]
+  }
+}
 
-module.exports = globals;
 },{}],50:[function(require,module,exports){
-var globals = require('./NafGlobals.js');
+var package = require('../package');
+var options = require('./NafOptions.js');
 var util = require('./NafUtil.js');
 var NafLogger = require('./NafLogger.js');
 var Schemas = require('./Schemas.js');
+var NetworkEntities = require('./NetworkEntities.js');
+var NetworkConnection = require('./NetworkConnection.js');
 
 var naf = {};
-naf.globals = naf.g = globals;
+naf.app = '';
+naf.room = '';
+naf.clientId = '';
+naf.options = naf.o = options;
 naf.util = naf.utils = naf.u = util;
 naf.log = naf.l = new NafLogger();
 naf.schemas = new Schemas();
-naf.connection = naf.c = {}; // Set in network-scene component
-naf.entities = naf.e = {}; // Set in network-scene component
+naf.version = package.version;
 
-window.naf = naf;
-module.exports = naf;
-},{"./NafGlobals.js":49,"./NafLogger.js":52,"./NafUtil.js":53,"./Schemas.js":56}],51:[function(require,module,exports){
+var entities = new NetworkEntities();
+var connection = new NetworkConnection(entities);
+naf.connection = naf.c = connection;
+naf.entities = naf.e = entities;
+
+module.exports = window.NAF = naf;
+},{"../package":49,"./NafLogger.js":52,"./NafOptions.js":53,"./NafUtil.js":54,"./NetworkConnection.js":55,"./NetworkEntities.js":56,"./Schemas.js":57}],51:[function(require,module,exports){
 class NafInterface {
   notImplemented() {
     console.error('Interface method not implemented.');
@@ -1578,6 +1672,15 @@ class NafLogger {
 
 module.exports = NafLogger;
 },{}],53:[function(require,module,exports){
+var options = {
+  debug: false,
+  updateRate: 15, // How often network components call `sync`
+  compressSyncPackets: false, // compress network component sync packet json
+  useLerp: true // when networked entities are created the aframe-lerp-component is attched to the root
+};
+
+module.exports = options;
+},{}],54:[function(require,module,exports){
 module.exports.whenEntityLoaded = function(entity, callback) {
   if (entity.hasLoaded) { callback(); }
   entity.addEventListener('loaded', function () {
@@ -1604,23 +1707,25 @@ module.exports.now = function() {
 };
 
 module.exports.delimiter = '|||';
-},{}],54:[function(require,module,exports){
-var naf = require('./NafIndex.js');
+},{}],55:[function(require,module,exports){
 var WebRtcInterface = require('./webrtc_interfaces/WebRtcInterface.js');
 
 class NetworkConnection {
 
-  constructor (webrtcInterface, networkEntities) {
-    this.webrtc = webrtcInterface;
+  constructor(networkEntities) {
     this.entities = networkEntities;
+    this.setupDefaultDCSubs();
 
     this.myRoomJoinTime = 0;
     this.connectList = {};
     this.dcIsActive = {};
-    this.setupDefaultDCSubs();
 
     this.loggedIn = false;
     this.onLoggedInEvent = new Event('loggedIn');
+  }
+
+  setWebRtc(webrtcInterface) {
+    this.webrtc = webrtcInterface;
   }
 
   setupDefaultDCSubs() {
@@ -1631,8 +1736,8 @@ class NetworkConnection {
   }
 
   connect(appId, roomId, enableAudio = false) {
-    naf.globals.app = appId;
-    naf.globals.room = roomId;
+    NAF.app = appId;
+    NAF.room = roomId;
 
     var streamOptions = {
       audio: enableAudio,
@@ -1663,8 +1768,8 @@ class NetworkConnection {
   }
 
   loginSuccess(clientId) {
-    naf.log.write('Networked-Aframe Client ID:', clientId);
-    naf.globals.clientId = clientId;
+    NAF.log.write('Networked-Aframe Client ID:', clientId);
+    NAF.clientId = clientId;
     this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
     this.loggedIn = true;
 
@@ -1672,7 +1777,7 @@ class NetworkConnection {
   }
 
   loginFailure(errorCode, message) {
-    naf.log.error(errorCode, "failure to login");
+    NAF.log.error(errorCode, "failure to login");
     this.loggedIn = false;
   }
 
@@ -1690,7 +1795,7 @@ class NetworkConnection {
   }
 
   isMineAndConnected(id) {
-    return naf.globals.clientId == id;
+    return NAF.clientId == id;
   }
 
   isNewClient(client) {
@@ -1707,13 +1812,13 @@ class NetworkConnection {
   }
 
   dcOpenListener(user) {
-    naf.log.write('Opened data channel from ' + user);
+    NAF.log.write('Opened data channel from ' + user);
     this.dcIsActive[user] = true;
     this.entities.completeSync();
   }
 
   dcCloseListener(user) {
-    naf.log.write('Closed data channel from ' + user);
+    NAF.log.write('Closed data channel from ' + user);
     this.dcIsActive[user] = false;
     this.entities.removeEntitiesFromUser(user);
   }
@@ -1750,7 +1855,7 @@ class NetworkConnection {
 
   subscribeToDataChannel(dataType, callback) {
     if (dataType == 'u' || dataType == 'r') {
-      naf.log.error('NetworkConnection@subscribeToDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
+      NAF.log.error('NetworkConnection@subscribeToDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
       return;
     }
     this.dcSubscribers[dataType] = callback;
@@ -1758,7 +1863,7 @@ class NetworkConnection {
 
   unsubscribeFromDataChannel(dataType) {
     if (dataType == 'u' || dataType == 'r') {
-      naf.log.error('NetworkConnection@unsubscribeFromDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
+      NAF.log.error('NetworkConnection@unsubscribeFromDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
       return;
     }
     delete this.dcSubscribers[dataType];
@@ -1768,15 +1873,13 @@ class NetworkConnection {
     if (this.dcSubscribers.hasOwnProperty(dataType)) {
       this.dcSubscribers[dataType](fromClient, dataType, data);
     } else {
-      naf.log.error('NetworkConnection@receiveDataChannelMessage: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
+      NAF.log.error('NetworkConnection@receiveDataChannelMessage: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
     }
   }
 }
 
 module.exports = NetworkConnection;
-},{"./NafIndex.js":50,"./webrtc_interfaces/WebRtcInterface.js":63}],55:[function(require,module,exports){
-var naf = require('./NafIndex.js');
-
+},{"./webrtc_interfaces/WebRtcInterface.js":64}],56:[function(require,module,exports){
 class NetworkEntities {
 
   constructor() {
@@ -1785,10 +1888,10 @@ class NetworkEntities {
 
   createNetworkEntity(template, position, rotation) {
     var networkId = this.createEntityId();
-    naf.log.write('Created network entity', networkId);
+    NAF.log.write('Created network entity', networkId);
     var entityData = {
       networkId: networkId,
-      owner: naf.globals.clientId,
+      owner: NAF.clientId,
       template: template,
       components: {
         position: position,
@@ -1816,15 +1919,19 @@ class NetworkEntities {
   createLocalEntity(entityData) {
     var entity = document.createElement('a-entity');
     entity.setAttribute('id', 'naf-' + entityData.networkId);
-    entity.setAttribute('lerp', '');
+    if (NAF.options.useLerp) {
+      entity.setAttribute('lerp', '');
+    }
 
     var template = entityData.template;
     this.setTemplate(entity, template);
 
     var components = this.getComponents(template);
-    entity.initNafData = entityData;
-
+    this.initPosition(entity, entityData.components);
+    this.initRotation(entity, entityData.components);
     this.setNetworkData(entity, entityData, components);
+
+    entity.initNafData = entityData;
 
     var scene = document.querySelector('a-scene');
     scene.appendChild(entity);
@@ -1838,16 +1945,32 @@ class NetworkEntities {
     if (templateEl) {
       entity.setAttribute('template', 'src:' + template);
     } else {
-      naf.log.error('NetworkEntities@createLocalEntity: Template not found: ' + template);
+      NAF.log.error('NetworkEntities@createLocalEntity: Template not found: ' + template);
     }
   }
 
   getComponents(template) {
     var components = ['position', 'rotation'];
-    if (naf.schemas.hasTemplate(template)) {
-      components = naf.schemas.getComponents(template);
+    if (NAF.schemas.hasTemplate(template)) {
+      components = NAF.schemas.getComponents(template);
     }
     return components;
+  }
+
+  initPosition(entity, componentData) {
+    var hasPosition = componentData.hasOwnProperty('position');
+    if (hasPosition) {
+      var position = componentData.position;
+      entity.setAttribute('position', position);
+    }
+  }
+
+  initRotation(entity, componentData) {
+    var hasRotation = componentData.hasOwnProperty('rotation');
+    if (hasRotation) {
+      var rotation = componentData.rotation;
+      entity.setAttribute('rotation', rotation);
+    }
   }
 
   setNetworkData(entity, entityData, components) {
@@ -1866,7 +1989,7 @@ class NetworkEntities {
     if (this.hasEntity(networkId)) {
       this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
     } else if (!isCompressed) {
-      naf.log.write('Creating remote entity', entityData);
+      NAF.log.write('Creating remote entity', entityData);
       this.createLocalEntity(entityData);
     }
   }
@@ -1898,7 +2021,7 @@ class NetworkEntities {
   removeEntitiesFromUser(user) {
     var entityList = [];
     for (var id in this.entities) {
-      var entityOwner = naf.util.getNetworkOwner(this.entities[id]);
+      var entityOwner = NAF.util.getNetworkOwner(this.entities[id]);
       if (entityOwner == user) {
         var entity = this.removeEntity(id);
         entityList.push(entity);
@@ -1924,7 +2047,7 @@ class NetworkEntities {
 }
 
 module.exports = NetworkEntities;
-},{"./NafIndex.js":50}],56:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 class Schemas {
 
   constructor() {
@@ -1935,8 +2058,8 @@ class Schemas {
     if (this.validate(schema)) {
       this.dict[schema.template] = schema;
     } else {
-      naf.log.error('Schema not valid: ', schema);
-      naf.log.error('See https://github.com/haydenjameslee/networked-aframe#syncing-custom-components')
+      NAF.log.error('Schema not valid: ', schema);
+      NAF.log.error('See https://github.com/haydenjameslee/networked-aframe#syncing-custom-components')
     }
   }
 
@@ -1948,7 +2071,7 @@ class Schemas {
     if (this.hasTemplate(template)) {
       return this.dict[template].components;
     } else {
-      naf.log.error('Schema with template '+template+' has not been added to naf.schemas yet');
+      NAF.log.error('Schema with template '+template+' has not been added to naf.schemas yet');
       return null;
     }
   }
@@ -1969,7 +2092,7 @@ class Schemas {
 }
 
 module.exports = Schemas;
-},{}],57:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 AFRAME.registerComponent('follow-camera', {
   camera: {},
 
@@ -1992,11 +2115,9 @@ AFRAME.registerComponent('follow-camera', {
     this.camera = document.querySelector('a-camera') || document.querySelector('[camera]');
   }
 });
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 var naf = require('../NafIndex.js');
 
-var NetworkConnection = require('../NetworkConnection.js');
-var NetworkEntities = require('../NetworkEntities.js');
 var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
 
 AFRAME.registerComponent('network-scene', {
@@ -2025,19 +2146,15 @@ AFRAME.registerComponent('network-scene', {
     naf.log.write('Networked-Aframe Connecting...');
 
     // easyrtc.enableDebug(true);
-    var webrtc = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
-    var entities = new NetworkEntities();
-    var connection = new NetworkConnection(webrtc, entities);
+    var easyRtc = new EasyRtcInterface(easyrtc, this.data.signallingUrl);
+    naf.connection.setWebRtc(easyRtc);
     if (this.data.onConnect != '' && window.hasOwnProperty(this.data.onConnect)) {
-      connection.onLogin(window[this.data.onConnect]);
+      naf.connection.onLogin(window[this.data.onConnect]);
     }
-    connection.connect(this.data.app, this.data.room, this.data.audio);
-
-    naf.connection = naf.c = connection;
-    naf.entities = naf.e = entities;
+    naf.connection.connect(this.data.app, this.data.room, this.data.audio);
   }
 });
-},{"../NafIndex.js":50,"../NetworkConnection.js":54,"../NetworkEntities.js":55,"../webrtc_interfaces/EasyRtcInterface.js":62}],59:[function(require,module,exports){
+},{"../NafIndex.js":50,"../webrtc_interfaces/EasyRtcInterface.js":63}],60:[function(require,module,exports){
 var naf = require('../NafIndex.js');
 var deepEqual = require('deep-equal');
 
@@ -2125,7 +2242,7 @@ AFRAME.registerComponent('network', {
     }
     var components = this.getComponentsData(dirtyComps);
     var syncData = this.createSyncData(components);
-    if (naf.globals.compressSyncPackets) {
+    if (naf.options.compressSyncPackets) {
       syncData = this.compressSyncData(syncData);
     }
     naf.connection.broadcastData('u', syncData);
@@ -2299,7 +2416,7 @@ AFRAME.registerComponent('network', {
   },
 
   updateNextSyncTime: function() {
-    this.nextSyncTime = naf.util.now() + 1000 / naf.globals.updateRate;
+    this.nextSyncTime = naf.util.now() + 1000 / naf.options.updateRate;
   },
 
   networkUpdate: function(data) {
@@ -2383,7 +2500,7 @@ AFRAME.registerComponent('network', {
     return a.selector == b.selector && a.component == b.component;
   }
 });
-},{"../NafIndex.js":50,"deep-equal":4}],60:[function(require,module,exports){
+},{"../NafIndex.js":50,"deep-equal":4}],61:[function(require,module,exports){
 AFRAME.registerComponent('show-child', {
   schema: {
     type: 'int',
@@ -2410,7 +2527,7 @@ AFRAME.registerComponent('show-child', {
     }
   }
 });
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 // Dependencies
 require('aframe-template-component');
 require('aframe-lerp-component');
@@ -2428,7 +2545,7 @@ require('./components/show-child.js');
 
 
 
-},{"./NafIndex.js":50,"./components/follow-camera.js":57,"./components/network-scene.js":58,"./components/network.js":59,"./components/show-child.js":60,"aframe-lerp-component":1,"aframe-template-component":2}],62:[function(require,module,exports){
+},{"./NafIndex.js":50,"./components/follow-camera.js":58,"./components/network-scene.js":59,"./components/network.js":60,"./components/show-child.js":61,"aframe-lerp-component":1,"aframe-template-component":2}],63:[function(require,module,exports){
 var naf = require('../NafIndex.js');
 var WebRtcInterface = require('./WebRtcInterface.js');
 
@@ -2539,7 +2656,7 @@ class EasyRtcInterface extends WebRtcInterface {
    */
 
   getRoomJoinTime(clientId) {
-    var myRoomId = naf.globals.room;
+    var myRoomId = naf.room;
     var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
     return joinTime;
   }
@@ -2558,7 +2675,7 @@ class EasyRtcInterface extends WebRtcInterface {
 }
 
 module.exports = EasyRtcInterface;
-},{"../NafIndex.js":50,"./WebRtcInterface.js":63}],63:[function(require,module,exports){
+},{"../NafIndex.js":50,"./WebRtcInterface.js":64}],64:[function(require,module,exports){
 var NafInterface = require('../NafInterface.js');
 
 class WebRtcInterface extends NafInterface {
@@ -2594,4 +2711,4 @@ WebRtcInterface.CONNECTING = 'CONNECTING';
 WebRtcInterface.NOT_CONNECTED = 'NOT_CONNECTED';
 
 module.exports = WebRtcInterface;
-},{"../NafInterface.js":51}]},{},[61]);
+},{"../NafInterface.js":51}]},{},[62]);

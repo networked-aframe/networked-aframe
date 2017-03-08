@@ -1,19 +1,21 @@
-var naf = require('./NafIndex.js');
 var WebRtcInterface = require('./webrtc_interfaces/WebRtcInterface.js');
 
 class NetworkConnection {
 
-  constructor (webrtcInterface, networkEntities) {
-    this.webrtc = webrtcInterface;
+  constructor(networkEntities) {
     this.entities = networkEntities;
+    this.setupDefaultDCSubs();
 
     this.myRoomJoinTime = 0;
     this.connectList = {};
     this.dcIsActive = {};
-    this.setupDefaultDCSubs();
 
     this.loggedIn = false;
     this.onLoggedInEvent = new Event('loggedIn');
+  }
+
+  setWebRtc(webrtcInterface) {
+    this.webrtc = webrtcInterface;
   }
 
   setupDefaultDCSubs() {
@@ -24,8 +26,8 @@ class NetworkConnection {
   }
 
   connect(appId, roomId, enableAudio = false) {
-    naf.globals.app = appId;
-    naf.globals.room = roomId;
+    NAF.app = appId;
+    NAF.room = roomId;
 
     var streamOptions = {
       audio: enableAudio,
@@ -56,8 +58,8 @@ class NetworkConnection {
   }
 
   loginSuccess(clientId) {
-    naf.log.write('Networked-Aframe Client ID:', clientId);
-    naf.globals.clientId = clientId;
+    NAF.log.write('Networked-Aframe Client ID:', clientId);
+    NAF.clientId = clientId;
     this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
     this.loggedIn = true;
 
@@ -65,7 +67,7 @@ class NetworkConnection {
   }
 
   loginFailure(errorCode, message) {
-    naf.log.error(errorCode, "failure to login");
+    NAF.log.error(errorCode, "failure to login");
     this.loggedIn = false;
   }
 
@@ -83,7 +85,7 @@ class NetworkConnection {
   }
 
   isMineAndConnected(id) {
-    return naf.globals.clientId == id;
+    return NAF.clientId == id;
   }
 
   isNewClient(client) {
@@ -100,13 +102,13 @@ class NetworkConnection {
   }
 
   dcOpenListener(user) {
-    naf.log.write('Opened data channel from ' + user);
+    NAF.log.write('Opened data channel from ' + user);
     this.dcIsActive[user] = true;
     this.entities.completeSync();
   }
 
   dcCloseListener(user) {
-    naf.log.write('Closed data channel from ' + user);
+    NAF.log.write('Closed data channel from ' + user);
     this.dcIsActive[user] = false;
     this.entities.removeEntitiesFromUser(user);
   }
@@ -143,7 +145,7 @@ class NetworkConnection {
 
   subscribeToDataChannel(dataType, callback) {
     if (dataType == 'u' || dataType == 'r') {
-      naf.log.error('NetworkConnection@subscribeToDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
+      NAF.log.error('NetworkConnection@subscribeToDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
       return;
     }
     this.dcSubscribers[dataType] = callback;
@@ -151,7 +153,7 @@ class NetworkConnection {
 
   unsubscribeFromDataChannel(dataType) {
     if (dataType == 'u' || dataType == 'r') {
-      naf.log.error('NetworkConnection@unsubscribeFromDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
+      NAF.log.error('NetworkConnection@unsubscribeFromDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
       return;
     }
     delete this.dcSubscribers[dataType];
@@ -161,7 +163,7 @@ class NetworkConnection {
     if (this.dcSubscribers.hasOwnProperty(dataType)) {
       this.dcSubscribers[dataType](fromClient, dataType, data);
     } else {
-      naf.log.error('NetworkConnection@receiveDataChannelMessage: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
+      NAF.log.error('NetworkConnection@receiveDataChannelMessage: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
     }
   }
 }

@@ -8,8 +8,8 @@ class Schemas {
     if (this.validate(schema)) {
       this.dict[schema.template] = schema;
     } else {
-      naf.log.error('Schema not valid: ', schema);
-      naf.log.error('See https://github.com/haydenjameslee/networked-aframe#syncing-custom-components')
+      NAF.log.error('Schema not valid: ', schema);
+      NAF.log.error('See https://github.com/haydenjameslee/networked-aframe#syncing-custom-components')
     }
   }
 
@@ -21,7 +21,7 @@ class Schemas {
     if (this.hasTemplate(template)) {
       return this.dict[template].components;
     } else {
-      naf.log.error('Schema with template '+template+' has not been added to naf.schemas yet');
+      NAF.log.error('Schema with template '+template+' has not been added to naf.schemas yet');
       return null;
     }
   }

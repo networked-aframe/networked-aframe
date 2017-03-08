@@ -85,7 +85,7 @@ AFRAME.registerComponent('network', {
     }
     var components = this.getComponentsData(dirtyComps);
     var syncData = this.createSyncData(components);
-    if (naf.globals.compressSyncPackets) {
+    if (naf.options.compressSyncPackets) {
       syncData = this.compressSyncData(syncData);
     }
     naf.connection.broadcastData('u', syncData);
@@ -259,7 +259,7 @@ AFRAME.registerComponent('network', {
   },
 
   updateNextSyncTime: function() {
-    this.nextSyncTime = naf.util.now() + 1000 / naf.globals.updateRate;
+    this.nextSyncTime = naf.util.now() + 1000 / naf.options.updateRate;
   },
 
   networkUpdate: function(data) {

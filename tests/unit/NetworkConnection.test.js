@@ -30,7 +30,8 @@ suite('NetworkConnection', function() {
   setup(function() {
     var webrtcStub = new WebRtcStub();
     entities = new NetworkEntitiesStub();
-    connection = new NetworkConnection(webrtcStub, entities);
+    connection = new NetworkConnection(entities);
+    connection.setWebRtc(webrtcStub);
   });
 
   suite('setupDefaultDCSubs', function() {

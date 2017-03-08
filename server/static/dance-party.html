@@ -39,7 +39,7 @@
           }
         ]
       };
-      naf.schemas.add(avatarSchema);
+      NAF.schemas.add(avatarSchema);
 
       // Called by Networked-Aframe when connected to server
       function onConnect () {
@@ -56,7 +56,7 @@
         var rotationStr = '0 ' + angleToCenter + ' 0';
 
         // Create avatar with this position and rotation
-        var avatar = naf.entities.createAvatar('#avatar-template', positionStr, rotationStr);
+        var avatar = NAF.entities.createAvatar('#avatar-template', positionStr, rotationStr);
 
         // Set random hair style after avatar has loaded... yuck... TODO remove setTimeout
         setTimeout(function() {
