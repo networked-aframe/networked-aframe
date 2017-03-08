@@ -1,7 +1,7 @@
 /* global assert, process, setup, suite, test */
 var naf = require('../../src/NafIndex');
 
-var Schemas = require('../../src/Schemas.js');
+var Schemas = require('../../src/Schemas');
 
 suite('Schemas', function() {
   var schemas;
