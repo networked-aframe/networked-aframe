@@ -91,7 +91,7 @@ Documentation
 
 ### Overview
 
-Networked-Aframe works by syncing entities and their components to connected users. To connect to a room you need to add the [`network-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, you need to create a [networked entity](#creating-networked-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the WebRTC datachannel see the section on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Options](#options).
+Networked-Aframe works by syncing entities and their components to connected users. To connect to a room you need to add the [`network-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, you need to create a [network entity](#creating-network-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the WebRTC datachannel see the sections on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Options](#options).
 
 
 ### Scene component
@@ -123,7 +123,7 @@ Required on the A-Frame `<a-scene>` component.
 | signallingUrl  | Customize where the signalling server is located | / |
 
 
-### Creating Networked Entities
+### Creating Network Entities
 
 ```javascript
 NAF.entities.createAvatar(template, position, rotation)
@@ -144,9 +144,9 @@ Create an instance of a template to be synced across clients. The position and r
 | rotation  | An A-Frame rotation string for the initial rotation of the entity, eg '0 45 0'
 
 
-### Deleting Networked Entities
+### Deleting Network Entities
 
-Currently only the creator of a networked entity can delete it. To delete, simply delete the element from the HTML and Networked-Aframe will handle the syncing automatically.
+Currently only the creator of a network entity can delete it. To delete, simply delete the element from the HTML and Networked-Aframe will handle the syncing automatically.
 
 
 ### Syncing Custom Components

@@ -1,4 +1,3 @@
-var package = require('../package');
 var options = require('./NafOptions');
 var util = require('./NafUtil');
 var NafLogger = require('./NafLogger');
@@ -14,7 +13,7 @@ naf.options = options;
 naf.utils = util;
 naf.log = new NafLogger();
 naf.schemas = new Schemas();
-naf.version = package.version;
+naf.version = "0.1.0";
 
 var entities = new NetworkEntities();
 var connection = new NetworkConnection(entities);
