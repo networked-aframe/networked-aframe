@@ -1,5 +1,5 @@
-var naf = require('../NafIndex.js');
-var WebRtcInterface = require('./WebRtcInterface.js');
+var naf = require('../NafIndex');
+var WebRtcInterface = require('./WebRtcInterface');
 
 class EasyRtcInterface extends WebRtcInterface {
   constructor(easyrtc, signallingUrl) {

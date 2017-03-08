@@ -1,5 +1,5 @@
 /* global assert, process, setup, suite, test */
-var NafInterface = require('../../src/NafInterface.js');
+var NafInterface = require('../../src/NafInterface');
 
 suite('NafInterface', function() {
 

@@ -1,5 +1,5 @@
 /* global suite */
-var nafUtil = require('../../src/NafUtil.js');
+var nafUtil = require('../../src/NafUtil');
 
 
 /**

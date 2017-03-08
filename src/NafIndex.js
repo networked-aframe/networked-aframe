@@ -1,10 +1,10 @@
 var package = require('../package');
-var options = require('./NafOptions.js');
-var util = require('./NafUtil.js');
-var NafLogger = require('./NafLogger.js');
-var Schemas = require('./Schemas.js');
-var NetworkEntities = require('./NetworkEntities.js');
-var NetworkConnection = require('./NetworkConnection.js');
+var options = require('./NafOptions');
+var util = require('./NafUtil');
+var NafLogger = require('./NafLogger');
+var Schemas = require('./Schemas');
+var NetworkEntities = require('./NetworkEntities');
+var NetworkConnection = require('./NetworkConnection');
 
 var naf = {};
 naf.app = '';

@@ -1,5 +1,5 @@
 /* global assert, process, setup, suite, test */
-var naf = require('../../src/NafIndex.js');
+var naf = require('../../src/NafIndex');
 
 var Schemas = require('../../src/Schemas.js');
 

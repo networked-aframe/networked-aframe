@@ -1,6 +1,6 @@
-var naf = require('../NafIndex.js');
+var naf = require('../NafIndex');
 
-var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
+var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface');
 
 AFRAME.registerComponent('network-scene', {
   schema: {

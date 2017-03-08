@@ -1,4 +1,4 @@
-var WebRtcInterface = require('./webrtc_interfaces/WebRtcInterface.js');
+var WebRtcInterface = require('./webrtc_interfaces/WebRtcInterface');
 
 class NetworkConnection {
 

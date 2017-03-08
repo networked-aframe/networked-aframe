@@ -1,7 +1,7 @@
 /* global assert, process, setup, suite, test */
-var NetworkConnection = require('../../src/NetworkConnection.js');
-var WebRtcInterface = require('../../src/webrtc_interfaces/WebRtcInterface.js');
-var NetworkEntities = require('../../src/NetworkEntities.js');
+var NetworkConnection = require('../../src/NetworkConnection');
+var WebRtcInterface = require('../../src/webrtc_interfaces/WebRtcInterface');
+var NetworkEntities = require('../../src/NetworkEntities');
 
 suite('NetworkConnection', function() {
   var connection;

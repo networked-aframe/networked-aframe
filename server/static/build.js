@@ -1618,12 +1618,12 @@ module.exports={
 
 },{}],50:[function(require,module,exports){
 var package = require('../package');
-var options = require('./NafOptions.js');
-var util = require('./NafUtil.js');
-var NafLogger = require('./NafLogger.js');
-var Schemas = require('./Schemas.js');
-var NetworkEntities = require('./NetworkEntities.js');
-var NetworkConnection = require('./NetworkConnection.js');
+var options = require('./NafOptions');
+var util = require('./NafUtil');
+var NafLogger = require('./NafLogger');
+var Schemas = require('./Schemas');
+var NetworkEntities = require('./NetworkEntities');
+var NetworkConnection = require('./NetworkConnection');
 
 var naf = {};
 naf.app = '';
@@ -1641,7 +1641,7 @@ naf.connection = naf.c = connection;
 naf.entities = naf.e = entities;
 
 module.exports = window.NAF = naf;
-},{"../package":49,"./NafLogger.js":52,"./NafOptions.js":53,"./NafUtil.js":54,"./NetworkConnection.js":55,"./NetworkEntities.js":56,"./Schemas.js":57}],51:[function(require,module,exports){
+},{"../package":49,"./NafLogger":52,"./NafOptions":53,"./NafUtil":54,"./NetworkConnection":55,"./NetworkEntities":56,"./Schemas":57}],51:[function(require,module,exports){
 class NafInterface {
   notImplemented() {
     console.error('Interface method not implemented.');
@@ -1708,7 +1708,7 @@ module.exports.now = function() {
 
 module.exports.delimiter = '|||';
 },{}],55:[function(require,module,exports){
-var WebRtcInterface = require('./webrtc_interfaces/WebRtcInterface.js');
+var WebRtcInterface = require('./webrtc_interfaces/WebRtcInterface');
 
 class NetworkConnection {
 
@@ -1879,7 +1879,7 @@ class NetworkConnection {
 }
 
 module.exports = NetworkConnection;
-},{"./webrtc_interfaces/WebRtcInterface.js":64}],56:[function(require,module,exports){
+},{"./webrtc_interfaces/WebRtcInterface":64}],56:[function(require,module,exports){
 class NetworkEntities {
 
   constructor() {
@@ -2116,9 +2116,9 @@ AFRAME.registerComponent('follow-camera', {
   }
 });
 },{}],59:[function(require,module,exports){
-var naf = require('../NafIndex.js');
+var naf = require('../NafIndex');
 
-var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface.js');
+var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface');
 
 AFRAME.registerComponent('network-scene', {
   schema: {
@@ -2154,8 +2154,8 @@ AFRAME.registerComponent('network-scene', {
     naf.connection.connect(this.data.app, this.data.room, this.data.audio);
   }
 });
-},{"../NafIndex.js":50,"../webrtc_interfaces/EasyRtcInterface.js":63}],60:[function(require,module,exports){
-var naf = require('../NafIndex.js');
+},{"../NafIndex":50,"../webrtc_interfaces/EasyRtcInterface":63}],60:[function(require,module,exports){
+var naf = require('../NafIndex');
 var deepEqual = require('deep-equal');
 
 AFRAME.registerComponent('network', {
@@ -2500,7 +2500,7 @@ AFRAME.registerComponent('network', {
     return a.selector == b.selector && a.component == b.component;
   }
 });
-},{"../NafIndex.js":50,"deep-equal":4}],61:[function(require,module,exports){
+},{"../NafIndex":50,"deep-equal":4}],61:[function(require,module,exports){
 AFRAME.registerComponent('show-child', {
   schema: {
     type: 'int',
@@ -2536,18 +2536,18 @@ require('aframe-lerp-component');
 require('./NafIndex.js');
 
 // Network components
-require('./components/network-scene.js');
-require('./components/network.js');
+require('./components/network-scene');
+require('./components/network');
 
 // Other components
-require('./components/follow-camera.js');
-require('./components/show-child.js');
+require('./components/follow-camera');
+require('./components/show-child');
 
 
 
-},{"./NafIndex.js":50,"./components/follow-camera.js":58,"./components/network-scene.js":59,"./components/network.js":60,"./components/show-child.js":61,"aframe-lerp-component":1,"aframe-template-component":2}],63:[function(require,module,exports){
-var naf = require('../NafIndex.js');
-var WebRtcInterface = require('./WebRtcInterface.js');
+},{"./NafIndex.js":50,"./components/follow-camera":58,"./components/network":60,"./components/network-scene":59,"./components/show-child":61,"aframe-lerp-component":1,"aframe-template-component":2}],63:[function(require,module,exports){
+var naf = require('../NafIndex');
+var WebRtcInterface = require('./WebRtcInterface');
 
 class EasyRtcInterface extends WebRtcInterface {
   constructor(easyrtc, signallingUrl) {
@@ -2675,8 +2675,8 @@ class EasyRtcInterface extends WebRtcInterface {
 }
 
 module.exports = EasyRtcInterface;
-},{"../NafIndex.js":50,"./WebRtcInterface.js":64}],64:[function(require,module,exports){
-var NafInterface = require('../NafInterface.js');
+},{"../NafIndex":50,"./WebRtcInterface":64}],64:[function(require,module,exports){
+var NafInterface = require('../NafInterface');
 
 class WebRtcInterface extends NafInterface {
   constructor() {
@@ -2711,4 +2711,4 @@ WebRtcInterface.CONNECTING = 'CONNECTING';
 WebRtcInterface.NOT_CONNECTED = 'NOT_CONNECTED';
 
 module.exports = WebRtcInterface;
-},{"../NafInterface.js":51}]},{},[62]);
+},{"../NafInterface":51}]},{},[62]);

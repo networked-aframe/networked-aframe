@@ -6,11 +6,11 @@ require('aframe-lerp-component');
 require('./NafIndex.js');
 
 // Network components
-require('./components/network-scene.js');
-require('./components/network.js');
+require('./components/network-scene');
+require('./components/network');
 
 // Other components
-require('./components/follow-camera.js');
-require('./components/show-child.js');
+require('./components/follow-camera');
+require('./components/show-child');
 
 

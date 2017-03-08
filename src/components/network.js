@@ -1,4 +1,4 @@
-var naf = require('../NafIndex.js');
+var naf = require('../NafIndex');
 var deepEqual = require('deep-equal');
 
 AFRAME.registerComponent('network', {

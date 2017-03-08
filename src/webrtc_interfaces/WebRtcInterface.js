@@ -1,4 +1,4 @@
-var NafInterface = require('../NafInterface.js');
+var NafInterface = require('../NafInterface');
 
 class WebRtcInterface extends NafInterface {
   constructor() {
