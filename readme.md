@@ -114,8 +114,8 @@ Required on the A-Frame `<a-scene>` component.
 
 | Property | Description | Default Value |
 | -------- | ----------- | ------------- |
-| app  | Unique app name | default |
-| room  | Unique room name. Can be multiple per app | default |
+| app  | Unique app name. Spaces are not allowed. | default |
+| room  | Unique room name. Can be multiple per app. Spaces are not allowed. | default |
 | audio  | Turn on / off microphone audio streaming for your app | false |
 | debug  | Turn on / off Networked-Aframe debug logs | false |
 | onConnect  | Function to be called when client has successfully connected to the server | onConnect |
@@ -246,10 +246,10 @@ Help and More Information
 ------------------------------
 
 * [Live demo site](http://haydenlee.io/networked-aframe)
-* Bugs and requests can be filed on [GitHub Issues](https://github.com/haydenjameslee/networked-aframe/issues)
 * [A-Frame](https://aframe.io/)
 * [WebVR](https://webvr.info/)
 * [EasyRTC WebRTC library](http://www.easyrtc.com/)
+* Bugs and requests can be filed on [GitHub Issues](https://github.com/haydenjameslee/networked-aframe/issues)
 
 
 Folder Structure
