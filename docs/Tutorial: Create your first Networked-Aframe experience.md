@@ -3,7 +3,7 @@
 
 Hello friends! This tutorial will show you how to write your very first multi-user virtual reality experience on the web.
 
-You might be thinking: wait you can do VR on the web? And the answer is yes! Using the [WebVR standard](https://webvr.info/) and an awesome library called [A-Frame](https://aframe.io), VR on the web is actually really easy and evolving rapidly. Your second question is then: wait to do multi-user won't I have to know all about servers and complicated networking protocols? Answer, not anymore! The recently released [Networked-Aframe](https://github.com/haydenjameslee/networked-aframe) (NAF for short) has you covered. NAF hides away a lot of the networking complexity, allowing you to write multi-user VR apps with a few lines of HTML and Javascript.
+You might be thinking: wait you can do VR on the web? And the answer is yes! Using the [WebVR standard](https://webvr.info/) and an awesome library called [A-Frame](https://aframe.io), VR on the web is actually really easy and evolving rapidly. Your second question is then: wait to do multi-user won't I have to know all about servers and complicated networking protocols? Answer: not anymore! The recently released [Networked-Aframe](https://github.com/haydenjameslee/networked-aframe) (NAF for short) has you covered. NAF hides away a lot of the networking complexity, allowing you to write multi-user VR apps with a few lines of HTML and Javascript.
 
 So, let's dive in:
 
@@ -40,7 +40,7 @@ Now let's setup the required dependencies. Create a file called `package.json` a
 
 This file is how NPM knows which dependencies to install and will let us use some handy shortcuts later on.
 
-Now let's install the dependencies. Open up the command line prompt of your choosing and navigate to your projects folder. Then run:
+Now let's install the dependencies. Open up the command line prompt of your choosing and navigate to your new `naf-tutorial` folder. Then run:
 
 ```sh
 npm install
@@ -93,12 +93,6 @@ By the way, if at any point in this tutorial you don't see the same results, or 
 
 
 ## Create an Example from Scratch
-
-- Start an example from scratch
-- Scripts
-- network-scene component + options
-- Templates
-- Create avatar
 
 So we've seen how to get your own local server up and running with the default examples. Let's have a go at making our own example from scratch.
 
@@ -239,11 +233,11 @@ Modify the existing script tag with the code for spawning in a circle:
 </script>
 ```
 
-Refresh those browsers and your scene should be starting to take shape! (albeit with a [completely white environment](https://c1.staticflickr.com/8/7405/11599367004_2f03c315fb_b.jpg)).
+Refresh those browsers and your scene should be starting to take shape (albeit with a [completely white environment](https://c1.staticflickr.com/8/7405/11599367004_2f03c315fb_b.jpg)).
 
 ## Environment
 
-To spruce your world up a bit add the following assets:
+To spruce up your world add the following HTML tags:
 
 ```html
 <!-- Add to bottom of the a-assets tag -->
@@ -278,9 +272,9 @@ NAF has built in voice chat, and all you need to do to enable it is modify the `
 
 ### Syncing Custom Components
 
-Components are synchronized by checking the `data` property [provided by A-Frame](https://aframe.io/docs/0.5.0/core/entity.html#getattribute-componentname) on a network 'tick'. How quickly this tick happens can be defined in the [NAF Options](https://github.com/haydenjameslee/networked-aframe#options), but the default is 15 times per second. On each tick the `data` property is checked against its previous value, and if its changed its sent over the network to the other connected clients.
+Components are synchronized by checking the `data` property [provided by A-Frame](https://aframe.io/docs/0.5.0/core/entity.html#getattribute-componentname) on a network 'tick'. How quickly this tick happens can be defined in the [NAF Options](https://github.com/haydenjameslee/networked-aframe#options), but the default is 15 times per second. On each tick the `data` property is checked against its previous value, and if it changed it's sent over the network to the other users.
 
-So how do we choose which components to sync? By default, the `position` and `rotation` components are synced. But NAF lets you specify any component that you wish to sync, included child components found in the deep depths of your templates.
+So how do we choose which components to sync? By default, the `position` and `rotation` components are synced but NAF lets you specify any component that you wish to sync, included child components found in the deep depths of your templates.
 
 To define synced components we introduce the concept of a NAF `schema`. These schemas are basic Javascript objects that either define just the component's name if the component is at the root level of the entity, or they define a CSS selector and the component name if the component is on a child entity.
 
@@ -301,7 +295,7 @@ var avatarSchema = {
 NAF.schemas.add(avatarSchema);
 ```
 
-In the `basic.html` example this is used in combination with [ngokevin's Randomizer component](https://github.com/ngokevin/kframe/tree/master/components/randomizer) to mean each avatar has a randomized color head that is synced to all clients.
+In the `basic.html` example this is used in combination with [ngokevin's Randomizer component](https://github.com/ngokevin/kframe/tree/master/components/randomizer) to give each avatar's head a synced randomized color.
 
 To add the randomizer component include this script in the `<head>` section:
 
@@ -336,4 +330,5 @@ I would love love love you to send me cool examples you've made, and I'm looking
 Cheers!
 
 Hayden
+
 [@HaydenLee37](https://twitter.com/haydenlee37)
