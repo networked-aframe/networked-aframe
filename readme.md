@@ -37,11 +37,16 @@ Features
 
 Getting Started
 ---------------
+
+Follow [this tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/Tutorial:%20Create%20your%20first%20Networked-Aframe%20experience.md) to get started.
+
+To get the examples running on your own PC run:
+
  ```sh
 git clone https://github.com/haydenjameslee/networked-aframe.git  # Clone the repository.
 cd networked-aframe
 npm install && npm run easyrtc-install  # Install dependencies.
-npm start  # Start the local development server.
+npm run dev  # Start the local development server.
 ```
 With the server running, browse the examples at `http://localhost:8080`. Open another browser tab and point it to the same URL to see the other client.
 
@@ -245,6 +250,7 @@ Stay in Touch
 Help and More Information
 ------------------------------
 
+* [Getting started tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/Tutorial:%20Create%20your%20first%20Networked-Aframe%20experience.md)
 * [Live demo site](http://haydenlee.io/networked-aframe)
 * [A-Frame](https://aframe.io/)
 * [WebVR](https://webvr.info/)
