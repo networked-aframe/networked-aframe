@@ -8,12 +8,15 @@ var easyrtc = require("easyrtc");               // EasyRTC external module
 // Set process name
 process.title = "node-easyrtc";
 
+// Get port or default to 8080
+var port = process.env.PORT || 8080;
+
 // Setup and configure Express http server. Expect a subfolder called "static" to be the web root.
 var app = express();
 app.use(serveStatic('server/static', {'index': ['index.html']}));
 
-// Start Express http server on port 8080
-var webServer = http.createServer(app).listen(8080);
+// Start Express http server
+var webServer = http.createServer(app).listen(port);
 
 // Start Socket.io so it attaches itself to Express server
 var socketServer = socketIo.listen(webServer, {"log level":1});
@@ -71,7 +74,7 @@ var rtc = easyrtc.listen(app, socketServer, null, function(err, rtcRef) {
     });
 });
 
-//listen on port 8080
-webServer.listen(8080, function () {
-    console.log('listening on http://localhost:8080');
+//listen on port
+webServer.listen(port, function () {
+    console.log('listening on http://localhost:' + port);
 });
