@@ -1,7 +1,9 @@
 # How to build your first multi-user virtual reality experience (on the web)
 
 
-Hello friends! This tutorial will show you how to write your very first multi-user virtual reality experience on the web. You might be thinking: wait you can do VR on the web?? And the answer is yes! Using the WebVR standard and an awesome library called A-Frame, VR on the web is actually really easy and evolving rapidly. Your second question is then: wait to do multi-user won't I have to know all about servers and complicated networking protocols?? To which I'll reply, not anymore! The recently released Networked-Aframe (NAF for short) has you covered. NAF hides away a lot of the networking complexity, allowing you to write multi-user VR apps with a few lines of HTML and Javascript.
+Hello friends! This tutorial will show you how to write your very first multi-user virtual reality experience on the web.
+
+You might be thinking: wait you can do VR on the web? And the answer is yes! Using the [WebVR standard](https://webvr.info/) and an awesome library called [A-Frame](https://aframe.io), VR on the web is actually really easy and evolving rapidly. Your second question is then: wait to do multi-user won't I have to know all about servers and complicated networking protocols? Answer, not anymore! The recently released [Networked-Aframe](https://github.com/haydenjameslee/networked-aframe) (NAF for short) has you covered. NAF hides away a lot of the networking complexity, allowing you to write multi-user VR apps with a few lines of HTML and Javascript.
 
 So, let's dive in:
 
