@@ -1,6 +1,6 @@
 {
   "name": "networked-aframe",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A web framework for building multi-user virtual reality experiences.",
   "homepage": "",
   "main": "dist/networked-aframe.js",
@@ -89,6 +89,8 @@
     "npm": "^4.0.5"
   },
   "babel": {
-    "presets": ["es2015"]
+    "presets": [
+      "es2015"
+    ]
   }
 }
