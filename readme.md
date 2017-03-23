@@ -38,7 +38,9 @@ Features
 Getting Started
 ---------------
 
-Follow [this tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/Tutorial:%20Create%20your%20first%20Networked-Aframe%20experience.md) to get started.
+Follow [this tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/Tutorial:%20Create%20your%20first%20Networked-Aframe%20experience.md) to build your own example.
+
+Edit online example with [glitch.com/~networked-aframe](https://glitch.com/~networked-aframe).
 
 To get the examples running on your own PC run:
 
@@ -251,6 +253,7 @@ Help and More Information
 ------------------------------
 
 * [Getting started tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/Tutorial:%20Create%20your%20first%20Networked-Aframe%20experience.md)
+* [Edit live example on glitch.com](https://glitch.com/~networked-aframe)
 * [Live demo site](http://haydenlee.io/networked-aframe)
 * [A-Frame](https://aframe.io/)
 * [WebVR](https://webvr.info/)
