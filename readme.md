@@ -113,7 +113,7 @@ Required on the A-Frame `<a-scene>` component.
   debug: false;
   onConnect: onConnect;
   connectOnLoad: true;
-  signallingUrl: /;
+  signalURL: /;
 ">
   ...
 </a-scene>
@@ -127,7 +127,7 @@ Required on the A-Frame `<a-scene>` component.
 | debug  | Turn on / off Networked-Aframe debug logs | false |
 | onConnect  | Function to be called when client has successfully connected to the server | onConnect |
 | connectOnLoad  | Connect to the server as soon as the webpage loads  | true |
-| signallingUrl  | Customize where the signalling server is located | / |
+| signalURL  | Choose where the WebRTC signaling server is located | / |
 
 
 ### Creating Network Entities
