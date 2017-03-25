@@ -101,13 +101,15 @@ suite('NetworkEntities', function() {
         var position = AFRAME.utils.coordinates.stringify(avatar.getAttribute('position'));
         var rotation = AFRAME.utils.coordinates.stringify(avatar.getAttribute('rotation'));
         var hasLerp = avatar.hasAttribute('lerp');
-        var hasFollowCamera = avatar.hasAttribute('follow-camera');
+        var hasFollowEntity = avatar.hasAttribute('follow-entity');
+        var followEntitySelector = avatar.getAttribute('follow-entity');
         var isVisible = avatar.getAttribute('visible');
         var template = avatar.getAttribute('template');
 
         assert.isFalse(isVisible);
         assert.isFalse(hasLerp);
-        assert.isTrue(hasFollowCamera);
+        assert.isTrue(hasFollowEntity);
+        assert.equal(followEntitySelector, '[camera]');
         assert.equal(template, 'src:' + setupTemplate);
         assert.equal(position, setupPosition);
         assert.equal(rotation, setupRotation);

@@ -2,10 +2,10 @@ var naf = require('../NafIndex');
 var WebRtcInterface = require('./WebRtcInterface');
 
 class EasyRtcInterface extends WebRtcInterface {
-  constructor(easyrtc, signallingUrl) {
+  constructor(easyrtc, signalURL) {
     super();
     this.easyrtc = easyrtc;
-    this.easyrtc.setSocketUrl(signallingUrl);
+    this.easyrtc.setSocketUrl(signalURL);
   }
 
   /*

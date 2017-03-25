@@ -23,7 +23,7 @@ class NetworkEntities {
   createAvatar(template, position, rotation) {
     var avatar = this.createNetworkEntity(template, position, rotation);
     avatar.setAttribute('visible', false);
-    avatar.setAttribute('follow-camera', '');
+    avatar.setAttribute('follow-entity', '[camera]');
     avatar.className += ' local-avatar';
     avatar.removeAttribute('lerp');
 

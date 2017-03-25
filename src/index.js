@@ -10,7 +10,7 @@ require('./components/network-scene');
 require('./components/network');
 
 // Other components
-require('./components/follow-camera');
+require('./components/follow-entity');
 require('./components/show-child');
 
 
