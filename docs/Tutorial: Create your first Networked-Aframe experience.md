@@ -58,7 +58,7 @@ Let's copy the example server that comes with networked-aframe into our project.
 cp -r ./node_modules/networked-aframe/server/ ./server/
 
 # Windows
-robocopy .\node_modules\networked-aframe\server\ .\tools\ /e
+robocopy .\node_modules\networked-aframe\server\ .\server\ /e
 ```
 
 You'll now see another new folder: `server/`. Inside it you'll see the `static` folder which contains the networked-aframe examples. You'll also see `server.js` which is the the server for managing the network connections and hosting the static files.
