@@ -817,6 +817,38 @@ suite('network', function() {
       assert.equal(visible, true);
     }));
 
+    test('sets correct uncompressed data with before child components exist', sinon.test(function() {
+      // Setup
+      var entityData = {
+        0: 0,
+        networkId: 'network2',
+        owner: 'owner1',
+        template: '',
+        components: {
+          position: { x: 10, y: 20, z: 30 },
+          rotation: { x: 40, y: 30, z: 20 },
+          scale: { x: 5, y: 12, z: 1 },
+          visible: false
+        }
+      };
+      var childComponent = {
+        selector: '.head',
+        component: 'visible'
+      };
+      netComp.data.components.push(childComponent);
+      var childKey = '.head'+naf.utils.delimiter+'visible';
+      entityData.components[childKey] = true;
+      while (entity.firstChild) { // Remove children
+        entity.removeChild(entity.firstChild);
+      }
+
+      // SUT
+      netComp.networkUpdate({ detail: { entityData: entityData } });
+
+      // Assert
+      // Just checking for error
+    }));
+
     test('sets correct compressed data', sinon.test(function() {
       var entityData = {
         0: 1,
