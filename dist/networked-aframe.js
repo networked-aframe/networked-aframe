@@ -1979,7 +1979,7 @@
 	    value: function createAvatar(template, position, rotation) {
 	      var avatar = this.createNetworkEntity(template, position, rotation);
 	      avatar.setAttribute('visible', false);
-	      avatar.setAttribute('follow-camera', '');
+	      avatar.setAttribute('follow-entity', '[camera]');
 	      avatar.className += ' local-avatar';
 	      avatar.removeAttribute('lerp');
 
@@ -2551,13 +2551,13 @@
 	var EasyRtcInterface = function (_WebRtcInterface) {
 	  _inherits(EasyRtcInterface, _WebRtcInterface);
 
-	  function EasyRtcInterface(easyrtc, signallingUrl) {
+	  function EasyRtcInterface(easyrtc, signalURL) {
 	    _classCallCheck(this, EasyRtcInterface);
 
 	    var _this = _possibleConstructorReturn(this, (EasyRtcInterface.__proto__ || Object.getPrototypeOf(EasyRtcInterface)).call(this));
 
 	    _this.easyrtc = easyrtc;
-	    _this.easyrtc.setSocketUrl(signallingUrl);
+	    _this.easyrtc.setSocketUrl(signalURL);
 	    return _this;
 	  }
 
@@ -2988,7 +2988,10 @@
 	        if (this.isChildSchemaKey(key)) {
 	          var schema = this.keyToChildSchema(key);
 	          var childEl = this.el.querySelector(schema.selector);
-	          childEl.setAttribute(schema.component, data);
+	          if (childEl) {
+	            // Is false when first called in init
+	            childEl.setAttribute(schema.component, data);
+	          }
 	        } else {
 	          this.el.setAttribute(key, data);
 	        }
@@ -3190,26 +3193,33 @@
 
 	'use strict';
 
-	AFRAME.registerComponent('follow-camera', {
-	  camera: {},
+	AFRAME.registerComponent('follow-entity', {
+	  schema: {
+	    type: 'string'
+	  },
+
+	  entityToFollow: {},
 
 	  init: function init() {
-	    this.findCamera();
+	    if (this.data === '') {
+	      console.error('follow-entity selector must not be empty the string');
+	    }
+	    this.findEntity();
 	  },
 
 	  tick: function tick() {
-	    if (this.camera) {
-	      var position = this.camera.getAttribute('position');
-	      var rotation = this.camera.getAttribute('rotation');
+	    if (this.entityToFollow) {
+	      var position = this.entityToFollow.getAttribute('position');
+	      var rotation = this.entityToFollow.getAttribute('rotation');
 	      this.el.setAttribute('position', position);
 	      this.el.setAttribute('rotation', rotation);
 	    } else {
-	      this.findCamera();
+	      this.findEntity();
 	    }
 	  },
 
-	  findCamera: function findCamera() {
-	    this.camera = document.querySelector('a-camera') || document.querySelector('[camera]');
+	  findEntity: function findEntity() {
+	    this.entityToFollow = document.querySelector(this.data);
 	  }
 	});
 
