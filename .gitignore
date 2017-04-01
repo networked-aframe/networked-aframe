@@ -46,9 +46,6 @@ jspm_packages
 # Yarn Integrity file
 .yarn-integrity
 
-# Build directory
-tmp
-
 # MacOS
 .DS_Store
 
@@ -57,6 +54,3 @@ errorShots
 
 # Temp build file
 server/static/build.js
-
-stderror.txt
-stdout.txt

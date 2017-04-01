@@ -4,7 +4,7 @@
 Networked-Aframe
 =======
 
-**Bringing Social VR to the Web**
+**Multi-user VR on the Web**
 
 Write full-featured Social VR experiences on the web, with minimal networking knowledge required.
 
@@ -271,7 +271,7 @@ Folder Structure
  * `/server/`
    * Server code
  * `/server/static/`
-   * Examples (basic.html & dance-party.html)
+   * Examples
  * `/src/`
    * Client source code
  * `/tests/`

@@ -3,16 +3,21 @@
     <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="easyrtc/easyrtc.js"></script>
-    <script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js"></script>
+    <script src="build.js"></script>
 
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
 
     <script>
-      var avatar;
-      var bulletSpeed = 3;
+      console.error('Networked-Aframe development example. `npm run build` creates build.js');
 
-      // Define custom schema for syncing avatar components
+      function randomPointOnCircle(radius, angleRad) {
+        x = Math.cos(angleRad)*radius;
+        y = Math.sin(angleRad)*radius;
+        return {x: x, y: y};
+      }
+
+      // Define custom schema for syncing avatar color, set by random-color
       var avatarSchema = {
         template: '#avatar-template',
         components: [
@@ -41,58 +46,14 @@
         var rotationStr = '0 ' + angleToCenter + ' 0';
 
         // Create avatar with this position and rotation
-        avatar = NAF.entities.createAvatar('#avatar-template', positionStr, rotationStr);
-
-        // Detect trigger pulled (spacebar)
-        document.body.onkeyup = function(e){
-          if(e.keyCode == 32){
-            shoot();
-          }
-        }
-      }
-
-      function shoot() {
-        var tip = avatar.querySelector('.gun-tip');
-        var position = tip.getAttribute('position');
-        var worldDirection = new THREE.Vector3();
-        tip.object3D.getWorldDirection(worldDirection);
-        worldDirection.multiplyScalar(-1);
-
-        var worldPos = new THREE.Vector3();
-        worldPos.setFromMatrixPosition(tip.object3D.matrixWorld);
-        var bullet = NAF.entities.createNetworkEntity('#bullet-template', worldPos, '0 0 0');
-
-        var moveForward = function() {
-          var currentPosition = bullet.getAttribute('position');
-          var newPosition = worldDirection
-                              .clone()
-                              .multiplyScalar(bulletSpeed)
-                              .add(currentPosition);
-          bullet.setAttribute('position', newPosition);
-        };
-
-        NAF.utils.whenEntityLoaded(bullet, function() {
-          var moveInterval = setInterval(moveForward, 100);
-
-          var removeBullet = function() {
-            clearInterval(moveInterval);
-            bullet.parentElement.removeChild(bullet);
-          };
-          setTimeout(removeBullet, 3000);
-        })
-      }
-
-      function randomPointOnCircle(radius, angleRad) {
-        x = Math.cos(angleRad)*radius;
-        y = Math.sin(angleRad)*radius;
-        return {x: x, y: y};
+        NAF.entities.createAvatar('#avatar-template', positionStr, rotationStr);
       }
     </script>
   </head>
   <body>
 
-    <a-scene shooter-input network-scene="
-      room: shooter;
+    <a-scene network-scene="
+      room: basic;
       debug: true;
       audio: false;
     ">
@@ -137,25 +98,7 @@
                 ></a-sphere>
               </a-sphere>
             </a-entity>
-            <a-entity class="gun">
-              <a-box
-                position="0.51 -0.13 -0.29"
-                scale="0.19 0.23 0.67"
-                color="#000"
-              ></a-box>
-              <a-entity class="gun-tip"
-                position="0.51 -0.10 -0.64"
-              ></a-entity>
-            </a-entity>
           </a-entity>
-        </script>
-
-        <!-- Bullet -->
-        <script id="bullet-template" type="text/html">
-          <a-sphere class="bullet"
-            scale="0.1 0.1 0.1"
-            color="#fff"
-          ></a-sphere>
         </script>
 
         <!-- /Templates -->
