@@ -53,4 +53,4 @@ jspm_packages
 errorShots
 
 # Temp build file
-server/static/build.js
+server/static/js/build.js

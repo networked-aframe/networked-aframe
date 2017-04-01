@@ -259,7 +259,7 @@ Things should be looking a little more Tron-like now.
 
 <img src="http://i.imgur.com/DVVIku1.png" width="500">
 
-At this point your example will be very close to the included `basic.html` example, so if you've run into any problems check out the [basic example source code](https://github.com/haydenjameslee/networked-aframe/blob/master/server/static/basic.html) for a working reference.
+At this point your example will be very close to the included `basic.html` example, so if you've run into any problems check out the basic example source code [html](https://github.com/haydenjameslee/networked-aframe/blob/master/server/static/basic.html) & [js](https://github.com/haydenjameslee/networked-aframe/blob/master/server/static/js/basic.js) for a working reference.
 
 ## Advanced Features
 
