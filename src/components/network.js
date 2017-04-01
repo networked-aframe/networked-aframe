@@ -288,7 +288,9 @@ AFRAME.registerComponent('network', {
         if (this.isChildSchemaKey(key)) {
           var schema = this.keyToChildSchema(key);
           var childEl = this.el.querySelector(schema.selector);
-          childEl.setAttribute(schema.component, data);
+          if (childEl) { // Is false when first called in init
+            childEl.setAttribute(schema.component, data);
+          }
         } else {
           this.el.setAttribute(key, data);
         }
