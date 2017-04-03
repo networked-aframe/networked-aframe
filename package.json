@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "browserify src/index.js -o server/static/js/build.js",
-    "easyrtc-install": "cd ./node_modules/easyrtc; npm install; cd ../../server; npm install; cd ../",
+    "easyrtc-install": "cd ./node_modules/easyrtc; npm install; cd ../../;",
     "easyrtc-start": "node ./server/server.js",
     "dev": "npm run watch & npm run easyrtc-start",
     "dist": "webpack --config webpack.config.js && webpack -p --config webpack.prod.config.js",
