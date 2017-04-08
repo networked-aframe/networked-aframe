@@ -4,6 +4,20 @@ class NetworkEntities {
     this.entities = {};
   }
 
+  createAvatar(template, position, rotation) {
+    var avatar = this.createNetworkEntity(template, position, rotation);
+    avatar.setAttribute('visible', false);
+    avatar.setAttribute('follow-entity', '[camera]');
+    avatar.className += ' local-avatar';
+    avatar.removeAttribute('lerp');
+
+    var camera = document.querySelector('[camera]');
+    camera.setAttribute('position', position);
+    camera.setAttribute('rotation', rotation);
+
+    return avatar;
+  }
+
   createNetworkEntity(template, position, rotation) {
     var networkId = this.createEntityId();
     NAF.log.write('Created network entity', networkId);
@@ -20,20 +34,6 @@ class NetworkEntities {
     return entity;
   }
 
-  createAvatar(template, position, rotation) {
-    var avatar = this.createNetworkEntity(template, position, rotation);
-    avatar.setAttribute('visible', false);
-    avatar.setAttribute('follow-entity', '[camera]');
-    avatar.className += ' local-avatar';
-    avatar.removeAttribute('lerp');
-
-    var camera = document.querySelector('[camera]');
-    camera.setAttribute('position', position);
-    camera.setAttribute('rotation', rotation);
-
-    return avatar;
-  }
-
   createLocalEntity(entityData) {
     var entity = document.createElement('a-entity');
     entity.setAttribute('id', 'naf-' + entityData.networkId);
@@ -47,7 +47,7 @@ class NetworkEntities {
     var components = this.getComponents(template);
     this.initPosition(entity, entityData.components);
     this.initRotation(entity, entityData.components);
-    this.setNetworkData(entity, entityData, components);
+    this.addNetworkComponent(entity, entityData, components);
 
     entity.initNafData = entityData;
 
@@ -91,7 +91,7 @@ class NetworkEntities {
     }
   }
 
-  setNetworkData(entity, entityData, components) {
+  addNetworkComponent(entity, entityData, components) {
     var networkData = {
       owner: entityData.owner,
       networkId: entityData.networkId,

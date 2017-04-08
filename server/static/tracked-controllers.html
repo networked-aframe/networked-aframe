@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Tracked Controls - Networked A-Frame</title>
+    <meta name="description" content="Tracked Controls – Networked A-Frame">
+
+    <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene>
+      <a-assets>
+        <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
+        <img id="sky" src="https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+      </a-assets>
+
+      <a-entity id="player" wasd-controls>
+        <a-entity id="head" camera look-controls></a-entity>
+
+        <a-entity hand-controls="left"></a-entity>
+        <a-entity hand-controls="right"></a-entity>
+      </a-entity>
+
+      <a-entity id="environment" position="0 0 -0.5">
+
+        <a-sky src="#sky" rotation="0 -90 0"></a-sky>
+        <a-entity position="0 0 0"
+            geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
+            material="src: #grid; repeat: 10000 10000; transparent: true; metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;"></a-entity>
+
+        <a-entity light="type: point; color: #f4f4f4; intensity: 0.2; distance: 0" position="8 10 18"></a-entity>
+        <a-entity light="type: point; color: #f4f4f4; intensity: 0.6; distance: 0" position="-8 10 -18"></a-entity>
+        <a-entity light="type: ambient; color: #f4f4f4; intensity: 0.4;" position="-8 10 -18"></a-entity>
+      </a-entity>
+    </a-scene>
+  </body>
+</html>

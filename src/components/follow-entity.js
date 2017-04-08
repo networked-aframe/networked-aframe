@@ -5,10 +5,7 @@ AFRAME.registerComponent('follow-entity', {
 
   entityToFollow: {},
 
-  init: function() {
-    if (this.data === '') {
-      console.error('follow-entity selector must not be empty the string');
-    }
+  update: function() {
     this.findEntity();
   },
 
@@ -24,6 +21,10 @@ AFRAME.registerComponent('follow-entity', {
   },
 
   findEntity: function() {
+    if (this.data === '') {
+      console.error('follow-entity selector must not be empty the string');
+      return;
+    }
     this.entityToFollow = document.querySelector(this.data);
   }
 });

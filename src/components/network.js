@@ -9,7 +9,7 @@ AFRAME.registerComponent('network', {
   },
 
   init: function() {
-    this.nextSyncTime = naf.utils.now() + 100000; // Gets properly set by first syncAll
+    this.nextSyncTime = naf.utils.now() + 100000; // Is properly set by first syncAll
     this.cachedData = {};
 
     if (this.el.initNafData) {
@@ -272,10 +272,8 @@ AFRAME.registerComponent('network', {
       entityData = this.decompressSyncData(entityData);
     }
 
-    var el = this.el;
-
     if (entityData.template != '') {
-      el.setAttribute('template', 'src:' + entityData.template);
+      this.el.setAttribute('template', 'src:' + entityData.template);
     }
 
     this.updateComponents(entityData.components);

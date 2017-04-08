@@ -6,14 +6,14 @@
 
     <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
-    <script src="easyrtc/easyrtc.js"></script>
-    <script src="js/build.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
+    <script src="build.js"></script>
 
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
 
     <script>
-      console.error('Networked-Aframe development example. `npm run build` creates build.js');
+      console.warn('Networked-Aframe development example. `npm run build` creates build.js');
 
       function randomPointOnCircle(radius, angleRad) {
         x = Math.cos(angleRad)*radius;
@@ -50,7 +50,11 @@
         var rotationStr = '0 ' + angleToCenter + ' 0';
 
         // Create avatar with this position and rotation
-        NAF.entities.createAvatar('#avatar-template', positionStr, rotationStr);
+        var avatar = NAF.entities.createAvatar('#avatar-template', positionStr, rotationStr);
+
+        setTimeout(function() {
+          avatar.emit('renderTemplate');
+        },2000);
       }
     </script>
   </head>

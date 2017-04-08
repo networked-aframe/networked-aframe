@@ -10,7 +10,7 @@
     "url": "https://github.com/haydenjameslee/networked-aframe/issues"
   },
   "scripts": {
-    "build": "browserify src/index.js -o server/static/js/build.js",
+    "build": "browserify src/index.js -o server/static/dev/build.js",
     "easyrtc-install": "cd ./node_modules/easyrtc; npm install; cd ../../;",
     "easyrtc-start": "node ./server/server.js",
     "dev": "npm run watch & npm run easyrtc-start",
@@ -23,14 +23,14 @@
     "test": "karma start ./tests/unit/karma.conf.js",
     "test:firefox": "karma start ./tests/unit/karma.conf.js --browsers Firefox",
     "test:chrome": "karma start ./tests/unit/karma.conf.js --browsers Chrome",
-    "watch": "watchify src/index.js -o server/static/js/build.js -v"
+    "watch": "watchify src/index.js -o server/static/dev/build.js -v"
   },
   "repository": "haydenjameslee/networked-aframe",
   "dependencies": {
     "easyrtc": "1.1.0",
     "express": "^4.10.7",
     "aframe-lerp-component": "^1.0.1",
-    "aframe-template-component": "3.1.2",
+    "aframe-template-component": "3.2.1",
     "serve-static": "^1.8.0",
     "socket.io": "^1.4.5",
     "socket.io-client": "^1.4.5"
