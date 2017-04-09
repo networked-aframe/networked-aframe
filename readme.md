@@ -281,10 +281,12 @@ Folder Structure
 Roadmap
 -------
 
+* Aframe component for defining networked-entities
+* HTC Vive and Oculus Touch support
 * Master client concept
-* Scene entities that can be defined in the HTML
 * Positional audio
-* Support physics libraries
+* Semi-persistent entities
+* Networked physics support
 
 Interested in contributing? [Shoot me a message](https://twitter.com/haydenlee37) or send a pull request.
 
