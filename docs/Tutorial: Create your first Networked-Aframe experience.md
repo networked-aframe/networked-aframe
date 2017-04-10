@@ -61,12 +61,16 @@ cp -r ./node_modules/networked-aframe/server/ ./server/
 robocopy .\node_modules\networked-aframe\server\ .\server\ /e
 ```
 
-You'll now see another new folder: `server/`. Inside it you'll see the `static` folder which contains the networked-aframe examples. You'll also see `server.js` which is the the server for managing the network connections and hosting the static files.
+You'll now see another new folder: `server/`  (`tools\` if using Windows). Inside it you'll see the `static` folder which contains the networked-aframe examples. You'll also see `server.js` which is the the server for managing the network connections and hosting the static files.
 
 Let's run the server and start playing with the examples. From your project's root run:
 
 ```sh
+# MacOS
 node ./server/server.js
+
+# Windows
+node .\tools\server.js
 ```
 
 You'll notice the `package.json` also has a shortcut to start the server that you can use by running:
