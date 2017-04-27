@@ -4,6 +4,10 @@ class NetworkEntities {
     this.entities = {};
   }
 
+  registerLocalEntity(networkId, entity) {
+    this.entities[networkId] = entity;
+  }
+
   createAvatar(template, position, rotation) {
     var avatar = this.createNetworkEntity(template, position, rotation);
     avatar.setAttribute('visible', false);
