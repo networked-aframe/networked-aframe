@@ -17,7 +17,8 @@ var karma_conf = {
   ],
   files: [
     // Define test files.
-    {pattern: './tests/unit/**/*.test.js'},
+    // {pattern: './tests/unit/**/*.test.js'},
+    {pattern: './tests/unit/**/networked-remote.test.js'},
     {pattern: './src/**/*.js', included: false}
     // Serve test assets.
     // {pattern: 'tests/assets/**/*', included: false, served: true}

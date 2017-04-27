@@ -104,12 +104,12 @@ suite('networked', function() {
     }));
   });
 
-  suite('bindSyncEvents', function() {
+  suite('bindEvents', function() {
 
     test('binds sync and sync all', sinon.test(function() {
       this.spy(entity, 'addEventListener');
 
-      networked.bindSyncEvents();
+      networked.bindEvents();
 
       assert.isTrue(entity.addEventListener.calledWith('sync'), 'sync');
       assert.isTrue(entity.addEventListener.calledWith('syncAll'), 'syncAll');
@@ -117,12 +117,12 @@ suite('networked', function() {
     }));
   });
 
-  suite('unbindSyncEvents', function() {
+  suite('unbindEvents', function() {
 
     test('unbinds sync and syncAll', sinon.test(function() {
       this.spy(entity, 'removeEventListener');
 
-      networked.unbindSyncEvents();
+      networked.unbindEvents();
 
       assert.isTrue(entity.removeEventListener.calledWith('sync'), 'sync');
       assert.isTrue(entity.removeEventListener.calledWith('syncAll'), 'syncAll');

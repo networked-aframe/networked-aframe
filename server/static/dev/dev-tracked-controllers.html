@@ -30,12 +30,7 @@
 
       // Called by Networked-Aframe when connected to server
       function onConnect () {
-        var positionStr = '0 1.3 0';
 
-        // Create avatar with this position and rotation
-        var camera = document.querySelector('[camera]');
-        var player = NAF.entities.createNetworkEntity('#player-template', '0 0 0', '0 0 0');
-        var head = NAF.entities.createAvatar('#head-template', positionStr, '0 0 0');
       }
     </script>
   </head>
@@ -97,7 +92,7 @@
         </script>
       </a-assets>
 
-      <a-entity id="player" wasd-controls>
+      <a-entity networked="template:#player-template;showLocalTemplate:false;" id="player" wasd-controls>
         <a-entity id="head" camera look-controls></a-entity>
 
         <a-entity hand-controls="left"></a-entity>

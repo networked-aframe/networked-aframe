@@ -5,45 +5,46 @@ class NetworkEntities {
   }
 
   registerLocalEntity(networkId, entity) {
+    console.log("Registering local entity: ", networkId, entity);
     this.entities[networkId] = entity;
   }
 
-  createAvatar(template, position, rotation) {
-    var avatar = this.createNetworkEntity(template, position, rotation);
-    avatar.setAttribute('visible', false);
-    avatar.setAttribute('follow-entity', '[camera]');
-    avatar.className += ' local-avatar';
-    avatar.removeAttribute('lerp');
+  // createAvatar(template, position, rotation) {
+  //   var avatar = this.createNetworkEntity(template, position, rotation);
+  //   avatar.setAttribute('visible', false);
+  //   avatar.setAttribute('follow-entity', '[camera]');
+  //   avatar.className += ' local-avatar';
+  //   avatar.removeAttribute('lerp');
 
-    var camera = document.querySelector('[camera]');
-    camera.setAttribute('position', position);
-    camera.setAttribute('rotation', rotation);
+  //   var camera = document.querySelector('[camera]');
+  //   camera.setAttribute('position', position);
+  //   camera.setAttribute('rotation', rotation);
 
-    return avatar;
-  }
+  //   return avatar;
+  // }
 
-  createNetworkEntity(template, position, rotation) {
-    var networkId = this.createEntityId();
-    NAF.log.write('Created network entity', networkId);
-    var entityData = {
-      networkId: networkId,
-      owner: NAF.clientId,
-      template: template,
-      components: {
-        position: position,
-        rotation: rotation
-      }
-    };
-    var entity = this.createLocalEntity(entityData);
-    return entity;
-  }
+  // createNetworkEntity(template, position, rotation) {
+  //   var networkId = this.createEntityId();
+  //   NAF.log.write('Created network entity', networkId);
+  //   var entityData = {
+  //     networkId: networkId,
+  //     owner: NAF.clientId,
+  //     template: template,
+  //     components: {
+  //       position: position,
+  //       rotation: rotation
+  //     }
+  //   };
+  //   var entity = this.createLocalEntity(entityData);
+  //   return entity;
+  // }
 
-  createLocalEntity(entityData) {
+  createRemoteEntity(entityData) {
     var entity = document.createElement('a-entity');
-    entity.setAttribute('id', 'naf-' + entityData.networkId);
-    if (NAF.options.useLerp) {
-      entity.setAttribute('lerp', '');
-    }
+    // entity.setAttribute('id', 'naf-' + entityData.networkId);
+    // if (NAF.options.useLerp) {
+    //   entity.setAttribute('lerp', '');
+    // }
 
     var template = entityData.template;
     this.setTemplate(entity, template);
@@ -53,7 +54,7 @@ class NetworkEntities {
     this.initRotation(entity, entityData.components);
     this.addNetworkComponent(entity, entityData, components);
 
-    entity.initNafData = entityData;
+    entity.firstUpdateData = entityData;
 
     var scene = document.querySelector('a-scene');
     scene.appendChild(entity);
@@ -62,14 +63,14 @@ class NetworkEntities {
     return entity;
   }
 
-  setTemplate(entity, template) {
-    var templateEl = document.querySelector(template);
-    if (templateEl) {
-      entity.setAttribute('template', 'src:' + template);
-    } else {
-      NAF.log.error('NetworkEntities@createLocalEntity: Template not found: ' + template);
-    }
-  }
+  // setTemplate(entity, template) {
+  //   var templateEl = document.querySelector(template);
+  //   if (templateEl) {
+  //     entity.setAttribute('template', 'src:' + template);
+  //   } else {
+  //     NAF.log.error('NetworkEntities@createLocalEntity: Template not found: ' + template);
+  //   }
+  // }
 
   getComponents(template) {
     var components = ['position', 'rotation'];
@@ -97,11 +98,12 @@ class NetworkEntities {
 
   addNetworkComponent(entity, entityData, components) {
     var networkData = {
+      template: entityData.template,
       owner: entityData.owner,
       networkId: entityData.networkId,
       components: components
     };
-    entity.setAttribute('network', networkData);
+    entity.setAttribute('networked-remote', networkData);
   }
 
   updateEntity(client, dataType, entityData) {
@@ -112,7 +114,7 @@ class NetworkEntities {
       this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
     } else if (!isCompressed) {
       NAF.log.write('Creating remote entity', entityData);
-      this.createLocalEntity(entityData);
+      this.createRemoteEntity(entityData);
     }
   }
 

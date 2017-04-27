@@ -37,24 +37,24 @@
 
       // Called by Networked-Aframe when connected to server
       function onConnect () {
-        // Get random angle
-        var angleRad = Math.random()*Math.PI*2;
+        // // Get random angle
+        // var angleRad = Math.random()*Math.PI*2;
 
-        // Get position around a circle
-        var position = randomPointOnCircle(3, angleRad);
-        var positionStr = position.x + ' 1.3 ' + position.y;
+        // // Get position around a circle
+        // var position = randomPointOnCircle(3, angleRad);
+        // var positionStr = position.x + ' 1.3 ' + position.y;
 
-        // Get rotation towards center of circle
-        var angleDeg = angleRad * 180 / Math.PI;
-        var angleToCenter = -1 * angleDeg + 90;
-        var rotationStr = '0 ' + angleToCenter + ' 0';
+        // // Get rotation towards center of circle
+        // var angleDeg = angleRad * 180 / Math.PI;
+        // var angleToCenter = -1 * angleDeg + 90;
+        // var rotationStr = '0 ' + angleToCenter + ' 0';
 
-        // Create avatar with this position and rotation
-        var avatar = NAF.entities.createAvatar('#avatar-template', positionStr, rotationStr);
+        // // Create avatar with this position and rotation
+        // var avatar = NAF.entities.createAvatar('#avatar-template', positionStr, rotationStr);
 
-        setTimeout(function() {
-          avatar.emit('renderTemplate');
-        },2000);
+        // setTimeout(function() {
+        //   avatar.emit('renderTemplate');
+        // },2000);
       }
     </script>
   </head>
@@ -109,10 +109,16 @@
           </a-entity>
         </script>
 
+        <script id="simple" type="text/html">
+          <a-sphere></a-sphere>
+        </script>
+
         <!-- /Templates -->
       </a-assets>
 
-      <a-camera></a-camera>
+      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" position="0 1 0" wasd-controls look-controls>
+        <a-entity camera></a-entity>
+      </a-entity>
 
       <a-entity position="0 0 0"
         geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"

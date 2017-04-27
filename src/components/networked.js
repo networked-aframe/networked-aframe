@@ -9,6 +9,7 @@ AFRAME.registerComponent('networked', {
   },
 
   init: function() {
+    this.cachedData = {};
     this.initSyncTime();
     this.createNetworkId();
     this.setOwner();
@@ -41,27 +42,26 @@ AFRAME.registerComponent('networked', {
     var that = this;
     var callback = function() {
       if (that.el.firstChild) {
-        // TODO account for if entity has another child before template
-        that.el.firstChild.setAttribute('visible', show);
+        that.el.lastElementChild.setAttribute('visible', show);
       }
     };
     setTimeout(callback, 50);
   },
 
   play: function() {
-    this.bindSyncEvents();
+    this.bindEvents();
   },
 
-  bindSyncEvents: function() {
+  bindEvents: function() {
     this.el.addEventListener('sync', this.syncDirty.bind(this));
     this.el.addEventListener('syncAll', this.syncAll.bind(this));
   },
 
   pause: function() {
-    this.unbindSyncEvents();
+    this.unbindEvents();
   },
 
-  unbindSyncEvents: function() {
+  unbindEvents: function() {
     this.el.removeEventListener('sync', this.syncDirty.bind(this));
     this.el.removeEventListener('syncAll', this.syncAll.bind(this));
   },
