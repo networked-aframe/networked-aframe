@@ -5,28 +5,32 @@ AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
     showLocalTemplate: {default: true},
-    components: {default:['position', 'rotation']}
   },
 
   init: function() {
     this.cachedData = {};
+    this.initNetworkId();
     this.initSyncTime();
-    this.createNetworkId();
-    this.setOwner();
     this.registerEntity(this.networkId);
     this.attachTemplate(this.data.template);
     this.showTemplate(this.data.showLocalTemplate);
+
+    document.body.addEventListener('loggedIn', this.onLoggedIn.bind(this), false);
   },
 
   initSyncTime: function() {
     this.nextSyncTime = naf.utils.now() + 100000; // Is properly set by first syncAll
   },
 
-  createNetworkId: function() {
-    this.networkId = naf.entities.createEntityId();
+  initNetworkId: function() {
+    this.networkId = this.createNetworkId();
   },
 
-  setOwner: function() {
+  createNetworkId: function() {
+    return Math.random().toString(36).substring(2, 9);
+  },
+
+  onLoggedIn: function() {
     this.owner = naf.clientId;
   },
 
@@ -66,9 +70,16 @@ AFRAME.registerComponent('networked', {
     this.el.removeEventListener('syncAll', this.syncAll.bind(this));
   },
 
+  tick: function() {
+    if (this.needsToSync()) {
+      this.syncDirty();
+    }
+  },
+
   syncAll: function() {
     this.updateNextSyncTime();
-    var components = this.getComponentsData(this.data.components);
+    var allSyncedComponents = this.getAllSyncedComponents();
+    var components = this.getComponentsData(allSyncedComponents);
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
     this.updateCache(components);
@@ -87,6 +98,10 @@ AFRAME.registerComponent('networked', {
     }
     naf.connection.broadcastData('u', syncData);
     this.updateCache(components);
+  },
+
+  needsToSync: function() {
+    return naf.utils.now() >= this.nextSyncTime;
   },
 
   updateNextSyncTime: function() {
@@ -125,7 +140,7 @@ AFRAME.registerComponent('networked', {
 
   getDirtyComponents: function() {
     var newComps = this.el.components;
-    var syncedComps = this.data.components;
+    var syncedComps = this.getAllSyncedComponents();
     var dirtyComps = [];
 
     for (var i in syncedComps) {
@@ -162,6 +177,10 @@ AFRAME.registerComponent('networked', {
 
   hasTemplate: function() {
     return this.el.components.hasOwnProperty('template');
+  },
+
+  getAllSyncedComponents() {
+    return naf.schemas.getComponents(this.data.template);
   },
 
   /**
@@ -213,5 +232,16 @@ AFRAME.registerComponent('networked', {
     for (var name in components) {
       this.cachedData[name] = components[name];
     }
-  }
+  },
+
+  remove: function () {
+    var data = { networkId: this.networkId };
+    naf.connection.broadcastData('r', data);
+  },
+
+  /* Static schema calls */
+
+  childSchemaToKey: function(childSchema) {
+    return childSchema.selector + naf.utils.delimiter + childSchema.component;
+  },
 });

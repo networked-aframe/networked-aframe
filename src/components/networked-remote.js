@@ -24,7 +24,7 @@ AFRAME.registerComponent('networked-remote', {
 
   attachLerp: function() {
     if (naf.options.useLerp) {
-      this.el.setAttribute('lerp');
+      this.el.setAttribute('lerp', '');
     }
   },
 
@@ -135,20 +135,16 @@ AFRAME.registerComponent('networked-remote', {
     return decompressed;
   },
 
-  childSchemaToKey: function(childSchema) {
-    return childSchema.selector + naf.utils.delimiter + childSchema.component;
-  },
-
   isSyncableComponent: function(key) {
     if (this.isChildSchemaKey(key)) {
       var schema = this.keyToChildSchema(key);
-      return this.hasChildSchema(schema);
+      return this.hasThisChildSchema(schema);
     } else {
       return this.data.components.indexOf(key) != -1;
     }
   },
 
-  hasChildSchema: function(schema) {
+  hasThisChildSchema: function(schema) {
     var schemaComponents = this.data.components;
     for (var i in schemaComponents) {
       var localChildSchema = schemaComponents[i];
@@ -157,6 +153,12 @@ AFRAME.registerComponent('networked-remote', {
       }
     }
     return false;
+  },
+
+  /* Static schema calls */
+
+  childSchemaToKey: function(childSchema) {
+    return childSchema.selector + naf.utils.delimiter + childSchema.component;
   },
 
   isChildSchemaKey: function(key) {

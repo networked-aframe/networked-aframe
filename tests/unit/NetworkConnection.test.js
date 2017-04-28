@@ -2,6 +2,7 @@
 var NetworkConnection = require('../../src/NetworkConnection');
 var WebRtcInterface = require('../../src/webrtc_interfaces/WebRtcInterface');
 var NetworkEntities = require('../../src/NetworkEntities');
+var naf = require('../../src/NafIndex');
 
 suite('NetworkConnection', function() {
   var connection;

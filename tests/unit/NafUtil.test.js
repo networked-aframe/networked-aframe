@@ -66,7 +66,7 @@ suite('NafUtil', function() {
       var owner = 'test';
       var entity = {
         components: {
-          'network' : { data: { owner: owner}}
+          'networked-remote' : { data: { owner: owner}}
         }
       };
 

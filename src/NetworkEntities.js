@@ -5,79 +5,25 @@ class NetworkEntities {
   }
 
   registerLocalEntity(networkId, entity) {
-    console.log("Registering local entity: ", networkId, entity);
     this.entities[networkId] = entity;
   }
 
-  // createAvatar(template, position, rotation) {
-  //   var avatar = this.createNetworkEntity(template, position, rotation);
-  //   avatar.setAttribute('visible', false);
-  //   avatar.setAttribute('follow-entity', '[camera]');
-  //   avatar.className += ' local-avatar';
-  //   avatar.removeAttribute('lerp');
-
-  //   var camera = document.querySelector('[camera]');
-  //   camera.setAttribute('position', position);
-  //   camera.setAttribute('rotation', rotation);
-
-  //   return avatar;
-  // }
-
-  // createNetworkEntity(template, position, rotation) {
-  //   var networkId = this.createEntityId();
-  //   NAF.log.write('Created network entity', networkId);
-  //   var entityData = {
-  //     networkId: networkId,
-  //     owner: NAF.clientId,
-  //     template: template,
-  //     components: {
-  //       position: position,
-  //       rotation: rotation
-  //     }
-  //   };
-  //   var entity = this.createLocalEntity(entityData);
-  //   return entity;
-  // }
-
   createRemoteEntity(entityData) {
+    NAF.log.write('Creating remote entity', entityData);
+
     var entity = document.createElement('a-entity');
-    // entity.setAttribute('id', 'naf-' + entityData.networkId);
-    // if (NAF.options.useLerp) {
-    //   entity.setAttribute('lerp', '');
-    // }
 
     var template = entityData.template;
-    this.setTemplate(entity, template);
-
-    var components = this.getComponents(template);
+    var components = NAF.schemas.getComponents(template);
     this.initPosition(entity, entityData.components);
     this.initRotation(entity, entityData.components);
     this.addNetworkComponent(entity, entityData, components);
-
-    entity.firstUpdateData = entityData;
 
     var scene = document.querySelector('a-scene');
     scene.appendChild(entity);
     this.entities[entityData.networkId] = entity;
 
     return entity;
-  }
-
-  // setTemplate(entity, template) {
-  //   var templateEl = document.querySelector(template);
-  //   if (templateEl) {
-  //     entity.setAttribute('template', 'src:' + template);
-  //   } else {
-  //     NAF.log.error('NetworkEntities@createLocalEntity: Template not found: ' + template);
-  //   }
-  // }
-
-  getComponents(template) {
-    var components = ['position', 'rotation'];
-    if (NAF.schemas.hasTemplate(template)) {
-      components = NAF.schemas.getComponents(template);
-    }
-    return components;
   }
 
   initPosition(entity, componentData) {
@@ -104,6 +50,7 @@ class NetworkEntities {
       components: components
     };
     entity.setAttribute('networked-remote', networkData);
+    entity.firstUpdateData = entityData;
   }
 
   updateEntity(client, dataType, entityData) {
@@ -113,7 +60,6 @@ class NetworkEntities {
     if (this.hasEntity(networkId)) {
       this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
     } else if (!isCompressed) {
-      NAF.log.write('Creating remote entity', entityData);
       this.createRemoteEntity(entityData);
     }
   }
@@ -131,17 +77,6 @@ class NetworkEntities {
     return this.removeEntity(id);
   }
 
-  removeEntity(id) {
-    if (this.hasEntity(id)) {
-      var entity = this.entities[id];
-      delete this.entities[id];
-      entity.parentNode.removeChild(entity);
-      return entity;
-    } else {
-      return null;
-    }
-  }
-
   removeEntitiesFromUser(user) {
     var entityList = [];
     for (var id in this.entities) {
@@ -154,6 +89,17 @@ class NetworkEntities {
     return entityList;
   }
 
+  removeEntity(id) {
+    if (this.hasEntity(id)) {
+      var entity = this.entities[id];
+      delete this.entities[id];
+      entity.parentNode.removeChild(entity);
+      return entity;
+    } else {
+      return null;
+    }
+  }
+
   getEntity(id) {
     if (this.entities.hasOwnProperty(id)) {
       return this.entities[id];
@@ -163,10 +109,6 @@ class NetworkEntities {
 
   hasEntity(id) {
     return this.entities.hasOwnProperty(id);
-  }
-
-  createEntityId() {
-    return Math.random().toString(36).substring(2, 9);
   }
 }
 

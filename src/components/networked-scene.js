@@ -2,7 +2,7 @@ var naf = require('../NafIndex');
 
 var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface');
 
-AFRAME.registerComponent('network-scene', {
+AFRAME.registerComponent('networked-scene', {
   schema: {
     app: {default: 'default'},
     room: {default: 'default'},

@@ -18,12 +18,11 @@ class Schemas {
   }
 
   getComponents(template) {
+    var components = ['position', 'rotation'];
     if (this.hasTemplate(template)) {
-      return this.dict[template].components;
-    } else {
-      NAF.log.error('Schema with template '+template+' has not been added to naf.schemas yet');
-      return null;
+      components = this.dict[template].components;
     }
+    return components;
   }
 
   validate(schema) {

@@ -51,19 +51,19 @@ suite('networked', function() {
     }));
 
     test('sets networkId', sinon.test(function() {
-      var expected = 'nid1';
-      this.stub(naf.entities, 'createEntityId').returns(expected);
+      this.stub(networked, 'createNetworkId').returns('nid1');
 
       networked.init();
       var result = networked.networkId;
 
-      assert.equal(result, expected);
+      assert.equal(result, 'nid1');
     }));
 
     test('sets owner', sinon.test(function() {
       naf.clientId = 'owner1';
 
       networked.init();
+      document.body.dispatchEvent(new Event('loggedIn'));
       var result = networked.owner;
 
       assert.equal(result, 'owner1');
@@ -71,7 +71,7 @@ suite('networked', function() {
 
     test('registers entity', sinon.test(function() {
       var networkId = 'nid2';
-      this.stub(naf.entities, 'createEntityId').returns(networkId);
+      this.stub(networked, 'createNetworkId').returns(networkId);
       var stub = this.stub(naf.entities, 'registerLocalEntity');
 
       networked.init();
@@ -130,10 +130,54 @@ suite('networked', function() {
     }));
   });
 
+  suite('createNetworkId', function() {
+
+    test('length', function() {
+      var id = networked.createNetworkId();
+      assert.equal(id.length, 7);
+    });
+
+    test('object type', function() {
+      var id = networked.createNetworkId();
+      assert.isString(id)
+    });
+
+    test('alphanumeric', function () {
+      var regex = /^[a-z0-9]+$/i;
+
+      var id = networked.createNetworkId();
+
+      assert.match(id, regex);
+    });
+  });
+
+  suite('tick', function() {
+
+    test('syncs if need to', sinon.test(function() {
+      this.stub(naf.utils, 'now').returns(4);
+      this.stub(networked, 'syncDirty');
+      networked.nextSyncTime = 4;
+
+      networked.tick();
+
+      assert.isTrue(networked.syncDirty.calledOnce);
+    }));
+
+    test('does not sync if does not need to', sinon.test(function() {
+      this.stub(naf.utils, 'now').returns(3.9);
+      this.stub(networked, 'syncDirty');
+      networked.nextSyncTime = 4;
+
+      networked.tick();
+
+      assert.isFalse(networked.syncDirty.calledOnce);
+    }));
+  });
+
   suite('syncAll', function() {
 
     test('broadcasts uncompressed data', sinon.test(function() {
-      this.stub(naf.entities, 'createEntityId').returns('network1');
+      this.stub(networked, 'createNetworkId').returns('network1');
       naf.connection.broadcastDataGuaranteed = this.stub();
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
@@ -153,20 +197,12 @@ suite('networked', function() {
       };
 
       networked.init();
+      document.body.dispatchEvent(new Event('loggedIn'));
       networked.syncAll();
 
       var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('u', entityData);
       assert.isTrue(called);
     }));
-
-    // test('sets next sync time', sinon.test(function() {
-    //   naf.connection.broadcastDataGuaranteed = this.stub();
-    //   this.spy(networked, 'updateNextSyncTime');
-
-    //   networked.syncAll();
-
-    //   assert.isTrue(networked.updateNextSyncTime.calledOnce);
-    // }));
 
     test('updates cache', sinon.test(function() {
       var oldData = {
@@ -180,6 +216,15 @@ suite('networked', function() {
       networked.syncAll();
 
       assert.isTrue(networked.updateCache.calledOnce);
+    }));
+
+    test('sets next sync time', sinon.test(function() {
+      naf.connection.broadcastDataGuaranteed = this.stub();
+      this.spy(networked, 'updateNextSyncTime');
+
+      networked.syncAll();
+
+      assert.isTrue(networked.updateNextSyncTime.calledOnce);
     }));
   });
 });
