@@ -22,9 +22,6 @@ class NetworkEntities {
     this.initPosition(entity, entityData.components);
     this.initRotation(entity, entityData.components);
     this.addNetworkComponent(entity, entityData, components);
-
-    var scene = document.querySelector('a-scene');
-    scene.appendChild(entity);
     this.entities[entityData.networkId] = entity;
 
     return entity;
@@ -76,16 +73,23 @@ class NetworkEntities {
     if (parentNotCreatedYet) {
       this.childCache.addChild(parent, entityData);
     } else {
-      this.createRemoteEntity(entityData);
-      this.createChildrenOfEntity(networkId);
+      var remoteEntity = this.createRemoteEntity(entityData);
+      this.createAndAppendChildren(networkId, remoteEntity);
+      this.addEntityToScene(remoteEntity);
     }
   }
 
-  createChildrenOfEntity(networkId) {
+  createAndAppendChildren(networkId, parentEntity) {
     var children = this.childCache.getChildren(networkId);
     for (var i = 0; i < children.length; i++) {
-      this.createRemoteEntity(children[i]);
+      var childEntity = this.createRemoteEntity(children[i]);
+      parentEntity.appendChild(childEntity);
     }
+  }
+
+  addEntityToScene(entity) {
+    var scene = document.querySelector('a-scene');
+    scene.appendChild(entity);
   }
 
   completeSync() {

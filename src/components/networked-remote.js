@@ -10,11 +10,27 @@ AFRAME.registerComponent('networked-remote', {
   },
 
   init: function() {
+    this.confirmComponentIntegrity();
+
     this.attachTemplate(this.data.template);
     this.attachLerp();
 
     if (this.el.firstUpdateData) {
       this.firstUpdate();
+    }
+  },
+
+  confirmComponentIntegrity: function() {
+    var data = this.data;
+
+    if (data.template === '') {
+      NAF.log.error('Networked-remote does not have template');
+    }
+    if (data.networkId === '') {
+      NAF.log.error('Networked-remote does not have networkId');
+    }
+    if (data.owner === '') {
+      NAF.log.error('Networked-remote does not have owner');
     }
   },
 
@@ -58,7 +74,7 @@ AFRAME.registerComponent('networked-remote', {
     var that = this;
     var callback = function() {
       var entityData = that.el.firstUpdateData;
-      that.networkUpdate(entityData);
+      that.attachToParent(entityData.parent);
     };
     setTimeout(callback, 50);
   },
