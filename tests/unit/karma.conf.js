@@ -23,9 +23,11 @@ var karma_conf = {
     {pattern: './tests/unit/NafUtil.test.js'},
     {pattern: './tests/unit/NetworkConnection.test.js'},
     {pattern: './tests/unit/networked.test.js'},
+    {pattern: './tests/unit/networked_WithParent.test.js'},
     {pattern: './tests/unit/networked-remote.test.js'},
     {pattern: './tests/unit/NetworkEntities.test.js'},
     {pattern: './tests/unit/Schemas.test.js'},
+    {pattern: './tests/unit/ChildEntityCache.test.js'},
 
     {pattern: './src/**/*.js', included: false}
     // Serve test assets.

@@ -29,14 +29,36 @@ AFRAME.registerComponent('networked-remote', {
   },
 
   firstUpdate: function() {
-    this.networkUpdate(this.el.firstUpdateData); // updates root element
+    var entityData = this.el.firstUpdateData;
+    this.attachToParent(entityData.parent);
+    this.networkUpdate(entityData); // updates root element only
     this.waitForTemplateAndUpdateChildren();
+  },
+
+  attachToParent: function(parentNetworkId) {
+    if (parentNetworkId == null) { // Doesn't have a networked parent
+      return;
+    }
+    if (this.el.parentElement.nodeName !== 'A-SCENE') { // Already attached to parent
+      return;
+    }
+    var remoteEls = document.querySelectorAll('[networked-remote]');
+    for (var i = 0; i < remoteEls.length; i++) {
+      var remoteEl = remoteEls[i];
+      var remoteId = remoteEl.components['networked-remote'].data.networkId;
+      if (remoteId === parentNetworkId) {
+        remoteEl.appendChild(this.el);
+        return;
+      }
+    }
+    NAF.log.error('Could not find parent element with networkId =', parentNetworkId);
   },
 
   waitForTemplateAndUpdateChildren: function() {
     var that = this;
     var callback = function() {
-      that.networkUpdate(that.el.firstUpdateData);
+      var entityData = that.el.firstUpdateData;
+      that.networkUpdate(entityData);
     };
     setTimeout(callback, 50);
   },
@@ -66,11 +88,6 @@ AFRAME.registerComponent('networked-remote', {
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
     }
-
-    if (!this.el.hasAttribute('template') && entityData.template != '') {
-      this.el.setAttribute('template', 'src:' + entityData.template);
-    }
-
     this.updateComponents(entityData.components);
   },
 
@@ -97,6 +114,7 @@ AFRAME.registerComponent('networked-remote', {
       0: 0, // 0 for uncompressed
       networkId: networkId,
       owner: clientId,
+      parent: parentNetworkId,
       template: template,
       components: {
         position: data,
@@ -110,9 +128,10 @@ AFRAME.registerComponent('networked-remote', {
     entityData[0] = 1;
     entityData.networkId = compressed[1];
     entityData.owner = compressed[2];
-    entityData.template = compressed[3];
+    entityData.parent = compressed[3];
+    entityData.template = compressed[4];
 
-    var compressedComps = compressed[4];
+    var compressedComps = compressed[5];
     var components = this.decompressComponents(compressedComps);
     entityData.components = components;
 

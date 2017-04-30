@@ -33,6 +33,7 @@ suite('NetworkEntities', function() {
       0: 0,
       networkId: 'test1',
       owner: 'abcdefg',
+      parent: null,
       template: '#template1',
       components: {
         position: '1 2 3',
@@ -43,6 +44,7 @@ suite('NetworkEntities', function() {
       1,
       'test1',
       'abcdefg',
+      null,
       '#template1',
       {
         0: '1 2 3',
@@ -80,7 +82,6 @@ suite('NetworkEntities', function() {
     test('entity components set immediately', function() {
       var entity = entities.createRemoteEntity(entityData);
 
-      var template = entity.getAttribute('template');
       var position = entity.components.position.attrValue;
       var rotation = entity.components.rotation.attrValue;
       var id = entity.getAttribute('id');
@@ -94,6 +95,19 @@ suite('NetworkEntities', function() {
       var entity = entities.createRemoteEntity(entityData);
 
       assert.equal(entity.firstUpdateData, entityData);
+    });
+
+    test('entity sets correct networked-remote component', function(done) {
+      var entity = entities.createRemoteEntity(entityData);
+
+      naf.utils.whenEntityLoaded(entity, function() {
+        var componentData = entity.components['networked-remote'].getData();
+
+        assert.equal(componentData.template, '#template1', 'template');
+        assert.equal(componentData.networkId, 'test1', 'networkId');
+        assert.equal(componentData.owner, 'abcdefg', 'owner');
+        done();
+      });
     });
 
     test('entity added to network list', function() {
@@ -159,197 +173,246 @@ suite('NetworkEntities', function() {
     });
   });
 
-  // suite('updateEntity', function() {
+  suite('updateEntity', function() {
 
-  //   test('first uncompressed update creates new entity', sinon.test(function() {
-  //     this.spy(entities, 'createRemoteEntity');
+    test('first uncompressed update creates new entity', sinon.test(function() {
+      this.spy(entities, 'createRemoteEntity');
 
-  //     entities.updateEntity('client', 'u', entityData);
+      entities.updateEntity('client', 'u', entityData);
 
-  //     assert.isTrue(entities.createRemoteEntity.calledWith(entityData));
-  //   }));
+      assert.isTrue(entities.createRemoteEntity.calledWith(entityData));
+    }));
 
-  //   test('second uncompressed update updates entity', function() {
-  //     entities.updateEntity('client', 'u', entityData); // creates entity
-  //     var entity = entities.getEntity(entityData.networkId);
-  //     sinon.spy(entity, 'emit');
+    test('second uncompressed update updates entity', function() {
+      entities.updateEntity('client', 'u', entityData); // creates entity
+      var entity = entities.getEntity(entityData.networkId);
+      sinon.spy(entity, 'emit');
 
-  //     entities.updateEntity('client', 'u', entityData); // updates entity
+      entities.updateEntity('client', 'u', entityData); // updates entity
 
-  //     assert.isTrue(entity.emit.calledWith('networkUpdate'));
-  //   });
+      assert.isTrue(entity.emit.calledWith('networkUpdate'));
+    });
 
-  //   test('compressed data when entity not created, does not fail', sinon.test(function() {
-  //     this.spy(entities, 'createRemoteEntity');
+    test('compressed data when entity not created, does not fail', sinon.test(function() {
+      this.spy(entities, 'createRemoteEntity');
 
-  //     entities.updateEntity('client', 'u', compressedData);
+      entities.updateEntity('client', 'u', compressedData);
 
-  //     assert.isFalse(entities.createRemoteEntity.called);
-  //   }));
+      assert.isFalse(entities.createRemoteEntity.called);
+    }));
 
-  //   test('compressed data updates entity', sinon.test(function() {
-  //     this.spy(entities, 'createRemoteEntity');
-  //     entities.updateEntity('client', 'u', entityData); // creates entity
-  //     var entity = entities.getEntity(entityData.networkId);
-  //     sinon.spy(entity, 'emit');
+    test('compressed data updates entity', sinon.test(function() {
+      this.spy(entities, 'createRemoteEntity');
+      entities.updateEntity('client', 'u', entityData); // creates entity
+      var entity = entities.getEntity(entityData.networkId);
+      sinon.spy(entity, 'emit');
 
-  //     entities.updateEntity('client', 'u', compressedData);
+      entities.updateEntity('client', 'u', compressedData);
 
-  //     assert.isTrue(entities.createRemoteEntity.called);
-  //     assert.isTrue(entity.emit.calledWith('networkUpdate'));
-  //   }));
-  // });
+      assert.isTrue(entities.createRemoteEntity.called);
+      assert.isTrue(entity.emit.calledWith('networkUpdate'));
+    }));
 
-  // suite('completeSync', function() {
 
-  //   test('no network entities', function() {
-  //     entities.completeSync();
-  //   });
+    test('entity with parent that has not been created is not created yet', sinon.test(function() {
+      this.spy(entities, 'createRemoteEntity');
+      entityData.parent = 'non-existent-parent';
 
-  //   test('emits sync on 3 entities', function() {
-  //     var entityList = [];
-  //     for (var i = 0; i < 3; i++) {
-  //       entityData.networkId = i;
-  //       var entity = entities.createRemoteEntity(entityData);
-  //       entityList.push(entity);
-  //       sinon.spy(entity, 'emit');
-  //     }
-  //     entities.completeSync();
-  //     for (var i = 0; i < 3; i++) {
-  //       assert.isTrue(entityList[i].emit.calledWith('syncAll'))
-  //     }
-  //   });
+      entities.updateEntity('client', 'u', entityData);
 
-  //   test('emits sync on many entities', function() {
-  //     var entityList = [];
-  //     for (var i = 0; i < 20; i++) {
-  //       entityData.networkId = i;
-  //       var entity = entities.createRemoteEntity(entityData);
-  //       entityList.push(entity);
-  //       sinon.spy(entity, 'emit');
-  //     }
-  //     entities.completeSync();
-  //     for (var i = 0; i < 20; i++) {
-  //       assert.isTrue(entityList[i].emit.calledWith('syncAll'))
-  //     }
-  //   });
+      assert.isFalse(entities.createRemoteEntity.calledWith(entityData));
+    }));
 
-  //   test('does not emit sync on removed entity', function() {
-  //     var entity = entities.createRemoteEntity(entityData);
-  //     sinon.spy(entity, 'emit');
-  //     entities.removeEntity(entityData.networkId);
+    test('child entities created after parent', sinon.test(function() {
+      this.spy(entities, 'createRemoteEntity');
+      var entityDataParent = entityData;
+      var entityDataChild1 = {
+        0: 0,
+        networkId: 'test-child-1',
+        owner: 'abcdefg',
+        parent: 'test1',
+        template: '#template1',
+        components: {
+          position: '1 2 3',
+          rotation: '4 3 2'
+        }
+      };
+      var entityDataChild2 = {
+        0: 0,
+        networkId: 'test-child-2',
+        owner: 'abcdefg',
+        parent: 'test1',
+        template: '#template1',
+        components: {
+          position: '1 2 3',
+          rotation: '4 3 2'
+        }
+      };
 
-  //     entities.completeSync();
+      entities.updateEntity('client', 'u', entityDataChild1);
+      entities.updateEntity('client', 'u', entityDataChild2);
 
-  //     assert.isFalse(entity.emit.calledWith('syncAll'));
-  //   });
-  // });
+      assert.isFalse(entities.createRemoteEntity.calledWith(entityDataChild1), 'does not create child 1');
+      assert.isFalse(entities.createRemoteEntity.calledWith(entityDataChild2), 'does not create child 2');
 
-  // suite('removeEntity', function() {
+      entities.updateEntity('client', 'u', entityDataParent);
 
-  //   test('correct id', function() {
-  //     var entity = entities.createRemoteEntity(entityData);
+      assert.isTrue(entities.createRemoteEntity.calledWith(entityDataParent), 'creates parent');
+      assert.isTrue(entities.createRemoteEntity.calledWith(entityDataChild1), 'creates child 1 after parent');
+      assert.isTrue(entities.createRemoteEntity.calledWith(entityDataChild2), 'creates child 2 after parent');
+    }));
+  });
 
-  //     var removedEntity = entities.removeEntity(entityData.networkId);
+  suite('completeSync', function() {
 
-  //     assert.equal(removedEntity, entity);
-  //   });
+    test('no network entities', function() {
+      entities.completeSync();
+    });
 
-  //   test('wrong id', function() {
-  //     var entity = entities.createRemoteEntity(entityData);
-  //     var result = entities.removeEntity('wrong');
-  //     assert.isNull(result);
-  //   });
+    test('emits sync on 3 entities', function() {
+      var entityList = [];
+      for (var i = 0; i < 3; i++) {
+        entityData.networkId = i;
+        var entity = entities.createRemoteEntity(entityData);
+        entityList.push(entity);
+        sinon.spy(entity, 'emit');
+      }
+      entities.completeSync();
+      for (var i = 0; i < 3; i++) {
+        assert.isTrue(entityList[i].emit.calledWith('syncAll'))
+      }
+    });
 
-  //   test('no entities', function() {
-  //     var result = entities.removeEntity('wrong');
-  //     assert.isNull(result);
-  //   });
-  // });
+    test('emits sync on many entities', function() {
+      var entityList = [];
+      for (var i = 0; i < 20; i++) {
+        entityData.networkId = i;
+        var entity = entities.createRemoteEntity(entityData);
+        entityList.push(entity);
+        sinon.spy(entity, 'emit');
+      }
+      entities.completeSync();
+      for (var i = 0; i < 20; i++) {
+        assert.isTrue(entityList[i].emit.calledWith('syncAll'))
+      }
+    });
 
-  // suite('removeRemoteEntity', function() {
+    test('does not emit sync on removed entity', function() {
+      var entity = entities.createRemoteEntity(entityData);
+      sinon.spy(entity, 'emit');
+      entities.removeEntity(entityData.networkId);
 
-  //   test('calls removeEntity with id', function() {
-  //     var data = { networkId: 'testId' };
-  //     entities.removeEntity = sinon.stub();
+      entities.completeSync();
 
-  //     entities.removeRemoteEntity('client1', 'type1', data);
+      assert.isFalse(entity.emit.calledWith('syncAll'));
+    });
+  });
 
-  //     assert.isTrue(entities.removeEntity.calledWith('testId'));
-  //   });
-  // });
+  suite('removeEntity', function() {
 
-  // suite('removeEntitiesFromUser', function() {
+    test('correct id', function() {
+      var entity = entities.createRemoteEntity(entityData);
 
-  //   test('removing many entities', sinon.test(function() {
-  //     var entityList = [];
-  //     for (var i = 0; i < 3; i++) {
-  //       entityData.networkId = i;
-  //       var entity = entities.createRemoteEntity(entityData);
-  //       entityList.push(entity);
-  //     }
-  //     this.stub(naf.utils, 'getNetworkOwner').returns(entityData.owner);
+      var removedEntity = entities.removeEntity(entityData.networkId);
 
-  //     var removedEntities = entities.removeEntitiesFromUser(entityData.owner);
+      assert.equal(removedEntity, entity);
+    });
 
-  //     assert.equal(removedEntities.length, 3);
-  //   }));
+    test('wrong id', function() {
+      var entity = entities.createRemoteEntity(entityData);
+      var result = entities.removeEntity('wrong');
+      assert.isNull(result);
+    });
 
-  //   test('other entities', sinon.test(function() {
-  //     var entity = entities.createRemoteEntity(entityData);
-  //     this.stub(naf.utils, 'getNetworkOwner').returns('a');
+    test('no entities', function() {
+      var result = entities.removeEntity('wrong');
+      assert.isNull(result);
+    });
+  });
 
-  //     var removedEntities = entities.removeEntitiesFromUser('b');
+  suite('removeRemoteEntity', function() {
 
-  //     assert.equal(removedEntities.length, 0);
-  //   }));
+    test('calls removeEntity with id', function() {
+      var data = { networkId: 'testId' };
+      entities.removeEntity = sinon.stub();
 
-  //   test('no entities', function() {
-  //     var removedEntities = entities.removeEntitiesFromUser(entityData.owner);
+      entities.removeRemoteEntity('client1', 'type1', data);
 
-  //     assert.equal(removedEntities.length, 0);
-  //   });
-  // });
+      assert.isTrue(entities.removeEntity.calledWith('testId'));
+    });
+  });
 
-  // suite('getEntity', function() {
+  suite('removeEntitiesFromUser', function() {
 
-  //   test('normal', function() {
-  //     var testEntity = { test: true };
-  //     entities.entities[entityData.networkId] = testEntity;
+    test('removing many entities', sinon.test(function() {
+      var entityList = [];
+      for (var i = 0; i < 3; i++) {
+        entityData.networkId = i;
+        var entity = entities.createRemoteEntity(entityData);
+        entityList.push(entity);
+      }
+      this.stub(naf.utils, 'getNetworkOwner').returns(entityData.owner);
 
-  //     var result = entities.getEntity(entityData.networkId);
+      var removedEntities = entities.removeEntitiesFromUser(entityData.owner);
 
-  //     assert.equal(result, testEntity);
-  //   });
+      assert.equal(removedEntities.length, 3);
+    }));
 
-  //   test('incorrect id', function() {
-  //     var testEntity = { test: true };
-  //     entities.entities[entityData.networkId] = testEntity;
+    test('other entities', sinon.test(function() {
+      var entity = entities.createRemoteEntity(entityData);
+      this.stub(naf.utils, 'getNetworkOwner').returns('a');
 
-  //     var result = entities.getEntity('wrong');
+      var removedEntities = entities.removeEntitiesFromUser('b');
 
-  //     assert.equal(result, null);
-  //   });
-  // });
+      assert.equal(removedEntities.length, 0);
+    }));
 
-  // suite('hasEntity', function() {
+    test('no entities', function() {
+      var removedEntities = entities.removeEntitiesFromUser(entityData.owner);
 
-  //   test('normal', function() {
-  //     var testEntity = { test: true };
-  //     entities.entities[entityData.networkId] = testEntity;
+      assert.equal(removedEntities.length, 0);
+    });
+  });
 
-  //     var result = entities.hasEntity(entityData.networkId);
+  suite('getEntity', function() {
 
-  //     assert.isTrue(result);
-  //   });
+    test('normal', function() {
+      var testEntity = { test: true };
+      entities.entities[entityData.networkId] = testEntity;
 
-  //   test('incorrect id', function() {
-  //     var testEntity = { test: true };
-  //     entities.entities[entityData.networkId] = testEntity;
+      var result = entities.getEntity(entityData.networkId);
 
-  //     var result = entities.hasEntity('wrong');
+      assert.equal(result, testEntity);
+    });
 
-  //     assert.isFalse(result);
-  //   });
-  // });
+    test('incorrect id', function() {
+      var testEntity = { test: true };
+      entities.entities[entityData.networkId] = testEntity;
+
+      var result = entities.getEntity('wrong');
+
+      assert.equal(result, null);
+    });
+  });
+
+  suite('hasEntity', function() {
+
+    test('normal', function() {
+      var testEntity = { test: true };
+      entities.entities[entityData.networkId] = testEntity;
+
+      var result = entities.hasEntity(entityData.networkId);
+
+      assert.isTrue(result);
+    });
+
+    test('incorrect id', function() {
+      var testEntity = { test: true };
+      entities.entities[entityData.networkId] = testEntity;
+
+      var result = entities.hasEntity('wrong');
+
+      assert.isFalse(result);
+    });
+  });
 });

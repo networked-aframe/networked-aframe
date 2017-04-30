@@ -11,6 +11,7 @@ AFRAME.registerComponent('networked', {
     this.cachedData = {};
     this.initNetworkId();
     this.initSyncTime();
+    this.initNetworkParent();
     this.registerEntity(this.networkId);
     this.attachTemplate(this.data.template);
     this.showTemplate(this.data.showLocalTemplate);
@@ -24,6 +25,15 @@ AFRAME.registerComponent('networked', {
 
   initNetworkId: function() {
     this.networkId = this.createNetworkId();
+  },
+
+  initNetworkParent: function() {
+    var parentEl = this.el.parentElement;
+    if (parentEl.hasOwnProperty('components') && parentEl.components.hasOwnProperty('networked')) {
+      this.parent = parentEl;
+    } else {
+      this.parent = null;
+    }
   },
 
   createNetworkId: function() {
@@ -82,6 +92,7 @@ AFRAME.registerComponent('networked', {
     var components = this.getComponentsData(allSyncedComponents);
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
+    console.log('syncAll', syncData);
     this.updateCache(components);
   },
 
@@ -167,12 +178,22 @@ AFRAME.registerComponent('networked', {
       networkId: this.networkId,
       owner: this.owner,
       template: '',
+      parent: this.getParentId(),
       components: components
     };
     if (this.hasTemplate()) {
       data.template = this.el.components.template.data.src;
     }
     return data;
+  },
+
+  getParentId: function() {
+    this.initNetworkParent();
+    if (this.parent == null) {
+      return null;
+    }
+    var component = this.parent.components.networked;
+    return component.networkId;
   },
 
   hasTemplate: function() {
@@ -188,8 +209,9 @@ AFRAME.registerComponent('networked', {
     [
       1, // 1 for compressed
       networkId,
-      clientId,
+      ownerId,
       template,
+      parent,
       {
         0: data, // key maps to index of synced components in network component schema
         3: data,
@@ -202,10 +224,10 @@ AFRAME.registerComponent('networked', {
     compressed.push(1);
     compressed.push(syncData.networkId);
     compressed.push(syncData.owner);
+    compressed.push(syncData.parent);
     compressed.push(syncData.template);
 
     var compMap = this.compressComponents(syncData.components);
-
     compressed.push(compMap);
 
     return compressed;
@@ -213,7 +235,7 @@ AFRAME.registerComponent('networked', {
 
   compressComponents: function(syncComponents) {
     var compMap = {};
-    var components = this.data.components;
+    var components = this.getAllSyncedComponents();
     for (var i = 0; i < components.length; i++) {
       var name;
       if (typeof components[i] === 'string') {

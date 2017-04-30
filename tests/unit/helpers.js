@@ -25,6 +25,12 @@ module.exports.sceneFactory = function (opts) {
     var entity = utils.createHtmlNodeFromString(opts.entity);
     scene.appendChild(entity);
   };
+  if (opts.entities) {
+    for (var i = 0; i < opts.entities.length; i++) {
+      var entity = utils.createHtmlNodeFromString(opts.entities[i]);
+      scene.appendChild(entity);
+    }
+  }
 
   document.body.appendChild(scene);
   return scene;

@@ -1,7 +1,10 @@
+var ChildEntityCache = require('./ChildEntityCache');
+
 class NetworkEntities {
 
   constructor() {
     this.entities = {};
+    this.childCache = new ChildEntityCache();
   }
 
   registerLocalEntity(networkId, entity) {
@@ -12,6 +15,7 @@ class NetworkEntities {
     NAF.log.write('Creating remote entity', entityData);
 
     var entity = document.createElement('a-entity');
+    entity.setAttribute('id', 'naf-' + entityData.networkId);
 
     var template = entityData.template;
     var components = NAF.schemas.getComponents(template);
@@ -60,7 +64,27 @@ class NetworkEntities {
     if (this.hasEntity(networkId)) {
       this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
     } else if (!isCompressed) {
+      this.receiveFirstUpdateFromEntity(entityData);
+    }
+  }
+
+  receiveFirstUpdateFromEntity(entityData) {
+    var parent = entityData.parent;
+    var networkId = entityData.networkId;
+
+    var parentNotCreatedYet = parent && !this.hasEntity(parent);
+    if (parentNotCreatedYet) {
+      this.childCache.addChild(parent, entityData);
+    } else {
       this.createRemoteEntity(entityData);
+      this.createChildrenOfEntity(networkId);
+    }
+  }
+
+  createChildrenOfEntity(networkId) {
+    var children = this.childCache.getChildren(networkId);
+    for (var i = 0; i < children.length; i++) {
+      this.createRemoteEntity(children[i]);
     }
   }
 

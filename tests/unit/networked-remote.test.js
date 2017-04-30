@@ -10,7 +10,10 @@ suite('networked-remote', function() {
 
   function initScene(done) {
     var opts = {};
-    opts.entity = '<a-entity id="test-entity" networked-remote="template:t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>';
+    opts.entities = [
+      '<a-entity id="test-entity" networked-remote="template:t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>',
+      '<a-entity id="test-parent" networked-remote="networkId:parentId"></a-entity>'
+    ];
     scene = helpers.sceneFactory(opts);
     naf.utils.whenEntityLoaded(scene, done);
   }
@@ -18,9 +21,14 @@ suite('networked-remote', function() {
   setup(function(done) {
     initScene(function() {
       this.entity = document.querySelector('#test-entity');
+      this.parent = document.querySelector('#test-parent');
       this.component = entity.components['networked-remote'];
       done();
     });
+  });
+
+  teardown(function() {
+    scene.parentElement.removeChild(scene);
   });
 
   suite('Setup', function() {
@@ -47,6 +55,40 @@ suite('networked-remote', function() {
 
       assert.isTrue(result);
     });
+
+    test('sets parent when has parent', sinon.test(function() {
+      this.stub(component, 'waitForTemplateAndUpdateChildren');
+      var entityData = {
+        0: 0,
+        networkId: 'network1',
+        owner: 'owner1',
+        parent: 'parentId',
+        template: '',
+        components: {}
+      }
+      entity.firstUpdateData = entityData;
+
+      component.init();
+
+      assert.equal(entity.parentElement, parent);
+    }));
+
+    test('does not set parent when parent is null', sinon.test(function() {
+      this.stub(component, 'waitForTemplateAndUpdateChildren');
+      var entityData = {
+        0: 0,
+        networkId: 'network1',
+        owner: 'owner1',
+        parent: null,
+        template: '',
+        components: {}
+      }
+      entity.firstUpdateData = entityData;
+
+      component.init();
+
+      assert.equal(entity.parentElement.nodeName, 'A-SCENE');
+    }));
 
     test('does not add lerp if lerp option off', function() {
       naf.options.useLerp = false;
@@ -113,6 +155,7 @@ suite('networked-remote', function() {
         0: 0,
         networkId: 'network1',
         owner: 'owner1',
+        parent: null,
         template: '',
         components: {
           position: { x: 10, y: 20, z: 30 },
@@ -146,6 +189,7 @@ suite('networked-remote', function() {
         0: 0,
         networkId: 'network1',
         owner: 'owner1',
+        parent: null,
         template: '',
         components: {
           position: { x: 10, y: 20, z: 30 },
@@ -176,6 +220,7 @@ suite('networked-remote', function() {
         0: 0,
         networkId: 'network2',
         owner: 'owner1',
+        parent: null,
         template: '',
         components: {
           position: { x: 10, y: 20, z: 30 },
@@ -203,22 +248,11 @@ suite('networked-remote', function() {
     }));
 
     test('sets correct compressed data', sinon.test(function() {
-      var entityData = {
-        0: 1,
-        networkId: 'network1',
-        owner: 'owner1',
-        template: '',
-        components: {
-          position: { x: 10, y: 20, z: 30 },
-          rotation: { x: 40, y: 30, z: 20 },
-          scale: { x: 5, y: 12, z: 1 },
-          visible: false
-        }
-      };
       var compressed = [
         1,
         'network1',
         'owner1',
+        null,
         '',
         {
           0: { x: 10, y: 20, z: 30 },
@@ -256,6 +290,7 @@ suite('networked-remote', function() {
         0: 1,
         networkId: 'network1',
         owner: 'owner1',
+        parent: null,
         template: '',
         components: components
       };
@@ -263,6 +298,7 @@ suite('networked-remote', function() {
         1,
         entityData.networkId,
         entityData.owner,
+        entityData.parent,
         entityData.template,
         {
           0: components.position,
@@ -285,6 +321,7 @@ suite('networked-remote', function() {
         0: 1,
         networkId: 'network1',
         owner: 'owner1',
+        parent: null,
         template: '',
         components: components
       };
@@ -292,6 +329,7 @@ suite('networked-remote', function() {
         1,
         entityData.networkId,
         entityData.owner,
+        entityData.parent,
         entityData.template,
         {
           0: components.position,
@@ -322,6 +360,7 @@ suite('networked-remote', function() {
         0: 1,
         networkId: 'network1',
         owner: 'owner1',
+        parent: null,
         template: '',
         components: components
       };
@@ -330,6 +369,7 @@ suite('networked-remote', function() {
         1,
         entityData.networkId,
         entityData.owner,
+        entityData.parent,
         entityData.template,
         {
           0: components.position,
@@ -348,6 +388,7 @@ suite('networked-remote', function() {
         0: 1,
         networkId: 'network1',
         owner: 'owner1',
+        parent: null,
         template: '#template1',
         components: {}
       };
@@ -355,6 +396,7 @@ suite('networked-remote', function() {
         1,
         entityData.networkId,
         entityData.owner,
+        entityData.parent,
         entityData.template,
         {}
       ];
