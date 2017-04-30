@@ -10,27 +10,11 @@ AFRAME.registerComponent('networked-remote', {
   },
 
   init: function() {
-    this.confirmComponentIntegrity();
-
     this.attachTemplate(this.data.template);
     this.attachLerp();
 
     if (this.el.firstUpdateData) {
       this.firstUpdate();
-    }
-  },
-
-  confirmComponentIntegrity: function() {
-    var data = this.data;
-
-    if (data.template === '') {
-      NAF.log.error('Networked-remote does not have template');
-    }
-    if (data.networkId === '') {
-      NAF.log.error('Networked-remote does not have networkId');
-    }
-    if (data.owner === '') {
-      NAF.log.error('Networked-remote does not have owner');
     }
   },
 
@@ -46,35 +30,15 @@ AFRAME.registerComponent('networked-remote', {
 
   firstUpdate: function() {
     var entityData = this.el.firstUpdateData;
-    this.attachToParent(entityData.parent);
     this.networkUpdate(entityData); // updates root element only
     this.waitForTemplateAndUpdateChildren();
-  },
-
-  attachToParent: function(parentNetworkId) {
-    if (parentNetworkId == null) { // Doesn't have a networked parent
-      return;
-    }
-    if (this.el.parentElement.nodeName !== 'A-SCENE') { // Already attached to parent
-      return;
-    }
-    var remoteEls = document.querySelectorAll('[networked-remote]');
-    for (var i = 0; i < remoteEls.length; i++) {
-      var remoteEl = remoteEls[i];
-      var remoteId = remoteEl.components['networked-remote'].data.networkId;
-      if (remoteId === parentNetworkId) {
-        remoteEl.appendChild(this.el);
-        return;
-      }
-    }
-    NAF.log.error('Could not find parent element with networkId =', parentNetworkId);
   },
 
   waitForTemplateAndUpdateChildren: function() {
     var that = this;
     var callback = function() {
       var entityData = that.el.firstUpdateData;
-      that.attachToParent(entityData.parent);
+      that.networkUpdate(entityData);
     };
     setTimeout(callback, 50);
   },

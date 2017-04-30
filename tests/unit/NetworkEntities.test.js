@@ -99,6 +99,7 @@ suite('NetworkEntities', function() {
 
     test('entity sets correct networked-remote component', function(done) {
       var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
 
       naf.utils.whenEntityLoaded(entity, function() {
         var componentData = entity.components['networked-remote'].getData();
@@ -119,6 +120,7 @@ suite('NetworkEntities', function() {
     test('entity has correct components when no components schema defined', function(done) {
       entityData.template = '#template3';
       var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
 
       naf.utils.whenEntityLoaded(entity, function() {
         var network = entity.getAttribute('networked-remote');
@@ -143,6 +145,7 @@ suite('NetworkEntities', function() {
       naf.schemas.add(schema);
 
       var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
 
       naf.utils.whenEntityLoaded(entity, function() {
         var network = entity.getAttribute('networked-remote');
@@ -163,6 +166,7 @@ suite('NetworkEntities', function() {
       naf.schemas.add(schema);
 
       var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
 
       naf.utils.whenEntityLoaded(entity, function() {
         var network = entity.getAttribute('networked-remote');
@@ -299,6 +303,8 @@ suite('NetworkEntities', function() {
 
     test('does not emit sync on removed entity', function() {
       var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
+
       sinon.spy(entity, 'emit');
       entities.removeEntity(entityData.networkId);
 
@@ -312,6 +318,7 @@ suite('NetworkEntities', function() {
 
     test('correct id', function() {
       var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
 
       var removedEntity = entities.removeEntity(entityData.networkId);
 
@@ -320,7 +327,10 @@ suite('NetworkEntities', function() {
 
     test('wrong id', function() {
       var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
+
       var result = entities.removeEntity('wrong');
+
       assert.isNull(result);
     });
 
@@ -349,6 +359,7 @@ suite('NetworkEntities', function() {
       for (var i = 0; i < 3; i++) {
         entityData.networkId = i;
         var entity = entities.createRemoteEntity(entityData);
+        scene.appendChild(entity);
         entityList.push(entity);
       }
       this.stub(naf.utils, 'getNetworkOwner').returns(entityData.owner);

@@ -12,7 +12,6 @@ suite('networked-remote', function() {
     var opts = {};
     opts.entities = [
       '<a-entity id="test-entity" networked-remote="template:t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>',
-      '<a-entity id="test-parent" networked-remote="networkId:parentId"></a-entity>'
     ];
     scene = helpers.sceneFactory(opts);
     naf.utils.whenEntityLoaded(scene, done);
@@ -21,7 +20,6 @@ suite('networked-remote', function() {
   setup(function(done) {
     initScene(function() {
       this.entity = document.querySelector('#test-entity');
-      this.parent = document.querySelector('#test-parent');
       this.component = entity.components['networked-remote'];
       done();
     });
@@ -55,40 +53,6 @@ suite('networked-remote', function() {
 
       assert.isTrue(result);
     });
-
-    test('sets parent when has parent', sinon.test(function() {
-      this.stub(component, 'waitForTemplateAndUpdateChildren');
-      var entityData = {
-        0: 0,
-        networkId: 'network1',
-        owner: 'owner1',
-        parent: 'parentId',
-        template: '',
-        components: {}
-      }
-      entity.firstUpdateData = entityData;
-
-      component.init();
-
-      assert.equal(entity.parentElement, parent);
-    }));
-
-    test('does not set parent when parent is null', sinon.test(function() {
-      this.stub(component, 'waitForTemplateAndUpdateChildren');
-      var entityData = {
-        0: 0,
-        networkId: 'network1',
-        owner: 'owner1',
-        parent: null,
-        template: '',
-        components: {}
-      }
-      entity.firstUpdateData = entityData;
-
-      component.init();
-
-      assert.equal(entity.parentElement.nodeName, 'A-SCENE');
-    }));
 
     test('does not add lerp if lerp option off', function() {
       naf.options.useLerp = false;
