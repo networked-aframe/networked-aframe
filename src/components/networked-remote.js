@@ -19,7 +19,6 @@ AFRAME.registerComponent('networked-remote', {
   },
 
   attachTemplate: function(template) {
-    // this.el.setAttribute('template', 'src:' + template);
     var templateChild = document.createElement('a-entity');
     templateChild.setAttribute('template', 'src:' + template);
     this.el.appendChild(templateChild);
@@ -68,6 +67,7 @@ AFRAME.registerComponent('networked-remote', {
   },
 
   networkUpdate: function(entityData) {
+    // console.log('networkUpdate', entityData);
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
     }

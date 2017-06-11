@@ -84,7 +84,7 @@ AFRAME.registerComponent('networked', {
     var components = this.getComponentsData(allSyncedComponents);
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
-    console.log('syncAll', syncData);
+    // console.log('syncAll', syncData);
     this.updateCache(components);
   },
 
@@ -100,6 +100,7 @@ AFRAME.registerComponent('networked', {
       syncData = this.compressSyncData(syncData);
     }
     naf.connection.broadcastData('u', syncData);
+    // console.log('syncDirty', syncData);
     this.updateCache(components);
   },
 
