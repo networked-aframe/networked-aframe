@@ -13,8 +13,7 @@ AFRAME.registerComponent('networked', {
     this.initSyncTime();
     this.initNetworkParent();
     this.registerEntity(this.networkId);
-    this.attachTemplate(this.data.template);
-    this.showTemplate(this.data.showLocalTemplate);
+    this.attachAndShowTemplate(this.data.template, this.data.showLocalTemplate);
 
     document.body.addEventListener('loggedIn', this.onLoggedIn.bind(this), false);
   },
@@ -48,18 +47,11 @@ AFRAME.registerComponent('networked', {
     naf.entities.registerLocalEntity(networkId, this.el);
   },
 
-  attachTemplate: function(template) {
-    this.el.setAttribute('template', 'src:' + template);
-  },
-
-  showTemplate: function(show) {
-    var that = this;
-    var callback = function() {
-      if (that.el.firstChild) {
-        that.el.lastElementChild.setAttribute('visible', show);
-      }
-    };
-    setTimeout(callback, 50);
+  attachAndShowTemplate: function(template, show) {
+    var templateChild = document.createElement('a-entity');
+    templateChild.setAttribute('template', 'src:' + template);
+    templateChild.setAttribute('visible', show);
+    this.el.appendChild(templateChild);
   },
 
   play: function() {
@@ -177,13 +169,10 @@ AFRAME.registerComponent('networked', {
       0: 0, // 0 for not compressed
       networkId: this.networkId,
       owner: this.owner,
-      template: '',
+      template: this.data.template,
       parent: this.getParentId(),
       components: components
     };
-    if (this.hasTemplate()) {
-      data.template = this.el.components.template.data.src;
-    }
     return data;
   },
 
@@ -194,10 +183,6 @@ AFRAME.registerComponent('networked', {
     }
     var component = this.parent.components.networked;
     return component.networkId;
-  },
-
-  hasTemplate: function() {
-    return this.el.components.hasOwnProperty('template');
   },
 
   getAllSyncedComponents() {
