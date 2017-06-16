@@ -1,6 +1,7 @@
 var naf = require('../NafIndex');
 
-var EasyRtcInterface = require('../webrtc_interfaces/EasyRtcInterface');
+var EasyRtcInterface = require('../network_interfaces/EasyRtcInterface');
+var WebSocketEasyRtcInterface = require('../network_interfaces/WebSocketEasyRtcInterface');
 
 AFRAME.registerComponent('networked-scene', {
   schema: {
@@ -11,9 +12,7 @@ AFRAME.registerComponent('networked-scene', {
     audio: {default: false},
     debug: {default: false},
     onConnect: {default: 'onConnect'},
-
-    // Deprecated
-    signallingUrl: {default: 'deprecated'}
+    websocketOnly: {default: false},
   },
 
   init: function() {
@@ -32,17 +31,30 @@ AFRAME.registerComponent('networked-scene', {
 
     // easyrtc.enableDebug(true);
     this.checkDeprecatedProperties();
-    var easyRtc = new EasyRtcInterface(easyrtc, this.data.signalURL);
-    naf.connection.setWebRtc(easyRtc);
+
+    this.setupNetworkInterface();
+
     if (this.data.onConnect != '' && window.hasOwnProperty(this.data.onConnect)) {
       naf.connection.onLogin(window[this.data.onConnect]);
     }
     naf.connection.connect(this.data.app, this.data.room, this.data.audio);
   },
 
-  checkDeprecatedProperties: function() {
-    if (this.data.signallingUrl != 'deprecated') {
-      naf.log.error('network-scene `signallingUrl` has been replaced with `signalURL` (uppercase URL)');
+  setupNetworkInterface: function() {
+    var networkInterface;
+    if (this.data.websocketOnly) {
+      var websocketInterface = new WebSocketEasyRtcInterface(easyrtc);
+      websocketInterface.setSignalUrl(this.data.signalURL);
+      networkInterface = websocketInterface;
+    } else {
+      var easyRtcInterface = new EasyRtcInterface(easyrtc);
+      easyRtcInterface.setSignalUrl(this.data.signalURL);
+      networkInterface = easyRtcInterface;
     }
+    naf.connection.setNetworkInterface(networkInterface);
+  },
+
+  checkDeprecatedProperties: function() {
+    // No current
   }
 });

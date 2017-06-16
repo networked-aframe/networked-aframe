@@ -1,16 +1,19 @@
 var naf = require('../NafIndex');
-var WebRtcInterface = require('./WebRtcInterface');
+var NetworkInterface = require('./NetworkInterface');
 
-class EasyRtcInterface extends WebRtcInterface {
-  constructor(easyrtc, signalURL) {
+class WebSocketEasyRtcInterface extends NetworkInterface {
+  constructor(easyrtc) {
     super();
     this.easyrtc = easyrtc;
-    this.easyrtc.setSocketUrl(signalURL);
   }
 
   /*
    * Call before `connect`
    */
+
+  setSignalUrl(signalUrl) {
+    this.easyrtc.setSocketUrl(signalUrl);
+  }
 
   joinRoom(roomId) {
     this.easyrtc.joinRoom(roomId, null);
@@ -23,11 +26,11 @@ class EasyRtcInterface extends WebRtcInterface {
   // options: { datachannel: bool, audio: bool }
   setStreamOptions(options) {
     // this.easyrtc.enableDebug(true);
-    this.easyrtc.enableDataChannels(options.datachannel);
+    this.easyrtc.enableDataChannels(true);
     this.easyrtc.enableVideo(false);
-    this.easyrtc.enableAudio(options.audio);
+    this.easyrtc.enableAudio(false);
     this.easyrtc.enableVideoReceive(false);
-    this.easyrtc.enableAudioReceive(options.audio);
+    this.easyrtc.enableAudioReceive(false);
   }
 
   setDatachannelListeners(openListener, closedListener, messageListener) {
@@ -47,36 +50,7 @@ class EasyRtcInterface extends WebRtcInterface {
    */
 
   connect(appId) {
-    if (this.easyrtc.audioEnabled) {
-      this.connectWithAudio(appId);
-    } else {
-      this.easyrtc.connect(appId, this.loginSuccess, this.loginFailure);
-    }
-  }
-
-  connectWithAudio(appId) {
-    var that = this;
-
-    this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
-      var audioEl = document.createElement("audio");
-      audioEl.setAttribute('id', 'audio-' + easyrtcid);
-      document.body.appendChild(audioEl);
-      that.easyrtc.setVideoObjectSrc(audioEl,stream);
-    });
-
-    this.easyrtc.setOnStreamClosed(function (easyrtcid) {
-      var audioEl = document.getElementById('audio-' + easyrtcid);
-      audioEl.parentNode.removeChild(audioEl);
-    });
-
-    this.easyrtc.initMediaSource(
-      function(){
-        that.easyrtc.connect(appId, that.loginSuccess, that.loginFailure);
-      },
-      function(errorCode, errmesg){
-        console.error(errorCode, errmesg);
-      }
-    );
+    this.easyrtc.connect(appId, this.loginSuccess, this.loginFailure);
   }
 
   startStreamConnection(networkId) {
@@ -95,12 +69,12 @@ class EasyRtcInterface extends WebRtcInterface {
     );
   }
 
-  sendDataP2P(networkId, dataType, data) {
-    this.easyrtc.sendDataP2P(networkId, dataType, data);
+  sendData(networkId, dataType, data) {
+    this.easyrtc.sendDataWS(networkId, dataType, data);
   }
 
   sendDataGuaranteed(networkId, dataType, data) {
-    this.easyrtc.sendDataWS(networkId, dataType, data);
+    this.sendData(networkId, dataType, data);
   }
 
   /*
@@ -117,13 +91,13 @@ class EasyRtcInterface extends WebRtcInterface {
     var status = this.easyrtc.getConnectStatus(networkId);
 
     if (status == this.easyrtc.IS_CONNECTED) {
-      return WebRtcInterface.IS_CONNECTED;
+      return NetworkInterface.IS_CONNECTED;
     } else if (status == this.easyrtc.NOT_CONNECTED) {
-      return WebRtcInterface.NOT_CONNECTED;
+      return NetworkInterface.NOT_CONNECTED;
     } else {
-      return WebRtcInterface.CONNECTING;
+      return NetworkInterface.CONNECTING;
     }
   }
 }
 
-module.exports = EasyRtcInterface;
+module.exports = WebSocketEasyRtcInterface;

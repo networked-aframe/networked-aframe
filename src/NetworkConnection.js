@@ -1,4 +1,4 @@
-var WebRtcInterface = require('./webrtc_interfaces/WebRtcInterface');
+var NetworkInterface = require('./network_interfaces/NetworkInterface');
 
 class NetworkConnection {
 
@@ -14,8 +14,8 @@ class NetworkConnection {
     this.onLoggedInEvent = new Event('loggedIn');
   }
 
-  setWebRtc(webrtcInterface) {
-    this.webrtc = webrtcInterface;
+  setNetworkInterface(network) {
+    this.network = network;
   }
 
   setupDefaultDCSubs() {
@@ -34,19 +34,19 @@ class NetworkConnection {
       video: false,
       datachannel: true
     };
-    this.webrtc.setStreamOptions(streamOptions);
-    this.webrtc.setDatachannelListeners(
+    this.network.setStreamOptions(streamOptions);
+    this.network.setDatachannelListeners(
         this.dcOpenListener.bind(this),
         this.dcCloseListener.bind(this),
         this.receiveDataChannelMessage.bind(this)
     );
-    this.webrtc.setLoginListeners(
+    this.network.setLoginListeners(
         this.loginSuccess.bind(this),
         this.loginFailure.bind(this)
     );
-    this.webrtc.setRoomOccupantListener(this.occupantsReceived.bind(this));
-    this.webrtc.joinRoom(roomId);
-    this.webrtc.connect(appId);
+    this.network.setRoomOccupantListener(this.occupantsReceived.bind(this));
+    this.network.joinRoom(roomId);
+    this.network.connect(appId);
   }
 
   onLogin(callback) {
@@ -60,7 +60,7 @@ class NetworkConnection {
   loginSuccess(clientId) {
     NAF.log.write('Networked-Aframe Client ID:', clientId);
     NAF.clientId = clientId;
-    this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
+    this.myRoomJoinTime = this.network.getRoomJoinTime(clientId);
     this.loggedIn = true;
 
     document.body.dispatchEvent(this.onLoggedInEvent);
@@ -75,7 +75,7 @@ class NetworkConnection {
     this.connectList = occupantList;
     for (var id in this.connectList) {
       if (this.isNewClient(id) && this.myClientShouldStartConnection(id)) {
-        this.webrtc.startStreamConnection(id);
+        this.network.startStreamConnection(id);
       }
     }
   }
@@ -93,7 +93,7 @@ class NetworkConnection {
   }
 
   isConnectedTo(client) {
-    return this.webrtc.getConnectStatus(client) === WebRtcInterface.IS_CONNECTED;
+    return this.network.getConnectStatus(client) === NetworkInterface.IS_CONNECTED;
   }
 
   myClientShouldStartConnection(otherClient) {
@@ -130,9 +130,9 @@ class NetworkConnection {
   sendData(toClient, dataType, data, guaranteed) {
     if (this.dcIsConnectedTo(toClient)) {
       if (guaranteed) {
-        this.webrtc.sendDataGuaranteed(toClient, dataType, data);
+        this.network.sendDataGuaranteed(toClient, dataType, data);
       } else {
-        this.webrtc.sendDataP2P(toClient, dataType, data);
+        this.network.sendData(toClient, dataType, data);
       }
     } else {
       // console.error("NOT-CONNECTED", "not connected to " + toClient);

@@ -1,6 +1,6 @@
 var NafInterface = require('../NafInterface');
 
-class WebRtcInterface extends NafInterface {
+class NetworkInterface extends NafInterface {
   constructor() {
     super();
 
@@ -20,7 +20,7 @@ class WebRtcInterface extends NafInterface {
   // Network actions
   connect(appId) {this.notImplemented()}
   startStreamConnection(otherNetworkId) {this.notImplemented()}
-  sendDataP2P(networkId, dataType, data) {this.notImplemented()}
+  sendData(networkId, dataType, data) {this.notImplemented()}
   sendDataGuaranteed(networkId, dataType, data) {this.notImplemented()}
 
   // Getters
@@ -28,8 +28,8 @@ class WebRtcInterface extends NafInterface {
   getConnectStatus(networkId) {this.notImplemented()}
 }
 
-WebRtcInterface.IS_CONNECTED = 'IS_CONNECTED';
-WebRtcInterface.CONNECTING = 'CONNECTING';
-WebRtcInterface.NOT_CONNECTED = 'NOT_CONNECTED';
+NetworkInterface.IS_CONNECTED = 'IS_CONNECTED';
+NetworkInterface.CONNECTING = 'CONNECTING';
+NetworkInterface.NOT_CONNECTED = 'NOT_CONNECTED';
 
-module.exports = WebRtcInterface;
+module.exports = NetworkInterface;
