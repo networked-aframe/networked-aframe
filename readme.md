@@ -29,8 +29,8 @@ Features
 --------
 * Includes everything you need to create multi-user WebVR apps and games.
 * Support for WebRTC and/or WebSocket connections.
-* Audio streaming to let your users talk in-app (WebRTC only).
-* Bandwidth sensitive. Only sends network updates when things change. Option to compress network updates.
+* Voice chat. Audio streaming to let your users talk in-app (WebRTC only).
+* Bandwidth sensitive. Only send network updates when things change. Option to furhter compress network packets.
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
 * Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard+Daydream supported.
 
@@ -122,7 +122,7 @@ Required on the A-Frame `<a-scene>` component.
 | app  | Unique app name. Spaces are not allowed. | default |
 | room  | Unique room name. Can be multiple per app. Spaces are not allowed. | default |
 | connectOnLoad  | Connect to the server as soon as the webpage loads  | true |
-| signalURL  | Choose where the WebRTC signaling server is located | / |
+| signalURL  | Choose where the WebSocket / signalling server is located | / |
 | onConnect  | Function to be called when client has successfully connected to the server | onConnect |
 | webrtc | When false use WebSockets for all network messages. When true use a combination of WebSockets and WebRTC connections | false |
 | webrtcAudio  | Turn on / off microphone audio streaming for your app. Only works if `webrtc` is set to `true` | false |
@@ -133,7 +133,7 @@ Required on the A-Frame `<a-scene>` component.
 
 ```html
 <a-entity networked="template=YOUR_TEMPLATE, showLocalTemplate=true"></a-entity>
-``
+```
 
 Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is added to allow for less network updates while keeping smooth motion.
 
@@ -192,7 +192,7 @@ To sync nested templates setup your HTML nodes like so:
   <a-entity hand-controls="left" networked="template:#left-hand-template;showLocalTemplate:true;"></a-entity>
   <a-entity hand-controls="right" networked="template:#right-hand-template;showLocalTemplate:true;"></a-entity>
 </a-entity>
-``
+```
 
 In this example the left and right hands will spawn their own templates which will be networked independently of the root player. Note: this parent-child relationship only works between one level, ie. a child entity's parent must have the `networked` component.
 
