@@ -31,13 +31,16 @@ AFRAME.registerComponent('networked-scene', {
 
     // easyrtc.enableDebug(true);
     this.checkDeprecatedProperties();
-
     this.setupNetworkInterface();
 
-    if (this.data.onConnect != '' && window.hasOwnProperty(this.data.onConnect)) {
-      naf.connection.onLogin(window[this.data.onConnect]);
+    if (this.hasOnConnectFunction()) {
+      this.callOnConnect();
     }
     naf.connection.connect(this.data.app, this.data.room, this.data.audio);
+  },
+
+  checkDeprecatedProperties: function() {
+    // No current
   },
 
   setupNetworkInterface: function() {
@@ -54,7 +57,11 @@ AFRAME.registerComponent('networked-scene', {
     naf.connection.setNetworkInterface(networkInterface);
   },
 
-  checkDeprecatedProperties: function() {
-    // No current
+  hasOnConnectFunction: function() {
+    return this.data.onConnect != '' && window.hasOwnProperty(this.data.onConnect);
+  },
+
+  callOnConnect: function() {
+    naf.connection.onLogin(window[this.data.onConnect]);
   }
 });

@@ -50,14 +50,20 @@ class EasyRtcInterface extends NetworkInterface {
    */
 
   connect(appId) {
+    var that = this;
+    var loginSuccessCallback = function(id) {
+      that.myRoomJoinTime = that.getRoomJoinTime(id);
+      that.loginSuccess(id);
+    };
+
     if (this.easyrtc.audioEnabled) {
-      this.connectWithAudio(appId);
+      this.connectWithAudio(appId, loginSuccessCallback, this.loginFailure);
     } else {
-      this.easyrtc.connect(appId, this.loginSuccess, this.loginFailure);
+      this.easyrtc.connect(appId, loginSuccessCallback, this.loginFailure);
     }
   }
 
-  connectWithAudio(appId) {
+  connectWithAudio(appId, loginSuccess, loginFailure) {
     var that = this;
 
     this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
@@ -74,12 +80,16 @@ class EasyRtcInterface extends NetworkInterface {
 
     this.easyrtc.initMediaSource(
       function(){
-        that.easyrtc.connect(appId, that.loginSuccess, that.loginFailure);
+        that.easyrtc.connect(appId, loginSuccess, loginFailure);
       },
       function(errorCode, errmesg){
         console.error(errorCode, errmesg);
       }
     );
+  }
+
+  shouldStartConnectionTo(client) {
+    return this.myRoomJoinTime <= client.roomJoinTime;
   }
 
   startStreamConnection(networkId) {
@@ -96,6 +106,10 @@ class EasyRtcInterface extends NetworkInterface {
         // console.log("was accepted=" + wasAccepted);
       }
     );
+  }
+
+  closeStreamConnection(networkId) {
+    // Handled by easyrtc
   }
 
   sendData(networkId, dataType, data) {

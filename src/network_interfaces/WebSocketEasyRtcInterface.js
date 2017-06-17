@@ -2,9 +2,11 @@ var naf = require('../NafIndex');
 var NetworkInterface = require('./NetworkInterface');
 
 class WebSocketEasyRtcInterface extends NetworkInterface {
+
   constructor(easyrtc) {
     super();
     this.easyrtc = easyrtc;
+    this.connectedClients = [];
   }
 
   /*
@@ -23,19 +25,13 @@ class WebSocketEasyRtcInterface extends NetworkInterface {
     this.easyrtc.setRoomOccupantListener(occupantListener);
   }
 
-  // options: { datachannel: bool, audio: bool }
   setStreamOptions(options) {
-    // this.easyrtc.enableDebug(true);
-    this.easyrtc.enableDataChannels(true);
-    this.easyrtc.enableVideo(false);
-    this.easyrtc.enableAudio(false);
-    this.easyrtc.enableVideoReceive(false);
-    this.easyrtc.enableAudioReceive(false);
+
   }
 
   setDatachannelListeners(openListener, closedListener, messageListener) {
-    this.easyrtc.setDataChannelOpenListener(openListener);
-    this.easyrtc.setDataChannelCloseListener(closedListener);
+    this.openListener = openListener;
+    this.closedListener = closedListener;
     this.easyrtc.setPeerListener(messageListener);
   }
 
@@ -53,20 +49,21 @@ class WebSocketEasyRtcInterface extends NetworkInterface {
     this.easyrtc.connect(appId, this.loginSuccess, this.loginFailure);
   }
 
+  shouldStartConnectionTo(clientId) {
+    return true;
+  }
+
   startStreamConnection(networkId) {
-    this.easyrtc.call(networkId,
-      function(caller, media) {
-        if (media === 'datachannel') {
-          naf.log.write('Successfully started datachannel to ', caller);
-        }
-      },
-      function(errorCode, errorText) {
-        console.error(errorCode, errorText);
-      },
-      function(wasAccepted) {
-        // console.log("was accepted=" + wasAccepted);
-      }
-    );
+    this.connectedClients.push(networkId);
+    this.openListener(networkId);
+  }
+
+  closeStreamConnection(networkId) {
+    var index = this.connectedClients.indexOf(networkId);
+    if (index > -1) {
+      this.connectedClients.splice(index, 1);
+    }
+    this.closedListener(networkId);
   }
 
   sendData(networkId, dataType, data) {
@@ -77,10 +74,6 @@ class WebSocketEasyRtcInterface extends NetworkInterface {
     this.sendData(networkId, dataType, data);
   }
 
-  /*
-   * Getters
-   */
-
   getRoomJoinTime(clientId) {
     var myRoomId = naf.room;
     var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
@@ -88,14 +81,12 @@ class WebSocketEasyRtcInterface extends NetworkInterface {
   }
 
   getConnectStatus(networkId) {
-    var status = this.easyrtc.getConnectStatus(networkId);
+    var connected = this.connectedClients.indexOf(networkId) != -1;
 
-    if (status == this.easyrtc.IS_CONNECTED) {
+    if (connected) {
       return NetworkInterface.IS_CONNECTED;
-    } else if (status == this.easyrtc.NOT_CONNECTED) {
-      return NetworkInterface.NOT_CONNECTED;
     } else {
-      return NetworkInterface.CONNECTING;
+      return NetworkInterface.NOT_CONNECTED;
     }
   }
 }

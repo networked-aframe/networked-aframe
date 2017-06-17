@@ -17,14 +17,12 @@ class NetworkInterface extends NafInterface {
   setRoomOccupantListener(occupantListener){this.notImplemented()}
   setLoginListeners(successListener, failureListener) {this.notImplemented()}
 
-  // Network actions
   connect(appId) {this.notImplemented()}
+  shouldStartConnectionTo() {this.notImplemented()}
   startStreamConnection(otherNetworkId) {this.notImplemented()}
+  closeStreamConnection(otherNetworkId) {this.notImplemented()}
   sendData(networkId, dataType, data) {this.notImplemented()}
   sendDataGuaranteed(networkId, dataType, data) {this.notImplemented()}
-
-  // Getters
-  getRoomJoinTime(clientId) {this.notImplemented()}
   getConnectStatus(networkId) {this.notImplemented()}
 }
 

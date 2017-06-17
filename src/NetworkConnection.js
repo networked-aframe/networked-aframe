@@ -6,7 +6,6 @@ class NetworkConnection {
     this.entities = networkEntities;
     this.setupDefaultDCSubs();
 
-    this.myRoomJoinTime = 0;
     this.connectList = {};
     this.dcIsActive = {};
 
@@ -60,7 +59,6 @@ class NetworkConnection {
   loginSuccess(clientId) {
     NAF.log.write('Networked-Aframe Client ID:', clientId);
     NAF.clientId = clientId;
-    this.myRoomJoinTime = this.network.getRoomJoinTime(clientId);
     this.loggedIn = true;
 
     document.body.dispatchEvent(this.onLoggedInEvent);
@@ -72,9 +70,26 @@ class NetworkConnection {
   }
 
   occupantsReceived(roomName, occupantList, isPrimary) {
+    this.checkForDisconnectingClients(this.connectList, occupantList);
     this.connectList = occupantList;
-    for (var id in this.connectList) {
-      if (this.isNewClient(id) && this.myClientShouldStartConnection(id)) {
+    this.checkForConnectingClients(occupantList);
+  }
+
+  checkForDisconnectingClients(oldOccupantList, newOccupantList) {
+    for (var id in oldOccupantList) {
+      var clientFound = newOccupantList.hasOwnProperty(id);
+      if (!clientFound) {
+        NAF.log.write('Closing stream to ', id);
+        this.network.closeStreamConnection(id);
+      }
+    }
+  }
+
+  checkForConnectingClients(occupantList) {
+    for (var id in occupantList) {
+      var startConnection = this.isNewClient(id) && this.network.shouldStartConnectionTo(occupantList[id]);
+      if (startConnection) {
+        NAF.log.write('Opening stream to ', id);
         this.network.startStreamConnection(id);
       }
     }
@@ -96,25 +111,20 @@ class NetworkConnection {
     return this.network.getConnectStatus(client) === NetworkInterface.IS_CONNECTED;
   }
 
-  myClientShouldStartConnection(otherClient) {
-    var otherClientTimeJoined = this.connectList[otherClient].roomJoinTime;
-    return this.myRoomJoinTime <= otherClientTimeJoined;
-  }
-
-  dcOpenListener(user) {
-    NAF.log.write('Opened data channel from ' + user);
-    this.dcIsActive[user] = true;
+  dcOpenListener(id) {
+    NAF.log.write('Opened data channel from ' + id);
+    this.dcIsActive[id] = true;
     this.entities.completeSync();
   }
 
-  dcCloseListener(user) {
-    NAF.log.write('Closed data channel from ' + user);
-    this.dcIsActive[user] = false;
-    this.entities.removeEntitiesFromUser(user);
+  dcCloseListener(id) {
+    NAF.log.write('Closed data channel from ' + id);
+    this.dcIsActive[id] = false;
+    this.entities.removeEntitiesFromUser(id);
   }
 
   dcIsConnectedTo(user) {
-    return this.dcIsActive.hasOwnProperty(user) && this.dcIsActive[user];
+    return (this.dcIsActive.hasOwnProperty(user) && this.dcIsActive[user]) || true;
   }
 
   broadcastData(dataType, data, guaranteed) {
