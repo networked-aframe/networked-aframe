@@ -71,8 +71,7 @@ Basic Example
           <a-sphere></a-sphere>
         </script>
       </a-assets>
-      <a-entity id="player" networked="template:#avatar-template" wasd-controls look-controls>
-        <a-entity camera></a-entity>
+      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera wasd-controls look-controls>
       </a-entity>
     </a-scene>
   </body>
@@ -201,6 +200,7 @@ In this example the head/camera, left and right hands will spawn their own templ
 ```javascript
 NAF.connection.subscribeToDataChannel(dataType, callback)
 NAF.connection.unsubscribeToDataChannel(dataType)
+
 NAF.connection.broadcastData(dataType, data)
 NAF.connection.broadcastDataGuaranteed(dataType, data)
 ```

@@ -10,16 +10,10 @@ AFRAME.registerComponent('networked', {
   init: function() {
     this.cachedData = {};
     this.initNetworkId();
-    this.initSyncTime();
     this.initNetworkParent();
     this.registerEntity(this.networkId);
     this.attachAndShowTemplate(this.data.template, this.data.showLocalTemplate);
-
-    document.body.addEventListener('loggedIn', this.onLoggedIn.bind(this), false);
-  },
-
-  initSyncTime: function() {
-    this.nextSyncTime = naf.utils.now() + 100000; // Is properly set by first syncAll
+    this.checkLoggedIn();
   },
 
   initNetworkId: function() {
@@ -39,8 +33,21 @@ AFRAME.registerComponent('networked', {
     return Math.random().toString(36).substring(2, 9);
   },
 
+  listenForLoggedIn: function() {
+    document.body.addEventListener('loggedIn', this.onLoggedIn.bind(this), false);
+  },
+
+  checkLoggedIn: function() {
+    if (naf.clientId) {
+      this.onLoggedIn();
+    } else {
+      this.listenForLoggedIn();
+    }
+  },
+
   onLoggedIn: function() {
     this.owner = naf.clientId;
+    this.syncAll();
   },
 
   registerEntity: function(networkId) {

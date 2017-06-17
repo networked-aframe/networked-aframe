@@ -39,11 +39,8 @@
   <body>
 
     <a-scene networked-scene="
-      app: dev;
       room: dev;
       debug: true;
-      audio: false;
-      websocketOnly: false;
     ">
       <a-assets>
 
@@ -96,8 +93,7 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" spawn-in-circle="radius:3" position="0 1 0" wasd-controls look-controls>
-        <a-entity camera></a-entity>
+      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera spawn-in-circle="radius:3" position="0 1 0" wasd-controls look-controls>
       </a-entity>
 
       <a-entity position="0 0 0"

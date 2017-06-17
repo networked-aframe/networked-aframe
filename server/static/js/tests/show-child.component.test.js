@@ -3,7 +3,7 @@ var aframe = require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
 
-require('../../src/components/show-child');
+require('../../src/components/show-child.component');
 
 suite('show-child', function() {
   var scene;
