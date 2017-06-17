@@ -113,7 +113,7 @@ Here's the template we'll start with:
 </html>
 ```
 
-We can see that all the NAF dependencies are included; aframe, socket.io, EasyRTC and Networked-Aframe itself. Copy this template into `my-example.html`. To check the dependencies are setup correctly, start the server by running `npm start` and then head to `localhost:8080/my-example.html`. You should see a blank white page, and no Javascript errors in the Developer Console. There'll probably be a bunch of mumbo jumbo in the dev console showing the current versions of each library.
+We can see that all the NAF dependencies are included; aframe, socket.io, EasyRTC and Networked-Aframe itself. Copy this template into `my-example.html`. To check the dependencies are setup correctly, start the server by running `npm start` and then head to `localhost:8080/my-example.html`. You should see a blank white page and no Javascript errors in the Developer Console. There'll probably be a bunch of mumbo jumbo in the dev console showing the current versions of each library.
 
 First up we need to add the `networked-scene` component to the A-Frame `a-scene` tag.
 
@@ -262,7 +262,7 @@ Now you have a basic networked WebVR scene up and running. But there's a lot mor
 
 By default NAF uses WebSockets to send packets to other users. This follows a classic client-server architecture and uses the TCP network protocol. If you'd prefer to use a peer-to-peer architecture and would like to use the UDP network protocol you should use WebRTC. In order to enable it in NAF set the `webrtc` property of the `networked-scene` component to `true`. This also allows for voice chat (see below).
 
-### Voice chat / audio streaming
+### Voice Chat / Audio Streaming
 
 NAF has built in voice chat when you're using WebRTC. Change `webrtc` and `webrtcAudio` properties of the `networked-scene` component to `true` and your users will be able to speak to each other. This is a little hard to test locally because the audio feedback will destroy your ears, so try it with headphones and you'll hear your voice being echoed back to you without the feedback. Note: in order for audio streaming to work on a hosted server you'll need to be using HTTPS. I'm planning on writing a follow-up tutorial to this one that will explain how to deploy NAF to a live server, including how to setup HTTPS really easily using [Certbot](https://certbot.eff.org/).
 
@@ -323,10 +323,6 @@ And there you have it. Your very own multi-user virtual reality experience runni
 Check out the Networked-Aframe documentation for more features and help. And again, be sure to post any questions on the [GitHub Issues page](https://github.com/haydenjameslee/networked-aframe/issues) or feel free to message me directly on [twitter](https://twitter.com/haydenlee37).
 
 I would love love love you to send me cool examples you've made, and I'm looking to include more default examples with credit to the author, so [let me know](https://twitter.com/haydenlee37) what you make!
-
-Cheers!
-
-Hayden
 
 [@HaydenLee37](https://twitter.com/haydenlee37)
 
