@@ -187,14 +187,14 @@ Component data is retrieved by the A-Frame `getData` function. During the networ
 To sync nested templates setup your HTML nodes like so:
 
 ```HTML
-<a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" spawn-in-circle="radius:3" position="0 1 0" wasd-controls look-controls>
+<a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" wasd-controls look-controls>
   <a-entity camera networked="template:#head-template;showLocalTemplate:false;"></a-entity>
-  <a-entity hand-controls="left" networked="template:#left-hand-template;showLocalTemplate:true;"></a-entity>
-  <a-entity hand-controls="right" networked="template:#right-hand-template;showLocalTemplate:true;"></a-entity>
+  <a-entity hand-controls="left" networked="template:#left-hand-template"></a-entity>
+  <a-entity hand-controls="right" networked="template:#right-hand-template"></a-entity>
 </a-entity>
 ```
 
-In this example the left and right hands will spawn their own templates which will be networked independently of the root player. Note: this parent-child relationship only works between one level, ie. a child entity's parent must have the `networked` component.
+In this example the head/camera, left and right hands will spawn their own templates which will be networked independently of the root player. Note: this parent-child relationship only works between one level, ie. a child entity's direct parent must have the `networked` component.
 
 ### Broadcasting Custom Messages
 
@@ -207,7 +207,7 @@ NAF.connection.broadcastDataGuaranteed(dataType, data)
 
 Subscribe and unsubscribe callbacks to network messages specified by `dataType`. Send messages to other clients with the `broadcastData` functions.
 
-`broadcastData` messages are sent P2P using UDP and are not guaranteed to make it to other clients (although they will most of the time, [see why](https://en.wikipedia.org/wiki/User_Datagram_Protocol)). `broadcastDataGuaranteed` messages are currently sent via the websocket connection to the server using TCP, and hence not using WebRTC at all. These messages are guaranteed to be delivered to all connected clients. In the future a reliable protocol may be added on top of UDP instead of relying on the TCP websocket connection.
+If using WebRTC `broadcastData` messages are sent P2P using UDP and are not guaranteed to make it to other clients (although they will most of the time, [see why](https://en.wikipedia.org/wiki/User_Datagram_Protocol)). `broadcastDataGuaranteed` messages are always sent via the WebSocket connection to the server using TCP, and hence not using WebRTC at all. These messages are guaranteed to be delivered to all connected clients. In the future a reliable protocol may be added on top of UDP instead of relying on the TCP websocket connection.
 
 | Parameter | Description
 | -------- | -----------
