@@ -12,8 +12,7 @@
   "scripts": {
     "build": "browserify src/index.js -o server/static/dev/build.js",
     "easyrtc-install": "cd ./node_modules/easyrtc; npm install; cd ../../;",
-    "easyrtc-start": "node ./server/server.js",
-    "dev": "npm run watch & npm run easyrtc-start",
+    "dev": "npm run build && node ./server/server.js",
     "dist": "webpack --config webpack.config.js && webpack -p --config webpack.prod.config.js",
     "lint": "semistandard -v | snazzy",
     "prepublish": "npm run dist",
