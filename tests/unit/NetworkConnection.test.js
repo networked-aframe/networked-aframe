@@ -23,12 +23,12 @@ suite('NetworkConnection', function() {
     this.setLoginListeners = sinon.stub();
     this.setRoomOccupantListener = sinon.stub();
     this.connect = sinon.stub();
-    this.getRoomJoinTime = sinon.stub();
-    this.sendDataP2P = sinon.stub();
+    this.sendData = sinon.stub();
     this.sendDataGuaranteed = sinon.stub();
-    this.getUnidirectionalInitiation = sinon.stub();
+    this.shouldStartConnectionTo = sinon.stub();
     this.startStreamConnection = sinon.stub();
     this.closeStreamConnection = sinon.stub();
+    this.getConnectStatus = sinon.stub();
   }
 
   setup(function() {
@@ -124,17 +124,6 @@ suite('NetworkConnection', function() {
 
       assert.isTrue(connection.isMineAndConnected(id));
     });
-
-    test('setting room join time', function() {
-      var id = 'testId';
-      connection.network.getRoomJoinTime = sinon.stub();
-      connection.network.getRoomJoinTime.returns(12345);
-
-      connection.loginSuccess(id);
-
-      var result = connection.myRoomJoinTime;
-      assert.equal(result, 12345);
-    });
   });
 
   suite('loginFailure', function() {
@@ -146,9 +135,8 @@ suite('NetworkConnection', function() {
 
   suite('occupantsReceived', function() {
 
-    test('adds to connect list', function() {
+    test('updates connect list', function() {
       var occupants = { 'user1': true };
-      connection.network.getConnectStatus = sinon.stub();
 
       connection.occupantsReceived('room1', occupants, false);
 
@@ -161,6 +149,8 @@ suite('NetworkConnection', function() {
       var occupants = { 'user1': newClient };
       connection.network.getConnectStatus
           = sinon.stub().returns(NetworkInterface.NOT_CONNECTED);
+      connection.network.shouldStartConnectionTo
+          = sinon.stub().returns(true);
 
       connection.occupantsReceived('room1', occupants, false);
 
@@ -219,42 +209,6 @@ suite('NetworkConnection', function() {
       var result = connection.isNewClient(testId);
 
       assert.isFalse(result);
-    });
-  });
-
-  suite('myClientShouldStartConnection', function() {
-
-    test('my client is earlier', function() {
-      var otherClient = { roomJoinTime: 10 };
-      var otherClientId = 'other';
-      connection.connectList[otherClientId] = otherClient;
-      connection.myRoomJoinTime = 1;
-
-      var result = connection.myClientShouldStartConnection(otherClientId);
-
-      assert.isTrue(result);
-    });
-
-    test('other client is earlier', function() {
-      var otherClient = { roomJoinTime: 1 };
-      var otherClientId = 'other';
-      connection.connectList[otherClientId] = otherClient;
-      connection.myRoomJoinTime = 10;
-
-      var result = connection.myClientShouldStartConnection(otherClientId);
-
-      assert.isFalse(result);
-    });
-
-    test('clients joined exactly the same time', function () {
-      var otherClient = { roomJoinTime: 10 };
-      var otherClientId = 'other';
-      connection.connectList[otherClientId] = otherClient;
-      connection.myRoomJoinTime = 10;
-
-      var result = connection.myClientShouldStartConnection(otherClientId);
-
-      assert.isTrue(result);
     });
   });
 
@@ -407,7 +361,7 @@ suite('NetworkConnection', function() {
       connection.sendData(clientId, dataType, data, false);
 
       assert.isFalse(connection.network.sendDataGuaranteed.called);
-      assert.isTrue(connection.network.sendDataP2P.calledWith(clientId, dataType, data));
+      assert.isTrue(connection.network.sendData.calledWith(clientId, dataType, data));
     });
 
     test('is connected, guaranteed', function() {
@@ -418,7 +372,7 @@ suite('NetworkConnection', function() {
 
       connection.sendData(clientId, dataType, data, true);
 
-      assert.isFalse(connection.network.sendDataP2P.called);
+      assert.isFalse(connection.network.sendData.called);
       assert.isTrue(connection.network.sendDataGuaranteed.calledWith(clientId, dataType, data));
     });
 
@@ -430,7 +384,7 @@ suite('NetworkConnection', function() {
 
       connection.sendData(clientId, dataType, data);
 
-      assert.isFalse(connection.network.sendDataP2P.called);
+      assert.isFalse(connection.network.sendData.called);
       assert.isFalse(connection.network.sendDataGuaranteed.called);
     });
   });

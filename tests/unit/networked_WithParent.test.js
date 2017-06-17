@@ -69,7 +69,7 @@ suite('networked_WithParent', function() {
         networkId: 'network1',
         owner: 'owner1',
         parent: 'parentId',
-        template: '',
+        template: 't1',
         components: {
           position: { x: 1, y: 2, z: 3 },
           rotation: { x: 4, y: 3, z: 2 }
@@ -81,10 +81,10 @@ suite('networked_WithParent', function() {
       document.body.dispatchEvent(new Event('loggedIn'));
       networked.syncAll();
 
+      assert.isTrue(naf.connection.broadcastDataGuaranteed.called, 'Called at all');
+
       var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('u', expected);
-      assert.isTrue(called);
+      assert.isTrue(called, 'Called with exactly');
     }));
-
   });
-
 });

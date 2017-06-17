@@ -124,7 +124,7 @@ class NetworkConnection {
   }
 
   dcIsConnectedTo(user) {
-    return (this.dcIsActive.hasOwnProperty(user) && this.dcIsActive[user]) || true;
+    return this.dcIsActive.hasOwnProperty(user) && this.dcIsActive[user];
   }
 
   broadcastData(dataType, data, guaranteed) {

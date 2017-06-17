@@ -48,10 +48,16 @@ AFRAME.registerComponent('networked', {
   },
 
   attachAndShowTemplate: function(template, show) {
+    if (this.templateEl) {
+      this.el.removeChild(this.templateEl);
+    }
+
     var templateChild = document.createElement('a-entity');
     templateChild.setAttribute('template', 'src:' + template);
     templateChild.setAttribute('visible', show);
+
     this.el.appendChild(templateChild);
+    this.templateEl = templateChild;
   },
 
   play: function() {
@@ -84,7 +90,7 @@ AFRAME.registerComponent('networked', {
     var components = this.getComponentsData(allSyncedComponents);
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
-    // console.log('syncAll', syncData);
+    // console.error('syncAll', syncData);
     this.updateCache(components);
   },
 

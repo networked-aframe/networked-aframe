@@ -91,28 +91,11 @@ suite('networked', function() {
     }));
 
     test('attaches template', function() {
-      var result = entity.getAttribute('template');
+      var templateChild = entity.querySelector('[template]');
+      var result = templateChild.getAttribute('template');
 
       assert.equal(result, 'src:t1');
     });
-
-    test('shows template', sinon.test(function() {
-      var stub = this.stub(networked, 'showTemplate');
-      networked.data.showLocalTemplate = true;
-
-      networked.init();
-
-      assert.isTrue(stub.calledWith(true));
-    }));
-
-    test('hides template', sinon.test(function() {
-      var stub = this.stub(networked, 'showTemplate');
-      networked.data.showLocalTemplate = false;
-
-      networked.init();
-
-      assert.isTrue(stub.calledWith(false));
-    }));
   });
 
   suite('bindEvents', function() {
@@ -162,6 +145,27 @@ suite('networked', function() {
     });
   });
 
+  suite('attachAndShowTemplate', function() {
+
+    test('shows template', sinon.test(function() {
+      networked.attachAndShowTemplate('temp', true);
+
+      var templateChild = entity.querySelector('[template]');
+      var result = templateChild.components.visible.attrValue;
+
+      assert.isTrue(result);
+    }));
+
+    test('hides template', sinon.test(function() {
+      networked.attachAndShowTemplate('temp', false);
+
+      var templateChild = entity.querySelector('[template]');
+      var result = templateChild.components.visible.attrValue;
+      
+      assert.isFalse(result);
+    }));
+  });
+
   suite('tick', function() {
 
     test('syncs if need to', sinon.test(function() {
@@ -195,7 +199,7 @@ suite('networked', function() {
         networkId: 'network1',
         owner: 'owner1',
         parent: null,
-        template: '',
+        template: 't1',
         components: {
           position: { x: 1, y: 2, z: 3 },
           rotation: { x: 4, y: 3, z: 2 }
@@ -248,7 +252,7 @@ suite('networked', function() {
         networkId: 'network1',
         owner: 'owner1',
         parent: null,
-        template: '',
+        template: 't1',
         components: {
           rotation: { x: 4, y: 3, z: 2 }
         }
@@ -271,7 +275,7 @@ suite('networked', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
-      var expected = [1, 'network1', 'owner1', null, '', { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, 't1', { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
 
       networked.init();
       networked.updateCache(oldData);
@@ -290,7 +294,7 @@ suite('networked', function() {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
-      var expected = [1, 'network1', 'owner1', null, '', { 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, 't1', { 1: { x: 4, y: 3, z: 2 } }];
 
       networked.init();
       networked.updateCache(oldData);

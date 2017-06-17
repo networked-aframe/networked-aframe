@@ -43,7 +43,8 @@ suite('networked-remote', function() {
   suite('init', function() {
 
     test('attaches template', function() {
-      var result = entity.getAttribute('template');
+      var templateChild = entity.querySelector('[template]');
+      var result = templateChild.getAttribute('template');
 
       assert.equal(result, 'src:t1');
     });
