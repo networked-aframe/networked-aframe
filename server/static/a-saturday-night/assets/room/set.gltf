@@ -1,0 +1,212 @@
+{
+    "accessors": {
+        "accessor_21": {
+            "bufferView": "bufferView_29",
+            "byteOffset": 0,
+            "byteStride": 0,
+            "componentType": 5123,
+            "count": 6564,
+            "type": "SCALAR"
+        },
+        "accessor_23": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 0,
+            "byteStride": 12,
+            "componentType": 5126,
+            "count": 6564,
+            "max": [
+                4.05084,
+                4.06691,
+                2.98279
+            ],
+            "min": [
+                -4.03764,
+                -4.2332,
+                -0.400256
+            ],
+            "type": "VEC3"
+        },
+        "accessor_25": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 78768,
+            "byteStride": 12,
+            "componentType": 5126,
+            "count": 6564,
+            "max": [
+                1,
+                1,
+                1
+            ],
+            "min": [
+                -1,
+                -1,
+                -1
+            ],
+            "type": "VEC3"
+        },
+        "accessor_27": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 157536,
+            "byteStride": 8,
+            "componentType": 5126,
+            "count": 6564,
+            "max": [
+                0.998,
+                0.998
+            ],
+            "min": [
+                0.00199997,
+                0.00199997
+            ],
+            "type": "VEC2"
+        }
+    },
+    "animations": {},
+    "asset": {
+        "generator": "collada2gltf@cf6371beb0bdc18ba603378d5e40c966da53d385",
+        "premultipliedAlpha": true,
+        "profile": {
+            "api": "WebGL",
+            "version": "1.0.2"
+        },
+        "version": "1.0"
+    },
+    "bufferViews": {
+        "bufferView_29": {
+            "buffer": "set",
+            "byteLength": 13128,
+            "byteOffset": 0,
+            "target": 34963
+        },
+        "bufferView_30": {
+            "buffer": "set",
+            "byteLength": 210048,
+            "byteOffset": 13128,
+            "target": 34962
+        }
+    },
+    "buffers": {
+        "set": {
+            "byteLength": 223176,
+            "type": "arraybuffer",
+            "uri": "set.bin"
+        }
+    },
+    "extensionsUsed": [
+        "KHR_materials_common"
+    ],
+    "images": {
+        "set_jpg": {
+            "name": "set_jpg",
+            "uri": "set.jpg"
+        }
+    },
+    "materials": {
+        "mat-effect": {
+            "extensions": {
+                "KHR_materials_common": {
+                    "technique": "CONSTANT",
+                    "values": {
+                      "emission": "texture_set_jpg"
+                    }
+                }
+            },
+            "name": "mat"
+        }
+    },
+    "meshes": {
+        "Cube_010-mesh": {
+            "name": "Cube.010",
+            "primitives": [
+                {
+                    "attributes": {
+                        "NORMAL": "accessor_25",
+                        "POSITION": "accessor_23",
+                        "TEXCOORD_0": "accessor_27"
+                    },
+                    "indices": "accessor_21",
+                    "material": "mat-effect",
+                    "mode": 4
+                }
+            ]
+        }
+    },
+    "nodes": {
+        "node_1": {
+            "children": [
+                "set"
+            ],
+            "matrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                -1,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "name": "Y_UP_Transform"
+        },
+        "set": {
+            "children": [],
+            "matrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "meshes": [
+                "Cube_010-mesh"
+            ],
+            "name": "set"
+        }
+    },
+    "samplers": {
+        "sampler_0": {
+            "magFilter": 9729,
+            "minFilter": 9729,
+            "wrapS": 10497,
+            "wrapT": 10497
+        }
+    },
+    "scene": "defaultScene",
+    "scenes": {
+        "defaultScene": {
+            "nodes": [
+                "node_1"
+            ]
+        }
+    },
+    "skins": {},
+    "textures": {
+        "texture_set_jpg": {
+            "format": 6408,
+            "internalFormat": 6408,
+            "sampler": "sampler_0",
+            "source": "set_jpg",
+            "target": 3553,
+            "type": 5121
+        }
+    }
+}

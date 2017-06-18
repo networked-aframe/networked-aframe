@@ -224,7 +224,9 @@ AFRAME.registerComponent('spawn-in-circle', {
 
 Then add the `spawn-in-circle` component to your player, like this:
 
+```html
 <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera position="0 1.3 0" spawn-in-circle="radius:3;" wasd-controls look-controls></a-entity>
+```
 
 Refresh those browsers and your scene should be starting to take shape (albeit with a [completely white environment](https://c1.staticflickr.com/8/7405/11599367004_2f03c315fb_b.jpg)).
 
@@ -257,6 +259,10 @@ At this point your example will be very close to the included `basic.html` examp
 ## Advanced Features
 
 Now you have a basic networked WebVR scene up and running. But there's a lot more that Networked-Aframe can do. The next section will take a look at some of the advanced features that give you a lot more control over your experience.
+
+### Hand Controllers
+
+To add hand controllers follow this example: [INSERT CONTORLLER EXAMPLE]
 
 ### WebRTC
 
