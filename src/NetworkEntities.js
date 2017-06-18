@@ -75,7 +75,7 @@ class NetworkEntities {
     } else {
       var remoteEntity = this.createRemoteEntity(entityData);
       this.createAndAppendChildren(networkId, remoteEntity);
-      this.addEntityToScene(remoteEntity);
+      this.addEntity(remoteEntity, parent);
     }
   }
 
@@ -87,9 +87,22 @@ class NetworkEntities {
     }
   }
 
+  addEntity(entity, parentId) {
+    if (this.hasEntity(parentId)) {
+      this.addEntityToParent(entity, parentId);
+    } else {
+      this.addEntityToScene(entity);
+    }
+  }
+
   addEntityToScene(entity) {
     var scene = document.querySelector('a-scene');
     scene.appendChild(entity);
+  }
+
+  addEntityToParent(entity, parentId) {
+    var parentEl = document.getElementById('naf-' + parentId);
+    parentEl.appendChild(entity);
   }
 
   completeSync() {

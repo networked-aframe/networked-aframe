@@ -67,7 +67,6 @@ AFRAME.registerComponent('networked-remote', {
   },
 
   networkUpdate: function(entityData) {
-    // console.log('networkUpdate', entityData);
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
     }
