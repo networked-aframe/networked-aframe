@@ -83,7 +83,7 @@ AFRAME.registerComponent('networked-share', {
       // We are not the owner, just listen for changes.
       this.bindRemoteEvents();
       this.attachLerp();
-      NAF.log.write('Networked-Share lost ownership of: ', this.el.id);
+      NAF.log.write('Networked-Share lost ownership of: ' + this.el.id + ' to ', this.data.owner);
     }
   },
 
@@ -145,7 +145,6 @@ AFRAME.registerComponent('networked-share', {
     naf.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
     this.updateCache(components);
-    NAF.log.write('Networked-Share: SyncAll executed on: ', this.el.id);
   },
 
   syncDirty: function() {
@@ -162,7 +161,6 @@ AFRAME.registerComponent('networked-share', {
     naf.connection.broadcastData('u', syncData);
     // console.log('syncDirty', syncData);
     this.updateCache(components);
-    NAF.log.write('Networked-Share: SyncDirty executed on: ', this.el.id);
   },
 
   needsToSync: function() {
@@ -261,7 +259,6 @@ AFRAME.registerComponent('networked-share', {
       entityData = this.decompressSyncData(entityData);
     }
     this.updateComponents(entityData.components);
-    NAF.log.write('Networked-Share: Updated components after networkUpdate on: ', this.el.id);
   },
 
   updateComponents: function(components) {
