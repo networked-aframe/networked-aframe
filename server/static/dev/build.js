@@ -2288,7 +2288,7 @@ AFRAME.registerComponent('networked-share', {
 
   init: function() {
     this.cachedData = {};
-    this.initNetworkId();
+    this.networkId = this.data.networkId;
     this.initNetworkParent();
     this.registerEntity(this.networkId);
     this.checkLoggedIn();
@@ -2296,10 +2296,6 @@ AFRAME.registerComponent('networked-share', {
     if (this.el.firstUpdateData) {
       this.firstUpdate();
     }
-  },
-
-  initNetworkId: function() {
-    this.networkId = this.data.networkId;
   },
 
   initNetworkParent: function() {
