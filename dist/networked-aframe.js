@@ -3506,7 +3506,6 @@
 	  },
 
 	  onLoggedIn: function onLoggedIn() {
-	    this.owner = naf.clientId;
 	    this.syncAll();
 	  },
 
@@ -3686,7 +3685,7 @@
 	    var data = {
 	      0: 0, // 0 for not compressed
 	      networkId: this.networkId,
-	      owner: this.owner,
+	      owner: this.data.owner,
 	      template: this.data.template,
 	      parent: this.getParentId(),
 	      components: components

@@ -46,7 +46,6 @@ AFRAME.registerComponent('networked-share', {
   },
 
   onLoggedIn: function() {
-    this.owner = naf.clientId;
     this.syncAll();
   },
 
@@ -231,7 +230,7 @@ AFRAME.registerComponent('networked-share', {
     var data = {
       0: 0, // 0 for not compressed
       networkId: this.networkId,
-      owner: this.owner,
+      owner: this.data.owner,
       template: this.data.template,
       parent: this.getParentId(),
       components: components
