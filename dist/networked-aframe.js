@@ -3470,7 +3470,7 @@
 
 	  init: function init() {
 	    this.cachedData = {};
-	    this.networkId = this.data.networkId;
+	    this.initNetworkId();
 	    this.initNetworkParent();
 	    this.registerEntity(this.networkId);
 	    this.checkLoggedIn();
@@ -3478,6 +3478,10 @@
 	    if (this.el.firstUpdateData) {
 	      this.firstUpdate();
 	    }
+	  },
+
+	  initNetworkId: function initNetworkId() {
+	    this.networkId = this.data.networkId;
 	  },
 
 	  initNetworkParent: function initNetworkParent() {
