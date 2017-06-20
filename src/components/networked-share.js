@@ -249,7 +249,7 @@ AFRAME.registerComponent('networked-share', {
   },
 
   getAllSyncedComponents: function() {
-    return naf.schemas.getComponents(this.data.template);
+    return this.data.components;
   },
 
   networkUpdateHandler: function(data) {

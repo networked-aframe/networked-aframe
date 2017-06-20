@@ -3704,7 +3704,7 @@
 	  },
 
 	  getAllSyncedComponents: function getAllSyncedComponents() {
-	    return naf.schemas.getComponents(this.data.template);
+	    return this.data.components;
 	  },
 
 	  networkUpdateHandler: function networkUpdateHandler(data) {
