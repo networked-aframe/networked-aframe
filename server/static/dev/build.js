@@ -2287,6 +2287,10 @@ AFRAME.registerComponent('networked-share', {
   },
 
   init: function() {
+    this.networkUpdateHandler = this.networkUpdateHandler.bind(this);
+    this.syncDirty = this.syncDirty.bind(this);
+    this.syncAll = this.syncAll.bind(this);
+
     this.cachedData = {};
     this.initNetworkId();
     this.initNetworkParent();
@@ -2355,6 +2359,7 @@ AFRAME.registerComponent('networked-share', {
       // If we are owner, then we need to send updates, but also listen for changes.
       this.bindOwnerEvents();
       this.bindRemoteEvents();
+      this.syncAll();
       this.detachLerp();
       NAF.log.write('Networked-Share taken ownership of: ', this.el.id);
     } else {
@@ -2382,12 +2387,12 @@ AFRAME.registerComponent('networked-share', {
   },
 
   bindRemoteEvents: function() {
-    this.el.addEventListener('networkUpdate', this.networkUpdateHandler.bind(this));
+    this.el.addEventListener('networkUpdate', this.networkUpdateHandler);
   },
 
   bindOwnerEvents: function() {
-    this.el.addEventListener('sync', this.syncDirty.bind(this));
-    this.el.addEventListener('syncAll', this.syncAll.bind(this));
+    this.el.addEventListener('sync', this.syncDirty);
+    this.el.addEventListener('syncAll', this.syncAll);
   },
 
   pause: function() {
@@ -2395,12 +2400,12 @@ AFRAME.registerComponent('networked-share', {
   },
 
   unbindRemoteEvents: function() {
-    this.el.removeEventListener('networkUpdate', this.networkUpdateHandler.bind(this));
+    this.el.removeEventListener('networkUpdate', this.networkUpdateHandler);
   },
 
   unbindOwnerEvents: function() {
-    this.el.removeEventListener('sync', this.syncDirty.bind(this));
-    this.el.removeEventListener('syncAll', this.syncAll.bind(this));
+    this.el.removeEventListener('sync', this.syncDirty);
+    this.el.removeEventListener('syncAll', this.syncAll);
   },
 
   tick: function() {
