@@ -3578,9 +3578,6 @@
 	      this.takeover = false;
 
 	      this.bindOwnerEvents();
-	      // Skip one cycle before listening for updates again to avoid Race Condition
-	      // TODO: Fix Race Condition - This doesn't work yet
-	      //setTimeout(this.bindRemoteEvents.bind(this), NAF.options.updateRate);
 	      this.bindRemoteEvents();
 
 	      NAF.log.write('Networked-Share: Taken ownership of ', this.el.id);
@@ -3628,7 +3625,7 @@
 	      this.el.emit("networked-ownership-lost");
 
 	      NAF.log.write('Networked-Share: Friendly takeover of: ' + this.el.id + ' by ', this.data.owner);
-	    } else if (ownerChanged) {
+	    } else if (!this.isMine() && ownerChanged) {
 	      // Just update the owner, it's not me.
 	      this.data.owner = owner;
 
