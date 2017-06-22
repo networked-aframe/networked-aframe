@@ -3483,6 +3483,7 @@
 	    this.syncAll = this.syncAll.bind(this);
 	    this.takeOwnership = this.takeOwnership.bind(this);
 	    this.removeOwnership = this.removeOwnership.bind(this);
+	    this.bindRemoteEvents = this.bindRemoteEvents.bind(this);
 
 	    this.bindOwnershipEvents();
 	    this.bindRemoteEvents();
