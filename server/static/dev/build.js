@@ -2301,6 +2301,7 @@ AFRAME.registerComponent('networked-share', {
     this.syncAll = this.syncAll.bind(this);
     this.takeOwnership = this.takeOwnership.bind(this);
     this.removeOwnership = this.removeOwnership.bind(this);
+    this.handlePhysicsCollision = this.handlePhysicsCollision.bind(this);
 
     this.bindOwnershipEvents();
     this.bindRemoteEvents();
@@ -2366,7 +2367,11 @@ AFRAME.registerComponent('networked-share', {
   },
 
   update: function() {
-
+    if (this.data.physics) {
+      this.el.addEventListener("collide", this.handlePhysicsCollision);
+    } else {
+      this.el.removeEventListener("collide", this.handlePhysicsCollision);
+    }
   },
 
   takeOwnership: function() {
@@ -2700,6 +2705,15 @@ AFRAME.registerComponent('networked-share', {
       this.el.body.quaternion.copy(physics.quaternion);
       this.el.body.velocity.copy(physics.velocity);
       this.el.body.angularVelocity.copy(physics.angularVelocity);
+    }
+  },
+
+  handlePhysicsCollision: function(e) {
+    // When a Collision happens, inherit ownership to collided object
+    // so we can make sure, that my physics get propagated
+    if (e.detail.body.el && e.detail.body.el.components["networked-share"]) {
+      e.detail.body.el.components["networked-share"].takeOwnership();
+      NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", e.detail.body.el.id);
     }
   },
 
