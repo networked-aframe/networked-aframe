@@ -135,8 +135,8 @@ AFRAME.registerComponent('networked-share', {
   },
 
   updateOwnership: function(owner) {
-    ownerChanged = !(this.data.owner == owner);
-    ownerIsMe = (NAF.clientId == owner);
+    var ownerChanged = !(this.data.owner == owner);
+    var ownerIsMe = (NAF.clientId == owner);
 
     if (this.isMine() && !ownerIsMe && ownerChanged) {
       // Somebody has stolen my ownership :/ - accept it and get over it
@@ -370,7 +370,7 @@ AFRAME.registerComponent('networked-share', {
       entityData = this.decompressSyncData(entityData);
     }
     this.updateOwnership(entityData.owner);
-    
+
     if (this.data.physics && entityData.physics) {
       this.updatePhysics(entityData.physics);
     }
