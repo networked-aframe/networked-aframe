@@ -5,13 +5,27 @@ AFRAME.registerComponent('networked-share', {
   schema: {
     networkId: {default: ''},
     owner: {default: ''},
-    components: {default: ['position', 'rotation']}
+    takeOwnershipEvents: {
+     type: "array",
+     default: ["grabbed", "touched"]
+    },
+    removeOwnershipEvents: {
+     type: "array",
+     default: ["ungrabbed"]
+    },
+    components: {default: ['position', 'rotation']},
+    physics: { default: false }
   },
 
   init: function() {
     this.networkUpdateHandler = this.networkUpdateHandler.bind(this);
     this.syncDirty = this.syncDirty.bind(this);
     this.syncAll = this.syncAll.bind(this);
+    this.takeOwnership = this.takeOwnership.bind(this);
+    this.removeOwnership = this.removeOwnership.bind(this);
+
+    this.bindOwnershipEvents();
+    this.bindRemoteEvents();
 
     this.cachedData = {};
     this.initNetworkId();
@@ -74,21 +88,75 @@ AFRAME.registerComponent('networked-share', {
   },
 
   update: function() {
-    this.unbindOwnerEvents();
-    this.unbindRemoteEvents();
 
-    if (this.isMine()) {
-      // If we are owner, then we need to send updates, but also listen for changes.
+  },
+
+  takeOwnership: function() {
+    if (!this.isMine()) {
+      this.unbindOwnerEvents();
+      this.unbindRemoteEvents();
+
+      this.data.owner = NAF.clientId;
+
       this.bindOwnerEvents();
       this.bindRemoteEvents();
+
+      if (!this.data.physics) {
+        this.detachLerp();
+      }
+
+      this.el.emit("networked-ownership-taken");
+
       this.syncAll();
-      this.detachLerp();
-      NAF.log.write('Networked-Share taken ownership of: ', this.el.id);
-    } else {
-      // We are not the owner, just listen for changes.
+
+      NAF.log.write('Networked-Share: Taken ownership of ', this.el.id);
+    }
+  },
+
+  removeOwnership: function() {
+    if (this.isMine()) {
+      this.unbindOwnerEvents();
+      this.unbindRemoteEvents();
+
+      this.data.owner = "";
+
       this.bindRemoteEvents();
-      this.attachLerp();
-      NAF.log.write('Networked-Share lost ownership of: ' + this.el.id + ' to ', this.data.owner);
+
+      if (!this.data.physics) {
+        this.attachLerp();
+      }
+
+      this.el.emit("networked-ownership-removed");
+
+      this.syncAll();
+
+      NAF.log.write('Networked-Share: Removed ownership of ', this.el.id);
+    }
+  },
+
+  updateOwnership: function(owner) {
+    ownerChanged = !(this.data.owner == owner);
+    ownerIsMe = (NAF.clientId == owner);
+
+    if (this.isMine() && !ownerIsMe && ownerChanged) {
+      // Somebody has stolen my ownership :/ - accept it and get over it
+      this.unbindOwnerEvents();
+      this.unbindRemoteEvents();
+
+      this.data.owner = owner;
+
+      this.bindRemoteEvents();
+
+      if (!this.data.physics) {
+        this.attachLerp();
+      }
+
+      this.el.emit("networked-ownership-lost");
+
+      NAF.log.write('Networked-Share: Friendly takeover of: ' + this.el.id + ' by ', this.data.owner);
+    } else if (ownerChanged) {
+      // Just update the owner, it's not me.
+      this.data.owner = owner;
     }
   },
 
@@ -108,6 +176,22 @@ AFRAME.registerComponent('networked-share', {
 
   },
 
+  bindOwnershipEvents: function() {
+    if (this.data.takeOwnershipEvents) {
+      // Register Events when ownership should be taken
+      for (var i = 0; i < this.data.takeOwnershipEvents.length; i++) {
+        this.el.addEventListener(this.data.takeOwnershipEvents[i], this.takeOwnership);
+      }
+    }
+
+    if (this.data.removeOwnershipEvents) {
+      // Register Events when ownership should be removed
+      for (var i = 0; i < this.data.removeOwnershipEvents.length; i++) {
+        this.el.addEventListener(this.data.removeOwnershipEvents[i], this.removeOwnership);
+      }
+    }
+  },
+
   bindRemoteEvents: function() {
     this.el.addEventListener('networkUpdate', this.networkUpdateHandler);
   },
@@ -119,6 +203,22 @@ AFRAME.registerComponent('networked-share', {
 
   pause: function() {
 
+  },
+
+  unbindOwnershipEvents: function() {
+    if (this.data.takeOwnershipEvents) {
+      // Unbind Events when ownership should be taken
+      for (var i = 0; i < this.data.takeOwnershipEvents.length; i++) {
+        this.el.removeEventListener(this.data.takeOwnershipEvents[i], this.takeOwnership);
+      }
+    }
+
+    if (this.data.removeOwnershipEvents) {
+      // Unbind Events when ownership should be removed
+      for (var i = 0; i < this.data.removeOwnershipEvents.length; i++) {
+        this.el.removeEventListener(this.data.removeOwnershipEvents[i], this.removeOwnership);
+      }
+    }
   },
 
   unbindRemoteEvents: function() {
@@ -238,6 +338,12 @@ AFRAME.registerComponent('networked-share', {
       parent: this.getParentId(),
       components: components
     };
+
+    if (this.data.physics) {
+      // TODO: add Physics
+      data['physics'] = "";
+    }
+
     return data;
   },
 
@@ -263,6 +369,12 @@ AFRAME.registerComponent('networked-share', {
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
     }
+    this.updateOwnership(entityData.owner);
+    
+    if (this.data.physics && entityData.physics) {
+      this.updatePhysics(entityData.physics);
+    }
+
     this.updateComponents(entityData.components);
   },
 
@@ -281,6 +393,10 @@ AFRAME.registerComponent('networked-share', {
         }
       }
     }
+  },
+
+  updatePhysics: function() {
+
   },
 
   compressSyncData: function(syncData) {
@@ -411,5 +527,9 @@ AFRAME.registerComponent('networked-share', {
   remove: function () {
     var data = { networkId: this.networkId };
     naf.connection.broadcastData('r', data);
+
+    this.unbindOwnershipEvents();
+    this.unbindOwnerEvents();
+    this.unbindRemoteEvents();
   },
 });
