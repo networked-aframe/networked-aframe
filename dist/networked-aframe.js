@@ -3498,7 +3498,7 @@
 	      this.firstUpdate();
 	    }
 
-	    this.ownerLock = 0;
+	    this.takeover = false;
 	  },
 
 	  initNetworkId: function initNetworkId() {
@@ -3563,8 +3563,6 @@
 	      this.unbindOwnerEvents();
 	      this.unbindRemoteEvents();
 
-	      this.ownerLock = Date.now() + 1000;
-
 	      this.data.owner = NAF.clientId;
 
 	      if (!this.data.physics) {
@@ -3573,7 +3571,11 @@
 
 	      this.el.emit("networked-ownership-taken");
 
+	      this.takeover = true;
+
 	      this.syncAll();
+
+	      this.takeover = false;
 
 	      this.bindOwnerEvents();
 	      // Skip one cycle before listening for updates again to avoid Race Condition
@@ -3606,31 +3608,26 @@
 	    }
 	  },
 
-	  updateOwnership: function updateOwnership(owner) {
+	  updateOwnership: function updateOwnership(owner, takeover) {
 	    var ownerChanged = !(this.data.owner == owner);
 	    var ownerIsMe = NAF.clientId == owner;
 
-	    if (this.isMine() && !ownerIsMe && ownerChanged) {
+	    if (this.isMine() && !ownerIsMe && ownerChanged && takeover) {
 	      // Somebody has stolen my ownership :/ - accept it and get over it
-	      // TODO: Takeover doesn't work yet, since they take each other over
-	      if (Date.now() >= this.ownerLock) {
-	        this.unbindOwnerEvents();
-	        this.unbindRemoteEvents();
+	      this.unbindOwnerEvents();
+	      this.unbindRemoteEvents();
 
-	        this.data.owner = owner;
+	      this.data.owner = owner;
 
-	        this.bindRemoteEvents();
+	      this.bindRemoteEvents();
 
-	        if (!this.data.physics) {
-	          this.attachLerp();
-	        }
-
-	        this.el.emit("networked-ownership-lost");
-
-	        NAF.log.write('Networked-Share: Friendly takeover of: ' + this.el.id + ' by ', this.data.owner);
-	      } else {
-	        NAF.log.write('Networked-Share: Attempted takeover of: ' + this.el.id + ' blocked by ownerLock. Remote-User: ', this.data.owner);
+	      if (!this.data.physics) {
+	        this.attachLerp();
 	      }
+
+	      this.el.emit("networked-ownership-lost");
+
+	      NAF.log.write('Networked-Share: Friendly takeover of: ' + this.el.id + ' by ', this.data.owner);
 	    } else if (ownerChanged) {
 	      // Just update the owner, it's not me.
 	      this.data.owner = owner;
@@ -3847,6 +3844,7 @@
 	      0: 0, // 0 for not compressed
 	      networkId: this.networkId,
 	      owner: this.data.owner,
+	      takeover: this.takeover,
 	      template: this.data.template,
 	      parent: this.getParentId(),
 	      components: components
@@ -3881,7 +3879,7 @@
 	    if (entityData[0] == 1) {
 	      entityData = this.decompressSyncData(entityData);
 	    }
-	    this.updateOwnership(entityData.owner);
+	    this.updateOwnership(entityData.owner, entityData.takeover);
 
 	    if (this.data.physics && entityData.physics) {
 	      this.updatePhysics(entityData.physics);
