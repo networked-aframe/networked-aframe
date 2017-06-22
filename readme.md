@@ -222,7 +222,7 @@ If using WebRTC `broadcastData` messages are sent P2P using UDP and are not guar
 NAF.connection.isConnected()
 ```
 
-Returns true if a connection has been established to the signalling server. Don't create entities before this is true.
+Returns true if a connection has been established to the signalling server.
 
 
 ### Options
