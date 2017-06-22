@@ -3924,10 +3924,33 @@
 	  handlePhysicsCollision: function handlePhysicsCollision(e) {
 	    // When a Collision happens, inherit ownership to collided object
 	    // so we can make sure, that my physics get propagated
-	    if (e.detail.body.el && e.detail.body.el.components["networked-share"]) {
-	      e.detail.body.el.components["networked-share"].takeOwnership();
-	      NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", e.detail.body.el.id);
+	    if (this.isMine()) {
+	      if (e.detail.body.el && e.detail.body.el.components["networked-share"]) {
+	        if (this.isStrongerThan(e.detail.body) || e.detail.body.el.components["networked-share"].data.owner == "") {
+	          e.detail.body.el.components["networked-share"].takeOwnership();
+	          NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", e.detail.body.el.id);
+	        }
+	      }
 	    }
+	  },
+
+	  isStrongerThan: function isStrongerThan(otherBody) {
+	    // A way to decide which element is stronger
+	    // when a collision happens
+	    // so that we can decide which one inherits ownership
+	    if (this.el.body && otherBody) {
+	      // TODO: What if they are equal?
+	      return this.calculatePhysicsStrength(this.el.body) > this.calculatePhysicsStrength(otherBody);
+	    } else {
+	      return false;
+	    }
+	  },
+
+	  calculatePhysicsStrength: function calculatePhysicsStrength(body) {
+	    var speed = Math.abs(body.velocity.x) + Math.abs(body.velocity.y) + Math.abs(body.velocity.z);
+	    var rotationalSpeed = Math.abs(body.angularVelocity.x) + Math.abs(body.angularVelocity.y) + Math.abs(body.angularVelocity.z);
+
+	    return 2 * speed + rotationalSpeed;
 	  },
 
 	  compressSyncData: function compressSyncData(syncData) {
