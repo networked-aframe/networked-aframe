@@ -106,9 +106,9 @@ AFRAME.registerComponent('networked-share', {
 
       this.syncAll();
 
-      // Bind owner events after synching to avoid race condition
       this.bindOwnerEvents();
-      this.bindRemoteEvents();
+      // Skip one cycle before listening for updates again to avoid Race Condition
+      setTimeout(this.bindRemoteEvents, NAF.options.updateRate);
 
       NAF.log.write('Networked-Share: Taken ownership of ', this.el.id);
     }
