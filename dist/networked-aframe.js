@@ -3483,7 +3483,6 @@
 	    this.syncAll = this.syncAll.bind(this);
 	    this.takeOwnership = this.takeOwnership.bind(this);
 	    this.removeOwnership = this.removeOwnership.bind(this);
-	    this.bindRemoteEvents = this.bindRemoteEvents.bind(this);
 
 	    this.bindOwnershipEvents();
 	    this.bindRemoteEvents();
@@ -3567,7 +3566,7 @@
 
 	      this.bindOwnerEvents();
 	      // Skip one cycle before listening for updates again to avoid Race Condition
-	      setTimeout(this.bindRemoteEvents, NAF.options.updateRate);
+	      setTimeout(this.bindRemoteEvents.bind(this), NAF.options.updateRate);
 
 	      NAF.log.write('Networked-Share: Taken ownership of ', this.el.id);
 	    }
