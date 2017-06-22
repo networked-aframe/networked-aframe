@@ -23,8 +23,8 @@ AFRAME.registerComponent('spawn-in-circle', {
   },
 
   randomPointOnCircle: function (radius, angleRad) {
-    x = Math.cos(angleRad)*radius;
-    y = Math.sin(angleRad)*radius;
+    var x = Math.cos(angleRad)*radius;
+    var y = Math.sin(angleRad)*radius;
     return {x: x, y: y};
   }
 });
