@@ -3497,6 +3497,8 @@
 	    if (this.el.firstUpdateData) {
 	      this.firstUpdate();
 	    }
+
+	    this.ownerLock = 0;
 	  },
 
 	  initNetworkId: function initNetworkId() {
@@ -3561,6 +3563,8 @@
 	      this.unbindOwnerEvents();
 	      this.unbindRemoteEvents();
 
+	      this.ownerLock = Date.now() + 100;
+
 	      this.data.owner = NAF.clientId;
 
 	      if (!this.data.physics) {
@@ -3609,20 +3613,24 @@
 	    if (this.isMine() && !ownerIsMe && ownerChanged) {
 	      // Somebody has stolen my ownership :/ - accept it and get over it
 	      // TODO: Takeover doesn't work yet, since they take each other over
-	      this.unbindOwnerEvents();
-	      this.unbindRemoteEvents();
+	      if (Date.now() >= this.ownerLock) {
+	        this.unbindOwnerEvents();
+	        this.unbindRemoteEvents();
 
-	      this.data.owner = owner;
+	        this.data.owner = owner;
 
-	      this.bindRemoteEvents();
+	        this.bindRemoteEvents();
 
-	      if (!this.data.physics) {
-	        this.attachLerp();
+	        if (!this.data.physics) {
+	          this.attachLerp();
+	        }
+
+	        this.el.emit("networked-ownership-lost");
+
+	        NAF.log.write('Networked-Share: Friendly takeover of: ' + this.el.id + ' by ', this.data.owner);
+	      } else {
+	        NAF.log.write('Networked-Share: Attempted takeover of: ' + this.el.id + ' blocked by ownerLock. Remote-User: ', this.data.owner);
 	      }
-
-	      this.el.emit("networked-ownership-lost");
-
-	      NAF.log.write('Networked-Share: Friendly takeover of: ' + this.el.id + ' by ', this.data.owner);
 	    } else if (ownerChanged) {
 	      // Just update the owner, it's not me.
 	      this.data.owner = owner;
@@ -3918,6 +3926,9 @@
 	      }
 
 	      this.el.body.type = bodyType;
+	      // TODO: Make shared hands a rigidbody everywhere
+	      // So that we can share constraints
+	      // So we can apply the handlePhysicsCollision logic there too to handle touching
 	    }
 	  },
 
