@@ -1,7 +1,8 @@
 /* global assert, process, setup, suite, test */
 var NetworkConnection = require('../../src/NetworkConnection');
-var WebRtcInterface = require('../../src/webrtc_interfaces/WebRtcInterface');
+var NetworkInterface = require('../../src/network_interfaces/NetworkInterface');
 var NetworkEntities = require('../../src/NetworkEntities');
+var naf = require('../../src/NafIndex');
 
 suite('NetworkConnection', function() {
   var connection;
@@ -15,23 +16,25 @@ suite('NetworkConnection', function() {
     this.removeEntity = sinon.stub();
   }
 
-  function WebRtcStub() {
+  function NetworkInterfaceStub() {
     this.setStreamOptions = sinon.stub();
     this.joinRoom = sinon.stub();
     this.setDatachannelListeners = sinon.stub();
     this.setLoginListeners = sinon.stub();
     this.setRoomOccupantListener = sinon.stub();
     this.connect = sinon.stub();
-    this.getRoomJoinTime = sinon.stub();
-    this.sendDataP2P = sinon.stub();
+    this.sendData = sinon.stub();
     this.sendDataGuaranteed = sinon.stub();
+    this.shouldStartConnectionTo = sinon.stub();
+    this.startStreamConnection = sinon.stub();
+    this.closeStreamConnection = sinon.stub();
+    this.getConnectStatus = sinon.stub();
   }
 
   setup(function() {
-    var webrtcStub = new WebRtcStub();
     entities = new NetworkEntitiesStub();
     connection = new NetworkConnection(entities);
-    connection.setWebRtc(webrtcStub);
+    connection.setNetworkInterface(new NetworkInterfaceStub());
   });
 
   suite('setupDefaultDCSubs', function() {
@@ -49,12 +52,12 @@ suite('NetworkConnection', function() {
     test('calls correct webrtc interface calls, without audio', function() {
       connection.connect('app1', 'room1', false);
 
-      assert.isTrue(connection.webrtc.setStreamOptions.called);
-      assert.isTrue(connection.webrtc.joinRoom.called);
-      assert.isTrue(connection.webrtc.setDatachannelListeners.called);
-      assert.isTrue(connection.webrtc.setLoginListeners.called);
-      assert.isTrue(connection.webrtc.setRoomOccupantListener.called);
-      assert.isTrue(connection.webrtc.connect.called);
+      assert.isTrue(connection.network.setStreamOptions.called);
+      assert.isTrue(connection.network.joinRoom.called);
+      assert.isTrue(connection.network.setDatachannelListeners.called);
+      assert.isTrue(connection.network.setLoginListeners.called);
+      assert.isTrue(connection.network.setRoomOccupantListener.called);
+      assert.isTrue(connection.network.connect.called);
     });
   });
 
@@ -121,17 +124,6 @@ suite('NetworkConnection', function() {
 
       assert.isTrue(connection.isMineAndConnected(id));
     });
-
-    test('setting room join time', function() {
-      var id = 'testId';
-      connection.webrtc.getRoomJoinTime = sinon.stub();
-      connection.webrtc.getRoomJoinTime.returns(12345);
-
-      connection.loginSuccess(id);
-
-      var result = connection.myRoomJoinTime;
-      assert.equal(result, 12345);
-    });
   });
 
   suite('loginFailure', function() {
@@ -143,9 +135,8 @@ suite('NetworkConnection', function() {
 
   suite('occupantsReceived', function() {
 
-    test('adds to connect list', function() {
+    test('updates connect list', function() {
       var occupants = { 'user1': true };
-      connection.webrtc.getConnectStatus = sinon.stub();
 
       connection.occupantsReceived('room1', occupants, false);
 
@@ -156,26 +147,26 @@ suite('NetworkConnection', function() {
       connection.myRoomJoinTime = 1;
       var newClient = { roomJoinTime: 10 };
       var occupants = { 'user1': newClient };
-      connection.webrtc.getConnectStatus
-          = sinon.stub().returns(WebRtcInterface.NOT_CONNECTED);
-      connection.webrtc.startStreamConnection = sinon.stub();
+      connection.network.getConnectStatus
+          = sinon.stub().returns(NetworkInterface.NOT_CONNECTED);
+      connection.network.shouldStartConnectionTo
+          = sinon.stub().returns(true);
 
       connection.occupantsReceived('room1', occupants, false);
 
-      assert.isTrue(connection.webrtc.startStreamConnection.called);
+      assert.isTrue(connection.network.startStreamConnection.called);
     });
 
     test('older client joins and does not start call', function() {
       connection.myRoomJoinTime = 10;
       var olderClient = { roomJoinTime: 1 };
       var occupants = { 'user1': olderClient };
-      connection.webrtc.getConnectStatus
-          = sinon.stub().returns(WebRtcInterface.NOT_CONNECTED);
-      connection.webrtc.startStreamConnection = sinon.stub();
+      connection.network.getConnectStatus
+          = sinon.stub().returns(NetworkInterface.NOT_CONNECTED);
 
       connection.occupantsReceived('room1', occupants, false);
 
-      assert.isFalse(connection.webrtc.startStreamConnection.called);
+      assert.isFalse(connection.network.startStreamConnection.called);
     });
   });
 
@@ -202,8 +193,8 @@ suite('NetworkConnection', function() {
   suite('isNewClient', function() {
     test('not connected', function() {
       var testId = 'test1';
-      connection.webrtc.getConnectStatus
-          = sinon.stub().returns(WebRtcInterface.NOT_CONNECTED);
+      connection.network.getConnectStatus
+          = sinon.stub().returns(NetworkInterface.NOT_CONNECTED);
 
       var result = connection.isNewClient(testId);
 
@@ -212,8 +203,8 @@ suite('NetworkConnection', function() {
 
     test('is connected', function() {
       var testId = 'test1';
-      connection.webrtc.getConnectStatus
-          = sinon.stub().returns(WebRtcInterface.IS_CONNECTED);
+      connection.network.getConnectStatus
+          = sinon.stub().returns(NetworkInterface.IS_CONNECTED);
 
       var result = connection.isNewClient(testId);
 
@@ -221,48 +212,12 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('myClientShouldStartConnection', function() {
-
-    test('my client is earlier', function() {
-      var otherClient = { roomJoinTime: 10 };
-      var otherClientId = 'other';
-      connection.connectList[otherClientId] = otherClient;
-      connection.myRoomJoinTime = 1;
-
-      var result = connection.myClientShouldStartConnection(otherClientId);
-
-      assert.isTrue(result);
-    });
-
-    test('other client is earlier', function() {
-      var otherClient = { roomJoinTime: 1 };
-      var otherClientId = 'other';
-      connection.connectList[otherClientId] = otherClient;
-      connection.myRoomJoinTime = 10;
-
-      var result = connection.myClientShouldStartConnection(otherClientId);
-
-      assert.isFalse(result);
-    });
-
-    test('clients joined exactly the same time', function () {
-      var otherClient = { roomJoinTime: 10 };
-      var otherClientId = 'other';
-      connection.connectList[otherClientId] = otherClient;
-      connection.myRoomJoinTime = 10;
-
-      var result = connection.myClientShouldStartConnection(otherClientId);
-
-      assert.isTrue(result);
-    });
-  });
-
   suite('isConnectedTo', function() {
 
     test('is connected', function() {
       var otherClientId = 'other';
-      var connected = WebRtcInterface.IS_CONNECTED;
-      connection.webrtc.getConnectStatus = sinon.stub().returns(connected);
+      var connected = NetworkInterface.IS_CONNECTED;
+      connection.network.getConnectStatus = sinon.stub().returns(connected);
 
       var result = connection.isConnectedTo(otherClientId);
 
@@ -271,8 +226,8 @@ suite('NetworkConnection', function() {
 
     test('is not connected', function() {
       var otherClientId = 'other';
-      var notConnected = WebRtcInterface.NOT_CONNECTED;
-      connection.webrtc.getConnectStatus = sinon.stub().returns(notConnected);
+      var notConnected = NetworkInterface.NOT_CONNECTED;
+      connection.network.getConnectStatus = sinon.stub().returns(notConnected);
 
       var result = connection.isConnectedTo(otherClientId);
 
@@ -405,8 +360,8 @@ suite('NetworkConnection', function() {
 
       connection.sendData(clientId, dataType, data, false);
 
-      assert.isFalse(connection.webrtc.sendDataGuaranteed.called);
-      assert.isTrue(connection.webrtc.sendDataP2P.calledWith(clientId, dataType, data));
+      assert.isFalse(connection.network.sendDataGuaranteed.called);
+      assert.isTrue(connection.network.sendData.calledWith(clientId, dataType, data));
     });
 
     test('is connected, guaranteed', function() {
@@ -417,8 +372,8 @@ suite('NetworkConnection', function() {
 
       connection.sendData(clientId, dataType, data, true);
 
-      assert.isFalse(connection.webrtc.sendDataP2P.called);
-      assert.isTrue(connection.webrtc.sendDataGuaranteed.calledWith(clientId, dataType, data));
+      assert.isFalse(connection.network.sendData.called);
+      assert.isTrue(connection.network.sendDataGuaranteed.calledWith(clientId, dataType, data));
     });
 
     test('not connected', function() {
@@ -429,8 +384,8 @@ suite('NetworkConnection', function() {
 
       connection.sendData(clientId, dataType, data);
 
-      assert.isFalse(connection.webrtc.sendDataP2P.called);
-      assert.isFalse(connection.webrtc.sendDataGuaranteed.called);
+      assert.isFalse(connection.network.sendData.called);
+      assert.isFalse(connection.network.sendDataGuaranteed.called);
     });
   });
 

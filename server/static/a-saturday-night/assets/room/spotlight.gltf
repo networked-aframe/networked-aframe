@@ -1,0 +1,215 @@
+{
+    "accessors": {
+        "accessor_21": {
+            "bufferView": "bufferView_29",
+            "byteOffset": 0,
+            "byteStride": 0,
+            "componentType": 5123,
+            "count": 60,
+            "type": "SCALAR"
+        },
+        "accessor_23": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 0,
+            "byteStride": 12,
+            "componentType": 5126,
+            "count": 60,
+            "max": [
+                0.848584,
+                1.31549,
+                -0.0346799
+            ],
+            "min": [
+                -1.74462,
+                -1.1805,
+                -3.28215
+            ],
+            "type": "VEC3"
+        },
+        "accessor_25": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 720,
+            "byteStride": 12,
+            "componentType": 5126,
+            "count": 60,
+            "max": [
+                0.998885,
+                0.932647,
+                0.989452
+            ],
+            "min": [
+                -0.943899,
+                -0.937305,
+                0.0466968
+            ],
+            "type": "VEC3"
+        },
+        "accessor_27": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 1440,
+            "byteStride": 8,
+            "componentType": 5126,
+            "count": 60,
+            "max": [
+                0.9863,
+                0.9968
+            ],
+            "min": [
+                0.00589996,
+                0.9836
+            ],
+            "type": "VEC2"
+        }
+    },
+    "animations": {},
+    "asset": {
+        "generator": "collada2gltf@cf6371beb0bdc18ba603378d5e40c966da53d385",
+        "premultipliedAlpha": true,
+        "profile": {
+            "api": "WebGL",
+            "version": "1.0.2"
+        },
+        "version": "1.0"
+    },
+    "bufferViews": {
+        "bufferView_29": {
+            "buffer": "spotlight",
+            "byteLength": 120,
+            "byteOffset": 0,
+            "target": 34963
+        },
+        "bufferView_30": {
+            "buffer": "spotlight",
+            "byteLength": 1920,
+            "byteOffset": 120,
+            "target": 34962
+        }
+    },
+    "buffers": {
+        "spotlight": {
+            "byteLength": 2040,
+            "type": "arraybuffer",
+            "uri": "spotlight.bin"
+        }
+    },
+    "extensionsUsed": [
+        "KHR_materials_common"
+    ],
+    "materials": {
+        "Material-effect": {
+            "extensions": {
+                "KHR_materials_common": {
+                    "doubleSided": false,
+                    "jointCount": 0,
+                    "technique": "PHONG",
+                    "transparent": false,
+                    "values": {
+                        "ambient": [
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "diffuse": [
+                            0.64,
+                            0.64,
+                            0.64,
+                            1
+                        ],
+                        "emission": [
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "shininess": 50,
+                        "specular": [
+                            0.5,
+                            0.5,
+                            0.5,
+                            1
+                        ]
+                    }
+                }
+            },
+            "name": "Material"
+        }
+    },
+    "meshes": {
+        "lightcone_001_Cylinder_000-mesh": {
+            "name": "lightcone.001_Cylinder.000",
+            "primitives": [
+                {
+                    "attributes": {
+                        "NORMAL": "accessor_25",
+                        "POSITION": "accessor_23",
+                        "TEXCOORD_0": "accessor_27"
+                    },
+                    "indices": "accessor_21",
+                    "material": "Material-effect",
+                    "mode": 4
+                }
+            ]
+        }
+    },
+    "nodes": {
+        "lightcone_001_Cylinder_000": {
+            "children": [],
+            "matrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "meshes": [
+                "lightcone_001_Cylinder_000-mesh"
+            ],
+            "name": "lightcone_001_Cylinder_000"
+        },
+        "node_1": {
+            "children": [
+                "lightcone_001_Cylinder_000"
+            ],
+            "matrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                -1,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "name": "Y_UP_Transform"
+        }
+    },
+    "scene": "defaultScene",
+    "scenes": {
+        "defaultScene": {
+            "nodes": [
+                "node_1"
+            ]
+        }
+    },
+    "skins": {}
+}

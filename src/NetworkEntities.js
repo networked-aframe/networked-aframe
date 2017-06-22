@@ -1,78 +1,30 @@
+var ChildEntityCache = require('./ChildEntityCache');
+
 class NetworkEntities {
 
   constructor() {
     this.entities = {};
+    this.childCache = new ChildEntityCache();
   }
 
-  createNetworkEntity(template, position, rotation) {
-    var networkId = this.createEntityId();
-    NAF.log.write('Created network entity', networkId);
-    var entityData = {
-      networkId: networkId,
-      owner: NAF.clientId,
-      template: template,
-      components: {
-        position: position,
-        rotation: rotation
-      }
-    };
-    var entity = this.createLocalEntity(entityData);
-    return entity;
+  registerLocalEntity(networkId, entity) {
+    this.entities[networkId] = entity;
   }
 
-  createAvatar(template, position, rotation) {
-    var avatar = this.createNetworkEntity(template, position, rotation);
-    avatar.setAttribute('visible', false);
-    avatar.setAttribute('follow-entity', '[camera]');
-    avatar.className += ' local-avatar';
-    avatar.removeAttribute('lerp');
+  createRemoteEntity(entityData) {
+    NAF.log.write('Creating remote entity', entityData);
 
-    var camera = document.querySelector('[camera]');
-    camera.setAttribute('position', position);
-    camera.setAttribute('rotation', rotation);
-
-    return avatar;
-  }
-
-  createLocalEntity(entityData) {
     var entity = document.createElement('a-entity');
     entity.setAttribute('id', 'naf-' + entityData.networkId);
-    if (NAF.options.useLerp) {
-      entity.setAttribute('lerp', '');
-    }
 
     var template = entityData.template;
-    this.setTemplate(entity, template);
-
-    var components = this.getComponents(template);
+    var components = NAF.schemas.getComponents(template);
     this.initPosition(entity, entityData.components);
     this.initRotation(entity, entityData.components);
-    this.setNetworkData(entity, entityData, components);
-
-    entity.initNafData = entityData;
-
-    var scene = document.querySelector('a-scene');
-    scene.appendChild(entity);
+    this.addNetworkComponent(entity, entityData, components);
     this.entities[entityData.networkId] = entity;
 
     return entity;
-  }
-
-  setTemplate(entity, template) {
-    var templateEl = document.querySelector(template);
-    if (templateEl) {
-      entity.setAttribute('template', 'src:' + template);
-    } else {
-      NAF.log.error('NetworkEntities@createLocalEntity: Template not found: ' + template);
-    }
-  }
-
-  getComponents(template) {
-    var components = ['position', 'rotation'];
-    if (NAF.schemas.hasTemplate(template)) {
-      components = NAF.schemas.getComponents(template);
-    }
-    return components;
   }
 
   initPosition(entity, componentData) {
@@ -91,13 +43,15 @@ class NetworkEntities {
     }
   }
 
-  setNetworkData(entity, entityData, components) {
+  addNetworkComponent(entity, entityData, components) {
     var networkData = {
+      template: entityData.template,
       owner: entityData.owner,
       networkId: entityData.networkId,
       components: components
     };
-    entity.setAttribute('network', networkData);
+    entity.setAttribute('networked-remote', networkData);
+    entity.firstUpdateData = entityData;
   }
 
   updateEntity(client, dataType, entityData) {
@@ -107,9 +61,48 @@ class NetworkEntities {
     if (this.hasEntity(networkId)) {
       this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
     } else if (!isCompressed) {
-      NAF.log.write('Creating remote entity', entityData);
-      this.createLocalEntity(entityData);
+      this.receiveFirstUpdateFromEntity(entityData);
     }
+  }
+
+  receiveFirstUpdateFromEntity(entityData) {
+    var parent = entityData.parent;
+    var networkId = entityData.networkId;
+
+    var parentNotCreatedYet = parent && !this.hasEntity(parent);
+    if (parentNotCreatedYet) {
+      this.childCache.addChild(parent, entityData);
+    } else {
+      var remoteEntity = this.createRemoteEntity(entityData);
+      this.createAndAppendChildren(networkId, remoteEntity);
+      this.addEntity(remoteEntity, parent);
+    }
+  }
+
+  createAndAppendChildren(networkId, parentEntity) {
+    var children = this.childCache.getChildren(networkId);
+    for (var i = 0; i < children.length; i++) {
+      var childEntity = this.createRemoteEntity(children[i]);
+      parentEntity.appendChild(childEntity);
+    }
+  }
+
+  addEntity(entity, parentId) {
+    if (this.hasEntity(parentId)) {
+      this.addEntityToParent(entity, parentId);
+    } else {
+      this.addEntityToScene(entity);
+    }
+  }
+
+  addEntityToScene(entity) {
+    var scene = document.querySelector('a-scene');
+    scene.appendChild(entity);
+  }
+
+  addEntityToParent(entity, parentId) {
+    var parentEl = document.getElementById('naf-' + parentId);
+    parentEl.appendChild(entity);
   }
 
   completeSync() {
@@ -125,17 +118,6 @@ class NetworkEntities {
     return this.removeEntity(id);
   }
 
-  removeEntity(id) {
-    if (this.hasEntity(id)) {
-      var entity = this.entities[id];
-      delete this.entities[id];
-      entity.parentNode.removeChild(entity);
-      return entity;
-    } else {
-      return null;
-    }
-  }
-
   removeEntitiesFromUser(user) {
     var entityList = [];
     for (var id in this.entities) {
@@ -148,6 +130,17 @@ class NetworkEntities {
     return entityList;
   }
 
+  removeEntity(id) {
+    if (this.hasEntity(id)) {
+      var entity = this.entities[id];
+      delete this.entities[id];
+      entity.parentNode.removeChild(entity);
+      return entity;
+    } else {
+      return null;
+    }
+  }
+
   getEntity(id) {
     if (this.entities.hasOwnProperty(id)) {
       return this.entities[id];
@@ -157,10 +150,6 @@ class NetworkEntities {
 
   hasEntity(id) {
     return this.entities.hasOwnProperty(id);
-  }
-
-  createEntityId() {
-    return Math.random().toString(36).substring(2, 9);
   }
 }
 

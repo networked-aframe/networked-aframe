@@ -6,7 +6,7 @@ Networked-Aframe
 
 **Multi-user VR on the Web**
 
-Write full-featured Social VR experiences on the web, with minimal networking knowledge required.
+Write full-featured multi-user VR experiences entirely in HTML.
 
 Built on top of the wonderful [A-Frame](https://aframe.io/).
 
@@ -28,17 +28,17 @@ Built on top of the wonderful [A-Frame](https://aframe.io/).
 Features
 --------
 * Includes everything you need to create multi-user WebVR apps and games.
-* WebRTC with no experience required. Take advantage of low-latency, peer-to-peer networking over UDP with minimal effort.
-* Audio streaming to let your users talk in-app.
-* Bandwidth sensitive. Only sends network updates when a synced component has changed. Option to compress network updates.
+* Support for WebRTC and/or WebSocket connections.
+* Voice chat. Audio streaming to let your users talk in-app (WebRTC only).
+* Bandwidth sensitive. Only send network updates when things change. Option to furhter compress network packets.
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
-* Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard supported.
+* Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard+Daydream supported.
 
 
 Getting Started
 ---------------
 
-Follow [this tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/Tutorial:%20Create%20your%20first%20Networked-Aframe%20experience.md) to build your own example.
+Follow [this tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/getting-started-local.md) to build your own example.
 
 Edit online example with [glitch.com/~networked-aframe](https://glitch.com/~networked-aframe).
 
@@ -63,19 +63,16 @@ Basic Example
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="easyrtc/easyrtc.js"></script>
     <script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js"></script>
-    <script>
-      function onConnect () {
-        NAF.entities.createAvatar('#avatar-template', '0 1.6 0', '0 0 0');
-      }
-    </script>
   </head>
   <body>
-    <a-scene network-scene>
+    <a-scene networked-scene>
       <a-assets>
         <script id="avatar-template" type="text/html">
           <a-sphere></a-sphere>
         </script>
       </a-assets>
+      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera wasd-controls look-controls>
+      </a-entity>
     </a-scene>
   </body>
 </html>
@@ -89,7 +86,6 @@ Open in two tabs if nobody else is online.
 * [Basic](http://haydenlee.io/networked-aframe/basic.html)
 * [Shooter](http://haydenlee.io/networked-aframe/shooter.html)
 * [360 Image](http://haydenlee.io/networked-aframe/360.html)
-* [Dance Party! - WIP](http://haydenlee.io/networked-aframe/dance-party.html)
 * Made something awesome with Networked-Aframe? [Let me know](https://twitter.com/haydenlee37) and I'll include it here!
 
 
@@ -98,7 +94,7 @@ Documentation
 
 ### Overview
 
-Networked-Aframe works by syncing entities and their components to connected users. To connect to a room you need to add the [`network-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, you need to create a [network entity](#creating-network-entities). By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the WebRTC datachannel see the sections on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Options](#options).
+Networked-Aframe works by syncing entities and their components to connected users. To connect to a room you need to add the [`networked-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, add the `networked` component to it. By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the network messages see the sections on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Options](#options).
 
 
 ### Scene component
@@ -106,14 +102,15 @@ Networked-Aframe works by syncing entities and their components to connected use
 Required on the A-Frame `<a-scene>` component.
 
 ```html
-<a-scene network-scene="
+<a-scene networked-scene="
   app: <appId>;
   room: <roomName>;
-  audio: false;
-  debug: false;
-  onConnect: onConnect;
   connectOnLoad: true;
   signalURL: /;
+  onConnect: onConnect;
+  webrtc: false;
+  webrtcAudio: false;
+  debug: false;
 ">
   ...
 </a-scene>
@@ -123,37 +120,32 @@ Required on the A-Frame `<a-scene>` component.
 | -------- | ----------- | ------------- |
 | app  | Unique app name. Spaces are not allowed. | default |
 | room  | Unique room name. Can be multiple per app. Spaces are not allowed. | default |
-| audio  | Turn on / off microphone audio streaming for your app | false |
-| debug  | Turn on / off Networked-Aframe debug logs | false |
-| onConnect  | Function to be called when client has successfully connected to the server | onConnect |
 | connectOnLoad  | Connect to the server as soon as the webpage loads  | true |
-| signalURL  | Choose where the WebRTC signaling server is located | / |
+| signalURL  | Choose where the WebSocket / signalling server is located | / |
+| onConnect  | Function to be called when client has successfully connected to the server | onConnect |
+| webrtc | When false use WebSockets for all network messages. When true use a combination of WebSockets and WebRTC connections | false |
+| webrtcAudio  | Turn on / off microphone audio streaming for your app. Only works if `webrtc` is set to `true` | false |
+| debug  | Turn on / off Networked-Aframe debug logs | false |
 
 
 ### Creating Network Entities
 
-```javascript
-NAF.entities.createAvatar(template, position, rotation)
+```html
+<a-entity networked="template=YOUR_TEMPLATE, showLocalTemplate=true"></a-entity>
 ```
 
-Create an avatar that follows your camera's movements. Should only be called once. The avatar is hidden for you but visible for other players.
-
-```javascript
-
-NAF.entities.createNetworkEntity(template, position, rotation)
-```
 Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is added to allow for less network updates while keeping smooth motion.
 
-| Parameter | Description
-| -------- | -----------
-| template  | A css selector to a script tag stored in `<a-assets>` - [Template documentation](https://github.com/ngokevin/kframe/tree/master/components/template)
-| position  | An A-Frame position string for the initial position of the entity, eg. '0 0 0'
-| rotation  | An A-Frame rotation string for the initial rotation of the entity, eg '0 45 0'
+
+| Parameter | Description | Default
+| -------- | ------------ | --------------
+| template  | A css selector to a script tag stored in `<a-assets>` - [Template documentation](https://github.com/ngokevin/kframe/tree/master/components/template) | ''
+| showLocalTemplate  | Set to false to hide the template for the local user. This is most useful for hiding your own avatar's head | true
 
 
 ### Deleting Network Entities
 
-Currently only the creator of a network entity can delete it. To delete, simply delete the element from the HTML and Networked-Aframe will handle the syncing automatically.
+Currently only the creator of a network entity can delete it. To delete, simply delete the element from the HTML using regular DOM APIs and Networked-Aframe will handle the syncing automatically.
 
 
 ### Syncing Custom Components
@@ -189,18 +181,33 @@ Once you've defined the schema then add it to the list of schemas by calling `NA
 Component data is retrieved by the A-Frame `getData` function. During the network tick each component's data is checked against its previous synced value; if the data object has changed at all it will be synced across the network.
 
 
+### Syncing nested templates - eg. hands
+
+To sync nested templates setup your HTML nodes like so:
+
+```HTML
+<a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" wasd-controls>
+  <a-entity camera look-controls networked="template:#head-template;showLocalTemplate:false;"></a-entity>
+  <a-entity hand-controls="left" networked="template:#left-hand-template"></a-entity>
+  <a-entity hand-controls="right" networked="template:#right-hand-template"></a-entity>
+</a-entity>
+```
+
+In this example the head/camera, left and right hands will spawn their own templates which will be networked independently of the root player. Note: this parent-child relationship only works between one level, ie. a child entity's direct parent must have the `networked` component.
+
 ### Broadcasting Custom Messages
 
 ```javascript
 NAF.connection.subscribeToDataChannel(dataType, callback)
 NAF.connection.unsubscribeToDataChannel(dataType)
+
 NAF.connection.broadcastData(dataType, data)
 NAF.connection.broadcastDataGuaranteed(dataType, data)
 ```
 
 Subscribe and unsubscribe callbacks to network messages specified by `dataType`. Send messages to other clients with the `broadcastData` functions.
 
-`broadcastData` messages are sent P2P using UDP and are not guaranteed to make it to other clients (although they will most of the time, [see why](https://en.wikipedia.org/wiki/User_Datagram_Protocol)). `broadcastDataGuaranteed` messages are currently sent via the websocket connection to the server using TCP, and hence not using WebRTC at all. These messages are guaranteed to be delivered to all connected clients. In the future a reliable protocol may be added on top of UDP instead of relying on the TCP websocket connection.
+If using WebRTC `broadcastData` messages are sent P2P using UDP and are not guaranteed to make it to other clients (although they will most of the time, [see why](https://en.wikipedia.org/wiki/User_Datagram_Protocol)). `broadcastDataGuaranteed` messages are always sent via the WebSocket connection to the server using TCP, and hence not using WebRTC at all. These messages are guaranteed to be delivered to all connected clients. In the future a reliable protocol may be added on top of UDP instead of relying on the TCP websocket connection.
 
 | Parameter | Description
 | -------- | -----------
@@ -245,14 +252,14 @@ Stay in Touch
 
 - Follow Hayden on [Twitter](https://twitter.com/haydenlee37)
 - Follow changes on [GitHub](https://github.com/haydenjameslee/networked-aframe/subscription)
-- Hang out with the A-Frame community: [join the A-Frame Slack](https://aframevr-slack.herokuapp.com)
+- Hang out with the A-Frame community: [A-Frame Slack](https://aframevr-slack.herokuapp.com)
 - Let us know if you've made something with Networked-Aframe! We'd love to see it!
 
 
 Help and More Information
 ------------------------------
 
-* [Getting started tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/Tutorial:%20Create%20your%20first%20Networked-Aframe%20experience.md)
+* [Getting started tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/getting-started-local.md)
 * [Edit live example on glitch.com](https://glitch.com/~networked-aframe)
 * [Live demo site](http://haydenlee.io/networked-aframe)
 * [A-Frame](https://aframe.io/)
@@ -281,22 +288,12 @@ Folder Structure
 Roadmap
 -------
 
-* Aframe component for defining networked-entities
-* HTC Vive and Oculus Touch support
+* More examples!
 * Master client concept
 * Positional audio
-* Semi-persistent entities
-* Networked physics support
+* Networked physics
 
 Interested in contributing? [Shoot me a message](https://twitter.com/haydenlee37) or send a pull request.
-
-
-Other A-Frame Networking Libraries
-----------------------------------
-
-[aframe-firebase-component](https://github.com/ngokevin/kframe/tree/master/components/firebase)
-
-[aframe-webrtc](https://github.com/takahirox/aframe-webrtc)
 
 
 License
