@@ -417,12 +417,12 @@ AFRAME.registerComponent('networked-share', {
   },
 
   updatePhysics: function(physics) {
-    /*if (this.el.body && physics != "") {
-      this.el.body.position = physics.position;
-      this.el.body.quaternion = physics.quaternion;
-      this.el.body.velocity = physics.velocity;
-      this.el.body.angularVelocity = physics.angularVelocity;
-    }*/
+    if (this.el.body && physics != "") {
+      this.el.body.position.copy(physics.position);
+      this.el.body.quaternion.copy(physics.quaternion);
+      //this.el.body.velocity = physics.velocity;
+      //this.el.body.angularVelocity = physics.angularVelocity;
+    }
     NAF.log.write("Updating physics: ", physics);
   },
 
