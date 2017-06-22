@@ -103,7 +103,7 @@ AFRAME.registerComponent('networked-share', {
       this.unbindOwnerEvents();
       this.unbindRemoteEvents();
 
-      this.ownerLock = Date.now() + 100;
+      this.ownerLock = Date.now() + 1000;
 
       this.data.owner = NAF.clientId;
 
@@ -153,7 +153,7 @@ AFRAME.registerComponent('networked-share', {
     if (this.isMine() && !ownerIsMe && ownerChanged) {
       // Somebody has stolen my ownership :/ - accept it and get over it
       // TODO: Takeover doesn't work yet, since they take each other over
-      if(Date.now() >= this.ownerLock) {
+      if (Date.now() >= this.ownerLock) {
         this.unbindOwnerEvents();
         this.unbindRemoteEvents();
 

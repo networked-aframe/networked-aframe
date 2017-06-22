@@ -3563,7 +3563,7 @@
 	      this.unbindOwnerEvents();
 	      this.unbindRemoteEvents();
 
-	      this.ownerLock = Date.now() + 100;
+	      this.ownerLock = Date.now() + 1000;
 
 	      this.data.owner = NAF.clientId;
 
