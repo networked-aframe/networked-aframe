@@ -3566,7 +3566,7 @@
 
 	      this.bindOwnerEvents();
 	      // Skip one cycle before listening for updates again to avoid Race Condition
-	      setTimeout(this.bindRemoteEvents.bind(this), NAF.options.updateRate);
+	      setTimeout(this.bindRemoteEvents.bind(this), 1000);
 
 	      NAF.log.write('Networked-Share: Taken ownership of ', this.el.id);
 	    }
