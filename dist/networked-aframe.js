@@ -3566,7 +3566,9 @@
 
 	      this.bindOwnerEvents();
 	      // Skip one cycle before listening for updates again to avoid Race Condition
-	      setTimeout(this.bindRemoteEvents.bind(this), 1000);
+	      // TODO: Fix Race Condition - This doesn't work yet
+	      //setTimeout(this.bindRemoteEvents.bind(this), NAF.options.updateRate);
+	      this.bindRemoteEvents();
 
 	      NAF.log.write('Networked-Share: Taken ownership of ', this.el.id);
 	    }
@@ -3599,6 +3601,7 @@
 
 	    if (this.isMine() && !ownerIsMe && ownerChanged) {
 	      // Somebody has stolen my ownership :/ - accept it and get over it
+	      // TODO: Takeover doesn't work yet, since they take each other over
 	      this.unbindOwnerEvents();
 	      this.unbindRemoteEvents();
 
@@ -3786,6 +3789,21 @@
 	    return dirtyComps;
 	  },
 
+	  getPhysicsData: function getPhysicsData() {
+	    if (this.el.body) {
+	      var physicsData = {
+	        position: this.el.body.position,
+	        quaternion: this.el.body.quaternion,
+	        velocity: this.el.body.velocity,
+	        angularVelocity: this.el.body.angularVelocity
+	      };
+
+	      return physicsData;
+	    } else {
+	      return "";
+	    }
+	  },
+
 	  createSyncData: function createSyncData(components) {
 	    var data = {
 	      0: 0, // 0 for not compressed
@@ -3797,8 +3815,7 @@
 	    };
 
 	    if (this.data.physics) {
-	      // TODO: add Physics
-	      data['physics'] = "";
+	      data['physics'] = this.getPhysicsData();
 	    }
 
 	    return data;
@@ -3853,7 +3870,14 @@
 	    }
 	  },
 
-	  updatePhysics: function updatePhysics() {},
+	  updatePhysics: function updatePhysics(physics) {
+	    if (this.el.body && physics != "") {
+	      this.el.body.position = physics.position;
+	      this.el.body.quaternion = physics.quaternion;
+	      this.el.body.velocity = physics.velocity;
+	      this.el.body.angularVelocity = physics.angularVelocity;
+	    }
+	  },
 
 	  compressSyncData: function compressSyncData(syncData) {
 	    var compressed = [];
