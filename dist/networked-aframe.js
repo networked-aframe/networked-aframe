@@ -3799,6 +3799,8 @@
 	  getPhysicsData: function getPhysicsData() {
 	    if (this.el.body) {
 	      var physicsData = {
+	        type: this.el.body.type,
+	        hasConstraint: this.getConstraint() != null,
 	        position: this.el.body.position,
 	        quaternion: this.el.body.quaternion,
 	        velocity: this.el.body.velocity,
@@ -3808,6 +3810,27 @@
 	      return physicsData;
 	    } else {
 	      return "";
+	    }
+	  },
+
+	  getConstraint: function getConstraint() {
+	    // Check if our Body is in a constraint
+	    // So that others can react to that special case
+
+	    if (!this.el.sceneEl.systems.physics || !this.el.body) {
+	      return null;
+	    }
+
+	    var constraints = this.el.sceneEl.systems.physics.world.constraints;
+
+	    if (constraints && constraints.length > 0) {
+	      for (var i = 0; i < constraints.length; i++) {
+	        if (constraints[i].bodyA.id == this.el.body.id || constraints[i].bodyB.id == this.el.body.id) {
+	          return constraints[i];
+	        }
+	      }
+	    } else {
+	      return null;
 	    }
 	  },
 
@@ -3883,6 +3906,18 @@
 	      this.el.body.quaternion.copy(physics.quaternion);
 	      this.el.body.velocity.copy(physics.velocity);
 	      this.el.body.angularVelocity.copy(physics.angularVelocity);
+
+	      var bodyType = physics.type;
+
+	      var constraint = this.getConstraint();
+
+	      if (physics.hasConstraint) {
+	        bodyType = CANNON.Body.STATIC;
+	      } else if (!physics.hasConstraint && constraint != null) {
+	        this.el.sceneEl.systems.physics.world.removeConstraint(constraint);
+	      }
+
+	      this.el.body.type = bodyType;
 	    }
 	  },
 
