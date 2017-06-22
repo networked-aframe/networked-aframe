@@ -84,7 +84,7 @@ More Examples
 Open in two tabs if nobody else is online.
 
 * [Basic](http://haydenlee.io/networked-aframe/basic.html)
-* [Shooter](http://haydenlee.io/networked-aframe/shooter.html)
+* [Dance Club](http://haydenlee.io/networked-aframe/a-saturday-night/index.html)
 * [360 Image](http://haydenlee.io/networked-aframe/360.html)
 * Made something awesome with Networked-Aframe? [Let me know](https://twitter.com/haydenlee37) and I'll include it here!
 
