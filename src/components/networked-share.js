@@ -98,9 +98,6 @@ AFRAME.registerComponent('networked-share', {
 
       this.data.owner = NAF.clientId;
 
-      this.bindOwnerEvents();
-      this.bindRemoteEvents();
-
       if (!this.data.physics) {
         this.detachLerp();
       }
@@ -108,6 +105,10 @@ AFRAME.registerComponent('networked-share', {
       this.el.emit("networked-ownership-taken");
 
       this.syncAll();
+
+      // Bind owner events after synching to avoid race condition
+      this.bindOwnerEvents();
+      this.bindRemoteEvents();
 
       NAF.log.write('Networked-Share: Taken ownership of ', this.el.id);
     }
@@ -157,6 +158,9 @@ AFRAME.registerComponent('networked-share', {
     } else if (ownerChanged) {
       // Just update the owner, it's not me.
       this.data.owner = owner;
+
+      this.el.emit("networked-ownership-changed");
+      NAF.log.write('Networked-Share: Updated owner of: ' + this.el.id + ' to ', this.data.owner);
     }
   },
 
