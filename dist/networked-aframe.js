@@ -3715,7 +3715,7 @@
 	  syncDirty: function syncDirty() {
 	    this.updateNextSyncTime();
 	    var dirtyComps = this.getDirtyComponents();
-	    if (dirtyComps.length == 0) {
+	    if (dirtyComps.length == 0 && !this.data.physics) {
 	      return;
 	    }
 	    var components = this.getComponentsData(dirtyComps);
@@ -3874,10 +3874,9 @@
 	    if (this.el.body && physics != "") {
 	      this.el.body.position.copy(physics.position);
 	      this.el.body.quaternion.copy(physics.quaternion);
-	      //this.el.body.velocity = physics.velocity;
-	      //this.el.body.angularVelocity = physics.angularVelocity;
+	      this.el.body.velocity.copy(physics.velocity);
+	      this.el.body.angularVelocity.copy(physics.angularVelocity);
 	    }
-	    NAF.log.write("Updating physics: ", physics);
 	  },
 
 	  compressSyncData: function compressSyncData(syncData) {
