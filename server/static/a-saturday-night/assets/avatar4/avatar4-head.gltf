@@ -1,0 +1,234 @@
+{
+    "accessors": {
+        "accessor_21": {
+            "bufferView": "bufferView_29",
+            "byteOffset": 0,
+            "byteStride": 0,
+            "componentType": 5123,
+            "count": 6186,
+            "type": "SCALAR"
+        },
+        "accessor_23": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 0,
+            "byteStride": 12,
+            "componentType": 5126,
+            "count": 6186,
+            "max": [
+                0.122059,
+                0.223385,
+                0.207231
+            ],
+            "min": [
+                -0.131315,
+                -0.187261,
+                -0.313479
+            ],
+            "type": "VEC3"
+        },
+        "accessor_25": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 74232,
+            "byteStride": 12,
+            "componentType": 5126,
+            "count": 6186,
+            "max": [
+                0.998466,
+                0.999904,
+                1
+            ],
+            "min": [
+                -0.997994,
+                -0.998007,
+                -0.999916
+            ],
+            "type": "VEC3"
+        },
+        "accessor_27": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 148464,
+            "byteStride": 8,
+            "componentType": 5126,
+            "count": 6186,
+            "max": [
+                0.9915,
+                0.9853
+            ],
+            "min": [
+                0.00579995,
+                0.00880003
+            ],
+            "type": "VEC2"
+        }
+    },
+    "animations": {},
+    "asset": {
+        "generator": "collada2gltf@cf6371beb0bdc18ba603378d5e40c966da53d385",
+        "premultipliedAlpha": true,
+        "profile": {
+            "api": "WebGL",
+            "version": "1.0.2"
+        },
+        "version": "1.0"
+    },
+    "bufferViews": {
+        "bufferView_29": {
+            "buffer": "avatar4-head",
+            "byteLength": 12372,
+            "byteOffset": 0,
+            "target": 34963
+        },
+        "bufferView_30": {
+            "buffer": "avatar4-head",
+            "byteLength": 197952,
+            "byteOffset": 12372,
+            "target": 34962
+        }
+    },
+    "buffers": {
+        "avatar4-head": {
+            "byteLength": 210324,
+            "type": "arraybuffer",
+            "uri": "avatar4-head.bin"
+        }
+    },
+    "extensionsUsed": [
+        "KHR_materials_common"
+    ],
+    "images": {
+        "avatar4": {
+            "name": "avatar4",
+            "uri": "avatar4.jpg"
+        }
+    },
+    "materials": {
+        "matfinal-effect": {
+            "extensions": {
+                "KHR_materials_common": {
+                    "doubleSided": false,
+                    "jointCount": 0,
+                    "technique": "PHONG",
+                    "transparent": false,
+                    "values": {
+                        "ambient": [
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "diffuse": "texture_avatar4",
+                        "emission": [
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "shininess": 49,
+                        "specular": [
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    }
+                }
+            },
+            "name": "matfinal"
+        }
+    },
+    "meshes": {
+        "head_Cube_006-mesh": {
+            "name": "head_Cube.006",
+            "primitives": [
+                {
+                    "attributes": {
+                        "NORMAL": "accessor_25",
+                        "POSITION": "accessor_23",
+                        "TEXCOORD_0": "accessor_27"
+                    },
+                    "indices": "accessor_21",
+                    "material": "matfinal-effect",
+                    "mode": 4
+                }
+            ]
+        }
+    },
+    "nodes": {
+        "head_Cube_006": {
+            "children": [],
+            "matrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "meshes": [
+                "head_Cube_006-mesh"
+            ],
+            "name": "head_Cube_006"
+        },
+        "node_1": {
+            "children": [
+                "head_Cube_006"
+            ],
+            "matrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                -1,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "name": "Y_UP_Transform"
+        }
+    },
+    "samplers": {
+        "sampler_0": {
+            "magFilter": 9729,
+            "minFilter": 9729,
+            "wrapS": 10497,
+            "wrapT": 10497
+        }
+    },
+    "scene": "defaultScene",
+    "scenes": {
+        "defaultScene": {
+            "nodes": [
+                "node_1"
+            ]
+        }
+    },
+    "skins": {},
+    "textures": {
+        "texture_avatar4": {
+            "format": 6408,
+            "internalFormat": 6408,
+            "sampler": "sampler_0",
+            "source": "avatar4",
+            "target": 3553,
+            "type": 5121
+        }
+    }
+}

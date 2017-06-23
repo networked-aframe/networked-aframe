@@ -1,0 +1,227 @@
+{
+    "accessors": {
+        "accessor_21": {
+            "bufferView": "bufferView_29",
+            "byteOffset": 0,
+            "byteStride": 0,
+            "componentType": 5123,
+            "count": 3024,
+            "type": "SCALAR"
+        },
+        "accessor_23": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 0,
+            "byteStride": 12,
+            "componentType": 5126,
+            "count": 3024,
+            "max": [
+                0.0741576,
+                0.2018,
+                0.0762408
+            ],
+            "min": [
+                -0.0789186,
+                -0.166983,
+                -0.10954
+            ],
+            "type": "VEC3"
+        },
+        "accessor_25": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 36288,
+            "byteStride": 12,
+            "componentType": 5126,
+            "count": 3024,
+            "max": [
+                0.999453,
+                0.995971,
+                0.999963
+            ],
+            "min": [
+                -0.999859,
+                -0.994886,
+                -0.999894
+            ],
+            "type": "VEC3"
+        },
+        "accessor_27": {
+            "bufferView": "bufferView_30",
+            "byteOffset": 72576,
+            "byteStride": 8,
+            "componentType": 5126,
+            "count": 3024,
+            "max": [
+                0.97908,
+                0.986406
+            ],
+            "min": [
+                0.174955,
+                0.0117075
+            ],
+            "type": "VEC2"
+        }
+    },
+    "animations": {},
+    "asset": {
+        "generator": "collada2gltf@cf6371beb0bdc18ba603378d5e40c966da53d385",
+        "premultipliedAlpha": true,
+        "profile": {
+            "api": "WebGL",
+            "version": "1.0.2"
+        },
+        "version": "1.0"
+    },
+    "bufferViews": {
+        "bufferView_29": {
+            "buffer": "avatar1-hand-left",
+            "byteLength": 6048,
+            "byteOffset": 0,
+            "target": 34963
+        },
+        "bufferView_30": {
+            "buffer": "avatar1-hand-left",
+            "byteLength": 96768,
+            "byteOffset": 6048,
+            "target": 34962
+        }
+    },
+    "buffers": {
+        "avatar1-hand-left": {
+            "byteLength": 102816,
+            "type": "arraybuffer",
+            "uri": "avatar1-hand-left.bin"
+        }
+    },
+    "extensionsUsed": [
+        "KHR_materials_common"
+    ],
+    "images": {
+        "avatar1": {
+            "name": "avatar1",
+            "uri": "avatar1.jpg"
+        }
+    },
+    "materials": {
+        "matfinal-effect": {
+            "extensions": {
+                "KHR_materials_common": {
+                    "doubleSided": false,
+                    "jointCount": 0,
+                    "technique": "LAMBERT",
+                    "transparent": false,
+                    "values": {
+                        "ambient": [
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "diffuse": "texture_avatar1",
+                        "emission": [
+                            0,
+                            0,
+                            0,
+                            1
+                        ]
+                    }
+                }
+            },
+            "name": "matfinal"
+        }
+    },
+    "meshes": {
+        "hand-left-mesh": {
+            "name": "hand-left",
+            "primitives": [
+                {
+                    "attributes": {
+                        "NORMAL": "accessor_25",
+                        "POSITION": "accessor_23",
+                        "TEXCOORD_0": "accessor_27"
+                    },
+                    "indices": "accessor_21",
+                    "material": "matfinal-effect",
+                    "mode": 4
+                }
+            ]
+        }
+    },
+    "nodes": {
+        "hand-left": {
+            "children": [],
+            "matrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "meshes": [
+                "hand-left-mesh"
+            ],
+            "name": "hand-left"
+        },
+        "node_1": {
+            "children": [
+                "hand-left"
+            ],
+            "matrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                -1,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "name": "Y_UP_Transform"
+        }
+    },
+    "samplers": {
+        "sampler_0": {
+            "magFilter": 9729,
+            "minFilter": 9729,
+            "wrapS": 10497,
+            "wrapT": 10497
+        }
+    },
+    "scene": "defaultScene",
+    "scenes": {
+        "defaultScene": {
+            "nodes": [
+                "node_1"
+            ]
+        }
+    },
+    "skins": {},
+    "textures": {
+        "texture_avatar1": {
+            "format": 6408,
+            "internalFormat": 6408,
+            "sampler": "sampler_0",
+            "source": "avatar1",
+            "target": 3553,
+            "type": 5121
+        }
+    }
+}

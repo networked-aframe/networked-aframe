@@ -4,6 +4,7 @@ var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
 
 var NetworkEntities = require('../../src/NetworkEntities');
+require('../../src/components/networked-remote');
 
 suite('NetworkEntities', function() {
   var scene;
@@ -32,6 +33,7 @@ suite('NetworkEntities', function() {
       0: 0,
       networkId: 'test1',
       owner: 'abcdefg',
+      parent: null,
       template: '#template1',
       components: {
         position: '1 2 3',
@@ -42,6 +44,7 @@ suite('NetworkEntities', function() {
       1,
       'test1',
       'abcdefg',
+      null,
       '#template1',
       {
         0: '1 2 3',
@@ -56,187 +59,73 @@ suite('NetworkEntities', function() {
     scene.parentElement.removeChild(scene);
   });
 
-  suite('createNetworkEntity', function() {
+  suite('registerLocalEntity', function() {
 
-    test('creates entity', function(done) {
-      naf.clientId = 'client1';
-      var setupTemplate = '#template1';
-      var setupPosition = '10 11 12';
-      var setupRotation = '14 15 16';
+    test('adds entity to list', function() {
+      var entity = 'i-am-entity';
+      var networkId = 'nid1';
 
-      var entity = entities.createNetworkEntity(setupTemplate, setupPosition, setupRotation);
+      entities.registerLocalEntity(networkId, entity);
 
-      naf.utils.whenEntityLoaded(entity, function() {
-        var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
-        var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
-        var template = entity.getAttribute('template');
-
-        assert.equal(template, 'src:' + setupTemplate);
-        assert.equal(position, setupPosition);
-        assert.equal(rotation, setupRotation);
-        done();
-      });
-    });
-
-    test('returns entity', function() {
-      naf.clientId = 'client1';
-      var setupTemplate = 'template';
-      var setupPosition = '10 11 12';
-      var setupRotation = '14 15 16';
-
-      var entity = entities.createNetworkEntity(setupTemplate, setupPosition, setupRotation);
-      assert.isOk(entity);
+      var result = entities.getEntity('nid1');
+      assert.equal(result, 'i-am-entity');
     });
   });
 
-  suite('createAvatar', function() {
-
-    test('creates avatar with correct attributes', function(done) {
-      var setupTemplate = '#template1';
-      var setupPosition = '10 11 12';
-      var setupRotation = '14 15 16';
-      var avatar = entities.createAvatar(setupTemplate, setupPosition, setupRotation);
-
-      naf.utils.whenEntityLoaded(avatar, function() {
-        var position = AFRAME.utils.coordinates.stringify(avatar.getAttribute('position'));
-        var rotation = AFRAME.utils.coordinates.stringify(avatar.getAttribute('rotation'));
-        var hasLerp = avatar.hasAttribute('lerp');
-        var hasFollowEntity = avatar.hasAttribute('follow-entity');
-        var followEntitySelector = avatar.getAttribute('follow-entity');
-        var isVisible = avatar.getAttribute('visible');
-        var template = avatar.getAttribute('template');
-
-        assert.isFalse(isVisible);
-        assert.isFalse(hasLerp);
-        assert.isTrue(hasFollowEntity);
-        assert.equal(followEntitySelector, '[camera]');
-        assert.equal(template, 'src:' + setupTemplate);
-        assert.equal(position, setupPosition);
-        assert.equal(rotation, setupRotation);
-        done();
-      });
-    });
-
-    test('sets camera to position and rotation', function(done) {
-      var setupTemplate = '#template1';
-      var setupPosition = '10 11 12';
-      var setupRotation = '14 15 16';
-      var avatar = entities.createAvatar(setupTemplate, setupPosition, setupRotation);
-
-      naf.utils.whenEntityLoaded(avatar, function() {
-        var camera = document.querySelector('[camera]');
-        var position = AFRAME.utils.coordinates.stringify(camera.getAttribute('position'));
-        var rotation = AFRAME.utils.coordinates.stringify(camera.getAttribute('rotation'));
-
-        assert.equal(position, setupPosition);
-        assert.equal(rotation, setupRotation);
-        done();
-      });
-    });
-  });
-
-  suite('createLocalEntity', function() {
+  suite('createRemoteEntity', function() {
 
     test('returns entity', function() {
-      var entity = entities.createLocalEntity(entityData);
+      var entity = entities.createRemoteEntity(entityData);
       assert.isOk(entity);
     });
 
     test('entity components set immediately', function() {
-      var entity = entities.createLocalEntity(entityData);
+      var entity = entities.createRemoteEntity(entityData);
 
-      var template = entity.getAttribute('template');
       var position = entity.components.position.attrValue;
       var rotation = entity.components.rotation.attrValue;
       var id = entity.getAttribute('id');
 
       assert.isOk(entity);
-      assert.equal(id, 'naf-test1');
-      assert.equal(template, 'src:#template1');
       assert.deepEqual(position, {x: 1, y: 2, z: 3});
       assert.deepEqual(rotation, {x: 4, y: 3, z: 2});
     });
 
-    test('entity does not have lerp if global setting', function(done) {
-      naf.options.useLerp = false;
-      var entity = entities.createLocalEntity(entityData);
+    test('entity sets correct first update data', function() {
+      var entity = entities.createRemoteEntity(entityData);
+
+      assert.equal(entity.firstUpdateData, entityData);
+    });
+
+    test('entity sets correct networked-remote component', function(done) {
+      var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
 
       naf.utils.whenEntityLoaded(entity, function() {
-        var hasLerp = entity.hasAttribute('lerp');
+        var componentData = entity.components['networked-remote'].getData();
 
-        assert.isFalse(hasLerp);
+        assert.equal(componentData.template, '#template1', 'template');
+        assert.equal(componentData.networkId, 'test1', 'networkId');
+        assert.equal(componentData.owner, 'abcdefg', 'owner');
         done();
       });
     });
 
-    test('entity has correct attributes after loaded', function(done) {
-      var schema = {
-        template: '#template2',
-        components: [
-          'position'
-        ]
-      };
-      naf.schemas.add(schema);
-      entityData.template = '#template2';
-
-      var entity = entities.createLocalEntity(entityData);
-
-      naf.utils.whenEntityLoaded(entity, function() {
-        var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
-        var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
-        var network = entity.getAttribute('network');
-        var hasLerp = entity.hasAttribute('lerp');
-
-        assert.isOk(hasLerp);
-        assert.equal(position, '1 2 3');
-        assert.equal(rotation, '4 3 2'); // This will be set because position and rotation are always set initially if provided
-        assert.equal(network.owner, 'abcdefg');
-        assert.equal(network.networkId, 'test1');
-        done();
-      });
+    test('entity added to network list', function() {
+      var expected = entities.createRemoteEntity(entityData);
+      var result = entities.getEntity(entityData.networkId);
+      assert.isOk(result, expected);
     });
 
-    test('entity created with syncing only scale', function(done) {
-      var schema = {
-        template: '#template4',
-        components: [
-          'scale'
-        ]
-      };
-      naf.schemas.add(schema);
-
-      entityData.template = '#template4';
-      entityData.components = { scale: '4 5 6' };
-      var entity = entities.createLocalEntity(entityData);
+    test('entity has correct components when no components schema defined', function(done) {
+      entityData.template = '#template3';
+      var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
 
       naf.utils.whenEntityLoaded(entity, function() {
-        var position = AFRAME.utils.coordinates.stringify(entity.getAttribute('position'));
-        var rotation = AFRAME.utils.coordinates.stringify(entity.getAttribute('rotation'));
-        var scale = AFRAME.utils.coordinates.stringify(entity.getAttribute('scale'));
+        var network = entity.getAttribute('networked-remote');
 
-        assert.equal(position, '0 0 0');
-        assert.equal(rotation, '0 0 0');
-        assert.equal(scale, '4 5 6');
-        done();
-      });
-    });
-
-    test('entity has correct simple components', function(done) {
-      entityData.template = '#template2';
-      var schema = {
-        template: '#template2',
-        components: [
-          'position'
-        ]
-      };
-      naf.schemas.add(schema);
-
-      var entity = entities.createLocalEntity(entityData);
-
-      naf.utils.whenEntityLoaded(entity, function() {
-        var network = entity.getAttribute('network');
-
-        assert.deepEqual(network.components, ['position']);
+        assert.deepEqual(network.components, ['position', 'rotation']);
         done();
       });
     });
@@ -255,49 +144,47 @@ suite('NetworkEntities', function() {
       };
       naf.schemas.add(schema);
 
-      var entity = entities.createLocalEntity(entityData);
+      var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
 
       naf.utils.whenEntityLoaded(entity, function() {
-        var network = entity.getAttribute('network');
+        var network = entity.getAttribute('networked-remote');
 
         assert.deepEqual(network.components, schema.components);
         done();
       });
     });
 
-    test('entity sets correct init data', function() {
-      var entity = entities.createLocalEntity(entityData);
+    test('entity has correct simple components', function(done) {
+      entityData.template = '#template2';
+      var schema = {
+        template: '#template2',
+        components: [
+          'position'
+        ]
+      };
+      naf.schemas.add(schema);
 
-      assert.equal(entity.initNafData, entityData);
-    });
-
-    test('entity has correct components when no components schema defined', function(done) {
-      entityData.template = '#template3';
-      var entity = entities.createLocalEntity(entityData);
+      var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
 
       naf.utils.whenEntityLoaded(entity, function() {
-        var network = entity.getAttribute('network');
+        var network = entity.getAttribute('networked-remote');
 
-        assert.deepEqual(network.components, ['position', 'rotation']);
+        assert.deepEqual(network.components, ['position']);
         done();
       });
-    });
-
-    test('entity added to network list', function() {
-      var expected = entities.createLocalEntity(entityData);
-      var result = entities.getEntity(entityData.networkId);
-      assert.isOk(result, expected);
     });
   });
 
   suite('updateEntity', function() {
 
     test('first uncompressed update creates new entity', sinon.test(function() {
-      this.spy(entities, 'createLocalEntity');
+      this.spy(entities, 'createRemoteEntity');
 
       entities.updateEntity('client', 'u', entityData);
 
-      assert.isTrue(entities.createLocalEntity.calledWith(entityData));
+      assert.isTrue(entities.createRemoteEntity.calledWith(entityData));
     }));
 
     test('second uncompressed update updates entity', function() {
@@ -311,23 +198,72 @@ suite('NetworkEntities', function() {
     });
 
     test('compressed data when entity not created, does not fail', sinon.test(function() {
-      this.spy(entities, 'createLocalEntity');
+      this.spy(entities, 'createRemoteEntity');
 
       entities.updateEntity('client', 'u', compressedData);
 
-      assert.isFalse(entities.createLocalEntity.called);
+      assert.isFalse(entities.createRemoteEntity.called);
     }));
 
     test('compressed data updates entity', sinon.test(function() {
-      this.spy(entities, 'createLocalEntity');
+      this.spy(entities, 'createRemoteEntity');
       entities.updateEntity('client', 'u', entityData); // creates entity
       var entity = entities.getEntity(entityData.networkId);
       sinon.spy(entity, 'emit');
 
       entities.updateEntity('client', 'u', compressedData);
 
-      assert.isTrue(entities.createLocalEntity.called);
+      assert.isTrue(entities.createRemoteEntity.called);
       assert.isTrue(entity.emit.calledWith('networkUpdate'));
+    }));
+
+
+    test('entity with parent that has not been created is not created yet', sinon.test(function() {
+      this.spy(entities, 'createRemoteEntity');
+      entityData.parent = 'non-existent-parent';
+
+      entities.updateEntity('client', 'u', entityData);
+
+      assert.isFalse(entities.createRemoteEntity.calledWith(entityData));
+    }));
+
+    test('child entities created after parent', sinon.test(function() {
+      this.spy(entities, 'createRemoteEntity');
+      var entityDataParent = entityData;
+      var entityDataChild1 = {
+        0: 0,
+        networkId: 'test-child-1',
+        owner: 'abcdefg',
+        parent: 'test1',
+        template: '#template1',
+        components: {
+          position: '1 2 3',
+          rotation: '4 3 2'
+        }
+      };
+      var entityDataChild2 = {
+        0: 0,
+        networkId: 'test-child-2',
+        owner: 'abcdefg',
+        parent: 'test1',
+        template: '#template1',
+        components: {
+          position: '1 2 3',
+          rotation: '4 3 2'
+        }
+      };
+
+      entities.updateEntity('client', 'u', entityDataChild1);
+      entities.updateEntity('client', 'u', entityDataChild2);
+
+      assert.isFalse(entities.createRemoteEntity.calledWith(entityDataChild1), 'does not create child 1');
+      assert.isFalse(entities.createRemoteEntity.calledWith(entityDataChild2), 'does not create child 2');
+
+      entities.updateEntity('client', 'u', entityDataParent);
+
+      assert.isTrue(entities.createRemoteEntity.calledWith(entityDataParent), 'creates parent');
+      assert.isTrue(entities.createRemoteEntity.calledWith(entityDataChild1), 'creates child 1 after parent');
+      assert.isTrue(entities.createRemoteEntity.calledWith(entityDataChild2), 'creates child 2 after parent');
     }));
   });
 
@@ -341,7 +277,7 @@ suite('NetworkEntities', function() {
       var entityList = [];
       for (var i = 0; i < 3; i++) {
         entityData.networkId = i;
-        var entity = entities.createLocalEntity(entityData);
+        var entity = entities.createRemoteEntity(entityData);
         entityList.push(entity);
         sinon.spy(entity, 'emit');
       }
@@ -355,7 +291,7 @@ suite('NetworkEntities', function() {
       var entityList = [];
       for (var i = 0; i < 20; i++) {
         entityData.networkId = i;
-        var entity = entities.createLocalEntity(entityData);
+        var entity = entities.createRemoteEntity(entityData);
         entityList.push(entity);
         sinon.spy(entity, 'emit');
       }
@@ -366,7 +302,9 @@ suite('NetworkEntities', function() {
     });
 
     test('does not emit sync on removed entity', function() {
-      var entity = entities.createLocalEntity(entityData);
+      var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
+
       sinon.spy(entity, 'emit');
       entities.removeEntity(entityData.networkId);
 
@@ -379,7 +317,8 @@ suite('NetworkEntities', function() {
   suite('removeEntity', function() {
 
     test('correct id', function() {
-      var entity = entities.createLocalEntity(entityData);
+      var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
 
       var removedEntity = entities.removeEntity(entityData.networkId);
 
@@ -387,8 +326,11 @@ suite('NetworkEntities', function() {
     });
 
     test('wrong id', function() {
-      var entity = entities.createLocalEntity(entityData);
+      var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
+
       var result = entities.removeEntity('wrong');
+
       assert.isNull(result);
     });
 
@@ -416,7 +358,8 @@ suite('NetworkEntities', function() {
       var entityList = [];
       for (var i = 0; i < 3; i++) {
         entityData.networkId = i;
-        var entity = entities.createLocalEntity(entityData);
+        var entity = entities.createRemoteEntity(entityData);
+        scene.appendChild(entity);
         entityList.push(entity);
       }
       this.stub(naf.utils, 'getNetworkOwner').returns(entityData.owner);
@@ -427,7 +370,7 @@ suite('NetworkEntities', function() {
     }));
 
     test('other entities', sinon.test(function() {
-      var entity = entities.createLocalEntity(entityData);
+      var entity = entities.createRemoteEntity(entityData);
       this.stub(naf.utils, 'getNetworkOwner').returns('a');
 
       var removedEntities = entities.removeEntitiesFromUser('b');
@@ -481,27 +424,6 @@ suite('NetworkEntities', function() {
       var result = entities.hasEntity('wrong');
 
       assert.isFalse(result);
-    });
-  });
-
-  suite('createEntityId', function() {
-
-    test('length', function() {
-      var id = entities.createEntityId();
-      assert.equal(id.length, 7);
-    });
-
-    test('object type', function() {
-      var id = entities.createEntityId();
-      assert.isString(id)
-    });
-
-    test('alphanumeric', function () {
-      var regex = /^[a-z0-9]+$/i;
-
-      var id = entities.createEntityId();
-
-      assert.match(id, regex);
     });
   });
 });

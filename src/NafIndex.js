@@ -13,7 +13,7 @@ naf.options = options;
 naf.utils = util;
 naf.log = new NafLogger();
 naf.schemas = new Schemas();
-naf.version = "0.1.0";
+naf.version = "0.2.0";
 
 var entities = new NetworkEntities();
 var connection = new NetworkConnection(entities);

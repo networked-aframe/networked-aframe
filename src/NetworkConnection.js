@@ -1,4 +1,4 @@
-var WebRtcInterface = require('./webrtc_interfaces/WebRtcInterface');
+var NetworkInterface = require('./network_interfaces/NetworkInterface');
 
 class NetworkConnection {
 
@@ -6,7 +6,6 @@ class NetworkConnection {
     this.entities = networkEntities;
     this.setupDefaultDCSubs();
 
-    this.myRoomJoinTime = 0;
     this.connectList = {};
     this.dcIsActive = {};
 
@@ -14,8 +13,8 @@ class NetworkConnection {
     this.onLoggedInEvent = new Event('loggedIn');
   }
 
-  setWebRtc(webrtcInterface) {
-    this.webrtc = webrtcInterface;
+  setNetworkInterface(network) {
+    this.network = network;
   }
 
   setupDefaultDCSubs() {
@@ -34,19 +33,19 @@ class NetworkConnection {
       video: false,
       datachannel: true
     };
-    this.webrtc.setStreamOptions(streamOptions);
-    this.webrtc.setDatachannelListeners(
+    this.network.setStreamOptions(streamOptions);
+    this.network.setDatachannelListeners(
         this.dcOpenListener.bind(this),
         this.dcCloseListener.bind(this),
         this.receiveDataChannelMessage.bind(this)
     );
-    this.webrtc.setLoginListeners(
+    this.network.setLoginListeners(
         this.loginSuccess.bind(this),
         this.loginFailure.bind(this)
     );
-    this.webrtc.setRoomOccupantListener(this.occupantsReceived.bind(this));
-    this.webrtc.joinRoom(roomId);
-    this.webrtc.connect(appId);
+    this.network.setRoomOccupantListener(this.occupantsReceived.bind(this));
+    this.network.joinRoom(roomId);
+    this.network.connect(appId);
   }
 
   onLogin(callback) {
@@ -60,7 +59,6 @@ class NetworkConnection {
   loginSuccess(clientId) {
     NAF.log.write('Networked-Aframe Client ID:', clientId);
     NAF.clientId = clientId;
-    this.myRoomJoinTime = this.webrtc.getRoomJoinTime(clientId);
     this.loggedIn = true;
 
     document.body.dispatchEvent(this.onLoggedInEvent);
@@ -72,10 +70,27 @@ class NetworkConnection {
   }
 
   occupantsReceived(roomName, occupantList, isPrimary) {
+    this.checkForDisconnectingClients(this.connectList, occupantList);
     this.connectList = occupantList;
-    for (var id in this.connectList) {
-      if (this.isNewClient(id) && this.myClientShouldStartConnection(id)) {
-        this.webrtc.startStreamConnection(id);
+    this.checkForConnectingClients(occupantList);
+  }
+
+  checkForDisconnectingClients(oldOccupantList, newOccupantList) {
+    for (var id in oldOccupantList) {
+      var clientFound = newOccupantList.hasOwnProperty(id);
+      if (!clientFound) {
+        NAF.log.write('Closing stream to ', id);
+        this.network.closeStreamConnection(id);
+      }
+    }
+  }
+
+  checkForConnectingClients(occupantList) {
+    for (var id in occupantList) {
+      var startConnection = this.isNewClient(id) && this.network.shouldStartConnectionTo(occupantList[id]);
+      if (startConnection) {
+        NAF.log.write('Opening stream to ', id);
+        this.network.startStreamConnection(id);
       }
     }
   }
@@ -93,24 +108,19 @@ class NetworkConnection {
   }
 
   isConnectedTo(client) {
-    return this.webrtc.getConnectStatus(client) === WebRtcInterface.IS_CONNECTED;
+    return this.network.getConnectStatus(client) === NetworkInterface.IS_CONNECTED;
   }
 
-  myClientShouldStartConnection(otherClient) {
-    var otherClientTimeJoined = this.connectList[otherClient].roomJoinTime;
-    return this.myRoomJoinTime <= otherClientTimeJoined;
-  }
-
-  dcOpenListener(user) {
-    NAF.log.write('Opened data channel from ' + user);
-    this.dcIsActive[user] = true;
+  dcOpenListener(id) {
+    NAF.log.write('Opened data channel from ' + id);
+    this.dcIsActive[id] = true;
     this.entities.completeSync();
   }
 
-  dcCloseListener(user) {
-    NAF.log.write('Closed data channel from ' + user);
-    this.dcIsActive[user] = false;
-    this.entities.removeEntitiesFromUser(user);
+  dcCloseListener(id) {
+    NAF.log.write('Closed data channel from ' + id);
+    this.dcIsActive[id] = false;
+    this.entities.removeEntitiesFromUser(id);
   }
 
   dcIsConnectedTo(user) {
@@ -130,9 +140,9 @@ class NetworkConnection {
   sendData(toClient, dataType, data, guaranteed) {
     if (this.dcIsConnectedTo(toClient)) {
       if (guaranteed) {
-        this.webrtc.sendDataGuaranteed(toClient, dataType, data);
+        this.network.sendDataGuaranteed(toClient, dataType, data);
       } else {
-        this.webrtc.sendDataP2P(toClient, dataType, data);
+        this.network.sendData(toClient, dataType, data);
       }
     } else {
       // console.error("NOT-CONNECTED", "not connected to " + toClient);

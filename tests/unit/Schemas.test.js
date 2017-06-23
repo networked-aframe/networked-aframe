@@ -112,7 +112,7 @@ suite('Schemas', function() {
       assert.deepEqual(result, schema.components);
     });
 
-    test('returns null for incorrect template', function() {
+    test('returns defaults for incorrect template', function() {
       var schema = {
         template: '#template4',
         components: [
@@ -124,7 +124,7 @@ suite('Schemas', function() {
 
       var result = schemas.getComponents('wrong');
 
-      assert.isNull(result);
+      assert.deepEqual(result, ['position', 'rotation']);
     });
   });
 

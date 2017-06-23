@@ -6,11 +6,7 @@ require('aframe-lerp-component');
 require('./NafIndex.js');
 
 // Network components
-require('./components/network-scene');
-require('./components/network');
-
-// Other components
-require('./components/follow-entity');
-require('./components/show-child');
-
-
+require('./components/networked-scene');
+require('./components/networked');
+require('./components/networked-remote');
+require('./components/networked-share');
