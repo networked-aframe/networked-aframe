@@ -2414,9 +2414,9 @@ AFRAME.registerComponent('networked-share', {
 
       this.physicsInterpolating = false;
 
-      /*if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
+      if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
         this.el.body.wakeUp();
-      }*/
+      }
 
       this.el.emit("networked-ownership-taken");
 
@@ -2802,17 +2802,16 @@ AFRAME.registerComponent('networked-share', {
   },
 
   updatePhysics: function(physics) {
-    if (this.el.body && physics != "" && !this.isMIne()) {
+    if (this.el.body && physics != "" && !this.isMine()) {
 
       // TODO: CHeck if constraint is shared
       // Don't synch when constraints are applied
       // The constraints are synched and we don't want the jittering
       // TODO: Also Interpolate when ELement is not constrainet, but pushed with the hands
       if (!physics.hasConstraint) {
-        // TODO: Find a realiable way to fall asleep - it removes jitter entirely
-        /*if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
+        if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
           this.el.body.wakeUp();
-        }*/
+        }
 
         this.el.body.position.copy(physics.position);
         this.el.body.quaternion.copy(physics.quaternion);
@@ -2829,7 +2828,7 @@ AFRAME.registerComponent('networked-share', {
           angularVelocity: new CANNON.Vec3(physics.angularVelocity.x, physics.angularVelocity.y, physics.angularVelocity.z)
         };
         this.physicsInterpolationStarttime = NAF.utils.now();
-        //this.el.body.sleep();
+        this.el.body.sleep();
       }
 
       // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
