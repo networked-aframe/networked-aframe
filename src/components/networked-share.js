@@ -473,11 +473,11 @@ AFRAME.registerComponent('networked-share', {
     if (this.el.body && physics != "") {
 
       // TODO: CHeck if constraint is shared
+      this.el.body.position.copy(physics.position);
+      this.el.body.quaternion.copy(physics.quaternion);
       // Don't synch when constraints are applied
       // The constraints are synched and we don't want the jittering
       if (!physics.hasConstraint) {
-        this.el.body.position.copy(physics.position);
-        this.el.body.quaternion.copy(physics.quaternion);
         this.el.body.velocity.copy(physics.velocity);
         this.el.body.angularVelocity.copy(physics.angularVelocity);
       }
