@@ -544,7 +544,7 @@ AFRAME.registerComponent('networked-share', {
       var entities = document.querySelectorAll("[" + type + "]");
       if (entities && entities.length > 0) {
         for (var i = 0; i < entities.length; i++) {
-          if (entities[i].hasOwnProperty(type)) {
+          if (entities[i].components[type]) {
             if (type == "networked-share") {
               if (entities[i].components[type].data.networkId == networkId) {
                 if (entities[i].body) {
