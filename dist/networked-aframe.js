@@ -3522,6 +3522,7 @@
 	    }
 
 	    this.takeover = false;
+	    this.physicsInterpolating = false;
 	  },
 
 	  initNetworkId: function initNetworkId() {
@@ -3591,6 +3592,8 @@
 	      if (!this.data.physics) {
 	        this.detachLerp();
 	      }
+
+	      this.physicsInterpolating = false;
 
 	      this.el.emit("networked-ownership-taken");
 
@@ -3730,6 +3733,29 @@
 	    if (this.isMine() && this.needsToSync()) {
 	      this.syncDirty();
 	    }
+
+	    if (!this.isMine() && this.physicsInterpolating) {
+	      this.interpolationStep();
+	    }
+	  },
+
+	  interpolationStep: function interpolationStep() {
+	    var time = NAF.utils.now();
+	    var progress = 0;
+
+	    if (time > this.physicsInterpolationStarttime + 1000 / NAF.options.updateRate) {
+	      progress = 1;
+	    } else {
+	      progress = (time - this.physicsInterpolationStarttime) / (1000 / NAF.options.updateRate);
+	    }
+
+	    this.physicsInterpolationTarget;
+
+	    this.el.body.position.lerp(this.physicsInterpolationTarget.position, progress, this.el.body.position);
+	    var tempQuaternion = new THREE.Quaternion(this.el.body.quaternion.x, this.el.body.quaternion.y, this.el.body.quaternion.z, this.el.body.quaternion.w);
+	    this.el.body.quaternion.copy(tempQuaternion.slerp(this.physicsInterpolationTarget.quaternion, progress));
+	    this.el.body.velocity.lerp(this.physicsInterpolationTarget.velocity, progress, this.el.body.velocity);
+	    this.el.body.angularVelocity.lerp(this.physicsInterpolationTarget.angularVelocity, progress, this.el.body.angularVelocity);
 	  },
 
 	  // Will only succeed if object is created after connected
@@ -3953,28 +3979,39 @@
 	      // TODO: CHeck if constraint is shared
 	      // Don't synch when constraints are applied
 	      // The constraints are synched and we don't want the jittering
-	      this.el.body.position.copy(physics.position);
-	      this.el.body.quaternion.copy(physics.quaternion);
-	      this.el.body.velocity.copy(physics.velocity);
-	      this.el.body.angularVelocity.copy(physics.angularVelocity);
+	      // TODO: Here we need to implement interpolation when object has a constraint --> Physics interpolation doesnt work here
+	      if (!physics.hasConstraint) {
+	        this.el.body.position.copy(physics.position);
+	        this.el.body.quaternion.copy(physics.quaternion);
+	        this.el.body.velocity.copy(physics.velocity);
+	        this.el.body.angularVelocity.copy(physics.angularVelocity);
+
+	        this.physicsInterpolating = false;
+	      } else {
+	        this.physicsInterpolating = true;
+	        this.physicsInterpolationTarget = {
+	          position: new CANNON.vec3(physics.position.x, physics.position.y, physics.position.z),
+	          quaternion: new THREE.Quaternion(physics.quaternion.x, physics.quaternion.y, physics.quaternion.z, physics.quaternion.w),
+	          velocity: new CANNON.vec3(physics.velocity.x, physics.velocity.y, physics.velocity.z),
+	          angularVelocity: new CANNON.vec3(physics.angularVelocity.x, physics.angularVelocity.y, physics.angularVelocity.z)
+	        };
+	        this.physicsInterpolationStarttime = NAF.utils.now();
+	      }
 
 	      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
-
-	      var bodyType = physics.type;
 	      /*
-	            var constraints = this.getConstraints();
-	      */
-	      if (physics.hasConstraint) {
-	        bodyType = CANNON.Body.STATIC;
-	        //this.setConstraints(physics.constraints, constraints);
-	      } /*else if (!physics.hasConstraint && (constraints != null && constraints.length > 0)) {
+	      var bodyType = physics.type;
+	       var constraints = this.getConstraints();
+	       if (physics.hasConstraint) {
+	        //bodyType = CANNON.Body.STATIC;
+	        this.setConstraints(physics.constraints, constraints);
+	      } else if (!physics.hasConstraint && (constraints != null && constraints.length > 0)) {
 	        for (var i = 0; i < constraints.length; i++) {
 	          this.el.sceneEl.systems.physics.world.removeConstraint(constraints[i]);
 	           NAF.log.write("Networked-Share: Removed shared constraint from " + constraints[i].bodyA.el.id + " to ", constraints[i].bodyB.el.id)
 	        }
-	        }*/
-
-	      this.el.body.type = bodyType;
+	      }
+	       this.el.body.type = bodyType;*/
 	    }
 	  },
 
