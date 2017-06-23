@@ -1634,6 +1634,30 @@ module.exports.getNetworkOwner = function(entity) {
   return null;
 }
 
+module.exports.getNetworkId = function(entity) {
+  var components = entity.components;
+  if (components.hasOwnProperty('networked-remote')) {
+    return entity.components['networked-remote'].data.networkId;
+  } else if (components.hasOwnProperty('networked-share')) {
+    return entity.components['networked'].data.networkId;
+  } else if (components.hasOwnProperty('networked')) {
+    return entity.components['networked'].networkId;
+  }
+  return null;
+}
+
+module.exports.getNetworkType = function(entity) {
+  var components = entity.components;
+  if (components.hasOwnProperty('networked-remote')) {
+    return "networked-remote";
+  } else if (components.hasOwnProperty('networked-share')) {
+    return "networked-share";
+  } else if (components.hasOwnProperty('networked')) {
+    return "networked";
+  }
+  return null;
+}
+
 module.exports.now = function() {
   return Date.now();
 };
@@ -2403,6 +2427,9 @@ AFRAME.registerComponent('networked-share', {
   },
 
   removeOwnership: function() {
+    // We should never really remove ownership of an element
+    // until it falls into the "sleep"-State in the physics engine.
+    // TODO: Sleep State handling
     if (this.isMine()) {
       this.unbindOwnerEvents();
       this.unbindRemoteEvents();
@@ -2623,9 +2650,24 @@ AFRAME.registerComponent('networked-share', {
 
   getPhysicsData: function() {
     if (this.el.body) {
+
+      var constraints = this.getConstraints();
+      var sendConstraints = [];
+
+      // TODO: Handle when any constraintBody is not networked.
+      if (constraints != null && constraints.length > 0) {
+        for (var i = 0; i < constraints.length; i++) {
+          sendConstraints.push({
+            bodyNetworkId: (this.el.body.id == constraints[i].bodyA.id) ? NAF.utils.getNetworkId(constraints[i].bodyB.el) : NAF.utils.getNetworkId(constraints[i].bodyA.el),
+            bodyNetworkType: (this.el.body.id == constraints[i].bodyA.id) ? NAF.utils.getNetworkType(constraints[i].bodyB.el) : NAF.utils.getNetworkType(constraints[i].bodyA.el)
+          });
+        }
+      }
+
       var physicsData = {
         type: this.el.body.type,
-        hasConstraint: (this.getConstraint() != null),
+        hasConstraint: (constraints != null && constraints.length > 0),
+        constraints: sendConstraints,
         position: this.el.body.position,
         quaternion: this.el.body.quaternion,
         velocity: this.el.body.velocity,
@@ -2638,7 +2680,7 @@ AFRAME.registerComponent('networked-share', {
     }
   },
 
-  getConstraint: function() {
+  getConstraints: function() {
     // Check if our Body is in a constraint
     // So that others can react to that special case
 
@@ -2647,16 +2689,19 @@ AFRAME.registerComponent('networked-share', {
     }
 
     var constraints = this.el.sceneEl.systems.physics.world.constraints;
+    var myConstraints = [];
 
     if (constraints && constraints.length > 0) {
       for (var i = 0; i < constraints.length; i++) {
         if (constraints[i].bodyA.id == this.el.body.id || constraints[i].bodyB.id == this.el.body.id) {
-          return constraints[i];
+          myConstraints.push(constraints[i]);
         }
       }
     } else {
       return null;
     }
+
+    return myConstraints;
   },
 
   createSyncData: function(components) {
@@ -2734,12 +2779,17 @@ AFRAME.registerComponent('networked-share', {
 
       var bodyType = physics.type;
 
-      var constraint = this.getConstraint();
+      var constraints = this.getConstraints();
 
       if (physics.hasConstraint) {
-        bodyType = CANNON.Body.STATIC;
-      } else if (!physics.hasConstraint && constraint != null) {
-        this.el.sceneEl.systems.physics.world.removeConstraint(constraint);
+        //bodyType = CANNON.Body.STATIC;
+        this.setConstraints(physics.constraints, constraints);
+      } else if (!physics.hasConstraint && (constraints != null && constraints.length > 0)) {
+        for (var i = 0; i < constraints.length; i++) {
+          this.el.sceneEl.systems.physics.world.removeConstraint(constraints[i]);
+
+          NAF.log.write("Networked-Share: Removed shared constraint from " + constraints[i].bodyA.el.id + " to ", constraints[i].bodyB.el.id)
+        }
       }
 
       this.el.body.type = bodyType;
@@ -2747,6 +2797,72 @@ AFRAME.registerComponent('networked-share', {
       // So that we can share constraints
       // So we can apply the handlePhysicsCollision logic there too to handle touching
     }
+  },
+
+  setConstraints: function(sharedConstraints, myConstraints) {
+    // Add all constraints that are not already added locally
+
+    if (sharedConstraints && sharedConstraints.length > 0) {
+      for (var i = 0; i < sharedConstraints.length; i++) {
+
+        // Get the body of the constraint-element
+        var localBodyA = this.getPhysicsBodyFromNetworkedData(sharedConstraints[i].bodyNetworkId, sharedConstraints[i].bodyNetworkType);
+
+        if (localBodyA) {
+          var constraintExists = false;
+
+          // Check if constraint already exists locally
+          if (myConstraints && myConstraints.length > 0) {
+            for (var j = 0; j < myConstraints.length; j++) {
+              if ((myConstraints[j].bodyA.id == localBodyA.id && myConstraints[j].bodyB.id == this.el.body.id) ||
+                  (myConstraints[j].bodyB.id == localBodyA.id && myConstraints[j].bodyA.id == this.el.body.id)) {
+                constraintExists = true;
+              }
+            }
+          }
+
+          // If current constraint doesn't exist locally, add it.
+          if (!constraintExists) {
+            var newConstraint = new CANNON.LockConstraint(localBodyA, this.el.body);
+            this.el.sceneEl.systems.physics.world.addConstraint(newConstraint);
+
+            NAF.log.write("Networked-Share: Added shared Constraint from " + localBodyA.el.id + " to ", this.el.id);
+          }
+        }
+      }
+    }
+  },
+
+  getPhysicsBodyFromNetworkedData: function (networkId, type) {
+    // TODO: This needs to be simplified -- Probably needs a change in networked aframe to make
+    // remote entities easily detectable.
+    if (networkId != 0 && type != 0) {
+      var entities = document.querySelectorAll("[" + type + "]");
+      if (entities && entities.length > 0) {
+        for (var i = 0; i < entities.length; i++) {
+          if (entities[i].hasOwnProperty(type)) {
+            if (type == "networked-share") {
+              if (entities[i].components["networked-share"].data.networkId == networkId) {
+                if (entities[i].body) {
+                  return entities[i].body;
+                }
+              }
+            } else if (type == "networked" || type == "networked-remote") {
+              if (entities[i].components["networked-remote"].data.networkId == networkId) {
+                // Find child object with physics.
+                var childWithPhysics = entities[i].querySelector("[dynamic-body], [static-body]");
+                if (childWithPhysics && childWithPhysics.body) {
+                  return childWithPhysics.body;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+
   },
 
   handlePhysicsCollision: function(e) {
