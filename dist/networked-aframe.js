@@ -3951,29 +3951,30 @@
 	    if (this.el.body && physics != "") {
 
 	      // TODO: CHeck if constraint is shared
-	      this.el.body.position.copy(physics.position);
-	      this.el.body.quaternion.copy(physics.quaternion);
 	      // Don't synch when constraints are applied
 	      // The constraints are synched and we don't want the jittering
-	      if (!physics.hasConstraint) {
-	        this.el.body.velocity.copy(physics.velocity);
-	        this.el.body.angularVelocity.copy(physics.angularVelocity);
-	      }
+	      this.el.body.position.copy(physics.position);
+	      this.el.body.quaternion.copy(physics.quaternion);
+	      this.el.body.velocity.copy(physics.velocity);
+	      this.el.body.angularVelocity.copy(physics.angularVelocity);
 
 	      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
-	      /*
+
 	      var bodyType = physics.type;
-	       var constraints = this.getConstraints();
-	       if (physics.hasConstraint) {
-	        //bodyType = CANNON.Body.STATIC;
-	        this.setConstraints(physics.constraints, constraints);
-	      } else if (!physics.hasConstraint && (constraints != null && constraints.length > 0)) {
+	      /*
+	            var constraints = this.getConstraints();
+	      */
+	      if (physics.hasConstraint) {
+	        bodyType = CANNON.Body.STATIC;
+	        //this.setConstraints(physics.constraints, constraints);
+	      } /*else if (!physics.hasConstraint && (constraints != null && constraints.length > 0)) {
 	        for (var i = 0; i < constraints.length; i++) {
 	          this.el.sceneEl.systems.physics.world.removeConstraint(constraints[i]);
 	           NAF.log.write("Networked-Share: Removed shared constraint from " + constraints[i].bodyA.el.id + " to ", constraints[i].bodyB.el.id)
 	        }
-	      }
-	       this.el.body.type = bodyType;*/
+	        }*/
+
+	      this.el.body.type = bodyType;
 	    }
 	  },
 
