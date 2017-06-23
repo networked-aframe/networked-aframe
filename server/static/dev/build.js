@@ -2651,7 +2651,8 @@ AFRAME.registerComponent('networked-share', {
   getPhysicsData: function() {
     if (this.el.body) {
 
-      var constraints = this.getConstraints();
+      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
+      /*var constraints = this.getConstraints();
       var sendConstraints = [];
 
       // TODO: Handle when any constraintBody is not networked.
@@ -2662,12 +2663,12 @@ AFRAME.registerComponent('networked-share', {
             bodyNetworkType: (this.el.body.id == constraints[i].bodyA.id) ? NAF.utils.getNetworkType(constraints[i].bodyB.el) : NAF.utils.getNetworkType(constraints[i].bodyA.el)
           });
         }
-      }
+      }*/
 
       var physicsData = {
-        type: this.el.body.type,
-        hasConstraint: (constraints != null && constraints.length > 0),
-        constraints: sendConstraints,
+        //type: this.el.body.type,
+        //hasConstraint: (constraints != null && constraints.length > 0),
+        //constraints: sendConstraints,
         position: this.el.body.position,
         quaternion: this.el.body.quaternion,
         velocity: this.el.body.velocity,
@@ -2777,6 +2778,8 @@ AFRAME.registerComponent('networked-share', {
       this.el.body.velocity.copy(physics.velocity);
       this.el.body.angularVelocity.copy(physics.angularVelocity);
 
+      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
+      /*
       var bodyType = physics.type;
 
       var constraints = this.getConstraints();
@@ -2792,10 +2795,7 @@ AFRAME.registerComponent('networked-share', {
         }
       }
 
-      this.el.body.type = bodyType;
-      // TODO: Make shared hands a rigidbody everywhere
-      // So that we can share constraints
-      // So we can apply the handlePhysicsCollision logic there too to handle touching
+      this.el.body.type = bodyType;*/
     }
   },
 

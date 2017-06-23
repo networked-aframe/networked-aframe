@@ -3827,23 +3827,23 @@
 	  getPhysicsData: function getPhysicsData() {
 	    if (this.el.body) {
 
-	      var constraints = this.getConstraints();
+	      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
+	      /*var constraints = this.getConstraints();
 	      var sendConstraints = [];
-
-	      // TODO: Handle when any constraintBody is not networked.
+	       // TODO: Handle when any constraintBody is not networked.
 	      if (constraints != null && constraints.length > 0) {
 	        for (var i = 0; i < constraints.length; i++) {
 	          sendConstraints.push({
-	            bodyNetworkId: this.el.body.id == constraints[i].bodyA.id ? NAF.utils.getNetworkId(constraints[i].bodyB.el) : NAF.utils.getNetworkId(constraints[i].bodyA.el),
-	            bodyNetworkType: this.el.body.id == constraints[i].bodyA.id ? NAF.utils.getNetworkType(constraints[i].bodyB.el) : NAF.utils.getNetworkType(constraints[i].bodyA.el)
+	            bodyNetworkId: (this.el.body.id == constraints[i].bodyA.id) ? NAF.utils.getNetworkId(constraints[i].bodyB.el) : NAF.utils.getNetworkId(constraints[i].bodyA.el),
+	            bodyNetworkType: (this.el.body.id == constraints[i].bodyA.id) ? NAF.utils.getNetworkType(constraints[i].bodyB.el) : NAF.utils.getNetworkType(constraints[i].bodyA.el)
 	          });
 	        }
-	      }
+	      }*/
 
 	      var physicsData = {
-	        type: this.el.body.type,
-	        hasConstraint: constraints != null && constraints.length > 0,
-	        constraints: sendConstraints,
+	        //type: this.el.body.type,
+	        //hasConstraint: (constraints != null && constraints.length > 0),
+	        //constraints: sendConstraints,
 	        position: this.el.body.position,
 	        quaternion: this.el.body.quaternion,
 	        velocity: this.el.body.velocity,
@@ -3954,25 +3954,20 @@
 	      this.el.body.velocity.copy(physics.velocity);
 	      this.el.body.angularVelocity.copy(physics.angularVelocity);
 
+	      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
+	      /*
 	      var bodyType = physics.type;
-
-	      var constraints = this.getConstraints();
-
-	      if (physics.hasConstraint) {
+	       var constraints = this.getConstraints();
+	       if (physics.hasConstraint) {
 	        //bodyType = CANNON.Body.STATIC;
 	        this.setConstraints(physics.constraints, constraints);
-	      } else if (!physics.hasConstraint && constraints != null && constraints.length > 0) {
+	      } else if (!physics.hasConstraint && (constraints != null && constraints.length > 0)) {
 	        for (var i = 0; i < constraints.length; i++) {
 	          this.el.sceneEl.systems.physics.world.removeConstraint(constraints[i]);
-
-	          NAF.log.write("Networked-Share: Removed shared constraint from " + constraints[i].bodyA.el.id + " to ", constraints[i].bodyB.el.id);
+	           NAF.log.write("Networked-Share: Removed shared constraint from " + constraints[i].bodyA.el.id + " to ", constraints[i].bodyB.el.id)
 	        }
 	      }
-
-	      this.el.body.type = bodyType;
-	      // TODO: Make shared hands a rigidbody everywhere
-	      // So that we can share constraints
-	      // So we can apply the handlePhysicsCollision logic there too to handle touching
+	       this.el.body.type = bodyType;*/
 	    }
 	  },
 
