@@ -3990,10 +3990,10 @@
 	      } else {
 	        this.physicsInterpolating = true;
 	        this.physicsInterpolationTarget = {
-	          position: new CANNON.vec3(physics.position.x, physics.position.y, physics.position.z),
+	          position: new CANNON.Vec3(physics.position.x, physics.position.y, physics.position.z),
 	          quaternion: new THREE.Quaternion(physics.quaternion.x, physics.quaternion.y, physics.quaternion.z, physics.quaternion.w),
-	          velocity: new CANNON.vec3(physics.velocity.x, physics.velocity.y, physics.velocity.z),
-	          angularVelocity: new CANNON.vec3(physics.angularVelocity.x, physics.angularVelocity.y, physics.angularVelocity.z)
+	          velocity: new CANNON.Vec3(physics.velocity.x, physics.velocity.y, physics.velocity.z),
+	          angularVelocity: new CANNON.Vec3(physics.angularVelocity.x, physics.angularVelocity.y, physics.angularVelocity.z)
 	        };
 	        this.physicsInterpolationStarttime = NAF.utils.now();
 	      }
