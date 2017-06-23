@@ -3828,8 +3828,8 @@
 	    if (this.el.body) {
 
 	      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
-	      /*var constraints = this.getConstraints();
-	      var sendConstraints = [];
+	      var constraints = this.getConstraints();
+	      /*var sendConstraints = [];
 	       // TODO: Handle when any constraintBody is not networked.
 	      if (constraints != null && constraints.length > 0) {
 	        for (var i = 0; i < constraints.length; i++) {
@@ -3842,7 +3842,7 @@
 
 	      var physicsData = {
 	        //type: this.el.body.type,
-	        //hasConstraint: (constraints != null && constraints.length > 0),
+	        hasConstraint: constraints != null && constraints.length > 0,
 	        //constraints: sendConstraints,
 	        position: this.el.body.position,
 	        quaternion: this.el.body.quaternion,
@@ -3949,10 +3949,16 @@
 
 	  updatePhysics: function updatePhysics(physics) {
 	    if (this.el.body && physics != "") {
-	      this.el.body.position.copy(physics.position);
-	      this.el.body.quaternion.copy(physics.quaternion);
-	      this.el.body.velocity.copy(physics.velocity);
-	      this.el.body.angularVelocity.copy(physics.angularVelocity);
+
+	      // TODO: CHeck if constraint is shared
+	      // Don't synch when constraints are applied
+	      // The constraints are synched and we don't want the jittering
+	      if (!physics.hasConstraint) {
+	        this.el.body.position.copy(physics.position);
+	        this.el.body.quaternion.copy(physics.quaternion);
+	        this.el.body.velocity.copy(physics.velocity);
+	        this.el.body.angularVelocity.copy(physics.angularVelocity);
+	      }
 
 	      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
 	      /*
