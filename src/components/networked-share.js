@@ -534,19 +534,25 @@ AFRAME.registerComponent('networked-share', {
   getPhysicsBodyFromNetworkedData: function (networkId, type) {
     // TODO: This needs to be simplified -- Probably needs a change in networked aframe to make
     // remote entities easily detectable.
-    if (networkId != 0 && type != 0) {
+
+    if (type == "networked") {
+      // We are now remote.
+      type = "networked-remote";
+    }
+
+    if (networkId != "" && type != "") {
       var entities = document.querySelectorAll("[" + type + "]");
       if (entities && entities.length > 0) {
         for (var i = 0; i < entities.length; i++) {
           if (entities[i].hasOwnProperty(type)) {
             if (type == "networked-share") {
-              if (entities[i].components["networked-share"].data.networkId == networkId) {
+              if (entities[i].components[type].data.networkId == networkId) {
                 if (entities[i].body) {
                   return entities[i].body;
                 }
               }
-            } else if (type == "networked" || type == "networked-remote") {
-              if (entities[i].components["networked-remote"].data.networkId == networkId) {
+            } else if (type == "networked-remote") {
+              if (entities[i].components[type].data.networkId == networkId) {
                 // Find child object with physics.
                 var childWithPhysics = entities[i].querySelector("[dynamic-body], [static-body]");
                 if (childWithPhysics && childWithPhysics.body) {
