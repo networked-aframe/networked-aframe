@@ -3595,9 +3595,9 @@
 
 	      this.physicsInterpolating = false;
 
-	      if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
+	      /*if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
 	        this.el.body.wakeUp();
-	      }
+	      }*/
 
 	      this.el.emit("networked-ownership-taken");
 
@@ -3985,9 +3985,10 @@
 	      // The constraints are synched and we don't want the jittering
 	      // TODO: Also Interpolate when ELement is not constrainet, but pushed with the hands
 	      if (!physics.hasConstraint) {
-	        if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
+	        // TODO: Sleep kills jitter... need to find a working / reliable solution here
+	        /*if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
 	          this.el.body.wakeUp();
-	        }
+	        }*/
 
 	        this.el.body.position.copy(physics.position);
 	        this.el.body.quaternion.copy(physics.quaternion);
@@ -4004,7 +4005,7 @@
 	          angularVelocity: new CANNON.Vec3(physics.angularVelocity.x, physics.angularVelocity.y, physics.angularVelocity.z)
 	        };
 	        this.physicsInterpolationStarttime = NAF.utils.now();
-	        this.el.body.sleep();
+	        //this.el.body.sleep();
 	      }
 
 	      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
