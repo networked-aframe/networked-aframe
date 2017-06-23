@@ -59,7 +59,7 @@
           <a-entity class="avatar">
             <a-sphere class="head"
               color="#5985ff"
-              scale="0.45 0.5 0.4"
+              scale="0.3 0.35 0.25"
               random-color
             ></a-sphere>
             <a-entity class="face"
@@ -67,7 +67,7 @@
             >
               <a-sphere class="eye"
                 color="#efefef"
-                position="0.16 0.1 -0.35"
+                position="0.1 0.1 -0.2"
                 scale="0.12 0.12 0.12"
               >
                 <a-sphere class="pupil"
@@ -78,7 +78,7 @@
               </a-sphere>
               <a-sphere class="eye"
                 color="#efefef"
-                position="-0.16 0.1 -0.35"
+                position="-0.1 0.1 -0.2"
                 scale="0.12 0.12 0.12"
               >
                 <a-sphere class="pupil"
@@ -99,11 +99,11 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" spawn-in-circle="radius:3" position="0 1 0" wasd-controls look-controls>
-        <a-entity camera networked="template:#head-template;showLocalTemplate:false;"></a-entity>
+      <a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" spawn-in-circle="radius:3" position="0 0 0" wasd-controls >
+        <a-entity camera look-controls networked="template:#head-template;showLocalTemplate:false;"></a-entity>
 
-        <a-entity hand-controls="left" networked="template:#hand-template;showLocalTemplate:true;"></a-entity>
-        <a-entity hand-controls="right" networked="template:#hand-template;showLocalTemplate:true;"></a-entity>
+        <a-entity hand-controls="left" networked="template:#hand-template;showLocalTemplate:false;"></a-entity>
+        <a-entity hand-controls="right" networked="template:#hand-template;showLocalTemplate:false;"></a-entity>
       </a-entity>
 
       <a-entity position="0 0 0"
@@ -135,5 +135,5 @@
         particles.parentNode.removeChild(particles);
       }
     </script>
-  <body>
+  </body>
 </html>

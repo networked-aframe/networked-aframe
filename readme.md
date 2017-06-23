@@ -40,7 +40,7 @@ Getting Started
 
 Follow [this tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/getting-started-local.md) to build your own example.
 
-Edit online example with [glitch.com/~networked-aframe](https://glitch.com/~networked-aframe).
+Edit online example with [glitch.com/~networked-aframe/](https://glitch.com/~networked-aframe/).
 
 To get the examples running on your own PC run:
 
@@ -84,7 +84,7 @@ More Examples
 Open in two tabs if nobody else is online.
 
 * [Basic](http://haydenlee.io/networked-aframe/basic.html)
-* [Shooter](http://haydenlee.io/networked-aframe/shooter.html)
+* [Dance Club](http://haydenlee.io/networked-aframe/a-saturday-night/index.html)
 * [360 Image](http://haydenlee.io/networked-aframe/360.html)
 * Made something awesome with Networked-Aframe? [Let me know](https://twitter.com/haydenlee37) and I'll include it here!
 
@@ -186,8 +186,8 @@ Component data is retrieved by the A-Frame `getData` function. During the networ
 To sync nested templates setup your HTML nodes like so:
 
 ```HTML
-<a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" wasd-controls look-controls>
-  <a-entity camera networked="template:#head-template;showLocalTemplate:false;"></a-entity>
+<a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" wasd-controls>
+  <a-entity camera look-controls networked="template:#head-template;showLocalTemplate:false;"></a-entity>
   <a-entity hand-controls="left" networked="template:#left-hand-template"></a-entity>
   <a-entity hand-controls="right" networked="template:#right-hand-template"></a-entity>
 </a-entity>
@@ -222,7 +222,7 @@ If using WebRTC `broadcastData` messages are sent P2P using UDP and are not guar
 NAF.connection.isConnected()
 ```
 
-Returns true if a connection has been established to the signalling server. Don't create entities before this is true.
+Returns true if a connection has been established to the signalling server.
 
 
 ### Options

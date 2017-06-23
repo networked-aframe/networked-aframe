@@ -16,6 +16,7 @@ var leftHandSchema = {
   components: [
     'position',
     'rotation',
+    'visible',
     {
       selector: '.hands',
       component: 'show-child'
@@ -29,6 +30,7 @@ var rightHandSchema = {
   components: [
     'position',
     'rotation',
+    'visible',
     {
       selector: '.hands',
       component: 'show-child'
