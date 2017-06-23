@@ -3083,7 +3083,6 @@
 	    return naf.schemas.getComponents(this.data.template);
 	  },
 
-
 	  /**
 	    Compressed packet structure:
 	    [

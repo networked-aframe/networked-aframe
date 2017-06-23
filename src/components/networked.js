@@ -199,7 +199,7 @@ AFRAME.registerComponent('networked', {
     return component.networkId;
   },
 
-  getAllSyncedComponents() {
+  getAllSyncedComponents: function() {
     return naf.schemas.getComponents(this.data.template);
   },
 
