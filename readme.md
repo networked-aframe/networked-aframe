@@ -212,7 +212,7 @@ If using WebRTC `broadcastData` messages are sent P2P using UDP and are not guar
 | Parameter | Description
 | -------- | -----------
 | dataType  | String to identify a network message. `u` is a reserved data type, don't use it pls
-| callback  | Function to be called when message of type `dataType` is received.
+| callback  | Function to be called when message of type `dataType` is received. Parameters: function(senderRtcId, dataType, data, targetRtcId)
 | data | Object to be sent to all other clients
 
 
