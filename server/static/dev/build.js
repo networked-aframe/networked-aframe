@@ -2289,7 +2289,7 @@ AFRAME.registerComponent('networked-share', {
     },
     removeOwnershipEvents: {
      type: "array",
-     default: ["ungrabbed"]
+     default: []
     },
     components: {default: ['position', 'rotation']},
     physics: { default: false }
@@ -2907,6 +2907,8 @@ AFRAME.registerComponent('networked-share', {
   },
 
   remove: function () {
+    this.removeOwnership();
+
     var data = { networkId: this.networkId };
     naf.connection.broadcastData('r', data);
 

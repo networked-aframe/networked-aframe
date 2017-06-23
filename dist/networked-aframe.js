@@ -3471,7 +3471,7 @@
 	    },
 	    removeOwnershipEvents: {
 	      type: "array",
-	      default: ["ungrabbed"]
+	      default: []
 	    },
 	    components: { default: ['position', 'rotation'] },
 	    physics: { default: false }
@@ -4085,6 +4085,8 @@
 	  },
 
 	  remove: function remove() {
+	    this.removeOwnership();
+
 	    var data = { networkId: this.networkId };
 	    naf.connection.broadcastData('r', data);
 
