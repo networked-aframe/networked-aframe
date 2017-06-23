@@ -3595,6 +3595,10 @@
 
 	      this.physicsInterpolating = false;
 
+	      if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
+	        this.el.body.wakeUp();
+	      }
+
 	      this.el.emit("networked-ownership-taken");
 
 	      this.takeover = true;
@@ -3981,6 +3985,10 @@
 	      // The constraints are synched and we don't want the jittering
 	      // TODO: Here we need to implement interpolation when object has a constraint --> Physics interpolation doesnt work here
 	      if (!physics.hasConstraint) {
+	        if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
+	          this.el.body.wakeUp();
+	        }
+
 	        this.el.body.position.copy(physics.position);
 	        this.el.body.quaternion.copy(physics.quaternion);
 	        this.el.body.velocity.copy(physics.velocity);
@@ -3996,6 +4004,7 @@
 	          angularVelocity: new CANNON.Vec3(physics.angularVelocity.x, physics.angularVelocity.y, physics.angularVelocity.z)
 	        };
 	        this.physicsInterpolationStarttime = NAF.utils.now();
+	        this.el.body.sleep();
 	      }
 
 	      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
