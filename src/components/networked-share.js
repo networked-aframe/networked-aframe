@@ -111,10 +111,6 @@ AFRAME.registerComponent('networked-share', {
         NAF.physics.detachPhysicsLerp(this.el);
       }
 
-      /*if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
-        this.el.body.wakeUp();
-      }*/
-
       this.el.emit("networked-ownership-taken");
 
       this.takeover = true;
@@ -426,24 +422,20 @@ AFRAME.registerComponent('networked-share', {
     if (physics && !this.isMine()) {
 
       // TODO: CHeck if constraint is shared
+      // TODO: Also Interpolate when ELement is not constrainet, but pushed with the hands
       // Don't synch when constraints are applied
       // The constraints are synched and we don't want the jittering
-      // TODO: Also Interpolate when ELement is not constrainet, but pushed with the hands
       if (!physics.hasConstraint || !NAF.options.useLerp) {
-        // TODO: Sleep kills jitter... need to find a working / reliable solution here
-        /*if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
-          this.el.body.wakeUp();
-        }*/
         NAF.physics.detachPhysicsLerp(this.el);
         NAF.physics.updatePhysics(this.el, physics);
       } else {
         NAF.physics.attachPhysicsLerp(this.el, physics);
-        //this.el.body.sleep();
       }
     }
   },
 
   handlePhysicsCollision: function(e) {
+    // TODO: Make this Engine Independent through NAF.physics
     // When a Collision happens, inherit ownership to collided object
     // so we can make sure, that my physics get propagated
     if (this.isMine()) {
