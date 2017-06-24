@@ -44,11 +44,13 @@ module.exports.getConstraints = function(entity) {
 }
 
 module.exports.updatePhysics = function(entity, newBodyData) {
-  if (entity.body && newBodyData != "") {
-    entity.body.position.copy(newBodyData.position);
-    entity.body.quaternion.copy(newBodyData.quaternion);
-    entity.body.velocity.copy(newBodyData.velocity);
-    entity.body.angularVelocity.copy(newBodyData.angularVelocity);
+  var body = NAF.physics.getEntityBody(entity);
+
+  if (body && newBodyData != "") {
+    body.position.copy(newBodyData.position);
+    body.quaternion.copy(newBodyData.quaternion);
+    body.velocity.copy(newBodyData.velocity);
+    body.angularVelocity.copy(newBodyData.angularVelocity);
   }
 }
 
@@ -87,4 +89,19 @@ module.exports.detachPhysicsLerp = function(entity) {
   if (entity && entity.components['physics-lerp']) {
     entity.removeAttribute("physics-lerp");
   }
+}
+
+module.exports.getEntityBody = function(entity) {
+  // This is necessary because of networked-aframes schema system and networked-remote
+  if (entity.body) {
+    return entity.body;
+  } else {
+    var childBody = entity.querySelector("[dynamic-body], [static-body]");
+
+    if (childBody && childBody.body) {
+      return childBody.body;
+    }
+  }
+
+  return null;
 }

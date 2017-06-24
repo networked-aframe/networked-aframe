@@ -70,6 +70,11 @@ AFRAME.registerComponent('networked-remote', {
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
     }
+
+    if (entityData.physics) {
+      NAF.physics.updatePhysics(this.el, entityData.physics);
+    }
+
     this.updateComponents(entityData.components);
   },
 

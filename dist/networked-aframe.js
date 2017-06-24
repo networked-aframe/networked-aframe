@@ -1845,11 +1845,13 @@
 	};
 
 	module.exports.updatePhysics = function (entity, newBodyData) {
-	  if (entity.body && newBodyData != "") {
-	    entity.body.position.copy(newBodyData.position);
-	    entity.body.quaternion.copy(newBodyData.quaternion);
-	    entity.body.velocity.copy(newBodyData.velocity);
-	    entity.body.angularVelocity.copy(newBodyData.angularVelocity);
+	  var body = NAF.physics.getEntityBody(entity);
+
+	  if (body && newBodyData != "") {
+	    body.position.copy(newBodyData.position);
+	    body.quaternion.copy(newBodyData.quaternion);
+	    body.velocity.copy(newBodyData.velocity);
+	    body.angularVelocity.copy(newBodyData.angularVelocity);
 	  }
 	};
 
@@ -1888,6 +1890,21 @@
 	  if (entity && entity.components['physics-lerp']) {
 	    entity.removeAttribute("physics-lerp");
 	  }
+	};
+
+	module.exports.getEntityBody = function (entity) {
+	  // This is necessary because of networked-aframes schema system and networked-remote
+	  if (entity.body) {
+	    return entity.body;
+	  } else {
+	    var childBody = entity.querySelector("[dynamic-body], [static-body]");
+
+	    if (childBody && childBody.body) {
+	      return childBody.body;
+	    }
+	  }
+
+	  return null;
 	};
 
 /***/ }),
@@ -2982,7 +2999,8 @@
 	AFRAME.registerComponent('networked', {
 	  schema: {
 	    template: { default: '' },
-	    showLocalTemplate: { default: true }
+	    showLocalTemplate: { default: true },
+	    physics: { default: false }
 	  },
 
 	  init: function init() {
@@ -3165,6 +3183,11 @@
 	      parent: this.getParentId(),
 	      components: components
 	    };
+
+	    if (this.data.physics) {
+	      data['physics'] = NAF.physics.getPhysicsData(this.el);
+	    }
+
 	    return data;
 	  },
 
@@ -3463,6 +3486,11 @@
 	    if (entityData[0] == 1) {
 	      entityData = this.decompressSyncData(entityData);
 	    }
+
+	    if (entityData.physics) {
+	      NAF.physics.updatePhysics(this.el, entityData.physics);
+	    }
+
 	    this.updateComponents(entityData.components);
 	  },
 

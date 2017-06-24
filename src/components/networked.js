@@ -5,6 +5,7 @@ AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
     showLocalTemplate: {default: true},
+    physics: { default: false }
   },
 
   init: function() {
@@ -187,6 +188,11 @@ AFRAME.registerComponent('networked', {
       parent: this.getParentId(),
       components: components
     };
+
+    if (this.data.physics) {
+      data['physics'] = NAF.physics.getPhysicsData(this.el);
+    }
+
     return data;
   },
 
