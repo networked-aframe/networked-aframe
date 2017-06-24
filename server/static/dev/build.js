@@ -1618,7 +1618,7 @@ module.exports.getPhysicsData = function(entity) {
     var constraints = NAF.physics.getConstraints(entity);
 
     var physicsData = {
-      type: this.el.body.type,
+      type: entity.body.type,
       hasConstraint: (constraints != null && constraints.length > 0),
       position: entity.body.position,
       quaternion: entity.body.quaternion,
