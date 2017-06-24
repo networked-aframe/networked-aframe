@@ -9,7 +9,8 @@ module.exports.getPhysicsData = function(entity) {
       position: entity.body.position,
       quaternion: entity.body.quaternion,
       velocity: entity.body.velocity,
-      angularVelocity: entity.body.angularVelocity
+      angularVelocity: entity.body.angularVelocity,
+      timestamp: NAF.utils.now()
     };
 
     return physicsData;
@@ -104,7 +105,7 @@ module.exports.sleep = function(entity) {
 module.exports.wakeUp = function(entity) {
   if (entity) {
     var body = NAF.physics.getEntityBody(entity);
-    
+
     if (body) {
       if (body.sleepState == CANNON.Body.SLEEPING) {
         body.wakeUp();

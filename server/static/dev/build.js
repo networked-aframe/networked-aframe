@@ -1623,7 +1623,8 @@ module.exports.getPhysicsData = function(entity) {
       position: entity.body.position,
       quaternion: entity.body.quaternion,
       velocity: entity.body.velocity,
-      angularVelocity: entity.body.angularVelocity
+      angularVelocity: entity.body.angularVelocity,
+      timestamp: NAF.utils.now()
     };
 
     return physicsData;
@@ -1718,7 +1719,7 @@ module.exports.sleep = function(entity) {
 module.exports.wakeUp = function(entity) {
   if (entity) {
     var body = NAF.physics.getEntityBody(entity);
-    
+
     if (body) {
       if (body.sleepState == CANNON.Body.SLEEPING) {
         body.wakeUp();
@@ -2557,6 +2558,8 @@ AFRAME.registerComponent('networked-share', {
     } else {
       this.el.removeEventListener(NAF.physics.collisionEvent, this.handlePhysicsCollision);
     }
+
+    this.lastPhysicsUpdateTimestamp = null;
   },
 
   takeOwnership: function() {
@@ -2883,19 +2886,24 @@ AFRAME.registerComponent('networked-share', {
 
   updatePhysics: function(physics) {
     if (physics && !this.isMine()) {
-      // TODO: CHeck if constraint is shared
-      // TODO: Also Interpolate when ELement is not constrainet, but pushed with the hands
-      // Don't sync when constraints are applied
-      // The constraints are synced and we don't want the jitter
-      if (!physics.hasConstraint || !NAF.options.useLerp) {
-        NAF.physics.detachPhysicsLerp(this.el);
-        // WakeUp element - we are not interpolating anymore
-        NAF.physics.wakeUp(this.el);
-        NAF.physics.updatePhysics(this.el, physics);
-      } else {
-        // Put element to sleep since we are now interpolating to remote physics data
-        NAF.physics.sleep(this.el);
-        NAF.physics.attachPhysicsLerp(this.el, physics);
+      // Check if this physics state is NEWER than the last one we updated
+      // Network-Packets don't always arrive in order as they have been sent
+      if (!this.lastPhysicsUpdateTimestamp || physics.timestamp > this.lastPhysicsUpdateTimestamp) {
+        // TODO: CHeck if constraint is shared
+        // Don't sync when constraints are applied
+        // The constraints are synced and we don't want the jitter
+        if (!physics.hasConstraint || !NAF.options.useLerp) {
+          NAF.physics.detachPhysicsLerp(this.el);
+          // WakeUp element - we are not interpolating anymore
+          NAF.physics.wakeUp(this.el);
+          NAF.physics.updatePhysics(this.el, physics);
+        } else {
+          // Put element to sleep since we are now interpolating to remote physics data
+          NAF.physics.sleep(this.el);
+          NAF.physics.attachPhysicsLerp(this.el, physics);
+        }
+
+        this.lastPhysicsUpdateTimestamp = physics.timestamp;
       }
     }
   },
