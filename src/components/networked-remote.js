@@ -72,7 +72,7 @@ AFRAME.registerComponent('networked-remote', {
     }
 
     if (entityData.physics) {
-      NAF.physics.updatePhysics(this.el, entityData.physics);
+      this.updatePhysics(entityData.physics);
     }
 
     this.updateComponents(entityData.components);
@@ -91,6 +91,17 @@ AFRAME.registerComponent('networked-remote', {
         } else {
           this.el.setAttribute(key, data);
         }
+      }
+    }
+  },
+
+  updatePhysics: function(physics) {
+    if (physics) {
+      if (NAF.options.useLerp) {
+        NAF.physics.attachPhysicsLerp(this.el, physics);
+      } else {
+        NAF.physics.detachPhysicsLerp(this.el);
+        NAF.physics.updatePhysics(this.el, physics);
       }
     }
   },
