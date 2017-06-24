@@ -105,3 +105,14 @@ module.exports.getEntityBody = function(entity) {
 
   return null;
 }
+
+module.exports.collisionEvent = "collide";
+
+module.exports.getDataFromCollision = function(collisionEvent) {
+  if (collisionEvent) {
+    return {
+      body: collisionEvent.detail.body,
+      el: collisionEvent.detail.body.el
+    }
+  }
+}

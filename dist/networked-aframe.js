@@ -1907,6 +1907,17 @@
 	  return null;
 	};
 
+	module.exports.collisionEvent = "collide";
+
+	module.exports.getDataFromCollision = function (collisionEvent) {
+	  if (collisionEvent) {
+	    return {
+	      body: collisionEvent.detail.body,
+	      el: collisionEvent.detail.body.el
+	    };
+	  }
+	};
+
 /***/ }),
 /* 49 */
 /***/ (function(module, exports) {
@@ -3712,9 +3723,9 @@
 
 	  update: function update() {
 	    if (this.data.physics) {
-	      this.el.addEventListener("collide", this.handlePhysicsCollision);
+	      this.el.addEventListener(NAF.physics.collisionEvent, this.handlePhysicsCollision);
 	    } else {
-	      this.el.removeEventListener("collide", this.handlePhysicsCollision);
+	      this.el.removeEventListener(NAF.physics.collisionEvent, this.handlePhysicsCollision);
 	    }
 	  },
 
@@ -4036,11 +4047,10 @@
 
 	  updatePhysics: function updatePhysics(physics) {
 	    if (physics && !this.isMine()) {
-
 	      // TODO: CHeck if constraint is shared
 	      // TODO: Also Interpolate when ELement is not constrainet, but pushed with the hands
-	      // Don't synch when constraints are applied
-	      // The constraints are synched and we don't want the jittering
+	      // Don't sync when constraints are applied
+	      // The constraints are synced and we don't want the jitter
 	      if (!physics.hasConstraint || !NAF.options.useLerp) {
 	        NAF.physics.detachPhysicsLerp(this.el);
 	        NAF.physics.updatePhysics(this.el, physics);
@@ -4051,14 +4061,14 @@
 	  },
 
 	  handlePhysicsCollision: function handlePhysicsCollision(e) {
-	    // TODO: Make this Engine Independent through NAF.physics
 	    // When a Collision happens, inherit ownership to collided object
 	    // so we can make sure, that my physics get propagated
 	    if (this.isMine()) {
-	      if (e.detail.body.el && e.detail.body.el.components["networked-share"]) {
-	        if (NAF.physics.isStrongerThan(e.detail.body) || e.detail.body.el.components["networked-share"].data.owner == "") {
-	          e.detail.body.el.components["networked-share"].takeOwnership();
-	          NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", e.detail.body.el.id);
+	      var collisionData = NAF.physics.getDataFromCollision(e);
+	      if (collisionData.el && collisionData.el.components["networked-share"]) {
+	        if (NAF.physics.isStrongerThan(this.el, collisionData.body) || collisionData.el.components["networked-share"].data.owner == "") {
+	          collisionData.el.components["networked-share"].takeOwnership();
+	          NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", collisionData.el.id);
 	        }
 	      }
 	    }
