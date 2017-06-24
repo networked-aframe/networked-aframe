@@ -1705,6 +1705,28 @@ module.exports.detachPhysicsLerp = function(entity) {
   }
 }
 
+module.exports.sleep = function(entity) {
+  if (entity) {
+    var body = NAF.physics.getEntityBody(entity);
+
+    if (body) {
+      body.sleep();
+    }
+  }
+}
+
+module.exports.wakeUp = function(entity) {
+  if (entity) {
+    var body = NAF.physics.getEntityBody(entity);
+    
+    if (body) {
+      if (body.sleepState == CANNON.Body.SLEEPING) {
+        body.wakeUp();
+      }
+    }
+  }
+}
+
 module.exports.getEntityBody = function(entity) {
   // This is necessary because of networked-aframes schema system and networked-remote
   if (entity.body) {
@@ -2548,6 +2570,8 @@ AFRAME.registerComponent('networked-share', {
         this.detachLerp();
       } else {
         NAF.physics.detachPhysicsLerp(this.el);
+        // WakeUp Element - We are not interpolating anymore
+        NAF.physics.wakeUp(this.el);
       }
 
       this.el.emit("networked-ownership-taken");
@@ -2865,8 +2889,12 @@ AFRAME.registerComponent('networked-share', {
       // The constraints are synced and we don't want the jitter
       if (!physics.hasConstraint || !NAF.options.useLerp) {
         NAF.physics.detachPhysicsLerp(this.el);
+        // WakeUp element - we are not interpolating anymore
+        NAF.physics.wakeUp(this.el);
         NAF.physics.updatePhysics(this.el, physics);
       } else {
+        // Put element to sleep since we are now interpolating to remote physics data
+        NAF.physics.sleep(this.el);
         NAF.physics.attachPhysicsLerp(this.el, physics);
       }
     }

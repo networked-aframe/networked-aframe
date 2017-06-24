@@ -109,6 +109,8 @@ AFRAME.registerComponent('networked-share', {
         this.detachLerp();
       } else {
         NAF.physics.detachPhysicsLerp(this.el);
+        // WakeUp Element - We are not interpolating anymore
+        NAF.physics.wakeUp(this.el);
       }
 
       this.el.emit("networked-ownership-taken");
@@ -426,8 +428,12 @@ AFRAME.registerComponent('networked-share', {
       // The constraints are synced and we don't want the jitter
       if (!physics.hasConstraint || !NAF.options.useLerp) {
         NAF.physics.detachPhysicsLerp(this.el);
+        // WakeUp element - we are not interpolating anymore
+        NAF.physics.wakeUp(this.el);
         NAF.physics.updatePhysics(this.el, physics);
       } else {
+        // Put element to sleep since we are now interpolating to remote physics data
+        NAF.physics.sleep(this.el);
         NAF.physics.attachPhysicsLerp(this.el, physics);
       }
     }

@@ -91,6 +91,28 @@ module.exports.detachPhysicsLerp = function(entity) {
   }
 }
 
+module.exports.sleep = function(entity) {
+  if (entity) {
+    var body = NAF.physics.getEntityBody(entity);
+
+    if (body) {
+      body.sleep();
+    }
+  }
+}
+
+module.exports.wakeUp = function(entity) {
+  if (entity) {
+    var body = NAF.physics.getEntityBody(entity);
+    
+    if (body) {
+      if (body.sleepState == CANNON.Body.SLEEPING) {
+        body.wakeUp();
+      }
+    }
+  }
+}
+
 module.exports.getEntityBody = function(entity) {
   // This is necessary because of networked-aframes schema system and networked-remote
   if (entity.body) {
