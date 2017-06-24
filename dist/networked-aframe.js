@@ -54,10 +54,10 @@
 	__webpack_require__(45);
 
 	// Network components
-	__webpack_require__(55);
-	__webpack_require__(58);
-	__webpack_require__(62);
+	__webpack_require__(56);
+	__webpack_require__(59);
 	__webpack_require__(63);
+	__webpack_require__(64);
 
 /***/ }),
 /* 1 */
@@ -1693,10 +1693,11 @@
 
 	var options = __webpack_require__(46);
 	var util = __webpack_require__(47);
-	var NafLogger = __webpack_require__(48);
-	var Schemas = __webpack_require__(49);
-	var NetworkEntities = __webpack_require__(50);
-	var NetworkConnection = __webpack_require__(52);
+	var physics = __webpack_require__(48);
+	var NafLogger = __webpack_require__(49);
+	var Schemas = __webpack_require__(50);
+	var NetworkEntities = __webpack_require__(51);
+	var NetworkConnection = __webpack_require__(53);
 
 	var naf = {};
 	naf.app = '';
@@ -1704,6 +1705,7 @@
 	naf.clientId = '';
 	naf.options = options;
 	naf.utils = util;
+	naf.physics = physics;
 	naf.log = new NafLogger();
 	naf.schemas = new Schemas();
 	naf.version = "0.2.0";
@@ -1798,6 +1800,102 @@
 
 	"use strict";
 
+	module.exports.getPhysicsData = function (entity) {
+	  if (entity.body) {
+
+	    var constraints = NAF.physics.getConstraints(entity);
+
+	    var physicsData = {
+	      type: this.el.body.type,
+	      hasConstraint: constraints != null && constraints.length > 0,
+	      position: entity.body.position,
+	      quaternion: entity.body.quaternion,
+	      velocity: entity.body.velocity,
+	      angularVelocity: entity.body.angularVelocity
+	    };
+
+	    return physicsData;
+	  } else {
+	    return null;
+	  }
+	};
+
+	module.exports.getConstraints = function (entity) {
+	  // Check if our Body is in a constraint
+	  // So that others can react to that special case
+
+	  if (!entity.sceneEl.systems.physics || !entity.body) {
+	    return null;
+	  }
+
+	  var constraints = entity.sceneEl.systems.physics.world.constraints;
+	  var myConstraints = [];
+
+	  if (constraints && constraints.length > 0) {
+	    for (var i = 0; i < constraints.length; i++) {
+	      if (constraints[i].bodyA.id == entity.body.id || constraints[i].bodyB.id == entity.body.id) {
+	        myConstraints.push(constraints[i]);
+	      }
+	    }
+	  } else {
+	    return null;
+	  }
+
+	  return myConstraints;
+	};
+
+	module.exports.updatePhysics = function (entity, newBodyData) {
+	  if (entity.body && newBodyData != "") {
+	    entity.body.position.copy(newBodyData.position);
+	    entity.body.quaternion.copy(newBodyData.quaternion);
+	    entity.body.velocity.copy(newBodyData.velocity);
+	    entity.body.angularVelocity.copy(newBodyData.angularVelocity);
+	  }
+	};
+
+	module.exports.isStrongerThan = function (entity, otherBody) {
+	  // A way to decide which element is stronger
+	  // when a collision happens
+	  // so that we can decide which one inherits ownership
+	  if (entity.body && otherBody) {
+	    // TODO: What if they are equal?
+	    return NAF.physics.calculatePhysicsStrength(entity.body) > NAF.physics.calculatePhysicsStrength(otherBody);
+	  } else {
+	    return false;
+	  }
+	};
+
+	module.exports.calculatePhysicsStrength = function (body) {
+	  var speed = Math.abs(body.velocity.x) + Math.abs(body.velocity.y) + Math.abs(body.velocity.z);
+	  var rotationalSpeed = Math.abs(body.angularVelocity.x) + Math.abs(body.angularVelocity.y) + Math.abs(body.angularVelocity.z);
+
+	  return 2 * speed + rotationalSpeed;
+	};
+
+	module.exports.attachPhysicsLerp = function (entity, physicsData) {
+	  if (entity && physicsData) {
+	    AFRAME.utils.entity.setComponentProperty(entity, "physics-lerp", {
+	      targetPosition: physicsData.position,
+	      targetQuaternion: physicsData.quaternion,
+	      targetVelocity: physicsData.velocity,
+	      targetAngularVelocity: physicsData.angularVelocity,
+	      time: 1000 / NAF.options.updateRate
+	    });
+	  }
+	};
+
+	module.exports.detachPhysicsLerp = function (entity) {
+	  if (entity && entity.components['physics-lerp']) {
+	    entity.removeAttribute("physics-lerp");
+	  }
+	};
+
+/***/ }),
+/* 49 */
+/***/ (function(module, exports) {
+
+	"use strict";
+
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -1834,7 +1932,7 @@
 	module.exports = NafLogger;
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -1897,7 +1995,7 @@
 	module.exports = Schemas;
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1906,7 +2004,7 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var ChildEntityCache = __webpack_require__(51);
+	var ChildEntityCache = __webpack_require__(52);
 
 	var NetworkEntities = function () {
 	  function NetworkEntities() {
@@ -2086,7 +2184,7 @@
 	module.exports = NetworkEntities;
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -2136,7 +2234,7 @@
 	module.exports = ChildEntityCache;
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2145,7 +2243,7 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var NetworkInterface = __webpack_require__(53);
+	var NetworkInterface = __webpack_require__(54);
 
 	var NetworkConnection = function () {
 	  function NetworkConnection(networkEntities) {
@@ -2351,7 +2449,7 @@
 	module.exports = NetworkConnection;
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2364,7 +2462,7 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var NafInterface = __webpack_require__(54);
+	var NafInterface = __webpack_require__(55);
 
 	var NetworkInterface = function (_NafInterface) {
 	  _inherits(NetworkInterface, _NafInterface);
@@ -2456,7 +2554,7 @@
 	module.exports = NetworkInterface;
 
 /***/ }),
-/* 54 */
+/* 55 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -2483,15 +2581,15 @@
 	module.exports = NafInterface;
 
 /***/ }),
-/* 55 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var naf = __webpack_require__(45);
 
-	var EasyRtcInterface = __webpack_require__(56);
-	var WebSocketEasyRtcInterface = __webpack_require__(57);
+	var EasyRtcInterface = __webpack_require__(57);
+	var WebSocketEasyRtcInterface = __webpack_require__(58);
 
 	AFRAME.registerComponent('networked-scene', {
 	  schema: {
@@ -2561,7 +2659,7 @@
 	});
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2575,7 +2673,7 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var naf = __webpack_require__(45);
-	var NetworkInterface = __webpack_require__(53);
+	var NetworkInterface = __webpack_require__(54);
 
 	var EasyRtcInterface = function (_NetworkInterface) {
 	  _inherits(EasyRtcInterface, _NetworkInterface);
@@ -2743,7 +2841,7 @@
 	module.exports = EasyRtcInterface;
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2757,7 +2855,7 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var naf = __webpack_require__(45);
-	var NetworkInterface = __webpack_require__(53);
+	var NetworkInterface = __webpack_require__(54);
 
 	var WebSocketEasyRtcInterface = function (_NetworkInterface) {
 	  _inherits(WebSocketEasyRtcInterface, _NetworkInterface);
@@ -2873,13 +2971,13 @@
 	module.exports = WebSocketEasyRtcInterface;
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var naf = __webpack_require__(45);
-	var deepEqual = __webpack_require__(59);
+	var deepEqual = __webpack_require__(60);
 
 	AFRAME.registerComponent('networked', {
 	  schema: {
@@ -3148,7 +3246,7 @@
 	});
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3156,8 +3254,8 @@
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	var pSlice = Array.prototype.slice;
-	var objectKeys = __webpack_require__(60);
-	var isArguments = __webpack_require__(61);
+	var objectKeys = __webpack_require__(61);
+	var isArguments = __webpack_require__(62);
 
 	var deepEqual = module.exports = function (actual, expected, opts) {
 	  if (!opts) opts = {};
@@ -3248,7 +3346,7 @@
 	}
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -3264,7 +3362,7 @@
 	}
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -3288,13 +3386,13 @@
 	};
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var naf = __webpack_require__(45);
-	var deepEqual = __webpack_require__(59);
+	var deepEqual = __webpack_require__(60);
 
 	AFRAME.registerComponent('networked-remote', {
 	  schema: {
@@ -3476,13 +3574,13 @@
 	});
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var naf = __webpack_require__(45);
-	var deepEqual = __webpack_require__(59);
+	var deepEqual = __webpack_require__(60);
 
 	AFRAME.registerComponent('networked-share', {
 	  schema: {
@@ -3522,7 +3620,6 @@
 	    }
 
 	    this.takeover = false;
-	    this.physicsInterpolating = false;
 	  },
 
 	  initNetworkId: function initNetworkId() {
@@ -3591,9 +3688,9 @@
 
 	      if (!this.data.physics) {
 	        this.detachLerp();
+	      } else {
+	        NAF.physics.detachPhysicsLerp(this.el);
 	      }
-
-	      this.physicsInterpolating = false;
 
 	      /*if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
 	        this.el.body.wakeUp();
@@ -3627,6 +3724,8 @@
 	      this.bindRemoteEvents();
 
 	      if (!this.data.physics) {
+	        // No need to attach physics lerp
+	        // the physics engine itself interpolates
 	        this.attachLerp();
 	      }
 
@@ -3652,6 +3751,8 @@
 	      this.bindRemoteEvents();
 
 	      if (!this.data.physics) {
+	        // No need to attach physics lerp
+	        // the physics engine itself interpolates
 	        this.attachLerp();
 	      }
 
@@ -3737,29 +3838,6 @@
 	    if (this.isMine() && this.needsToSync()) {
 	      this.syncDirty();
 	    }
-
-	    if (!this.isMine() && this.physicsInterpolating) {
-	      this.interpolationStep();
-	    }
-	  },
-
-	  interpolationStep: function interpolationStep() {
-	    var time = NAF.utils.now();
-	    var progress = 0;
-
-	    if (time > this.physicsInterpolationStarttime + 1000 / NAF.options.updateRate) {
-	      progress = 1;
-	    } else {
-	      progress = (time - this.physicsInterpolationStarttime) / (1000 / NAF.options.updateRate);
-	    }
-
-	    this.physicsInterpolationTarget;
-
-	    this.el.body.position.lerp(this.physicsInterpolationTarget.position, progress, this.el.body.position);
-	    var tempQuaternion = new THREE.Quaternion(this.el.body.quaternion.x, this.el.body.quaternion.y, this.el.body.quaternion.z, this.el.body.quaternion.w);
-	    this.el.body.quaternion.copy(tempQuaternion.slerp(this.physicsInterpolationTarget.quaternion, progress));
-	    this.el.body.velocity.lerp(this.physicsInterpolationTarget.velocity, progress, this.el.body.velocity);
-	    this.el.body.angularVelocity.lerp(this.physicsInterpolationTarget.angularVelocity, progress, this.el.body.angularVelocity);
 	  },
 
 	  // Will only succeed if object is created after connected
@@ -3854,62 +3932,6 @@
 	    return dirtyComps;
 	  },
 
-	  getPhysicsData: function getPhysicsData() {
-	    if (this.el.body) {
-
-	      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
-	      var constraints = this.getConstraints();
-	      /*var sendConstraints = [];
-	       // TODO: Handle when any constraintBody is not networked.
-	      if (constraints != null && constraints.length > 0) {
-	        for (var i = 0; i < constraints.length; i++) {
-	          sendConstraints.push({
-	            bodyNetworkId: (this.el.body.id == constraints[i].bodyA.id) ? NAF.utils.getNetworkId(constraints[i].bodyB.el) : NAF.utils.getNetworkId(constraints[i].bodyA.el),
-	            bodyNetworkType: (this.el.body.id == constraints[i].bodyA.id) ? NAF.utils.getNetworkType(constraints[i].bodyB.el) : NAF.utils.getNetworkType(constraints[i].bodyA.el)
-	          });
-	        }
-	      }*/
-
-	      var physicsData = {
-	        //type: this.el.body.type,
-	        hasConstraint: constraints != null && constraints.length > 0,
-	        //constraints: sendConstraints,
-	        position: this.el.body.position,
-	        quaternion: this.el.body.quaternion,
-	        velocity: this.el.body.velocity,
-	        angularVelocity: this.el.body.angularVelocity
-	      };
-
-	      return physicsData;
-	    } else {
-	      return "";
-	    }
-	  },
-
-	  getConstraints: function getConstraints() {
-	    // Check if our Body is in a constraint
-	    // So that others can react to that special case
-
-	    if (!this.el.sceneEl.systems.physics || !this.el.body) {
-	      return null;
-	    }
-
-	    var constraints = this.el.sceneEl.systems.physics.world.constraints;
-	    var myConstraints = [];
-
-	    if (constraints && constraints.length > 0) {
-	      for (var i = 0; i < constraints.length; i++) {
-	        if (constraints[i].bodyA.id == this.el.body.id || constraints[i].bodyB.id == this.el.body.id) {
-	          myConstraints.push(constraints[i]);
-	        }
-	      }
-	    } else {
-	      return null;
-	    }
-
-	    return myConstraints;
-	  },
-
 	  createSyncData: function createSyncData(components) {
 	    var data = {
 	      0: 0, // 0 for not compressed
@@ -3922,7 +3944,7 @@
 	    };
 
 	    if (this.data.physics) {
-	      data['physics'] = this.getPhysicsData();
+	      data['physics'] = NAF.physics.getPhysicsData(this.el);
 	    }
 
 	    return data;
@@ -3978,7 +4000,7 @@
 	  },
 
 	  updatePhysics: function updatePhysics(physics) {
-	    if (this.el.body && physics != "" && !this.isMine()) {
+	    if (physics && !this.isMine()) {
 
 	      // TODO: CHeck if constraint is shared
 	      // Don't synch when constraints are applied
@@ -3989,110 +4011,13 @@
 	        /*if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
 	          this.el.body.wakeUp();
 	        }*/
-
-	        this.el.body.position.copy(physics.position);
-	        this.el.body.quaternion.copy(physics.quaternion);
-	        this.el.body.velocity.copy(physics.velocity);
-	        this.el.body.angularVelocity.copy(physics.angularVelocity);
-
-	        this.physicsInterpolating = false;
+	        NAF.physics.detachPhysicsLerp(this.el);
+	        NAF.physics.updatePhysics(this.el, physics);
 	      } else {
-	        this.physicsInterpolating = true;
-	        this.physicsInterpolationTarget = {
-	          position: new CANNON.Vec3(physics.position.x, physics.position.y, physics.position.z),
-	          quaternion: new THREE.Quaternion(physics.quaternion.x, physics.quaternion.y, physics.quaternion.z, physics.quaternion.w),
-	          velocity: new CANNON.Vec3(physics.velocity.x, physics.velocity.y, physics.velocity.z),
-	          angularVelocity: new CANNON.Vec3(physics.angularVelocity.x, physics.angularVelocity.y, physics.angularVelocity.z)
-	        };
-	        this.physicsInterpolationStarttime = NAF.utils.now();
+	        NAF.physics.attachPhysicsLerp(this.el, physics);
 	        //this.el.body.sleep();
 	      }
-
-	      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
-	      /*
-	      var bodyType = physics.type;
-	       var constraints = this.getConstraints();
-	       if (physics.hasConstraint) {
-	        //bodyType = CANNON.Body.STATIC;
-	        this.setConstraints(physics.constraints, constraints);
-	      } else if (!physics.hasConstraint && (constraints != null && constraints.length > 0)) {
-	        for (var i = 0; i < constraints.length; i++) {
-	          this.el.sceneEl.systems.physics.world.removeConstraint(constraints[i]);
-	           NAF.log.write("Networked-Share: Removed shared constraint from " + constraints[i].bodyA.el.id + " to ", constraints[i].bodyB.el.id)
-	        }
-	      }
-	       this.el.body.type = bodyType;*/
 	    }
-	  },
-
-	  setConstraints: function setConstraints(sharedConstraints, myConstraints) {
-	    // Add all constraints that are not already added locally
-
-	    if (sharedConstraints && sharedConstraints.length > 0) {
-	      for (var i = 0; i < sharedConstraints.length; i++) {
-
-	        // Get the body of the constraint-element
-	        var localBodyA = this.getPhysicsBodyFromNetworkedData(sharedConstraints[i].bodyNetworkId, sharedConstraints[i].bodyNetworkType);
-
-	        if (localBodyA) {
-	          var constraintExists = false;
-
-	          // Check if constraint already exists locally
-	          if (myConstraints && myConstraints.length > 0) {
-	            for (var j = 0; j < myConstraints.length; j++) {
-	              if (myConstraints[j].bodyA.id == localBodyA.id && myConstraints[j].bodyB.id == this.el.body.id || myConstraints[j].bodyB.id == localBodyA.id && myConstraints[j].bodyA.id == this.el.body.id) {
-	                constraintExists = true;
-	              }
-	            }
-	          }
-
-	          // If current constraint doesn't exist locally, add it.
-	          if (!constraintExists) {
-	            var newConstraint = new CANNON.LockConstraint(localBodyA, this.el.body);
-	            this.el.sceneEl.systems.physics.world.addConstraint(newConstraint);
-
-	            NAF.log.write("Networked-Share: Added shared Constraint from " + localBodyA.el.id + " to ", this.el.id);
-	          }
-	        }
-	      }
-	    }
-	  },
-
-	  getPhysicsBodyFromNetworkedData: function getPhysicsBodyFromNetworkedData(networkId, type) {
-	    // TODO: This needs to be simplified -- Probably needs a change in networked aframe to make
-	    // remote entities easily detectable.
-
-	    if (type == "networked") {
-	      // We are now remote.
-	      type = "networked-remote";
-	    }
-
-	    if (networkId != "" && type != "") {
-	      var entities = document.querySelectorAll("[" + type + "]");
-	      if (entities && entities.length > 0) {
-	        for (var i = 0; i < entities.length; i++) {
-	          if (entities[i].components[type]) {
-	            if (type == "networked-share") {
-	              if (entities[i].components[type].data.networkId == networkId) {
-	                if (entities[i].body) {
-	                  return entities[i].body;
-	                }
-	              }
-	            } else if (type == "networked-remote") {
-	              if (entities[i].components[type].data.networkId == networkId) {
-	                // Find child object with physics.
-	                var childWithPhysics = entities[i].querySelector("[dynamic-body], [static-body]");
-	                if (childWithPhysics && childWithPhysics.body) {
-	                  return childWithPhysics.body;
-	                }
-	              }
-	            }
-	          }
-	        }
-	      }
-	    }
-
-	    return null;
 	  },
 
 	  handlePhysicsCollision: function handlePhysicsCollision(e) {
@@ -4100,31 +4025,12 @@
 	    // so we can make sure, that my physics get propagated
 	    if (this.isMine()) {
 	      if (e.detail.body.el && e.detail.body.el.components["networked-share"]) {
-	        if (this.isStrongerThan(e.detail.body) || e.detail.body.el.components["networked-share"].data.owner == "") {
+	        if (NAF.physics.isStrongerThan(e.detail.body) || e.detail.body.el.components["networked-share"].data.owner == "") {
 	          e.detail.body.el.components["networked-share"].takeOwnership();
 	          NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", e.detail.body.el.id);
 	        }
 	      }
 	    }
-	  },
-
-	  isStrongerThan: function isStrongerThan(otherBody) {
-	    // A way to decide which element is stronger
-	    // when a collision happens
-	    // so that we can decide which one inherits ownership
-	    if (this.el.body && otherBody) {
-	      // TODO: What if they are equal?
-	      return this.calculatePhysicsStrength(this.el.body) > this.calculatePhysicsStrength(otherBody);
-	    } else {
-	      return false;
-	    }
-	  },
-
-	  calculatePhysicsStrength: function calculatePhysicsStrength(body) {
-	    var speed = Math.abs(body.velocity.x) + Math.abs(body.velocity.y) + Math.abs(body.velocity.z);
-	    var rotationalSpeed = Math.abs(body.angularVelocity.x) + Math.abs(body.angularVelocity.y) + Math.abs(body.angularVelocity.z);
-
-	    return 2 * speed + rotationalSpeed;
 	  },
 
 	  compressSyncData: function compressSyncData(syncData) {

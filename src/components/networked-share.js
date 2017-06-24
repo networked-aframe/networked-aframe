@@ -39,7 +39,6 @@ AFRAME.registerComponent('networked-share', {
     }
 
     this.takeover = false;
-    this.physicsInterpolating = false;
   },
 
   initNetworkId: function() {
@@ -108,9 +107,9 @@ AFRAME.registerComponent('networked-share', {
 
       if (!this.data.physics) {
         this.detachLerp();
+      } else {
+        NAF.physics.detachPhysicsLerp(this.el);
       }
-
-      this.physicsInterpolating = false;
 
       /*if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
         this.el.body.wakeUp();
@@ -144,6 +143,8 @@ AFRAME.registerComponent('networked-share', {
       this.bindRemoteEvents();
 
       if (!this.data.physics) {
+        // No need to attach physics lerp
+        // the physics engine itself interpolates
         this.attachLerp();
       }
 
@@ -169,6 +170,8 @@ AFRAME.registerComponent('networked-share', {
       this.bindRemoteEvents();
 
       if (!this.data.physics) {
+        // No need to attach physics lerp
+        // the physics engine itself interpolates
         this.attachLerp();
       }
 
@@ -258,29 +261,6 @@ AFRAME.registerComponent('networked-share', {
     if (this.isMine() && this.needsToSync()) {
       this.syncDirty();
     }
-
-    if (!this.isMine() && this.physicsInterpolating) {
-      this.interpolationStep();
-    }
-  },
-
-  interpolationStep: function() {
-    var time = NAF.utils.now();
-    var progress = 0;
-
-    if (time > (this.physicsInterpolationStarttime + (1000 / NAF.options.updateRate))) {
-      progress = 1;
-    } else {
-      progress = (time - this.physicsInterpolationStarttime) / (1000 / NAF.options.updateRate);
-    }
-
-    this.physicsInterpolationTarget;
-
-    this.el.body.position.lerp(this.physicsInterpolationTarget.position, progress, this.el.body.position);
-    var tempQuaternion = new THREE.Quaternion(this.el.body.quaternion.x, this.el.body.quaternion.y, this.el.body.quaternion.z, this.el.body.quaternion.w);
-    this.el.body.quaternion.copy(tempQuaternion.slerp(this.physicsInterpolationTarget.quaternion, progress));
-    this.el.body.velocity.lerp(this.physicsInterpolationTarget.velocity, progress, this.el.body.velocity);
-    this.el.body.angularVelocity.lerp(this.physicsInterpolationTarget.angularVelocity, progress, this.el.body.angularVelocity);
   },
 
   // Will only succeed if object is created after connected
@@ -376,63 +356,6 @@ AFRAME.registerComponent('networked-share', {
     return dirtyComps;
   },
 
-  getPhysicsData: function() {
-    if (this.el.body) {
-
-      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
-      var constraints = this.getConstraints();
-      /*var sendConstraints = [];
-
-      // TODO: Handle when any constraintBody is not networked.
-      if (constraints != null && constraints.length > 0) {
-        for (var i = 0; i < constraints.length; i++) {
-          sendConstraints.push({
-            bodyNetworkId: (this.el.body.id == constraints[i].bodyA.id) ? NAF.utils.getNetworkId(constraints[i].bodyB.el) : NAF.utils.getNetworkId(constraints[i].bodyA.el),
-            bodyNetworkType: (this.el.body.id == constraints[i].bodyA.id) ? NAF.utils.getNetworkType(constraints[i].bodyB.el) : NAF.utils.getNetworkType(constraints[i].bodyA.el)
-          });
-        }
-      }*/
-
-      var physicsData = {
-        //type: this.el.body.type,
-        hasConstraint: (constraints != null && constraints.length > 0),
-        //constraints: sendConstraints,
-        position: this.el.body.position,
-        quaternion: this.el.body.quaternion,
-        velocity: this.el.body.velocity,
-        angularVelocity: this.el.body.angularVelocity
-      };
-
-      return physicsData;
-    } else {
-      return "";
-    }
-  },
-
-  getConstraints: function() {
-    // Check if our Body is in a constraint
-    // So that others can react to that special case
-
-    if (!this.el.sceneEl.systems.physics || !this.el.body) {
-      return null;
-    }
-
-    var constraints = this.el.sceneEl.systems.physics.world.constraints;
-    var myConstraints = [];
-
-    if (constraints && constraints.length > 0) {
-      for (var i = 0; i < constraints.length; i++) {
-        if (constraints[i].bodyA.id == this.el.body.id || constraints[i].bodyB.id == this.el.body.id) {
-          myConstraints.push(constraints[i]);
-        }
-      }
-    } else {
-      return null;
-    }
-
-    return myConstraints;
-  },
-
   createSyncData: function(components) {
     var data = {
       0: 0, // 0 for not compressed
@@ -445,7 +368,7 @@ AFRAME.registerComponent('networked-share', {
     };
 
     if (this.data.physics) {
-      data['physics'] = this.getPhysicsData();
+      data['physics'] = NAF.physics.getPhysicsData(this.el);
     }
 
     return data;
@@ -500,7 +423,7 @@ AFRAME.registerComponent('networked-share', {
   },
 
   updatePhysics: function(physics) {
-    if (this.el.body && physics != "" && !this.isMine()) {
+    if (physics && !this.isMine()) {
 
       // TODO: CHeck if constraint is shared
       // Don't synch when constraints are applied
@@ -511,116 +434,13 @@ AFRAME.registerComponent('networked-share', {
         /*if (this.el.body.sleepState == CANNON.Body.SLEEPING) {
           this.el.body.wakeUp();
         }*/
-
-        this.el.body.position.copy(physics.position);
-        this.el.body.quaternion.copy(physics.quaternion);
-        this.el.body.velocity.copy(physics.velocity);
-        this.el.body.angularVelocity.copy(physics.angularVelocity);
-
-        this.physicsInterpolating = false;
+        NAF.physics.detachPhysicsLerp(this.el);
+        NAF.physics.updatePhysics(this.el, physics);
       } else {
-        this.physicsInterpolating = true;
-        this.physicsInterpolationTarget = {
-          position: new CANNON.Vec3(physics.position.x, physics.position.y, physics.position.z),
-          quaternion: new THREE.Quaternion(physics.quaternion.x, physics.quaternion.y, physics.quaternion.z, physics.quaternion.w),
-          velocity: new CANNON.Vec3(physics.velocity.x, physics.velocity.y, physics.velocity.z),
-          angularVelocity: new CANNON.Vec3(physics.angularVelocity.x, physics.angularVelocity.y, physics.angularVelocity.z)
-        };
-        this.physicsInterpolationStarttime = NAF.utils.now();
+        NAF.physics.attachPhysicsLerp(this.el, physics);
         //this.el.body.sleep();
       }
-
-      // SOLVING CONSTRAINTS IN A SEPARATE COMPONENT
-      /*
-      var bodyType = physics.type;
-
-      var constraints = this.getConstraints();
-
-      if (physics.hasConstraint) {
-        //bodyType = CANNON.Body.STATIC;
-        this.setConstraints(physics.constraints, constraints);
-      } else if (!physics.hasConstraint && (constraints != null && constraints.length > 0)) {
-        for (var i = 0; i < constraints.length; i++) {
-          this.el.sceneEl.systems.physics.world.removeConstraint(constraints[i]);
-
-          NAF.log.write("Networked-Share: Removed shared constraint from " + constraints[i].bodyA.el.id + " to ", constraints[i].bodyB.el.id)
-        }
-      }
-
-      this.el.body.type = bodyType;*/
     }
-  },
-
-  setConstraints: function(sharedConstraints, myConstraints) {
-    // Add all constraints that are not already added locally
-
-    if (sharedConstraints && sharedConstraints.length > 0) {
-      for (var i = 0; i < sharedConstraints.length; i++) {
-
-        // Get the body of the constraint-element
-        var localBodyA = this.getPhysicsBodyFromNetworkedData(sharedConstraints[i].bodyNetworkId, sharedConstraints[i].bodyNetworkType);
-
-        if (localBodyA) {
-          var constraintExists = false;
-
-          // Check if constraint already exists locally
-          if (myConstraints && myConstraints.length > 0) {
-            for (var j = 0; j < myConstraints.length; j++) {
-              if ((myConstraints[j].bodyA.id == localBodyA.id && myConstraints[j].bodyB.id == this.el.body.id) ||
-                  (myConstraints[j].bodyB.id == localBodyA.id && myConstraints[j].bodyA.id == this.el.body.id)) {
-                constraintExists = true;
-              }
-            }
-          }
-
-          // If current constraint doesn't exist locally, add it.
-          if (!constraintExists) {
-            var newConstraint = new CANNON.LockConstraint(localBodyA, this.el.body);
-            this.el.sceneEl.systems.physics.world.addConstraint(newConstraint);
-
-            NAF.log.write("Networked-Share: Added shared Constraint from " + localBodyA.el.id + " to ", this.el.id);
-          }
-        }
-      }
-    }
-  },
-
-  getPhysicsBodyFromNetworkedData: function (networkId, type) {
-    // TODO: This needs to be simplified -- Probably needs a change in networked aframe to make
-    // remote entities easily detectable.
-
-    if (type == "networked") {
-      // We are now remote.
-      type = "networked-remote";
-    }
-
-    if (networkId != "" && type != "") {
-      var entities = document.querySelectorAll("[" + type + "]");
-      if (entities && entities.length > 0) {
-        for (var i = 0; i < entities.length; i++) {
-          if (entities[i].components[type]) {
-            if (type == "networked-share") {
-              if (entities[i].components[type].data.networkId == networkId) {
-                if (entities[i].body) {
-                  return entities[i].body;
-                }
-              }
-            } else if (type == "networked-remote") {
-              if (entities[i].components[type].data.networkId == networkId) {
-                // Find child object with physics.
-                var childWithPhysics = entities[i].querySelector("[dynamic-body], [static-body]");
-                if (childWithPhysics && childWithPhysics.body) {
-                  return childWithPhysics.body;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return null;
-
   },
 
   handlePhysicsCollision: function(e) {
@@ -628,31 +448,12 @@ AFRAME.registerComponent('networked-share', {
     // so we can make sure, that my physics get propagated
     if (this.isMine()) {
       if (e.detail.body.el && e.detail.body.el.components["networked-share"]) {
-        if (this.isStrongerThan(e.detail.body) || e.detail.body.el.components["networked-share"].data.owner == "") {
+        if (NAF.physics.isStrongerThan(e.detail.body) || e.detail.body.el.components["networked-share"].data.owner == "") {
           e.detail.body.el.components["networked-share"].takeOwnership();
           NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", e.detail.body.el.id);
         }
       }
     }
-  },
-
-  isStrongerThan: function(otherBody) {
-    // A way to decide which element is stronger
-    // when a collision happens
-    // so that we can decide which one inherits ownership
-    if (this.el.body && otherBody) {
-      // TODO: What if they are equal?
-      return this.calculatePhysicsStrength(this.el.body) > this.calculatePhysicsStrength(otherBody);
-    } else {
-      return false;
-    }
-  },
-
-  calculatePhysicsStrength: function(body) {
-    var speed = Math.abs(body.velocity.x) + Math.abs(body.velocity.y) + Math.abs(body.velocity.z);
-    var rotationalSpeed = Math.abs(body.angularVelocity.x) + Math.abs(body.angularVelocity.y) + Math.abs(body.angularVelocity.z);
-
-    return 2 * speed + rotationalSpeed;
   },
 
   compressSyncData: function(syncData) {
