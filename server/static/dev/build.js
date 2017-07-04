@@ -1823,6 +1823,8 @@ class NetworkConnection {
     this.onLoggedInEvent = new Event('loggedIn');
     this.onPeerConnectedEvent = new Event('clientConnected');
     this.onPeerDisconnectedEvent = new Event('clientDisconnected');
+    this.onDCOpenEvent = new Event('dataChannelOpened');
+    this.onDCCloseEvent = new Event('dataChannelClosed');
   }
 
   setNetworkInterface(network) {
@@ -1927,12 +1929,14 @@ class NetworkConnection {
 
   dcOpenListener(id) {
     NAF.log.write('Opened data channel from ' + id);
+    document.body.dispatchEvent(this.onDCOpenEvent);
     this.dcIsActive[id] = true;
     this.entities.completeSync();
   }
 
   dcCloseListener(id) {
     NAF.log.write('Closed data channel from ' + id);
+    document.body.dispatchEvent(this.onDCCloseEvent);
     this.dcIsActive[id] = false;
     this.entities.removeEntitiesFromUser(id);
   }
