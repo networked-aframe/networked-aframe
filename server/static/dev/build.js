@@ -1821,6 +1821,8 @@ class NetworkConnection {
 
     this.loggedIn = false;
     this.onLoggedInEvent = new Event('loggedIn');
+    this.onPeerConnectedEvent = new Event('clientConnected');
+    this.onPeerDisconnectedEvent = new Event('clientDisconnected');
   }
 
   setNetworkInterface(network) {
@@ -1891,6 +1893,7 @@ class NetworkConnection {
       if (!clientFound) {
         NAF.log.write('Closing stream to ', id);
         this.network.closeStreamConnection(id);
+        document.body.dispatchEvent(this.onPeerDisconnectedEvent);
       }
     }
   }
@@ -1901,6 +1904,7 @@ class NetworkConnection {
       if (startConnection) {
         NAF.log.write('Opening stream to ', id);
         this.network.startStreamConnection(id);
+        document.body.dispatchEvent(this.onPeerConnectedEvent);
       }
     }
   }
