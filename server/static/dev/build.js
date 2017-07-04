@@ -1929,16 +1929,16 @@ class NetworkConnection {
 
   dcOpenListener(id) {
     NAF.log.write('Opened data channel from ' + id);
-    document.body.dispatchEvent(this.onDCOpenEvent);
     this.dcIsActive[id] = true;
     this.entities.completeSync();
+    document.body.dispatchEvent(this.onDCOpenEvent);
   }
 
   dcCloseListener(id) {
     NAF.log.write('Closed data channel from ' + id);
-    document.body.dispatchEvent(this.onDCCloseEvent);
     this.dcIsActive[id] = false;
     this.entities.removeEntitiesFromUser(id);
+    document.body.dispatchEvent(this.onDCCloseEvent);
   }
 
   dcIsConnectedTo(user) {
