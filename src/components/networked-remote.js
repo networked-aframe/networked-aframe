@@ -4,13 +4,14 @@ var deepEqual = require('deep-equal');
 AFRAME.registerComponent('networked-remote', {
   schema: {
     template: {default: ''},
+    showTemplate: {default: true},
     networkId: {default: ''},
     owner: {default: ''},
     components: {default: ['position', 'rotation']}
   },
 
   init: function() {
-    this.attachTemplate(this.data.template);
+    this.attachTemplate(this.data.template, this.data.showTemplate);
     this.attachLerp();
 
     if (this.el.firstUpdateData) {
@@ -18,10 +19,12 @@ AFRAME.registerComponent('networked-remote', {
     }
   },
 
-  attachTemplate: function(template) {
-    var templateChild = document.createElement('a-entity');
-    templateChild.setAttribute('template', 'src:' + template);
-    this.el.appendChild(templateChild);
+  attachTemplate: function(template, show) {
+    if (show) {
+      var templateChild = document.createElement('a-entity');
+      templateChild.setAttribute('template', 'src:' + template);
+      this.el.appendChild(templateChild);
+    }
   },
 
   attachLerp: function() {

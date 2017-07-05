@@ -5,6 +5,7 @@ AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
     showLocalTemplate: {default: true},
+    showRemoteTemplate: {default: true},
     physics: { default: false }
   },
 
@@ -56,16 +57,18 @@ AFRAME.registerComponent('networked', {
   },
 
   attachAndShowTemplate: function(template, show) {
-    if (this.templateEl) {
-      this.el.removeChild(this.templateEl);
+    if (show) {
+      if (this.templateEl) {
+        this.el.removeChild(this.templateEl);
+      }
+
+      var templateChild = document.createElement('a-entity');
+      templateChild.setAttribute('template', 'src:' + template);
+      templateChild.setAttribute('visible', show);
+
+      this.el.appendChild(templateChild);
+      this.templateEl = templateChild;
     }
-
-    var templateChild = document.createElement('a-entity');
-    templateChild.setAttribute('template', 'src:' + template);
-    templateChild.setAttribute('visible', show);
-
-    this.el.appendChild(templateChild);
-    this.templateEl = templateChild;
   },
 
   play: function() {
@@ -185,6 +188,7 @@ AFRAME.registerComponent('networked', {
       networkId: this.networkId,
       owner: this.owner,
       template: this.data.template,
+      showTemplate: this.data.showRemoteTemplate,
       parent: this.getParentId(),
       components: components
     };

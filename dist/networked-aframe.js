@@ -2110,6 +2110,7 @@
 	    value: function addNetworkComponent(entity, entityData, components) {
 	      var networkData = {
 	        template: entityData.template,
+	        showTemplate: entityData.showTemplate,
 	        owner: entityData.owner,
 	        networkId: entityData.networkId,
 	        components: components
@@ -3042,6 +3043,7 @@
 	  schema: {
 	    template: { default: '' },
 	    showLocalTemplate: { default: true },
+	    showRemoteTemplate: { default: true },
 	    physics: { default: false }
 	  },
 
@@ -3093,16 +3095,18 @@
 	  },
 
 	  attachAndShowTemplate: function attachAndShowTemplate(template, show) {
-	    if (this.templateEl) {
-	      this.el.removeChild(this.templateEl);
+	    if (show) {
+	      if (this.templateEl) {
+	        this.el.removeChild(this.templateEl);
+	      }
+
+	      var templateChild = document.createElement('a-entity');
+	      templateChild.setAttribute('template', 'src:' + template);
+	      templateChild.setAttribute('visible', show);
+
+	      this.el.appendChild(templateChild);
+	      this.templateEl = templateChild;
 	    }
-
-	    var templateChild = document.createElement('a-entity');
-	    templateChild.setAttribute('template', 'src:' + template);
-	    templateChild.setAttribute('visible', show);
-
-	    this.el.appendChild(templateChild);
-	    this.templateEl = templateChild;
 	  },
 
 	  play: function play() {
@@ -3222,6 +3226,7 @@
 	      networkId: this.networkId,
 	      owner: this.owner,
 	      template: this.data.template,
+	      showTemplate: this.data.showRemoteTemplate,
 	      parent: this.getParentId(),
 	      components: components
 	    };
@@ -3462,13 +3467,14 @@
 	AFRAME.registerComponent('networked-remote', {
 	  schema: {
 	    template: { default: '' },
+	    showTemplate: { default: true },
 	    networkId: { default: '' },
 	    owner: { default: '' },
 	    components: { default: ['position', 'rotation'] }
 	  },
 
 	  init: function init() {
-	    this.attachTemplate(this.data.template);
+	    this.attachTemplate(this.data.template, this.data.showTemplate);
 	    this.attachLerp();
 
 	    if (this.el.firstUpdateData) {
@@ -3476,10 +3482,12 @@
 	    }
 	  },
 
-	  attachTemplate: function attachTemplate(template) {
-	    var templateChild = document.createElement('a-entity');
-	    templateChild.setAttribute('template', 'src:' + template);
-	    this.el.appendChild(templateChild);
+	  attachTemplate: function attachTemplate(template, show) {
+	    if (show) {
+	      var templateChild = document.createElement('a-entity');
+	      templateChild.setAttribute('template', 'src:' + template);
+	      this.el.appendChild(templateChild);
+	    }
 	  },
 
 	  attachLerp: function attachLerp() {

@@ -2046,6 +2046,7 @@ class NetworkEntities {
   addNetworkComponent(entity, entityData, components) {
     var networkData = {
       template: entityData.template,
+      showTemplate: entityData.showTemplate,
       owner: entityData.owner,
       networkId: entityData.networkId,
       components: components
@@ -2205,13 +2206,14 @@ var deepEqual = require('deep-equal');
 AFRAME.registerComponent('networked-remote', {
   schema: {
     template: {default: ''},
+    showTemplate: {default: true},
     networkId: {default: ''},
     owner: {default: ''},
     components: {default: ['position', 'rotation']}
   },
 
   init: function() {
-    this.attachTemplate(this.data.template);
+    this.attachTemplate(this.data.template, this.data.showTemplate);
     this.attachLerp();
 
     if (this.el.firstUpdateData) {
@@ -2219,10 +2221,12 @@ AFRAME.registerComponent('networked-remote', {
     }
   },
 
-  attachTemplate: function(template) {
-    var templateChild = document.createElement('a-entity');
-    templateChild.setAttribute('template', 'src:' + template);
-    this.el.appendChild(templateChild);
+  attachTemplate: function(template, show) {
+    if (show) {
+      var templateChild = document.createElement('a-entity');
+      templateChild.setAttribute('template', 'src:' + template);
+      this.el.appendChild(templateChild);
+    }
   },
 
   attachLerp: function() {
@@ -3074,6 +3078,7 @@ AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
     showLocalTemplate: {default: true},
+    showRemoteTemplate: {default: true},
     physics: { default: false }
   },
 
@@ -3125,16 +3130,18 @@ AFRAME.registerComponent('networked', {
   },
 
   attachAndShowTemplate: function(template, show) {
-    if (this.templateEl) {
-      this.el.removeChild(this.templateEl);
+    if (show) {
+      if (this.templateEl) {
+        this.el.removeChild(this.templateEl);
+      }
+
+      var templateChild = document.createElement('a-entity');
+      templateChild.setAttribute('template', 'src:' + template);
+      templateChild.setAttribute('visible', show);
+
+      this.el.appendChild(templateChild);
+      this.templateEl = templateChild;
     }
-
-    var templateChild = document.createElement('a-entity');
-    templateChild.setAttribute('template', 'src:' + template);
-    templateChild.setAttribute('visible', show);
-
-    this.el.appendChild(templateChild);
-    this.templateEl = templateChild;
   },
 
   play: function() {
@@ -3254,6 +3261,7 @@ AFRAME.registerComponent('networked', {
       networkId: this.networkId,
       owner: this.owner,
       template: this.data.template,
+      showTemplate: this.data.showRemoteTemplate,
       parent: this.getParentId(),
       components: components
     };
