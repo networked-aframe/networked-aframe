@@ -2,6 +2,7 @@ var naf = require('../NafIndex');
 
 var EasyRtcInterface = require('../network_interfaces/EasyRtcInterface');
 var WebSocketEasyRtcInterface = require('../network_interfaces/WebSocketEasyRtcInterface');
+var UwsInterface = require('../network_interfaces/UwsInterface');
 
 AFRAME.registerComponent('networked-scene', {
   schema: {
@@ -51,12 +52,16 @@ AFRAME.registerComponent('networked-scene', {
       easyRtcInterface.setSignalUrl(this.data.signalURL);
       networkInterface = easyRtcInterface;
     } else {
-      var websocketInterface = new WebSocketEasyRtcInterface(easyrtc);
-      websocketInterface.setSignalUrl(this.data.signalURL);
-      networkInterface = websocketInterface;
-      if (this.data.webrtcAudio) {
-        naf.log.error('networked-scene: webrtcAudio option will only be used if webrtc is set to true. webrtc is currently false');
-      }
+      // var websocketInterface = new WebSocketEasyRtcInterface(easyrtc);
+      // websocketInterface.setSignalUrl(this.data.signalURL);
+      // networkInterface = websocketInterface;
+      // if (this.data.webrtcAudio) {
+      //   naf.log.error('networked-scene: webrtcAudio option will only be used if webrtc is set to true. webrtc is currently false');
+      // }
+
+      var uwsInterface = new UwsInterface();
+      uwsInterface.setSignalUrl('ws://localhost:8080');
+      networkInterface = uwsInterface;
     }
     naf.connection.setNetworkInterface(networkInterface);
   },

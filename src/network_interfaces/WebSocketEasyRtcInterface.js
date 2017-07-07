@@ -74,12 +74,6 @@ class WebSocketEasyRtcInterface extends NetworkInterface {
     this.sendData(networkId, dataType, data);
   }
 
-  getRoomJoinTime(clientId) {
-    var myRoomId = naf.room;
-    var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
-    return joinTime;
-  }
-
   getConnectStatus(networkId) {
     var connected = this.connectedClients.indexOf(networkId) != -1;
 

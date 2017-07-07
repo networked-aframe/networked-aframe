@@ -12,13 +12,14 @@
   "scripts": {
     "build": "browserify src/index.js -o server/static/dev/build.js",
     "easyrtc-install": "cd ./node_modules/easyrtc; npm install; cd ../../;",
-    "dev": "npm run build && node ./server/server.js",
+    "dev": "npm run build && node ./server/server-uws.js",
     "dist": "webpack --config webpack.config.js && webpack -p --config webpack.prod.config.js",
     "lint": "semistandard -v | snazzy",
     "prepublish": "npm run dist",
     "preghpages": "npm run build && shx rm -rf gh-pages && shx mkdir gh-pages && shx cp -r examples/* gh-pages",
     "ghpages": "npm run preghpages && ghpages -p gh-pages",
     "start": "node ./server/server.js",
+    "start-uws": "node ./server/uws-server.js",
     "test": "karma start ./tests/unit/karma.conf.js",
     "test:firefox": "karma start ./tests/unit/karma.conf.js --browsers Firefox",
     "test:chrome": "karma start ./tests/unit/karma.conf.js --browsers Chrome",
@@ -32,7 +33,8 @@
     "aframe-template-component": "3.2.1",
     "serve-static": "^1.8.0",
     "socket.io": "^1.4.5",
-    "socket.io-client": "^1.4.5"
+    "socket.io-client": "^1.4.5",
+    "uws": "^8.14.0"
   },
   "devDependencies": {
     "aframe": "0.5.0",
