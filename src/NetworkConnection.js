@@ -1,10 +1,12 @@
 var INetworkAdapter = require('./adapters/INetworkAdapter');
 
+var ReservedMessage = { Update: 'u', Remove: 'r' };
+
 class NetworkConnection {
 
   constructor(networkEntities) {
     this.entities = networkEntities;
-    this.setupDefaultDCSubs();
+    this.setupDefaultMessageSubs();
 
     this.connectedClients = {};
     this.activeMessageChannels = {};
@@ -17,11 +19,14 @@ class NetworkConnection {
     this.adapter = adapter;
   }
 
-  setupDefaultDCSubs() {
-    this.dcSubscribers = {
-      'u': this.entities.updateEntity.bind(this.entities),
-      'r': this.entities.removeRemoteEntity.bind(this.entities)
-    };
+  setupDefaultMessageSubs() {
+    this.messageSubs = {};
+
+    this.messageSubs[ReservedMessage.Update]
+        = this.entities.updateEntity.bind(this.entities);
+
+    this.messageSubs[ReservedMessage.Remove]
+        = this.entities.removeRemoteEntity.bind(this.entities);
   }
 
   connect(serverUrl, appName, roomName, enableAudio = false) {
@@ -156,24 +161,29 @@ class NetworkConnection {
   }
 
   subscribeToDataChannel(dataType, callback) {
-    if (dataType == 'u' || dataType == 'r') {
+    if (this.isReservedMessageType(dateType)) {
       NAF.log.error('NetworkConnection@subscribeToDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
       return;
     }
-    this.dcSubscribers[dataType] = callback;
+    this.messageSubs[dataType] = callback;
   }
 
   unsubscribeFromDataChannel(dataType) {
-    if (dataType == 'u' || dataType == 'r') {
+    if (this.isReservedMessageType(dateType)) {
       NAF.log.error('NetworkConnection@unsubscribeFromDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
       return;
     }
-    delete this.dcSubscribers[dataType];
+    delete this.messageSubs[dataType];
+  }
+
+  isReservedMessageType(type) {
+    return type == ReservedMessage.Update
+        || type == ReservedMessage.Remove;
   }
 
   receiveMessage(fromClient, dataType, data) {
-    if (this.dcSubscribers.hasOwnProperty(dataType)) {
-      this.dcSubscribers[dataType](fromClient, dataType, data);
+    if (this.messageSubs.hasOwnProperty(dataType)) {
+      this.messageSubs[dataType](fromClient, dataType, data);
     } else {
       NAF.log.error('NetworkConnection@receiveMessage: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
     }
