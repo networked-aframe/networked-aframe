@@ -52,15 +52,15 @@ class EasyRtcAdapter extends INetworkAdapter {
 
   connect() {
     var that = this;
-    var loginSuccessCallback = function(id) {
+    var connectedCallback = function(id) {
       that.myRoomJoinTime = that.getRoomJoinTime(id);
       that.connectSuccess(id);
     };
 
     if (this.easyrtc.audioEnabled) {
-      this.connectWithAudio(loginSuccessCallback, this.connectFailure);
+      this.connectWithAudio(connectedCallback, this.connectFailure);
     } else {
-      this.easyrtc.connect(this.app, loginSuccessCallback, this.connectFailure);
+      this.easyrtc.connect(this.app, connectedCallback, this.connectFailure);
     }
   }
 
