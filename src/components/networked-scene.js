@@ -9,7 +9,7 @@ AFRAME.registerComponent('networked-scene', {
     app: {default: 'default'},
     room: {default: 'default'},
     connectOnLoad: {default: true},
-    signalURL: {default: '/'},
+    serverUrl: {default: '/'},
     onConnect: {default: 'onConnect'},
     webrtc: {default: false},
     webrtcAudio: {default: false},
@@ -31,14 +31,13 @@ AFRAME.registerComponent('networked-scene', {
     naf.log.setDebug(this.data.debug);
     naf.log.write('Networked-Aframe Connecting...');
 
-    // easyrtc.enableDebug(true);
     this.checkDeprecatedProperties();
     this.setupNetworkAdapter();
 
     if (this.hasOnConnectFunction()) {
       this.callOnConnect();
     }
-    naf.connection.connect(this.data.app, this.data.room, this.data.webrtcAudio);
+    naf.connection.connect(this.data.serverUrl, this.data.app, this.data.room, this.data.webrtcAudio);
   },
 
   checkDeprecatedProperties: function() {
@@ -48,10 +47,7 @@ AFRAME.registerComponent('networked-scene', {
   setupNetworkAdapter: function() {
     var networkAdapter;
     if (this.data.webrtc) {
-      var easyRtcAdapter = new EasyRtcAdapter(easyrtc);
-      easyRtcAdapter.setSignalUrl(this.data.signalURL);
-
-      networkAdapter = easyRtcAdapter;
+      networkAdapter = new EasyRtcAdapter(easyrtc);;
     }
     else {
       // var websocketInterface = new WebSocketEasyRtcInterface(easyrtc);
@@ -60,11 +56,7 @@ AFRAME.registerComponent('networked-scene', {
       // if (this.data.webrtcAudio) {
       //   naf.log.error('networked-scene: webrtcAudio option will only be used if webrtc is set to true. webrtc is currently false');
       // }
-
-      var uwsAdapter = new UwsAdapter();
-      uwsAdapter.setSignalUrl('ws://localhost:8080');
-
-      networkAdapter = uwsAdapter;
+      networkAdapter = new UwsAdapter();
     }
 
     naf.connection.setNetworkAdapter(networkAdapter);

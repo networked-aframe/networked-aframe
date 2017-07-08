@@ -40,9 +40,9 @@ function onMessage(message) {
   }
 }
 
-function sendLoginSuccess(ws) {
+function sendConnectSuccess(ws) {
   var packet = {
-    type: 'loginSuccess',
+    type: 'connectSuccess',
     data: { id: ws.id }
   };
   var packetStr = JSON.stringify(packet);
@@ -106,7 +106,7 @@ wss.on('connection', function(ws) {
     updateRoomOccupants(ws.room);
   });
 
-  sendLoginSuccess(ws);
+  sendConnectSuccess(ws);
 });
 
 var heartbeatInterval = setInterval(function ping() {

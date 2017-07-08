@@ -5,6 +5,7 @@ class EasyRtcAdapter extends INetworkAdapter {
 
   constructor(easyrtc) {
     super();
+    this.app = 'default';
     this.easyrtc = easyrtc;
   }
 
@@ -12,20 +13,20 @@ class EasyRtcAdapter extends INetworkAdapter {
    * Call before `connect`
    */
 
-  setSignalUrl(signalUrl) {
-    this.easyrtc.setSocketUrl(signalUrl);
+  setServerUrl(url) {
+    this.easyrtc.setSocketUrl(url);
   }
 
-  setRoom(roomId) {
-    this.easyrtc.joinRoom(roomId, null);
+  setApp(appName) {
+    this.app = appName;
   }
 
-  setRoomOccupantListener(occupantListener){
-    this.easyrtc.setRoomOccupantListener(occupantListener);
+  setRoom(roomName) {
+    this.easyrtc.joinRoom(roomName, null);
   }
 
   // options: { datachannel: bool, audio: bool }
-  setStreamOptions(options) {
+  setWebRtcOptions(options) {
     // this.easyrtc.enableDebug(true);
     this.easyrtc.enableDataChannels(options.datachannel);
     this.easyrtc.enableVideo(false);
@@ -34,15 +35,19 @@ class EasyRtcAdapter extends INetworkAdapter {
     this.easyrtc.enableAudioReceive(options.audio);
   }
 
-  setDatachannelListeners(openListener, closedListener, messageListener) {
+  setServerConnectListeners(successListener, failureListener) {
+    this.connectSuccess = successListener;
+    this.connectFailure = failureListener;
+  }
+
+  setRoomOccupantListener(occupantListener){
+    this.easyrtc.setRoomOccupantListener(occupantListener);
+  }
+
+  setMessageChannelListeners(openListener, closedListener, messageListener) {
     this.easyrtc.setDataChannelOpenListener(openListener);
     this.easyrtc.setDataChannelCloseListener(closedListener);
     this.easyrtc.setPeerListener(messageListener);
-  }
-
-  setLoginListeners(successListener, failureListener) {
-    this.loginSuccess = successListener;
-    this.loginFailure = failureListener;
   }
 
 
@@ -50,21 +55,21 @@ class EasyRtcAdapter extends INetworkAdapter {
    * Network actions
    */
 
-  connect(appId) {
+  connect() {
     var that = this;
     var loginSuccessCallback = function(id) {
       that.myRoomJoinTime = that.getRoomJoinTime(id);
-      that.loginSuccess(id);
+      that.connectSuccess(id);
     };
 
     if (this.easyrtc.audioEnabled) {
-      this.connectWithAudio(appId, loginSuccessCallback, this.loginFailure);
+      this.connectWithAudio(loginSuccessCallback, this.connectFailure);
     } else {
-      this.easyrtc.connect(appId, loginSuccessCallback, this.loginFailure);
+      this.easyrtc.connect(this.app, loginSuccessCallback, this.connectFailure);
     }
   }
 
-  connectWithAudio(appId, loginSuccess, loginFailure) {
+  connectWithAudio(connectSuccess, connectFailure) {
     var that = this;
 
     this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
@@ -81,7 +86,7 @@ class EasyRtcAdapter extends INetworkAdapter {
 
     this.easyrtc.initMediaSource(
       function(){
-        that.easyrtc.connect(appId, loginSuccess, loginFailure);
+        that.easyrtc.connect(that.app, connectSuccess, connectFailure);
       },
       function(errorCode, errmesg){
         console.error(errorCode, errmesg);
@@ -93,8 +98,8 @@ class EasyRtcAdapter extends INetworkAdapter {
     return this.myRoomJoinTime <= client.roomJoinTime;
   }
 
-  startStreamConnection(networkId) {
-    this.easyrtc.call(networkId,
+  startStreamConnection(clientId) {
+    this.easyrtc.call(clientId,
       function(caller, media) {
         if (media === 'datachannel') {
           naf.log.write('Successfully started datachannel to ', caller);
@@ -109,16 +114,16 @@ class EasyRtcAdapter extends INetworkAdapter {
     );
   }
 
-  closeStreamConnection(networkId) {
+  closeStreamConnection(clientId) {
     // Handled by easyrtc
   }
 
-  sendData(networkId, dataType, data) {
-    this.easyrtc.sendDataP2P(networkId, dataType, data);
+  sendData(clientId, dataType, data) {
+    this.easyrtc.sendDataP2P(clientId, dataType, data);
   }
 
-  sendDataGuaranteed(networkId, dataType, data) {
-    this.easyrtc.sendDataWS(networkId, dataType, data);
+  sendDataGuaranteed(clientId, dataType, data) {
+    this.easyrtc.sendDataWS(clientId, dataType, data);
   }
 
   /*
@@ -131,8 +136,8 @@ class EasyRtcAdapter extends INetworkAdapter {
     return joinTime;
   }
 
-  getConnectStatus(networkId) {
-    var status = this.easyrtc.getConnectStatus(networkId);
+  getConnectStatus(clientId) {
+    var status = this.easyrtc.getConnectStatus(clientId);
 
     if (status == this.easyrtc.IS_CONNECTED) {
       return INetworkAdapter.IS_CONNECTED;

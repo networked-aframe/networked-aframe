@@ -6,6 +6,7 @@ class WsEasyRtcInterface extends INetworkAdapter {
   constructor(easyrtc) {
     super();
     this.easyrtc = easyrtc;
+    this.app = 'default';
     this.connectedClients = [];
   }
 
@@ -13,31 +14,35 @@ class WsEasyRtcInterface extends INetworkAdapter {
    * Call before `connect`
    */
 
-  setSignalUrl(signalUrl) {
-    this.easyrtc.setSocketUrl(signalUrl);
+  setServerUrl(url) {
+    this.easyrtc.setSocketUrl(url);
   }
 
-  setRoom(roomId) {
-    this.easyrtc.joinRoom(roomId, null);
+  setApp(appName) {
+    this.app = appName;
+  }
+
+  setRoom(roomName) {
+    this.easyrtc.joinRoom(roomName, null);
+  }
+
+  setWebRtcOptions(options) {
+    // No webrtc support
+  }
+
+  setServerConnectListeners(successListener, failureListener) {
+    this.connectSuccess = successListener;
+    this.connectFailure = failureListener;
   }
 
   setRoomOccupantListener(occupantListener){
     this.easyrtc.setRoomOccupantListener(occupantListener);
   }
 
-  setStreamOptions(options) {
-
-  }
-
-  setDatachannelListeners(openListener, closedListener, messageListener) {
+  setMessageChannelListeners(openListener, closedListener, messageListener) {
     this.openListener = openListener;
     this.closedListener = closedListener;
     this.easyrtc.setPeerListener(messageListener);
-  }
-
-  setLoginListeners(successListener, failureListener) {
-    this.loginSuccess = successListener;
-    this.loginFailure = failureListener;
   }
 
 
@@ -45,37 +50,37 @@ class WsEasyRtcInterface extends INetworkAdapter {
    * Network actions
    */
 
-  connect(appId) {
-    this.easyrtc.connect(appId, this.loginSuccess, this.loginFailure);
+  connect() {
+    this.easyrtc.connect(this.app, this.connectSuccess, this.connectFailure);
   }
 
   shouldStartConnectionTo(clientId) {
     return true;
   }
 
-  startStreamConnection(networkId) {
-    this.connectedClients.push(networkId);
-    this.openListener(networkId);
+  startStreamConnection(clientId) {
+    this.connectedClients.push(clientId);
+    this.openListener(clientId);
   }
 
-  closeStreamConnection(networkId) {
-    var index = this.connectedClients.indexOf(networkId);
+  closeStreamConnection(clientId) {
+    var index = this.connectedClients.indexOf(clientId);
     if (index > -1) {
       this.connectedClients.splice(index, 1);
     }
-    this.closedListener(networkId);
+    this.closedListener(clientId);
   }
 
-  sendData(networkId, dataType, data) {
-    this.easyrtc.sendDataWS(networkId, dataType, data);
+  sendData(clientId, dataType, data) {
+    this.easyrtc.sendDataWS(clientId, dataType, data);
   }
 
-  sendDataGuaranteed(networkId, dataType, data) {
-    this.sendData(networkId, dataType, data);
+  sendDataGuaranteed(clientId, dataType, data) {
+    this.sendData(clientId, dataType, data);
   }
 
-  getConnectStatus(networkId) {
-    var connected = this.connectedClients.indexOf(networkId) != -1;
+  getConnectStatus(clientId) {
+    var connected = this.connectedClients.indexOf(clientId) != -1;
 
     if (connected) {
       return INetworkAdapter.IS_CONNECTED;

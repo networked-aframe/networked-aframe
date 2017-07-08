@@ -2,20 +2,24 @@ var NafInterface = require('../NafInterface');
 
 class INetworkAdapter extends NafInterface {
 
-  // Call before `connect`
-  setRoom(roomId) {this.notImplemented()}
-  setStreamOptions(StreamOptions) {this.notImplemented()}
-  setDatachannelListeners(openListener, closedListener, messageListener) {this.notImplemented()}
-  setRoomOccupantListener(occupantListener){this.notImplemented()}
-  setLoginListeners(successListener, failureListener) {this.notImplemented()}
+  /* Pre-Connect setup methods - Call before `connect` */
 
-  connect(appId) {this.notImplemented()}
-  shouldStartConnectionTo() {this.notImplemented()}
-  startStreamConnection(otherNetworkId) {this.notImplemented()}
-  closeStreamConnection(otherNetworkId) {this.notImplemented()}
-  sendData(networkId, dataType, data) {this.notImplemented()}
-  sendDataGuaranteed(networkId, dataType, data) {this.notImplemented()}
-  getConnectStatus(networkId) {this.notImplemented()}
+  setServerUrl(url) {this.notImplemented()}
+  setApp(app) {this.notImplemented()}
+  setRoom(roomName) {this.notImplemented()}
+  setWebRtcOptions(options) {this.notImplemented()}
+
+  setServerConnectListeners(successListener, failureListener) {this.notImplemented()}
+  setRoomOccupantListener(occupantListener){this.notImplemented()}
+  setMessageChannelListeners(openListener, closedListener, messageListener) {this.notImplemented()}
+
+  connect() {this.notImplemented()}
+  shouldStartConnectionTo(clientId) {this.notImplemented()}
+  startStreamConnection(clientId) {this.notImplemented()}
+  closeStreamConnection(clientId) {this.notImplemented()}
+  sendData(clientId, dataType, data) {this.notImplemented()}
+  sendDataGuaranteed(clientId, dataType, data) {this.notImplemented()}
+  getConnectStatus(clientId) {this.notImplemented()}
 }
 
 INetworkAdapter.IS_CONNECTED = 'IS_CONNECTED';

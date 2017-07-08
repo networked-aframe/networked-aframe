@@ -5,9 +5,10 @@ class UwsAdapter extends INetworkAdapter {
 
   constructor() {
     super();
-    this.wsUrl = '';
-    this.connectedClients = [];
+    this.wsUrl = '/';
+    this.app = 'default';
     this.room = 'default';
+    this.connectedClients = [];
     this.roomOccupantListener = null;
   }
 
@@ -15,39 +16,42 @@ class UwsAdapter extends INetworkAdapter {
    * Call before `connect`
    */
 
-  setSignalUrl(wsUrl) {
+  setServerUrl(wsUrl) {
     this.wsUrl = wsUrl;
   }
 
-  setRoom(roomId) {
-    this.room = roomId;
+  setApp(appName) {
+    this.app = appName;
+  }
+
+  setRoom(roomName) {
+    this.room = roomName;
+  }
+
+  setWebRtcOptions(options) {
+    // No webrtc support
+  }
+
+  setServerConnectListeners(successListener, failureListener) {
+    this.connectSuccess = successListener;
+    this.connectFailure = failureListener;
   }
 
   setRoomOccupantListener(occupantListener){
     this.roomOccupantListener = occupantListener;
   }
 
-  setStreamOptions(options) {
-
-  }
-
-  setDatachannelListeners(openListener, closedListener, messageListener) {
+  setMessageChannelListeners(openListener, closedListener, messageListener) {
     this.openListener = openListener;
     this.closedListener = closedListener;
     this.messageListener = messageListener;
   }
 
-  setLoginListeners(successListener, failureListener) {
-    this.loginSuccess = successListener;
-    this.loginFailure = failureListener;
-  }
-
-
   /*
    * Network actions
    */
 
-  connect(appId) {
+  connect() {
     var socket = new WebSocket(this.wsUrl);
     var self = this;
 
@@ -57,7 +61,7 @@ class UwsAdapter extends INetworkAdapter {
     });
 
     socket.addEventListener('error', function (event) {
-      self.loginFailure();
+      self.connectFailure();
     });
 
     // Listen for messages
@@ -70,10 +74,10 @@ class UwsAdapter extends INetworkAdapter {
         var occupants = packet.data.occupants;
         self.roomOccupantListener(null, occupants);
       }
-      else if (packet.type === 'loginSuccess') {
+      else if (packet.type === 'connectSuccess') {
         var data = packet.data;
         var clientId = data.id;
-        self.loginSuccess(clientId);
+        self.connectSuccess(clientId);
       }
       else if (packet.type === 'broadcast') {
         var broadcastPacket = packet.data;
@@ -90,20 +94,20 @@ class UwsAdapter extends INetworkAdapter {
     return true;
   }
 
-  startStreamConnection(networkId) {
-    this.connectedClients.push(networkId);
-    this.openListener(networkId);
+  startStreamConnection(clientId) {
+    this.connectedClients.push(clientId);
+    this.openListener(clientId);
   }
 
-  closeStreamConnection(networkId) {
-    var index = this.connectedClients.indexOf(networkId);
+  closeStreamConnection(clientId) {
+    var index = this.connectedClients.indexOf(clientId);
     if (index > -1) {
       this.connectedClients.splice(index, 1);
     }
-    this.closedListener(networkId);
+    this.closedListener(clientId);
   }
 
-  sendData(networkId, dataType, data) {
+  sendData(clientId, dataType, data) {
     // console.log('sending data', dataType, data);
     var broadcastPacket = {
       type: dataType,
@@ -112,12 +116,12 @@ class UwsAdapter extends INetworkAdapter {
     this.send('broadcast', broadcastPacket);
   }
 
-  sendDataGuaranteed(networkId, dataType, data) {
-    this.sendData(networkId, dataType, data);
+  sendDataGuaranteed(clientId, dataType, data) {
+    this.sendData(clientId, dataType, data);
   }
 
-  getConnectStatus(networkId) {
-    var connected = this.connectedClients.indexOf(networkId) != -1;
+  getConnectStatus(clientId) {
+    var connected = this.connectedClients.indexOf(clientId) != -1;
 
     if (connected) {
       return INetworkAdapter.IS_CONNECTED;

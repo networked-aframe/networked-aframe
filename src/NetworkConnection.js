@@ -24,28 +24,30 @@ class NetworkConnection {
     };
   }
 
-  connect(appId, roomId, enableAudio = false) {
-    NAF.app = appId;
-    NAF.room = roomId;
+  connect(serverUrl, appName, roomName, enableAudio = false) {
+    NAF.app = appName;
+    NAF.room = roomName;
 
-    var streamOptions = {
+    var webrtcOptions = {
       audio: enableAudio,
       video: false,
       datachannel: true
     };
-    this.adapter.setStreamOptions(streamOptions);
-    this.adapter.setDatachannelListeners(
-        this.dcOpenListener.bind(this),
-        this.dcCloseListener.bind(this),
-        this.receiveDataChannelMessage.bind(this)
+    this.adapter.setWebRtcOptions(webrtcOptions);
+    this.adapter.setServerConnectListeners(
+      this.connectSuccess.bind(this),
+      this.connectFailure.bind(this)
     );
-    this.adapter.setLoginListeners(
-        this.loginSuccess.bind(this),
-        this.loginFailure.bind(this)
+    this.adapter.setMessageChannelListeners(
+      this.messageChannelOpen.bind(this),
+      this.messageChannelClosed.bind(this),
+      this.receiveMessage.bind(this)
     );
     this.adapter.setRoomOccupantListener(this.occupantsReceived.bind(this));
-    this.adapter.setRoom(roomId);
-    this.adapter.connect(appId);
+    this.adapter.setServerUrl(serverUrl);
+    this.adapter.setApp(appName);
+    this.adapter.setRoom(roomName);
+    this.adapter.connect();
   }
 
   onLogin(callback) {
@@ -56,7 +58,7 @@ class NetworkConnection {
     }
   }
 
-  loginSuccess(clientId) {
+  connectSuccess(clientId) {
     NAF.log.write('Networked-Aframe Client ID:', clientId);
     NAF.clientId = clientId;
     this.loggedIn = true;
@@ -64,7 +66,7 @@ class NetworkConnection {
     document.body.dispatchEvent(this.onLoggedInEvent);
   }
 
-  loginFailure(errorCode, message) {
+  connectFailure(errorCode, message) {
     NAF.log.error(errorCode, "failure to login");
     this.loggedIn = false;
   }
@@ -111,13 +113,13 @@ class NetworkConnection {
     return this.adapter.getConnectStatus(client) === INetworkAdapter.IS_CONNECTED;
   }
 
-  dcOpenListener(id) {
+  messageChannelOpen(id) {
     NAF.log.write('Opened data channel from ' + id);
     this.dcIsActive[id] = true;
     this.entities.completeSync();
   }
 
-  dcCloseListener(id) {
+  messageChannelClosed(id) {
     NAF.log.write('Closed data channel from ' + id);
     this.dcIsActive[id] = false;
     this.entities.removeEntitiesFromUser(id);
@@ -169,11 +171,11 @@ class NetworkConnection {
     delete this.dcSubscribers[dataType];
   }
 
-  receiveDataChannelMessage(fromClient, dataType, data) {
+  receiveMessage(fromClient, dataType, data) {
     if (this.dcSubscribers.hasOwnProperty(dataType)) {
       this.dcSubscribers[dataType](fromClient, dataType, data);
     } else {
-      NAF.log.error('NetworkConnection@receiveDataChannelMessage: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
+      NAF.log.error('NetworkConnection@receiveMessage: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
     }
   }
 }
