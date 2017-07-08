@@ -44,7 +44,7 @@ class NetworkConnection {
         this.loginFailure.bind(this)
     );
     this.adapter.setRoomOccupantListener(this.occupantsReceived.bind(this));
-    this.adapter.joinRoom(roomId);
+    this.adapter.setRoom(roomId);
     this.adapter.connect(appId);
   }
 

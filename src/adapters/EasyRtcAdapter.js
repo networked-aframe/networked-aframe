@@ -16,7 +16,7 @@ class EasyRtcAdapter extends INetworkAdapter {
     this.easyrtc.setSocketUrl(signalUrl);
   }
 
-  joinRoom(roomId) {
+  setRoom(roomId) {
     this.easyrtc.joinRoom(roomId, null);
   }
 

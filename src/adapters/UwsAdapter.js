@@ -19,7 +19,7 @@ class UwsAdapter extends INetworkAdapter {
     this.wsUrl = wsUrl;
   }
 
-  joinRoom(roomId) {
+  setRoom(roomId) {
     this.room = roomId;
   }
 
