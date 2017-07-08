@@ -1,8 +1,5 @@
 var naf = require('../NafIndex');
-
-WsEasyRtcAdapter = require('../adapters/WsEasyRtcAdapter');
-EasyRtcAdapter = require('../adapters/EasyRtcAdapter');
-UwsAdapter = require('../adapters/UwsAdapter');
+var adapterFactory = require('../adapters/AdapterFactory');
 
 AFRAME.registerComponent('networked-scene', {
   schema: {
@@ -11,7 +8,7 @@ AFRAME.registerComponent('networked-scene', {
     connectOnLoad: {default: true},
     serverUrl: {default: '/'},
     onConnect: {default: 'onConnect'},
-    adapter: {default: 'wsEasyRtc'},
+    adapter: {default: 'wsEasyRtc'}, // See src/adapters/AdapterFactory for list of adapters
     audio: {default: false},
 
     debug: {default: false},
@@ -45,20 +42,8 @@ AFRAME.registerComponent('networked-scene', {
   },
 
   setupNetworkAdapter: function() {
-    var adapter;
-    var adapterName = this.data.adapter.toLowerCase();
-    switch(adapterName) {
-      case 'uws':
-        adapter = new UwsAdapter();
-        break;
-      case 'easyrtc':
-        adapter = new EasyRtcAdapter(window.easyrtc);
-        break;
-      case 'wseasyrtc':
-      default:
-        adapter = new WsEasyRtcAdapter(window.easyrtc);
-        break;
-    }
+    var adapterName = this.data.adapter;
+    var adapter = adapterFactory.make(adapterName);
     naf.connection.setNetworkAdapter(adapter);
   },
 
