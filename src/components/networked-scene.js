@@ -3,13 +3,13 @@ var adapterFactory = require('../adapters/AdapterFactory');
 
 AFRAME.registerComponent('networked-scene', {
   schema: {
+    serverUrl: {default: '/'},
     app: {default: 'default'},
     room: {default: 'default'},
     connectOnLoad: {default: true},
-    serverUrl: {default: '/'},
     onConnect: {default: 'onConnect'},
-    adapter: {default: 'wsEasyRtc'}, // See src/adapters/AdapterFactory for list of adapters
-    audio: {default: false},
+    adapter: {default: 'wsEasyRtc'}, // See src/adapters/AdapterFactory.js for list of adapters
+    audio: {default: false}, // Only if adapter supports audio
 
     debug: {default: false},
   },
