@@ -6,7 +6,7 @@ class NetworkConnection {
     this.entities = networkEntities;
     this.setupDefaultDCSubs();
 
-    this.connectList = {};
+    this.connectedClients = {};
     this.dcIsActive = {};
 
     this.loggedIn = false;
@@ -70,8 +70,8 @@ class NetworkConnection {
   }
 
   occupantsReceived(roomName, occupantList, isPrimary) {
-    this.checkForDisconnectingClients(this.connectList, occupantList);
-    this.connectList = occupantList;
+    this.checkForDisconnectingClients(this.connectedClients, occupantList);
+    this.connectedClients = occupantList;
     this.checkForConnectingClients(occupantList);
   }
 
@@ -128,7 +128,7 @@ class NetworkConnection {
   }
 
   broadcastData(dataType, data, guaranteed) {
-    for (var id in this.connectList) {
+    for (var id in this.connectedClients) {
       this.sendData(id, dataType, data, guaranteed);
     }
   }
