@@ -1,17 +1,9 @@
 var NafInterface = require('../NafInterface');
 
-class NetworkInterface extends NafInterface {
-  constructor() {
-    super();
-
-    // Plumbing
-    this.connectList = {};
-    this.dcIsActive = {};
-    this.networkEntities = {};
-  }
+class INetworkAdapter extends NafInterface {
 
   // Call before `connect`
-  joinRoom(roomId) {this.notImplemented()}
+  setRoom(roomId) {this.notImplemented()}
   setStreamOptions(StreamOptions) {this.notImplemented()}
   setDatachannelListeners(openListener, closedListener, messageListener) {this.notImplemented()}
   setRoomOccupantListener(occupantListener){this.notImplemented()}
@@ -26,8 +18,8 @@ class NetworkInterface extends NafInterface {
   getConnectStatus(networkId) {this.notImplemented()}
 }
 
-NetworkInterface.IS_CONNECTED = 'IS_CONNECTED';
-NetworkInterface.CONNECTING = 'CONNECTING';
-NetworkInterface.NOT_CONNECTED = 'NOT_CONNECTED';
+INetworkAdapter.IS_CONNECTED = 'IS_CONNECTED';
+INetworkAdapter.CONNECTING = 'CONNECTING';
+INetworkAdapter.NOT_CONNECTED = 'NOT_CONNECTED';
 
-module.exports = NetworkInterface;
+module.exports = INetworkAdapter;

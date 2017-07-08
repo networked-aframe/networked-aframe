@@ -1,7 +1,7 @@
 var naf = require('../NafIndex');
-var NetworkInterface = require('./NetworkInterface');
+var INetworkAdapter = require('./INetworkAdapter');
 
-class WebSocketEasyRtcInterface extends NetworkInterface {
+class WsEasyRtcInterface extends INetworkAdapter {
 
   constructor(easyrtc) {
     super();
@@ -78,11 +78,11 @@ class WebSocketEasyRtcInterface extends NetworkInterface {
     var connected = this.connectedClients.indexOf(networkId) != -1;
 
     if (connected) {
-      return NetworkInterface.IS_CONNECTED;
+      return INetworkAdapter.IS_CONNECTED;
     } else {
-      return NetworkInterface.NOT_CONNECTED;
+      return INetworkAdapter.NOT_CONNECTED;
     }
   }
 }
 
-module.exports = WebSocketEasyRtcInterface;
+module.exports = WsEasyRtcInterface;

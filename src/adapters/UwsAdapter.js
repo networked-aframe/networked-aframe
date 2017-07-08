@@ -1,7 +1,7 @@
 var naf = require('../NafIndex');
-var NetworkInterface = require('./NetworkInterface');
+var INetworkAdapter = require('./INetworkAdapter');
 
-class UwsInterface extends NetworkInterface {
+class UwsAdapter extends INetworkAdapter {
 
   constructor() {
     super();
@@ -120,9 +120,9 @@ class UwsInterface extends NetworkInterface {
     var connected = this.connectedClients.indexOf(networkId) != -1;
 
     if (connected) {
-      return NetworkInterface.IS_CONNECTED;
+      return INetworkAdapter.IS_CONNECTED;
     } else {
-      return NetworkInterface.NOT_CONNECTED;
+      return INetworkAdapter.NOT_CONNECTED;
     }
   }
 
@@ -140,4 +140,4 @@ class UwsInterface extends NetworkInterface {
   }
 }
 
-module.exports = UwsInterface;
+module.exports = UwsAdapter;

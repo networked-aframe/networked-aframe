@@ -1,4 +1,4 @@
-var NetworkInterface = require('./network_interfaces/NetworkInterface');
+var INetworkAdapter = require('./adapters/INetworkAdapter');
 
 class NetworkConnection {
 
@@ -13,8 +13,8 @@ class NetworkConnection {
     this.onLoggedInEvent = new Event('loggedIn');
   }
 
-  setNetworkInterface(network) {
-    this.network = network;
+  setNetworkAdapter(adapter) {
+    this.adapter = adapter;
   }
 
   setupDefaultDCSubs() {
@@ -33,19 +33,19 @@ class NetworkConnection {
       video: false,
       datachannel: true
     };
-    this.network.setStreamOptions(streamOptions);
-    this.network.setDatachannelListeners(
+    this.adapter.setStreamOptions(streamOptions);
+    this.adapter.setDatachannelListeners(
         this.dcOpenListener.bind(this),
         this.dcCloseListener.bind(this),
         this.receiveDataChannelMessage.bind(this)
     );
-    this.network.setLoginListeners(
+    this.adapter.setLoginListeners(
         this.loginSuccess.bind(this),
         this.loginFailure.bind(this)
     );
-    this.network.setRoomOccupantListener(this.occupantsReceived.bind(this));
-    this.network.joinRoom(roomId);
-    this.network.connect(appId);
+    this.adapter.setRoomOccupantListener(this.occupantsReceived.bind(this));
+    this.adapter.joinRoom(roomId);
+    this.adapter.connect(appId);
   }
 
   onLogin(callback) {
@@ -80,17 +80,17 @@ class NetworkConnection {
       var clientFound = newOccupantList.hasOwnProperty(id);
       if (!clientFound) {
         NAF.log.write('Closing stream to ', id);
-        this.network.closeStreamConnection(id);
+        this.adapter.closeStreamConnection(id);
       }
     }
   }
 
   checkForConnectingClients(occupantList) {
     for (var id in occupantList) {
-      var startConnection = this.isNewClient(id) && this.network.shouldStartConnectionTo(occupantList[id]);
+      var startConnection = this.isNewClient(id) && this.adapter.shouldStartConnectionTo(occupantList[id]);
       if (startConnection) {
         NAF.log.write('Opening stream to ', id);
-        this.network.startStreamConnection(id);
+        this.adapter.startStreamConnection(id);
       }
     }
   }
@@ -108,7 +108,7 @@ class NetworkConnection {
   }
 
   isConnectedTo(client) {
-    return this.network.getConnectStatus(client) === NetworkInterface.IS_CONNECTED;
+    return this.adapter.getConnectStatus(client) === INetworkAdapter.IS_CONNECTED;
   }
 
   dcOpenListener(id) {
@@ -140,9 +140,9 @@ class NetworkConnection {
   sendData(toClient, dataType, data, guaranteed) {
     if (this.dcIsConnectedTo(toClient)) {
       if (guaranteed) {
-        this.network.sendDataGuaranteed(toClient, dataType, data);
+        this.adapter.sendDataGuaranteed(toClient, dataType, data);
       } else {
-        this.network.sendData(toClient, dataType, data);
+        this.adapter.sendData(toClient, dataType, data);
       }
     } else {
       // console.error("NOT-CONNECTED", "not connected to " + toClient);

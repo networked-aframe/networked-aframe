@@ -1,8 +1,8 @@
 var naf = require('../NafIndex');
 
-var EasyRtcInterface = require('../network_interfaces/EasyRtcInterface');
-var WebSocketEasyRtcInterface = require('../network_interfaces/WebSocketEasyRtcInterface');
-var UwsInterface = require('../network_interfaces/UwsInterface');
+var EasyRtcAdapter = require('../adapters/EasyRtcAdapter');
+var WsEasyRtcAdapter = require('../adapters/WsEasyRtcAdapter');
+var UwsAdapter = require('../adapters/UwsAdapter');
 
 AFRAME.registerComponent('networked-scene', {
   schema: {
@@ -33,7 +33,7 @@ AFRAME.registerComponent('networked-scene', {
 
     // easyrtc.enableDebug(true);
     this.checkDeprecatedProperties();
-    this.setupNetworkInterface();
+    this.setupNetworkAdapter();
 
     if (this.hasOnConnectFunction()) {
       this.callOnConnect();
@@ -45,13 +45,15 @@ AFRAME.registerComponent('networked-scene', {
     // No current
   },
 
-  setupNetworkInterface: function() {
-    var networkInterface;
+  setupNetworkAdapter: function() {
+    var networkAdapter;
     if (this.data.webrtc) {
-      var easyRtcInterface = new EasyRtcInterface(easyrtc);
-      easyRtcInterface.setSignalUrl(this.data.signalURL);
-      networkInterface = easyRtcInterface;
-    } else {
+      var easyRtcAdapter = new EasyRtcAdapter(easyrtc);
+      easyRtcAdapter.setSignalUrl(this.data.signalURL);
+
+      networkAdapter = easyRtcAdapter;
+    }
+    else {
       // var websocketInterface = new WebSocketEasyRtcInterface(easyrtc);
       // websocketInterface.setSignalUrl(this.data.signalURL);
       // networkInterface = websocketInterface;
@@ -59,11 +61,13 @@ AFRAME.registerComponent('networked-scene', {
       //   naf.log.error('networked-scene: webrtcAudio option will only be used if webrtc is set to true. webrtc is currently false');
       // }
 
-      var uwsInterface = new UwsInterface();
-      uwsInterface.setSignalUrl('ws://localhost:8080');
-      networkInterface = uwsInterface;
+      var uwsAdapter = new UwsAdapter();
+      uwsAdapter.setSignalUrl('ws://localhost:8080');
+
+      networkAdapter = uwsAdapter;
     }
-    naf.connection.setNetworkInterface(networkInterface);
+
+    naf.connection.setNetworkAdapter(networkAdapter);
   },
 
   hasOnConnectFunction: function() {

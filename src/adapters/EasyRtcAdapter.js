@@ -1,7 +1,8 @@
 var naf = require('../NafIndex');
-var NetworkInterface = require('./NetworkInterface');
+var INetworkAdapter = require('./INetworkAdapter');
 
-class EasyRtcInterface extends NetworkInterface {
+class EasyRtcAdapter extends INetworkAdapter {
+
   constructor(easyrtc) {
     super();
     this.easyrtc = easyrtc;
@@ -134,13 +135,13 @@ class EasyRtcInterface extends NetworkInterface {
     var status = this.easyrtc.getConnectStatus(networkId);
 
     if (status == this.easyrtc.IS_CONNECTED) {
-      return NetworkInterface.IS_CONNECTED;
+      return INetworkAdapter.IS_CONNECTED;
     } else if (status == this.easyrtc.NOT_CONNECTED) {
-      return NetworkInterface.NOT_CONNECTED;
+      return INetworkAdapter.NOT_CONNECTED;
     } else {
-      return NetworkInterface.CONNECTING;
+      return INetworkAdapter.CONNECTING;
     }
   }
 }
 
-module.exports = EasyRtcInterface;
+module.exports = EasyRtcAdapter;
