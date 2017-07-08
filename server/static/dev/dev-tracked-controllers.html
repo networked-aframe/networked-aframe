@@ -99,8 +99,8 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" spawn-in-circle="radius:3" position="0 0 0" wasd-controls>
-        <a-entity camera look-controls networked="template:#head-template;showLocalTemplate:false;"></a-entity>
+      <a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" spawn-in-circle="radius:3" wasd-controls>
+        <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;showLocalTemplate:false;"></a-entity>
 
         <a-entity hand-controls="left" networked="template:#hand-template;showLocalTemplate:false;"></a-entity>
         <a-entity hand-controls="right" networked="template:#hand-template;showLocalTemplate:false;"></a-entity>
