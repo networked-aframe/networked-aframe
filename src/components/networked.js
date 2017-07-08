@@ -161,18 +161,43 @@ AFRAME.registerComponent('networked', {
     var dirtyComps = [];
 
     for (var i in syncedComps) {
-      var name = syncedComps[i];
-      if (!newComps.hasOwnProperty(name)) {
+      var schema = syncedComps[i];
+      var compKey;
+      var newCompData;
+
+      var isRootComponent = typeof schema === 'string';
+
+      if (isRootComponent) {
+        var hasComponent = newComps.hasOwnProperty(schema)
+        if (!hasComponent) {
+          continue;
+        }
+        compKey = schema;
+        newCompData = newComps[schema].getData();
+      }
+      else {
+        // is child component
+        var selector = schema.selector;
+        var compName = schema.component;
+
+        var childEl = this.el.querySelector(selector);
+        var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
+        if (!hasComponent) {
+          continue;
+        }
+        compKey = this.childSchemaToKey(schema);
+        newCompData = childEl.components[compName].getData();
+      }
+      
+      var compIsCached = this.cachedData.hasOwnProperty(compKey)
+      if (!compIsCached) {
+        dirtyComps.push(schema);
         continue;
       }
-      if (!this.cachedData.hasOwnProperty(name)) {
-        dirtyComps.push(name);
-        continue;
-      }
-      var oldCompData = this.cachedData[name];
-      var newCompData = newComps[name].getData();
+
+      var oldCompData = this.cachedData[compKey];
       if (!deepEqual(oldCompData, newCompData)) {
-        dirtyComps.push(name);
+        dirtyComps.push(schema);
       }
     }
     return dirtyComps;
