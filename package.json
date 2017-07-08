@@ -18,7 +18,7 @@
     "prepublish": "npm run dist",
     "preghpages": "npm run build && shx rm -rf gh-pages && shx mkdir gh-pages && shx cp -r examples/* gh-pages",
     "ghpages": "npm run preghpages && ghpages -p gh-pages",
-    "start": "node ./server/server.js",
+    "start": "node ./server/easyrtc-server.js",
     "start-uws": "node ./server/uws-server.js",
     "test": "karma start ./tests/unit/karma.conf.js",
     "test:firefox": "karma start ./tests/unit/karma.conf.js --browsers Firefox",
