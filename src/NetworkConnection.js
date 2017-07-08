@@ -7,7 +7,7 @@ class NetworkConnection {
     this.setupDefaultDCSubs();
 
     this.connectedClients = {};
-    this.dcIsActive = {};
+    this.activeMessageChannels = {};
 
     this.connected = false;
     this.onConnectedEvent = new Event('connected');
@@ -115,18 +115,18 @@ class NetworkConnection {
 
   messageChannelOpen(id) {
     NAF.log.write('Opened data channel from ' + id);
-    this.dcIsActive[id] = true;
+    this.activeMessageChannels[id] = true;
     this.entities.completeSync();
   }
 
   messageChannelClosed(id) {
     NAF.log.write('Closed data channel from ' + id);
-    this.dcIsActive[id] = false;
+    this.activeMessageChannels[id] = false;
     this.entities.removeEntitiesFromUser(id);
   }
 
-  dcIsConnectedTo(user) {
-    return this.dcIsActive.hasOwnProperty(user) && this.dcIsActive[user];
+  hasActiveMessageChannel(user) {
+    return this.activeMessageChannels.hasOwnProperty(user) && this.activeMessageChannels[user];
   }
 
   broadcastData(dataType, data, guaranteed) {
@@ -140,7 +140,7 @@ class NetworkConnection {
   }
 
   sendData(toClient, dataType, data, guaranteed) {
-    if (this.dcIsConnectedTo(toClient)) {
+    if (this.hasActiveMessageChannel(toClient)) {
       if (guaranteed) {
         this.adapter.sendDataGuaranteed(toClient, dataType, data);
       } else {
