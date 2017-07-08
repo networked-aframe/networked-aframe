@@ -40,7 +40,7 @@ Getting Started
 
 Follow [this tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/getting-started-local.md) to build your own example.
 
-Edit online example with [glitch.com/~networked-aframe](https://glitch.com/~networked-aframe).
+Edit online example with [glitch.com/~networked-aframe/](https://glitch.com/~networked-aframe/).
 
 To get the examples running on your own PC run:
 
@@ -212,7 +212,7 @@ If using WebRTC `broadcastData` messages are sent P2P using UDP and are not guar
 | Parameter | Description
 | -------- | -----------
 | dataType  | String to identify a network message. `u` is a reserved data type, don't use it pls
-| callback  | Function to be called when message of type `dataType` is received.
+| callback  | Function to be called when message of type `dataType` is received. Parameters: function(senderRtcId, dataType, data, targetRtcId)
 | data | Object to be sent to all other clients
 
 
@@ -222,7 +222,7 @@ If using WebRTC `broadcastData` messages are sent P2P using UDP and are not guar
 NAF.connection.isConnected()
 ```
 
-Returns true if a connection has been established to the signalling server. Don't create entities before this is true.
+Returns true if a connection has been established to the signalling server.
 
 
 ### Options
