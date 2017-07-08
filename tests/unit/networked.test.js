@@ -43,14 +43,6 @@ suite('networked', function() {
 
   suite('init', function() {
 
-    test('inits sync time', sinon.test(function() {
-      this.stub(networked, 'initSyncTime');
-
-      networked.init();
-
-      assert.isTrue(networked.initSyncTime.called);
-    }));
-
     test('sets networkId', sinon.test(function() {
       this.stub(networked, 'createNetworkId').returns('nid1');
 
