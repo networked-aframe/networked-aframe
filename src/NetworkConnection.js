@@ -33,12 +33,17 @@ class NetworkConnection {
     NAF.app = appName;
     NAF.room = roomName;
 
+    this.adapter.setServerUrl(serverUrl);
+    this.adapter.setApp(appName);
+    this.adapter.setRoom(roomName);
+
     var webrtcOptions = {
       audio: enableAudio,
       video: false,
       datachannel: true
     };
     this.adapter.setWebRtcOptions(webrtcOptions);
+
     this.adapter.setServerConnectListeners(
       this.connectSuccess.bind(this),
       this.connectFailure.bind(this)
@@ -46,12 +51,10 @@ class NetworkConnection {
     this.adapter.setMessageChannelListeners(
       this.messageChannelOpen.bind(this),
       this.messageChannelClosed.bind(this),
-      this.receiveMessage.bind(this)
+      this.receivedMessage.bind(this)
     );
     this.adapter.setRoomOccupantListener(this.occupantsReceived.bind(this));
-    this.adapter.setServerUrl(serverUrl);
-    this.adapter.setApp(appName);
-    this.adapter.setRoom(roomName);
+
     this.adapter.connect();
   }
 
@@ -106,8 +109,8 @@ class NetworkConnection {
     return this.connected;
   }
 
-  isMineAndConnected(id) {
-    return NAF.clientId == id;
+  isMineAndConnected(client) {
+    return NAF.clientId == client;
   }
 
   isNewClient(client) {
@@ -118,50 +121,50 @@ class NetworkConnection {
     return this.adapter.getConnectStatus(client) === INetworkAdapter.IS_CONNECTED;
   }
 
-  messageChannelOpen(id) {
-    NAF.log.write('Opened data channel from ' + id);
-    this.activeMessageChannels[id] = true;
+  messageChannelOpen(client) {
+    NAF.log.write('Opened message channel from ' + client);
+    this.activeMessageChannels[client] = true;
     this.entities.completeSync();
   }
 
-  messageChannelClosed(id) {
-    NAF.log.write('Closed data channel from ' + id);
-    this.activeMessageChannels[id] = false;
-    this.entities.removeEntitiesFromUser(id);
+  messageChannelClosed(client) {
+    NAF.log.write('Closed message channel from ' + client);
+    this.activeMessageChannels[client] = false;
+    this.entities.removeEntitiesFromUser(client);
   }
 
-  hasActiveMessageChannel(user) {
-    return this.activeMessageChannels.hasOwnProperty(user) && this.activeMessageChannels[user];
+  hasActiveMessageChannel(client) {
+    return this.activeMessageChannels.hasOwnProperty(client) && this.activeMessageChannels[client];
   }
 
-  broadcastData(msgType, data, guaranteed) {
+  broadcastData(msgType, msg, guaranteed) {
     for (var id in this.connectedClients) {
-      this.sendData(id, msgType, data, guaranteed);
+      this.sendData(id, msgType, msg, guaranteed);
     }
   }
 
-  broadcastDataGuaranteed(msgType, data) {
-    this.broadcastData(msgType, data, true);
+  broadcastDataGuaranteed(msgType, msg) {
+    this.broadcastData(msgType, msg, true);
   }
 
-  sendData(toClient, msgType, data, guaranteed) {
+  sendData(toClient, msgType, msg, guaranteed) {
     if (this.hasActiveMessageChannel(toClient)) {
       if (guaranteed) {
-        this.adapter.sendDataGuaranteed(toClient, msgType, data);
+        this.adapter.sendDataGuaranteed(toClient, msgType, msg);
       } else {
-        this.adapter.sendData(toClient, msgType, data);
+        this.adapter.sendData(toClient, msgType, msg);
       }
     } else {
       // console.error("NOT-CONNECTED", "not connected to " + toClient);
     }
   }
 
-  sendDataGuaranteed(toClient, msgType, data) {
-    this.sendData(toClient, msgType, data, true);
+  sendDataGuaranteed(toClient, msgType, msg) {
+    this.sendData(toClient, msgType, msg, true);
   }
 
   subscribeToMessage(msgType, callback) {
-    if (this.isReservedMessageType(msgType)) {
+    if (this.isReservedMessage(msgType)) {
       NAF.log.error('NetworkConnection@subscribeToMessage: ' + msgType + ' is a reserved msgType. Choose another');
       return;
     }
@@ -169,23 +172,23 @@ class NetworkConnection {
   }
 
   unsubscribeFromMessage(msgType) {
-    if (this.isReservedMessageType(msgType)) {
+    if (this.isReservedMessage(msgType)) {
       NAF.log.error('NetworkConnection@unsubscribeFromMessage: ' + msgType + ' is a reserved msgType. Choose another');
       return;
     }
     delete this.messageSubs[msgType];
   }
 
-  isReservedMessageType(type) {
-    return type == ReservedMessage.Update
-        || type == ReservedMessage.Remove;
+  isReservedMessage(msgType) {
+    return msgType == ReservedMessage.Update
+        || msgType == ReservedMessage.Remove;
   }
 
-  receiveMessage(fromClient, msgType, data) {
+  receivedMessage(fromClient, msgType, msg) {
     if (this.messageSubs.hasOwnProperty(msgType)) {
-      this.messageSubs[msgType](fromClient, msgType, data);
+      this.messageSubs[msgType](fromClient, msgType, msg);
     } else {
-      NAF.log.error('NetworkConnection@receiveMessage: ' + msgType + ' has not been subscribed to yet. Call subscribeToMessage()');
+      NAF.log.error('NetworkConnection@receivedMessage: ' + msgType + ' has not been subscribed to yet. Call subscribeToMessage()');
     }
   }
 }
