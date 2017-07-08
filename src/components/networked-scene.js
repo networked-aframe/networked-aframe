@@ -1,8 +1,8 @@
 var naf = require('../NafIndex');
 
-var EasyRtcAdapter = require('../adapters/EasyRtcAdapter');
-var WsEasyRtcAdapter = require('../adapters/WsEasyRtcAdapter');
-var UwsAdapter = require('../adapters/UwsAdapter');
+WsEasyRtcAdapter = require('../adapters/WsEasyRtcAdapter');
+EasyRtcAdapter = require('../adapters/EasyRtcAdapter');
+UwsAdapter = require('../adapters/UwsAdapter');
 
 AFRAME.registerComponent('networked-scene', {
   schema: {
@@ -11,8 +11,8 @@ AFRAME.registerComponent('networked-scene', {
     connectOnLoad: {default: true},
     serverUrl: {default: '/'},
     onConnect: {default: 'onConnect'},
-    webrtc: {default: false},
-    webrtcAudio: {default: false},
+    adapter: {default: 'wsEasyRtc'},
+    audio: {default: false},
 
     debug: {default: false},
   },
@@ -37,7 +37,7 @@ AFRAME.registerComponent('networked-scene', {
     if (this.hasOnConnectFunction()) {
       this.callOnConnect();
     }
-    naf.connection.connect(this.data.serverUrl, this.data.app, this.data.room, this.data.webrtcAudio);
+    naf.connection.connect(this.data.serverUrl, this.data.app, this.data.room, this.data.audio);
   },
 
   checkDeprecatedProperties: function() {
@@ -45,21 +45,21 @@ AFRAME.registerComponent('networked-scene', {
   },
 
   setupNetworkAdapter: function() {
-    var networkAdapter;
-    if (this.data.webrtc) {
-      networkAdapter = new EasyRtcAdapter(easyrtc);;
+    var adapter;
+    var adapterName = this.data.adapter.toLowerCase();
+    switch(adapterName) {
+      case 'uws':
+        adapter = new UwsAdapter();
+        break;
+      case 'easyrtc':
+        adapter = new EasyRtcAdapter(window.easyrtc);
+        break;
+      case 'wseasyrtc':
+      default:
+        adapter = new WsEasyRtcAdapter(window.easyrtc);
+        break;
     }
-    else {
-      // var websocketInterface = new WebSocketEasyRtcInterface(easyrtc);
-      // websocketInterface.setSignalUrl(this.data.signalURL);
-      // networkInterface = websocketInterface;
-      // if (this.data.webrtcAudio) {
-      //   naf.log.error('networked-scene: webrtcAudio option will only be used if webrtc is set to true. webrtc is currently false');
-      // }
-      networkAdapter = new UwsAdapter();
-    }
-
-    naf.connection.setNetworkAdapter(networkAdapter);
+    naf.connection.setNetworkAdapter(adapter);
   },
 
   hasOnConnectFunction: function() {
