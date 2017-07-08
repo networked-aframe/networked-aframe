@@ -12,10 +12,6 @@ class UwsAdapter extends INetworkAdapter {
     this.roomOccupantListener = null;
   }
 
-  /*
-   * Call before `connect`
-   */
-
   setServerUrl(wsUrl) {
     this.wsUrl = wsUrl;
   }
@@ -47,10 +43,6 @@ class UwsAdapter extends INetworkAdapter {
     this.messageListener = messageListener;
   }
 
-  /*
-   * Network actions
-   */
-
   connect() {
     var socket = new WebSocket(this.wsUrl);
     var self = this;
@@ -72,7 +64,7 @@ class UwsAdapter extends INetworkAdapter {
 
       if (packet.type === 'roomOccupantsChange') {
         var occupants = packet.data.occupants;
-        self.roomOccupantListener(null, occupants);
+        self.roomOccupantListener(occupants);
       }
       else if (packet.type === 'connectSuccess') {
         var data = packet.data;

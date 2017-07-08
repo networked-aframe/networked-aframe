@@ -9,10 +9,6 @@ class EasyRtcAdapter extends INetworkAdapter {
     this.easyrtc = easyrtc;
   }
 
-  /*
-   * Call before `connect`
-   */
-
   setServerUrl(url) {
     this.easyrtc.setSocketUrl(url);
   }
@@ -29,8 +25,10 @@ class EasyRtcAdapter extends INetworkAdapter {
   setWebRtcOptions(options) {
     // this.easyrtc.enableDebug(true);
     this.easyrtc.enableDataChannels(options.datachannel);
+
     this.easyrtc.enableVideo(false);
     this.easyrtc.enableAudio(options.audio);
+
     this.easyrtc.enableVideoReceive(false);
     this.easyrtc.enableAudioReceive(options.audio);
   }
@@ -41,7 +39,9 @@ class EasyRtcAdapter extends INetworkAdapter {
   }
 
   setRoomOccupantListener(occupantListener){
-    this.easyrtc.setRoomOccupantListener(occupantListener);
+    this.easyrtc.setRoomOccupantListener(function(roomName, occupants, primary) {
+      occupantListener(occupants);
+    });
   }
 
   setMessageChannelListeners(openListener, closedListener, messageListener) {
@@ -49,11 +49,6 @@ class EasyRtcAdapter extends INetworkAdapter {
     this.easyrtc.setDataChannelCloseListener(closedListener);
     this.easyrtc.setPeerListener(messageListener);
   }
-
-
-  /*
-   * Network actions
-   */
 
   connect() {
     var that = this;

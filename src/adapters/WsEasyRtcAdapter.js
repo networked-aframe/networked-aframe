@@ -10,10 +10,6 @@ class WsEasyRtcInterface extends INetworkAdapter {
     this.connectedClients = [];
   }
 
-  /*
-   * Call before `connect`
-   */
-
   setServerUrl(url) {
     this.easyrtc.setSocketUrl(url);
   }
@@ -36,7 +32,9 @@ class WsEasyRtcInterface extends INetworkAdapter {
   }
 
   setRoomOccupantListener(occupantListener){
-    this.easyrtc.setRoomOccupantListener(occupantListener);
+    this.easyrtc.setRoomOccupantListener(function(roomName, occupants, primary) {
+      occupantListener(occupants);
+    });
   }
 
   setMessageChannelListeners(openListener, closedListener, messageListener) {
@@ -44,11 +42,6 @@ class WsEasyRtcInterface extends INetworkAdapter {
     this.closedListener = closedListener;
     this.easyrtc.setPeerListener(messageListener);
   }
-
-
-  /*
-   * Network actions
-   */
 
   connect() {
     this.easyrtc.connect(this.app, this.connectSuccess, this.connectFailure);

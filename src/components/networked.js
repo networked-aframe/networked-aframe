@@ -13,7 +13,7 @@ AFRAME.registerComponent('networked', {
     this.initNetworkParent();
     this.registerEntity(this.networkId);
     this.attachAndShowTemplate(this.data.template, this.data.showLocalTemplate);
-    this.checkLoggedIn();
+    this.checkConnected();
   },
 
   initNetworkId: function() {
@@ -33,19 +33,19 @@ AFRAME.registerComponent('networked', {
     return Math.random().toString(36).substring(2, 9);
   },
 
-  listenForLoggedIn: function() {
-    document.body.addEventListener('loggedIn', this.onLoggedIn.bind(this), false);
-  },
-
-  checkLoggedIn: function() {
+  checkConnected: function() {
     if (naf.clientId) {
-      this.onLoggedIn();
+      this.onConnected();
     } else {
-      this.listenForLoggedIn();
+      this.listenForConnected();
     }
   },
 
-  onLoggedIn: function() {
+  listenForConnected: function() {
+    document.body.addEventListener('connected', this.onConnected.bind(this), false);
+  },
+
+  onConnected: function() {
     this.owner = naf.clientId;
     this.syncAll();
   },
@@ -188,7 +188,7 @@ AFRAME.registerComponent('networked', {
         compKey = this.childSchemaToKey(schema);
         newCompData = childEl.components[compName].getData();
       }
-      
+
       var compIsCached = this.cachedData.hasOwnProperty(compKey)
       if (!compIsCached) {
         dirtyComps.push(schema);

@@ -9,8 +9,8 @@ class NetworkConnection {
     this.connectedClients = {};
     this.dcIsActive = {};
 
-    this.loggedIn = false;
-    this.onLoggedInEvent = new Event('loggedIn');
+    this.connected = false;
+    this.onConnectedEvent = new Event('connected');
   }
 
   setNetworkAdapter(adapter) {
@@ -51,27 +51,27 @@ class NetworkConnection {
   }
 
   onLogin(callback) {
-    if (this.loggedIn) {
+    if (this.connected) {
       callback();
     } else {
-      document.body.addEventListener('loggedIn', callback, false);
+      document.body.addEventListener('connected', callback, false);
     }
   }
 
   connectSuccess(clientId) {
     NAF.log.write('Networked-Aframe Client ID:', clientId);
     NAF.clientId = clientId;
-    this.loggedIn = true;
+    this.connected = true;
 
-    document.body.dispatchEvent(this.onLoggedInEvent);
+    document.body.dispatchEvent(this.onConnectedEvent);
   }
 
   connectFailure(errorCode, message) {
     NAF.log.error(errorCode, "failure to login");
-    this.loggedIn = false;
+    this.connected = false;
   }
 
-  occupantsReceived(roomName, occupantList, isPrimary) {
+  occupantsReceived(occupantList) {
     this.checkForDisconnectingClients(this.connectedClients, occupantList);
     this.connectedClients = occupantList;
     this.checkForConnectingClients(occupantList);
@@ -98,7 +98,7 @@ class NetworkConnection {
   }
 
   isConnected() {
-    return this.loggedIn;
+    return this.connected;
   }
 
   isMineAndConnected(id) {
