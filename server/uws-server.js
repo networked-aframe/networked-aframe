@@ -88,18 +88,6 @@ function onRoomBroadcast(ws, msg) {
   sendToRoom(room, msg, excludeClient);
 }
 
-function sendToRoom(room, msg, excludeId) {
-  wss.clients.forEach(function each(client) {
-    if (client.room === room && client.id != excludeId) {
-      client.send(msg);
-    }
-  });
-}
-
-function heartbeat() {
-  this.isAlive = true;
-}
-
 function updateRoomOccupants(room) {
   var occupants = [];
   wss.clients.forEach(function each(client) {
@@ -114,6 +102,18 @@ function updateRoomOccupants(room) {
   };
   var packetStr = JSON.stringify(packet);
   sendToRoom(room, packetStr);
+}
+
+function sendToRoom(room, msg, excludeId) {
+  wss.clients.forEach(function each(client) {
+    if (client.room === room && client.id != excludeId) {
+      client.send(msg);
+    }
+  });
+}
+
+function heartbeat() {
+  this.isAlive = true;
 }
 
 var heartbeatInterval = setInterval(function ping() {

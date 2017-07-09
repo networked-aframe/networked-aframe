@@ -91,7 +91,9 @@ class UwsAdapter extends INetworkAdapter {
   receivedOccupants(occupants) {
     var occupantMap = {};
     for (var i = 0; i < occupants.length; i++) {
-      occupantMap[occupants[i]] = true;
+      if (occupants[i] != naf.clientId) {
+        occupantMap[occupants[i]] = true;
+      }
     }
     this.roomOccupantListener(occupantMap);
   }

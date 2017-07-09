@@ -143,9 +143,6 @@ class NetworkConnection {
 
   broadcastData(msgType, msg) {
     this.adapter.broadcastData(msgType, msg);
-    // for (var id in this.connectedClients) {
-    //   this.sendData(id, msgType, msg, guaranteed);
-    // }
   }
 
   broadcastDataGuaranteed(msgType, msg) {
