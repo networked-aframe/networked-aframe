@@ -7,6 +7,7 @@ class WsEasyRtcInterface extends INetworkAdapter {
     super();
     this.easyrtc = easyrtc;
     this.app = 'default';
+    this.room = 'default';
     this.connectedClients = [];
   }
 
@@ -19,6 +20,7 @@ class WsEasyRtcInterface extends INetworkAdapter {
   }
 
   setRoom(roomName) {
+    this.room = roomName;
     this.easyrtc.joinRoom(roomName, null);
   }
 
@@ -70,6 +72,15 @@ class WsEasyRtcInterface extends INetworkAdapter {
 
   sendDataGuaranteed(clientId, dataType, data) {
     this.sendData(clientId, dataType, data);
+  }
+
+  broadcastData(dataType, data) {
+    var destination = {targetRoom: this.room};
+    this.easyrtc.sendDataWS(destination, dataType, data);
+  }
+
+  broadcastDataGuaranteed(dataType, data) {
+    this.broadcastData(dataType, data);
   }
 
   getConnectStatus(clientId) {

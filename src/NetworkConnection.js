@@ -105,6 +105,10 @@ class NetworkConnection {
     }
   }
 
+  getConnectedClients() {
+    return this.connectedClients;
+  }
+
   isConnected() {
     return this.connected;
   }
@@ -137,14 +141,15 @@ class NetworkConnection {
     return this.activeMessageChannels.hasOwnProperty(client) && this.activeMessageChannels[client];
   }
 
-  broadcastData(msgType, msg, guaranteed) {
-    for (var id in this.connectedClients) {
-      this.sendData(id, msgType, msg, guaranteed);
-    }
+  broadcastData(msgType, msg) {
+    this.adapter.broadcastData(msgType, msg);
+    // for (var id in this.connectedClients) {
+    //   this.sendData(id, msgType, msg, guaranteed);
+    // }
   }
 
   broadcastDataGuaranteed(msgType, msg) {
-    this.broadcastData(msgType, msg, true);
+    this.adapter.broadcastDataGuaranteed(msgType, msg);
   }
 
   sendData(toClient, msgType, msg, guaranteed) {

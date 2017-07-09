@@ -6,6 +6,7 @@ class EasyRtcAdapter extends INetworkAdapter {
   constructor(easyrtc) {
     super();
     this.app = 'default';
+    this.room = 'default';
     this.easyrtc = easyrtc;
   }
 
@@ -18,6 +19,7 @@ class EasyRtcAdapter extends INetworkAdapter {
   }
 
   setRoom(roomName) {
+    this.room = roomName;
     this.easyrtc.joinRoom(roomName, null);
   }
 
@@ -53,7 +55,7 @@ class EasyRtcAdapter extends INetworkAdapter {
   connect() {
     var that = this;
     var connectedCallback = function(id) {
-      that.myRoomJoinTime = that.getRoomJoinTime(id);
+      that._myRoomJoinTime = that._getRoomJoinTime(id);
       that.connectSuccess(id);
     };
 
@@ -90,7 +92,7 @@ class EasyRtcAdapter extends INetworkAdapter {
   }
 
   shouldStartConnectionTo(client) {
-    return this.myRoomJoinTime <= client.roomJoinTime;
+    return this._myRoomJoinTime <= client.roomJoinTime;
   }
 
   startStreamConnection(clientId) {
@@ -114,21 +116,21 @@ class EasyRtcAdapter extends INetworkAdapter {
   }
 
   sendData(clientId, dataType, data) {
-    this.easyrtc.sendDataP2P(clientId, dataType, data);
+    this.easyrtc.sendPeerMessage(clientId, dataType, data);
   }
 
   sendDataGuaranteed(clientId, dataType, data) {
     this.easyrtc.sendDataWS(clientId, dataType, data);
   }
 
-  /*
-   * Getters
-   */
+  broadcastData(dataType, data) {
+    var destination = {targetRoom: this.room};
+    this.easyrtc.sendPeerMessage(destination, dataType, data);
+  }
 
-  getRoomJoinTime(clientId) {
-    var myRoomId = naf.room;
-    var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
-    return joinTime;
+  broadcastDataGuaranteed(dataType, data) {
+    var destination = {targetRoom: this.room};
+    this.easyrtc.sendDataWS(destination, dataType, data);
   }
 
   getConnectStatus(clientId) {
@@ -141,6 +143,12 @@ class EasyRtcAdapter extends INetworkAdapter {
     } else {
       return INetworkAdapter.CONNECTING;
     }
+  }
+
+  _getRoomJoinTime(clientId) {
+    var myRoomId = naf.room;
+    var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
+    return joinTime;
   }
 }
 

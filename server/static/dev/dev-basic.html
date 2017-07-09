@@ -5,8 +5,6 @@
     <meta name="description" content="Dev Example — Networked-Aframe">
 
     <script src="https://aframe.io/releases/0.6.0/aframe.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
-    <script src="/easyrtc/easyrtc.js"></script>
     <script src="build.js"></script>
 
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
@@ -32,17 +30,24 @@
 
       // Called by Networked-Aframe when connected to server
       function onConnect () {
-        console.log("onConnect");
+        console.log("onConnect", new Date());
       }
     </script>
   </head>
   <body>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
     <a-scene networked-scene="
       room: dev;
       debug: true;
-      webrtc: true;
+      adapter: easyrtc;
     ">
+    <!-- <a-scene networked-scene="
+      room: dev;
+      debug: true;
+      adapter: uws;
+      serverUrl: ws://localhost:8080;
+    "> -->
       <a-assets>
 
         <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">

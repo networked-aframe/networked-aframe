@@ -17,9 +17,12 @@ class INetworkAdapter extends NafInterface {
   shouldStartConnectionTo(clientId) {this.notImplemented()}
   startStreamConnection(clientId) {this.notImplemented()}
   closeStreamConnection(clientId) {this.notImplemented()}
+  getConnectStatus(clientId) {this.notImplemented()}
+
   sendData(clientId, dataType, data) {this.notImplemented()}
   sendDataGuaranteed(clientId, dataType, data) {this.notImplemented()}
-  getConnectStatus(clientId) {this.notImplemented()}
+  broadcastData(dataType, data) {this.notImplemented()}
+  broadcastDataGuaranteed(dataType, data) {this.notImplemented()}
 }
 
 INetworkAdapter.IS_CONNECTED = 'IS_CONNECTED';

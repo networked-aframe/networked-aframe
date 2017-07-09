@@ -47,11 +47,12 @@ class UwsAdapter extends INetworkAdapter {
     var socket = new WebSocket(this.wsUrl);
     var self = this;
 
-    // Connection opened
+    // WebSocket connection opened
     socket.addEventListener('open', function (event) {
       self.sendJoinRoom();
     });
 
+    // WebSocket connection error
     socket.addEventListener('error', function (event) {
       self.connectFailure();
     });
@@ -60,26 +61,39 @@ class UwsAdapter extends INetworkAdapter {
     socket.addEventListener('message', function (event) {
       // console.log('Message from server', event.data);
 
-      var packet = JSON.parse(event.data);
+      var message = JSON.parse(event.data);
 
-      if (packet.type === 'roomOccupantsChange') {
-        var occupants = packet.data.occupants;
-        self.roomOccupantListener(occupants);
+      if (message.type === 'roomOccupantsChange') {
+        self.receivedOccupants(message.data.occupants);
       }
-      else if (packet.type === 'connectSuccess') {
-        var data = packet.data;
+      else if (message.type === 'connectSuccess') {
+        var data = message.data;
         var clientId = data.id;
         self.connectSuccess(clientId);
       }
-      else if (packet.type === 'broadcast') {
-        var broadcastPacket = packet.data;
-        var dataType = broadcastPacket.type;
-        var data = broadcastPacket.data;
-        self.messageListener(null, dataType, data);
+      else if (message.type == 'send' || message.type == 'broadcast') {
+        var from = message.from;
+        var msgData = message.data;
+
+        var dataType = msgData.type;
+        var data = msgData.data;
+        self.messageListener(from, dataType, data);
       }
     });
 
     this.socket = socket;
+  }
+
+  sendJoinRoom() {
+    this._send('joinRoom', {room: this.room});
+  }
+
+  receivedOccupants(occupants) {
+    var occupantMap = {};
+    for (var i = 0; i < occupants.length; i++) {
+      occupantMap[occupants[i]] = true;
+    }
+    this.roomOccupantListener(occupantMap);
   }
 
   shouldStartConnectionTo(clientId) {
@@ -99,19 +113,6 @@ class UwsAdapter extends INetworkAdapter {
     this.closedListener(clientId);
   }
 
-  sendData(clientId, dataType, data) {
-    // console.log('sending data', dataType, data);
-    var broadcastPacket = {
-      type: dataType,
-      data: data
-    };
-    this.send('broadcast', broadcastPacket);
-  }
-
-  sendDataGuaranteed(clientId, dataType, data) {
-    this.sendData(clientId, dataType, data);
-  }
-
   getConnectStatus(clientId) {
     var connected = this.connectedClients.indexOf(clientId) != -1;
 
@@ -122,12 +123,35 @@ class UwsAdapter extends INetworkAdapter {
     }
   }
 
-  sendJoinRoom() {
-    this.send('joinRoom', {room: this.room});
+  sendData(clientId, dataType, data) {
+    // console.log('sending data', dataType, data);
+    var sendPacket = {
+      target: clientId,
+      type: dataType,
+      data: data
+    };
+    this._send('send', sendPacket);
   }
 
-  send(dataType, data) {
+  sendDataGuaranteed(clientId, dataType, data) {
+    this.sendData(clientId, dataType, data);
+  }
+
+  broadcastData(dataType, data) {
+    var broadcastPacket = {
+      type: dataType,
+      data: data
+    };
+    this._send('broadcast', broadcastPacket);
+  }
+
+  broadcastDataGuaranteed(dataType, data) {
+    this.broadcastData(dataType, data);
+  }
+
+  _send(dataType, data) {
     var packet = {
+      from: naf.clientId,
       type: dataType,
       data: data
     };

@@ -22,79 +22,6 @@ var webServer = http.createServer(app);
 // Connect Express server to WebSocketServer
 var wss = new WebSocketServer({ server: webServer });
 
-
-function onMessage(message) {
-  var jsonMsg = JSON.parse(message);
-  // console.log(jsonMsg);
-
-  switch (jsonMsg.type) {
-    case 'joinRoom':
-      onJoinRoom(this, jsonMsg.data);
-      break;
-    case 'broadcast':
-      onRoomBroadcast(this, jsonMsg.data);
-      break;
-    default:
-      console.log('Undefined message type: ', jsonMsg.type);
-      break;
-  }
-}
-
-function sendConnectSuccess(ws) {
-  var packet = {
-    type: 'connectSuccess',
-    data: { id: ws.id }
-  };
-  var packetStr = JSON.stringify(packet);
-  ws.send(packetStr);
-  console.log('send ', packet);
-}
-
-function onJoinRoom(ws, data) {
-  var room = data.room;
-  ws.room = room;
-  console.log('joining room', room);
-  updateRoomOccupants(room);
-}
-
-function onRoomBroadcast(ws, data) {
-  var room = ws.room;
-  var packet = {
-    type: 'broadcast',
-    data: data
-  };
-  var packetStr = JSON.stringify(packet);
-  sendToRoom(room, packetStr);
-}
-
-function sendToRoom(room, message) {
-  wss.clients.forEach(function each(client) {
-    if (client.room === room) {
-      client.send(message);
-    }
-  });
-}
-
-function heartbeat() {
-  this.isAlive = true;
-}
-
-function updateRoomOccupants(room) {
-  var occupants = {};
-  wss.clients.forEach(function each(client) {
-    if (client.room === room) {
-      occupants[client.id] = true;
-    }
-  });
-
-  var packet = {
-    type: 'roomOccupantsChange',
-    data: {occupants: occupants}
-  };
-  var packetStr = JSON.stringify(packet);
-  sendToRoom(room, packetStr);
-}
-
 wss.on('connection', function(ws) {
   ws.isAlive = true;
   ws.room = 'default';
@@ -108,6 +35,86 @@ wss.on('connection', function(ws) {
 
   sendConnectSuccess(ws);
 });
+
+function sendConnectSuccess(ws) {
+  var packet = {
+    type: 'connectSuccess',
+    data: { id: ws.id }
+  };
+  var packetStr = JSON.stringify(packet);
+  ws.send(packetStr);
+  console.log('send ', packet);
+}
+
+function onMessage(msg) {
+  var jsonMsg = JSON.parse(msg);
+  var ws = this;
+
+  switch (jsonMsg.type) {
+    case 'joinRoom':
+      onJoinRoom(ws, jsonMsg.data);
+      break;
+    case 'send':
+      onSendToClient(ws.room, jsonMsg, msg);
+      break;
+    case 'broadcast':
+      onRoomBroadcast(ws, msg);
+      break;
+    default:
+      console.log('Undefined message type: ', jsonMsg.type);
+      break;
+  }
+}
+
+function onJoinRoom(ws, data) {
+  var room = data.room;
+  ws.room = room;
+  console.log(ws.id, ' joining room', room);
+  updateRoomOccupants(room);
+}
+
+function onSendToClient(room, jsonMsg, msg) {
+  var targetClient = jsonMsg.data.target;
+  wss.clients.forEach(function each(client) {
+    if (client.room == room && client.id == targetClient) {
+      client.send(msg);
+    }
+  });
+}
+
+function onRoomBroadcast(ws, msg) {
+  var room = ws.room;
+  var excludeClient = ws.id;
+  sendToRoom(room, msg, excludeClient);
+}
+
+function sendToRoom(room, msg, excludeId) {
+  wss.clients.forEach(function each(client) {
+    if (client.room === room && client.id != excludeId) {
+      client.send(msg);
+    }
+  });
+}
+
+function heartbeat() {
+  this.isAlive = true;
+}
+
+function updateRoomOccupants(room) {
+  var occupants = [];
+  wss.clients.forEach(function each(client) {
+    if (client.room === room) {
+      occupants.push(client.id);
+    }
+  });
+
+  var packet = {
+    type: 'roomOccupantsChange',
+    data: {occupants: occupants}
+  };
+  var packetStr = JSON.stringify(packet);
+  sendToRoom(room, packetStr);
+}
 
 var heartbeatInterval = setInterval(function ping() {
   wss.clients.forEach(function each(ws) {
