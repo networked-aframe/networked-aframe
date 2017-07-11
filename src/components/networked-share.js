@@ -86,10 +86,14 @@ AFRAME.registerComponent('networked-share', {
 
     if (!template) { return; }
 
-    var templateChild = document.createElement('a-entity');
-    templateChild.setAttribute('template', 'src:' + template);
-    templateChild.setAttribute('visible', show);
-    this.el.appendChild(templateChild);
+    if (show) {
+      var templateChild = document.createElement('a-entity');
+      templateChild.setAttribute('template', 'src:' + template);
+      templateChild.setAttribute('visible', show);
+
+      this.el.appendChild(templateChild);
+      this.templateEl = templateChild;
+    }
   },
 
   firstUpdate: function() {
