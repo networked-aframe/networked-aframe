@@ -34,6 +34,7 @@ AFRAME.registerComponent('networked-share', {
     this.cachedData = {};
     this.initNetworkId();
     this.initNetworkParent();
+    this.attachAndShowTemplate(this.data.template, this.data.showLocalTemplate);
     this.registerEntity(this.networkId);
     this.checkLoggedIn();
 
@@ -76,6 +77,19 @@ AFRAME.registerComponent('networked-share', {
   registerEntity: function(networkId) {
     naf.entities.registerLocalEntity(networkId, this.el);
     NAF.log.write('Networked-Share registered: ', networkId);
+  },
+
+  attachAndShowTemplate: function(template, show) {
+    if (this.templateEl) {
+      this.el.removeChild(this.templateEl);
+    }
+
+    if (!template) { return; }
+
+    var templateChild = document.createElement('a-entity');
+    templateChild.setAttribute('template', 'src:' + template);
+    templateChild.setAttribute('visible', show);
+    this.el.appendChild(templateChild);
   },
 
   firstUpdate: function() {
