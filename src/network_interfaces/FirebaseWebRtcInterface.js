@@ -141,7 +141,7 @@ class FirebaseWebRtcInterface extends NetworkInterface {
   }
 
   shouldStartConnectionTo(client) {
-    return this.myRoomJoinTime <= client.roomJoinTime;
+    return (this.myRoomJoinTime || 0) <= (client ? client.roomJoinTime : 0);
   }
 
   startStreamConnection(networkId) {
