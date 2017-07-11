@@ -3,13 +3,14 @@ var naf = require('../NafIndex');
 AFRAME.registerComponent('networked-remote', {
   schema: {
     template: {default: ''},
+    showTemplate: {default: true},
     networkId: {default: ''},
     owner: {default: ''},
     components: {default: ['position', 'rotation']}
   },
 
   init: function() {
-    this.attachTemplate(this.data.template);
+    this.attachTemplate(this.data.template, this.data.showTemplate);
     this.attachLerp();
 
     if (this.el.firstUpdateData) {
@@ -17,10 +18,12 @@ AFRAME.registerComponent('networked-remote', {
     }
   },
 
-  attachTemplate: function(template) {
-    var templateChild = document.createElement('a-entity');
-    templateChild.setAttribute('template', 'src:' + template);
-    this.el.appendChild(templateChild);
+  attachTemplate: function(template, show) {
+    if (show) {
+      var templateChild = document.createElement('a-entity');
+      templateChild.setAttribute('template', 'src:' + template);
+      this.el.appendChild(templateChild);
+    }
   },
 
   attachLerp: function() {
@@ -69,6 +72,11 @@ AFRAME.registerComponent('networked-remote', {
     if (entityData[0] == 1) {
       entityData = this.decompressSyncData(entityData);
     }
+
+    if (entityData.physics) {
+      this.updatePhysics(entityData.physics);
+    }
+
     this.updateComponents(entityData.components);
   },
 
@@ -85,6 +93,17 @@ AFRAME.registerComponent('networked-remote', {
         } else {
           this.el.setAttribute(key, data);
         }
+      }
+    }
+  },
+
+  updatePhysics: function(physics) {
+    if (physics) {
+      if (NAF.options.useLerp) {
+        NAF.physics.attachPhysicsLerp(this.el, physics);
+      } else {
+        NAF.physics.detachPhysicsLerp(this.el);
+        NAF.physics.updatePhysics(this.el, physics);
       }
     }
   },

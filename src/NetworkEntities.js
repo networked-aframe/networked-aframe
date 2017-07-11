@@ -46,6 +46,7 @@ class NetworkEntities {
   addNetworkComponent(entity, entityData, components) {
     var networkData = {
       template: entityData.template,
+      showTemplate: entityData.showTemplate,
       owner: entityData.owner,
       networkId: entityData.networkId,
       components: components

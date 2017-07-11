@@ -11,6 +11,10 @@ class NetworkConnection {
 
     this.loggedIn = false;
     this.onLoggedInEvent = new Event('loggedIn');
+    this.onPeerConnectedEvent = new Event('clientConnected');
+    this.onPeerDisconnectedEvent = new Event('clientDisconnected');
+    this.onDCOpenEvent = new Event('dataChannelOpened');
+    this.onDCCloseEvent = new Event('dataChannelClosed');
   }
 
   setNetworkInterface(network) {
@@ -81,6 +85,7 @@ class NetworkConnection {
       if (!clientFound) {
         NAF.log.write('Closing stream to ', id);
         this.network.closeStreamConnection(id);
+        document.body.dispatchEvent(this.onPeerDisconnectedEvent);
       }
     }
   }
@@ -91,6 +96,7 @@ class NetworkConnection {
       if (startConnection) {
         NAF.log.write('Opening stream to ', id);
         this.network.startStreamConnection(id);
+        document.body.dispatchEvent(this.onPeerConnectedEvent);
       }
     }
   }
@@ -115,12 +121,14 @@ class NetworkConnection {
     NAF.log.write('Opened data channel from ' + id);
     this.dcIsActive[id] = true;
     this.entities.completeSync();
+    document.body.dispatchEvent(this.onDCOpenEvent);
   }
 
   dcCloseListener(id) {
     NAF.log.write('Closed data channel from ' + id);
     this.dcIsActive[id] = false;
     this.entities.removeEntitiesFromUser(id);
+    document.body.dispatchEvent(this.onDCCloseEvent);
   }
 
   dcIsConnectedTo(user) {
