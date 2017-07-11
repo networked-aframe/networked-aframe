@@ -50,4 +50,4 @@ module.exports.now = function() {
   return Date.now();
 };
 
-module.exports.delimiter = '|||';
+module.exports.delimiter = '---';
