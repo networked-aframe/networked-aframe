@@ -3,6 +3,9 @@ var deepEqual = require('deep-equal');
 
 AFRAME.registerComponent('networked-share', {
   schema: {
+    template: {default: ''},
+    showLocalTemplate: {default: true},
+    showRemoteTemplate: {default: true},
     networkId: {default: ''},
     owner: {default: ''},
     takeOwnershipEvents: {
@@ -363,6 +366,7 @@ AFRAME.registerComponent('networked-share', {
       owner: this.data.owner,
       takeover: this.takeover,
       template: this.data.template,
+      showTemplate: this.data.showRemoteTemplate,
       parent: this.getParentId(),
       components: components
     };
