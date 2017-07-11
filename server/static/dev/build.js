@@ -2201,7 +2201,6 @@ class Schemas {
 module.exports = Schemas;
 },{}],58:[function(require,module,exports){
 var naf = require('../NafIndex');
-var deepEqual = require('deep-equal');
 
 AFRAME.registerComponent('networked-remote', {
   schema: {
@@ -2399,7 +2398,7 @@ AFRAME.registerComponent('networked-remote', {
     return a.selector == b.selector && a.component == b.component;
   }
 });
-},{"../NafIndex":49,"deep-equal":4}],59:[function(require,module,exports){
+},{"../NafIndex":49}],59:[function(require,module,exports){
 var naf = require('../NafIndex');
 
 var EasyRtcInterface = require('../network_interfaces/EasyRtcInterface');
@@ -3238,18 +3237,43 @@ AFRAME.registerComponent('networked', {
     var dirtyComps = [];
 
     for (var i in syncedComps) {
-      var name = syncedComps[i];
-      if (!newComps.hasOwnProperty(name)) {
+      var schema = syncedComps[i];
+      var compKey;
+      var newCompData;
+
+      var isRootComponent = typeof schema === 'string';
+
+      if (isRootComponent) {
+        var hasComponent = newComps.hasOwnProperty(schema)
+        if (!hasComponent) {
+          continue;
+        }
+        compKey = schema;
+        newCompData = newComps[schema].getData();
+      }
+      else {
+        // is child component
+        var selector = schema.selector;
+        var compName = schema.component;
+
+        var childEl = this.el.querySelector(selector);
+        var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
+        if (!hasComponent) {
+          continue;
+        }
+        compKey = this.childSchemaToKey(schema);
+        newCompData = childEl.components[compName].getData();
+      }
+      
+      var compIsCached = this.cachedData.hasOwnProperty(compKey)
+      if (!compIsCached) {
+        dirtyComps.push(schema);
         continue;
       }
-      if (!this.cachedData.hasOwnProperty(name)) {
-        dirtyComps.push(name);
-        continue;
-      }
-      var oldCompData = this.cachedData[name];
-      var newCompData = newComps[name].getData();
+
+      var oldCompData = this.cachedData[compKey];
       if (!deepEqual(oldCompData, newCompData)) {
-        dirtyComps.push(name);
+        dirtyComps.push(schema);
       }
     }
     return dirtyComps;

@@ -1,15 +1,10 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Basic AR Example — Networked-Aframe</title>
-    <meta name="description" content="Basic AR Example — Networked-Aframe">
+    <title>Basic Example — Networked-Aframe</title>
+    <meta name="description" content="Basic Example — Networked-Aframe">
 
     <script src="https://aframe.io/releases/0.6.0/aframe.min.js"></script>
-
-    <!-- AR -->
-    <script src="https://rawgit.com/jeromeetienne/ar.js/master/aframe/build/aframe-ar.js"></script>
-    <script>THREEx.ArToolkitContext.baseURL = 'https://rawgit.com/jeromeetienne/ar.js/master/three.js/'</script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="easyrtc/easyrtc.js"></script>
     <script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js"></script>
@@ -19,80 +14,57 @@
     <script src="js/spawn-in-circle.component.js"></script>
 
     <script>
-      // Define custom schema for syncing avatar color, set by random-color
+      // Define custom schema for syncing avatar
       var avatarSchema = {
         template: '#avatar-template',
         components: [
           'position',
-          'rotation',
-          {
-            selector: '.head',
-            component: 'material'
-          }
+          'rotation'
         ]
       };
       NAF.schemas.add(avatarSchema);
     </script>
-    <script>
-      function onARConnect () {
-        console.log('AR Client Connected');
-      }
-    </script>
   </head>
   <body>
 
-    <a-scene artoolkit='sourceType: webcam;' network-scene="
-      room: basic;
+    <a-scene networked-scene="
+      room: blocks;
       debug: true;
-      onConnect: onARConnect;
     ">
       <a-assets>
+
+        <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
+        <img id="sky" src="https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+
+        <a-asset-item id="raccoon-obj" src="./assets/Raccoon_Blocks/model.obj"></a-asset-item>
+        <a-asset-item id="raccoon-mtl" src="./assets/Raccoon_Blocks/materials.mtl"></a-asset-item>
+
+        <a-asset-item id="scene-obj" src="./assets/Campfire_Blocks/model.obj"></a-asset-item>
+        <a-asset-item id="scene-mtl" src="./assets/Campfire_Blocks/materials.mtl"></a-asset-item>
+
+        <img id="sechelt" crossorigin="anonymous" src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/sechelt.jpg">
+
         <!-- Templates -->
 
         <!-- Avatar -->
         <script id="avatar-template" type="text/html">
-          <a-entity class="avatar">
-            <a-sphere class="head"
-              color="#5985ff"
-              scale="0.45 0.5 0.4"
-              random-color
-            ></a-sphere>
-            <a-entity class="face"
-              position="0 0.05 0"
-            >
-              <a-sphere class="eye"
-                color="#efefef"
-                position="0.16 0.1 -0.35"
-                scale="0.12 0.12 0.12"
-              >
-                <a-sphere class="pupil"
-                  color="#000"
-                  position="0 0 -1"
-                  scale="0.2 0.2 0.2"
-                ></a-sphere>
-              </a-sphere>
-              <a-sphere class="eye"
-                color="#efefef"
-                position="-0.16 0.1 -0.35"
-                scale="0.12 0.12 0.12"
-              >
-                <a-sphere class="pupil"
-                  color="#000"
-                  position="0 0 -1"
-                  scale="0.2 0.2 0.2"
-                ></a-sphere>
-              </a-sphere>
-            </a-entity>
+          <a-entity class="heads">
+            <a-entity obj-model="obj: #raccoon-obj; mtl: #raccoon-mtl" scale="5 5 5"></a-entity>
           </a-entity>
         </script>
 
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>
-      <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity>
+      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:2;" wasd-controls look-controls>
+      </a-entity>
 
-      <a-marker-camera preset='hiro'></a-marker-camera>
+      <!-- <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity> -->
+      <!-- <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity> -->
+
+      <a-sky id="image-360" radius="100" src="#sechelt" data-set-image-fade-setup="true" animation__fade=""></a-sky>
+
+      <a-entity obj-model="obj: #scene-obj; mtl: #scene-mtl" position="-0.542 1.5 -6.206" scale="30 30 30"></a-entity>
     </a-scene>
 
     <!-- GitHub Corner. -->

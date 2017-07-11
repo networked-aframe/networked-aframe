@@ -1,5 +1,4 @@
 var naf = require('../NafIndex');
-var deepEqual = require('deep-equal');
 
 AFRAME.registerComponent('networked-remote', {
   schema: {
