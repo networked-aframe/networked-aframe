@@ -108,6 +108,7 @@ AFRAME.registerComponent('networked-share', {
       var entityData = that.el.firstUpdateData;
       that.networkUpdate(entityData);
     };
+    // FIXME: this timeout-based stall should be event driven!!!
     setTimeout(callback, 50);
   },
 
