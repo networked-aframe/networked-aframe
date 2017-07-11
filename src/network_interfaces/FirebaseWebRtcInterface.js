@@ -159,6 +159,7 @@ class FirebaseWebRtcInterface extends NetworkInterface {
   }
 
   sendDataGuaranteed(networkId, dataType, data) {
+    if (data.takeover === undefined) { data.takeover = null; }
     this.firebase.database().ref(this.getDataPath(this.id)).set({
       to: networkId,
       type: dataType,
