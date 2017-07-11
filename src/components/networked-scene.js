@@ -21,9 +21,17 @@ AFRAME.registerComponent('networked-scene', {
     firebaseDatabaseURL: {default: ''},
 
     debug: {default: false},
+
+    updateRate: {default: 0},
+    useLerp: {default: true},
+    compressSyncPackets: {default: false},
   },
 
   init: function() {
+    if (this.data.updateRate) { naf.options.updateRate = this.data.updateRate; }
+    naf.options.useLerp = this.data.useLerp;
+    naf.options.compressSyncPackets = this.data.compressSyncPackets;
+
     this.el.addEventListener('connect', this.connect.bind(this));
     if (this.data.connectOnLoad) {
       this.el.emit('connect', null, false);
