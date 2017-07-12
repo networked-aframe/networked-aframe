@@ -63,35 +63,37 @@ AFRAME.registerComponent('networked', {
 
     if (!template) { return; }
 
-    var templateChild = document.createElement('a-entity');
-    templateChild.setAttribute('template', 'src:' + template);
-    //templateChild.setAttribute('visible', show);
+    if (show) {
+      var templateChild = document.createElement('a-entity');
+      templateChild.setAttribute('template', 'src:' + template);
+      //templateChild.setAttribute('visible', show);
 
-    var self = this;
-    var el = this.el;
-    templateChild.addEventListener('templaterendered', function () {
-      var cloned = templateChild.firstChild;
-      // mirror the attributes
-      Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
-        el.setAttribute(attr.nodeName, attr.nodeValue);
+      var self = this;
+      var el = this.el;
+      templateChild.addEventListener('templaterendered', function () {
+        var cloned = templateChild.firstChild;
+        // mirror the attributes
+        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+          el.setAttribute(attr.nodeName, attr.nodeValue);
+        });
+        // take the children
+        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+          cloned.removeChild(child);
+          el.appendChild(child);
+        }
+
+        cloned.pause();
+        templateChild.pause();
+        setTimeout(function() {
+          templateChild.removeChild(cloned);
+          el.removeChild(self.templateEl);
+          delete self.templateEl;
+        });
       });
-      // take the children
-      for (var child = cloned.firstChild; child; child = cloned.firstChild) {
-        cloned.removeChild(child);
-        el.appendChild(child);
-      }
 
-      cloned.pause();
-      templateChild.pause();
-      setTimeout(function() {
-        templateChild.removeChild(cloned);
-        el.removeChild(self.templateEl);
-        delete self.templateEl;
-      });
-    });
-
-    this.el.appendChild(templateChild);
-    this.templateEl = templateChild;
+      this.el.appendChild(templateChild);
+      this.templateEl = templateChild;
+    }
   },
 
   play: function() {
