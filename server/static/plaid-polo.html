@@ -1,0 +1,252 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Basic Example — Networked-Aframe</title>
+    <meta name="description" content="Basic Example — Networked-Aframe">
+    <script src="//rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script>
+    <script src="//rawgit.com/feiss/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
+    <script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v1.4.2/dist/aframe-physics-system.min.js"></script>
+<!--
+    <script src="//rawgit.com/chenzlabs/networked-aframe/toward-0.3.0/dist/networked-aframe.js"></script>
+-->
+    <script src="dev/build.js"></script>
+<!-- 
+    Currently, networked-aframe uses EasyRTC, which uses socket.io.
+    This stack appears to impose some early scaling constraints (~700 users max?)
+-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script src="easyrtc/easyrtc.js"></script>
+<!-- 
+    Firebase 
+
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+-->    
+    <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+    <script src="js/spawn-in-circle.component.js"></script>
+
+  </head>
+  <body>
+
+    <script>
+/* Firebase problem... selectors will contain . or # in all likelihood
+firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an invalid key (.head|||material) in property 'networked-aframe.default.basic.qOs6mmtIbr396x4t.data.data.components'.  Keys must be non-empty strings and can't contain ".", "#", "$", "/", "[", or "]"
+*/               
+      // Define custom schema for syncing avatar color, set by random-color
+      var avatarSchema = {
+        template: '#avatar-template',
+        components: [
+          'position',
+          'rotation',
+          {selector: 'a-sphere', component: 'material', property: 'color'},
+        ]
+      };
+      NAF.schemas.add(avatarSchema);
+      
+      // Define custom schema for syncing ball pose and color, set by random-color
+      var ballSchema = {
+        template: '#ball-template',
+        components: [
+          'position',
+          'rotation',
+          {component: 'material', property: 'color'},
+        ]
+      };
+      NAF.schemas.add(ballSchema);
+      
+      // Define custom schema for syncing ball pose and color, set by random-color
+      var boxSchema = {
+        template: '#box-template',
+        components: [
+          'position',
+          'rotation',
+          {component: 'material', property: 'color'},
+        ]
+      };
+      NAF.schemas.add(boxSchema);
+    </script>
+   <a-scene networked-scene="
+      room: basic; debug: true;
+      updateRate: 30; useLerp: false; compressSyncPackets: true;
+      webrtc: true;
+   ">
+<!--
+   <a-scene networked-scene="
+      room: basic; debug: true;
+                  
+      updateRate: 30; useLerp: false; compressSyncPackets: true;
+                              
+      webrtc: true;
+      firebase: true;
+      firebaseAuthType: none;
+      firebaseApiKey: redacted;
+      firebaseAuthDomain: plaid-polo.firebaseapp.com;
+      firebaseDatabaseURL: https://plaid-polo.firebaseio.com;      
+    ">
+-->
+      <a-assets>
+        <!-- Templates -->
+
+        <!-- Avatar -->
+        <script id="avatar-template" type="text/html">
+          <a-entity class="avatar">
+            <a-sphere class="head" static-body
+              color="#5985ff"
+              scale="0.45 0.5 0.4"
+              random-color
+            ></a-sphere>
+            <a-entity class="face"
+              position="0 0.05 0"
+            >
+              <a-sphere class="eye"
+                color="#efefef"
+                position="0.16 0.1 -0.35"
+                scale="0.12 0.12 0.12"
+              >
+                <a-sphere class="pupil"
+                  color="#000"
+                  position="0 0 -1"
+                  scale="0.2 0.2 0.2"
+                ></a-sphere>
+              </a-sphere>
+              <a-sphere class="eye"
+                color="#efefef"
+                position="-0.16 0.1 -0.35"
+                scale="0.12 0.12 0.12"
+              >
+                <a-sphere class="pupil"
+                  color="#000"
+                  position="0 0 -1"
+                  scale="0.2 0.2 0.2"
+                ></a-sphere>
+              </a-sphere>
+            </a-entity>
+          </a-entity>
+        </script>
+
+        <!-- with this template, local and remote objects interact
+         ... remote objects need to be static-body to avoid fighting -->                
+
+        <script id="ball-template" type="text/html">
+            <a-entity
+	      geometry="primitive: sphere; radius: 0.2"
+              static-body
+              material="color:#5985ff"
+              random-color
+            ></a-entity>
+        </script>        
+
+        <script id="box-template" type="text/html">
+            <a-entity
+	      geometry="primitive: box; width: 0.25; height: 0.25; depth: 0.25"
+              static-body
+              material="color:blue"
+              random-color
+            ></a-entity>
+        </script>        
+                
+        <!-- /Templates -->
+      </a-assets>
+
+      <a-entity id="player" 
+                networked="template:#avatar-template;showLocalTemplate:false;" 
+                camera 
+                spawn-in-circle="radius:3;" 
+                position="0 1.3 0" 
+                wasd-controls 
+                look-controls>
+      </a-entity>
+
+      <a-entity environment="preset:forest"></a-entity>
+      <a-plane id="ground" width="1000" height="1000" rotation="90 0 0" static-body></a-plane>
+    </a-scene>
+
+    <script>
+      function createNetEntityFromSchema(schema, position, rotation, networkId) { 
+        var en = document.createElement('a-entity');
+	if (position) { en.setAttribute('position', position); }
+	if (rotation) { en.setAttribute('rotation', rotation); }
+/*
+        en.setAttribute('networked', {
+          physics: true,
+          template: schema.template,
+          components: schema.components
+        });
+*/
+	if (!networkId) { networkId = Math.random().toString(36).substring(2, 9); }
+        en.setAttribute('id', 'naf-' + networkId);
+        en.setAttribute('networked-share', {
+          physics: true,
+          template: schema.template,
+          components: schema.components,
+          networkId: networkId,
+          // this is default now... owner: NAF.clientId // we own it to start
+        });
+
+        return en;
+      }
+
+      function addNetEntityFromSchema(schema, position, rotation, networkId, el) {
+        var en = createNetEntityFromSchema(schema, position, rotation, networkId);
+
+	if (!el) { el = document.querySelector('a-scene'); }
+	el.appendChild(en);
+
+        // NECESSARY EVIL HACK: we need to cheat and make ours dynamic-body not static-body
+        // FIXME: how do we know when the template has been instantiated?
+        // OK with this trickery, local template works!
+        setTimeout(function () {
+          en.removeAttribute('static-body');
+          en.setAttribute('dynamic-body', '');
+          en.body.type = 1; // dynamic
+          en.body.updateMassProperties();
+        }, 100);
+      }
+
+      document.body.addEventListener('click', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+        // make a ball that we own
+	addNetEntityFromSchema(ballSchema, '0 2 0');
+      });
+
+      // add handlers for loggedIn, client connected / disconnected, etc.
+      
+      document.body.addEventListener('loggedIn', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+        
+
+        // wait for a bit to see if it comes across the wire
+        // that's not gonna work, we don't get all the prior objects
+        setTimeout(function () {
+          
+        if (document.querySelector('#naf-onlyonebox')) { 
+          console.log('already naf-onlyonebox');
+          return; 
+        }
+
+        }, 1000);
+	addNetEntityFromSchema(boxSchema, '0.25 3 0', undefined, 'onlyonebox');
+      });
+      
+      document.body.addEventListener('clientConnected', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+        // TODO: find a reliable way to count connections (NOT entities)
+      });
+      document.body.addEventListener('clientDisconnected', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+        // TODO: find a reliable way to count connections (NOT entities)
+      });      
+      document.body.addEventListener('dataChannelOpened', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+      });
+      document.body.addEventListener('dataChannelClosed', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+      });      
+    </script>
+  </body>
+</html>
