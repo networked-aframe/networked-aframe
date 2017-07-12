@@ -16,6 +16,8 @@ module.exports.getNetworkOwner = function(entity) {
   var components = entity.components;
   if (components.hasOwnProperty('networked-remote')) {
     return entity.components['networked-remote'].data.owner;
+  } else if (components.hasOwnProperty('networked-share')) {
+    return entity.components['networked-share'].data.owner;
   } else if (components.hasOwnProperty('networked')) {
     return entity.components['networked'].owner;
   }
