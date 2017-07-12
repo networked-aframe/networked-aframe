@@ -65,7 +65,30 @@ AFRAME.registerComponent('networked', {
 
     var templateChild = document.createElement('a-entity');
     templateChild.setAttribute('template', 'src:' + template);
-    templateChild.setAttribute('visible', show);
+    //templateChild.setAttribute('visible', show);
+
+    var self = this;
+    var el = this.el;
+    templateChild.addEventListener('templaterendered', function () {
+      var cloned = templateChild.firstChild;
+      // mirror the attributes
+      Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+        el.setAttribute(attr.nodeName, attr.nodeValue);
+      });
+      // take the children
+      for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+        cloned.removeChild(child);
+        el.appendChild(child);
+      }
+
+      cloned.pause();
+      templateChild.pause();
+      setTimeout(function() {
+        templateChild.removeChild(cloned);
+        el.removeChild(self.templateEl);
+        delete self.templateEl;
+      });
+    });
 
     this.el.appendChild(templateChild);
     this.templateEl = templateChild;
@@ -144,7 +167,7 @@ AFRAME.registerComponent('networked', {
         }
       } else {
         var childKey = naf.utils.childSchemaToKey(element);
-        var child = this.el.querySelector(element.selector);
+        var child = element.selector ? this.el.querySelector(element.selector) : this.el;
         if (child) {
           var comp = child.components[element.component];
           if (comp) {
@@ -185,7 +208,7 @@ AFRAME.registerComponent('networked', {
         var compName = schema.component;
         var propName = schema.property;
 
-        var childEl = this.el.querySelector(selector);
+        var childEl = selector ? this.el.querySelector(selector) : this.el;
         var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
         if (!hasComponent) {
           continue;
