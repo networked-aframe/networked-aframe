@@ -1819,6 +1819,23 @@
 
 	module.exports.delimiter = '---';
 
+	module.exports.childSchemaToKey = function (schema) {
+	  return (schema.selector || '') + module.exports.delimiter + schema.component + module.exports.delimiter + (schema.property || '');
+	};
+
+	module.exports.keyToChildSchema = function (key) {
+	  var splitKey = key.split(module.exports.delimiter, 3);
+	  return { selector: splitKey[0] || undefined, component: splitKey[1], property: splitKey[2] || undefined };
+	};
+
+	module.exports.isChildSchemaKey = function (key) {
+	  return key.indexOf(module.exports.delimiter) != -1;
+	};
+
+	module.exports.childSchemaEqual = function (a, b) {
+	  return a.selector == b.selector && a.component == b.component && a.property == b.property;
+	};
+
 /***/ }),
 /* 49 */
 /***/ (function(module, exports) {
@@ -3832,12 +3849,12 @@
 	          compsWithData[name] = elComponent.getData();
 	        }
 	      } else {
-	        var childKey = this.childSchemaToKey(element);
+	        var childKey = naf.utils.childSchemaToKey(element);
 	        var child = this.el.querySelector(element.selector);
 	        if (child) {
 	          var comp = child.components[element.component];
 	          if (comp) {
-	            var data = comp.getData();
+	            var data = element.property ? comp.data[element.property] : comp.getData();
 	            compsWithData[childKey] = data;
 	          } else {
 	            naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
@@ -3871,14 +3888,18 @@
 	        // is child component
 	        var selector = schema.selector;
 	        var compName = schema.component;
+	        var propName = schema.property;
 
 	        var childEl = this.el.querySelector(selector);
 	        var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
 	        if (!hasComponent) {
 	          continue;
 	        }
-	        compKey = this.childSchemaToKey(schema);
+	        compKey = naf.utils.childSchemaToKey(schema);
 	        newCompData = childEl.components[compName].getData();
+	        if (propName) {
+	          newCompData = newCompData[propName];
+	        }
 	      }
 
 	      var compIsCached = this.cachedData.hasOwnProperty(compKey);
@@ -3963,7 +3984,7 @@
 	      if (typeof components[i] === 'string') {
 	        name = components[i];
 	      } else {
-	        name = this.childSchemaToKey(components[i]);
+	        name = naf.utils.childSchemaToKey(components[i]);
 	      }
 	      if (syncComponents.hasOwnProperty(name)) {
 	        compMap[i] = syncComponents[name];
@@ -3981,12 +4002,6 @@
 	  remove: function remove() {
 	    var data = { networkId: this.networkId };
 	    naf.connection.broadcastData('r', data);
-	  },
-
-	  /* Static schema calls */
-
-	  childSchemaToKey: function childSchemaToKey(childSchema) {
-	    return childSchema.selector + naf.utils.delimiter + childSchema.component;
 	  }
 	});
 
@@ -4222,12 +4237,16 @@
 	    for (var key in components) {
 	      if (this.isSyncableComponent(key)) {
 	        var data = components[key];
-	        if (this.isChildSchemaKey(key)) {
-	          var schema = this.keyToChildSchema(key);
+	        if (naf.utils.isChildSchemaKey(key)) {
+	          var schema = naf.utils.keyToChildSchema(key);
 	          var childEl = this.el.querySelector(schema.selector);
 	          if (childEl) {
 	            // Is false when first called in init
-	            childEl.setAttribute(schema.component, data);
+	            if (schema.property) {
+	              childEl.setAttribute(schema.component, schema.property, data);
+	            } else {
+	              childEl.setAttribute(schema.component, data);
+	            }
 	          }
 	        } else {
 	          this.el.setAttribute(key, data);
@@ -4286,7 +4305,7 @@
 	      if (typeof schemaComp === "string") {
 	        name = schemaComp;
 	      } else {
-	        name = this.childSchemaToKey(schemaComp);
+	        name = naf.utils.childSchemaToKey(schemaComp);
 	      }
 	      decompressed[name] = compressed[i];
 	    }
@@ -4294,8 +4313,8 @@
 	  },
 
 	  isSyncableComponent: function isSyncableComponent(key) {
-	    if (this.isChildSchemaKey(key)) {
-	      var schema = this.keyToChildSchema(key);
+	    if (naf.utils.isChildSchemaKey(key)) {
+	      var schema = naf.utils.keyToChildSchema(key);
 	      return this.hasThisChildSchema(schema);
 	    } else {
 	      return this.data.components.indexOf(key) != -1;
@@ -4306,33 +4325,11 @@
 	    var schemaComponents = this.data.components;
 	    for (var i in schemaComponents) {
 	      var localChildSchema = schemaComponents[i];
-	      if (this.childSchemaEqual(localChildSchema, schema)) {
+	      if (naf.utils.childSchemaEqual(localChildSchema, schema)) {
 	        return true;
 	      }
 	    }
 	    return false;
-	  },
-
-	  /* Static schema calls */
-
-	  childSchemaToKey: function childSchemaToKey(childSchema) {
-	    return childSchema.selector + naf.utils.delimiter + childSchema.component;
-	  },
-
-	  isChildSchemaKey: function isChildSchemaKey(key) {
-	    return key.indexOf(naf.utils.delimiter) != -1;
-	  },
-
-	  keyToChildSchema: function keyToChildSchema(key) {
-	    var split = key.split(naf.utils.delimiter);
-	    return {
-	      selector: split[0],
-	      component: split[1]
-	    };
-	  },
-
-	  childSchemaEqual: function childSchemaEqual(a, b) {
-	    return a.selector == b.selector && a.component == b.component;
 	  }
 	});
 
@@ -4680,12 +4677,12 @@
 	          compsWithData[name] = elComponent.getData();
 	        }
 	      } else {
-	        var childKey = this.childSchemaToKey(element);
+	        var childKey = naf.utils.childSchemaToKey(element);
 	        var child = this.el.querySelector(element.selector);
 	        if (child) {
 	          var comp = child.components[element.component];
 	          if (comp) {
-	            var data = comp.getData();
+	            var data = element.property ? comp.data[element.property] : comp.getData();
 	            compsWithData[childKey] = data;
 	          } else {
 	            naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
@@ -4719,14 +4716,18 @@
 	        // is child component
 	        var selector = schema.selector;
 	        var compName = schema.component;
+	        var propName = schema.property;
 
 	        var childEl = this.el.querySelector(selector);
 	        var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
 	        if (!hasComponent) {
 	          continue;
 	        }
-	        compKey = this.childSchemaToKey(schema);
+	        compKey = naf.utils.childSchemaToKey(schema);
 	        newCompData = childEl.components[compName].getData();
+	        if (propName) {
+	          newCompData = newCompData[propName];
+	        }
 	      }
 
 	      var compIsCached = this.cachedData.hasOwnProperty(compKey);
@@ -4797,12 +4798,16 @@
 	    for (var key in components) {
 	      if (this.isSyncableComponent(key)) {
 	        var data = components[key];
-	        if (this.isChildSchemaKey(key)) {
-	          var schema = this.keyToChildSchema(key);
+	        if (naf.utils.isChildSchemaKey(key)) {
+	          var schema = naf.utils.keyToChildSchema(key);
 	          var childEl = this.el.querySelector(schema.selector);
 	          if (childEl) {
 	            // Is false when first called in init
-	            childEl.setAttribute(schema.component, data);
+	            if (schema.property) {
+	              child.setAttribute(scheme.component, schema.property, data);
+	            } else {
+	              childEl.setAttribute(schema.component, data);
+	            }
 	          }
 	        } else {
 	          this.el.setAttribute(key, data);
@@ -4871,7 +4876,7 @@
 	      if (typeof components[i] === 'string') {
 	        name = components[i];
 	      } else {
-	        name = this.childSchemaToKey(components[i]);
+	        name = naf.utils.childSchemaToKey(components[i]);
 	      }
 	      if (syncComponents.hasOwnProperty(name)) {
 	        compMap[i] = syncComponents[name];
@@ -4919,7 +4924,7 @@
 	      if (typeof schemaComp === "string") {
 	        name = schemaComp;
 	      } else {
-	        name = this.childSchemaToKey(schemaComp);
+	        name = naf.utils.childSchemaToKey(schemaComp);
 	      }
 	      decompressed[name] = compressed[i];
 	    }
@@ -4927,8 +4932,8 @@
 	  },
 
 	  isSyncableComponent: function isSyncableComponent(key) {
-	    if (this.isChildSchemaKey(key)) {
-	      var schema = this.keyToChildSchema(key);
+	    if (naf.utils.isChildSchemaKey(key)) {
+	      var schema = naf.utils.keyToChildSchema(key);
 	      return this.hasThisChildSchema(schema);
 	    } else {
 	      return this.data.components.indexOf(key) != -1;
@@ -4945,33 +4950,11 @@
 	    var schemaComponents = this.data.components;
 	    for (var i in schemaComponents) {
 	      var localChildSchema = schemaComponents[i];
-	      if (this.childSchemaEqual(localChildSchema, schema)) {
+	      if (naf.utils.childSchemaEqual(localChildSchema, schema)) {
 	        return true;
 	      }
 	    }
 	    return false;
-	  },
-
-	  /* Static schema calls */
-
-	  childSchemaToKey: function childSchemaToKey(childSchema) {
-	    return childSchema.selector + naf.utils.delimiter + childSchema.component;
-	  },
-
-	  isChildSchemaKey: function isChildSchemaKey(key) {
-	    return key.indexOf(naf.utils.delimiter) != -1;
-	  },
-
-	  keyToChildSchema: function keyToChildSchema(key) {
-	    var split = key.split(naf.utils.delimiter);
-	    return {
-	      selector: split[0],
-	      component: split[1]
-	    };
-	  },
-
-	  childSchemaEqual: function childSchemaEqual(a, b) {
-	    return a.selector == b.selector && a.component == b.component;
 	  },
 
 	  remove: function remove() {
