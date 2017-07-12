@@ -143,12 +143,12 @@ AFRAME.registerComponent('networked', {
           compsWithData[name] = elComponent.getData();
         }
       } else {
-        var childKey = this.childSchemaToKey(element);
+        var childKey = naf.utils.childSchemaToKey(element);
         var child = this.el.querySelector(element.selector);
         if (child) {
           var comp = child.components[element.component];
           if (comp) {
-            var data = comp.getData();
+            var data = element.property ? comp.data[element.property] : comp.getData();
             compsWithData[childKey] = data;
           } else {
             naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
@@ -183,14 +183,16 @@ AFRAME.registerComponent('networked', {
         // is child component
         var selector = schema.selector;
         var compName = schema.component;
+        var propName = schema.property;
 
         var childEl = this.el.querySelector(selector);
         var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
         if (!hasComponent) {
           continue;
         }
-        compKey = this.childSchemaToKey(schema);
+        compKey = naf.utils.childSchemaToKey(schema);
         newCompData = childEl.components[compName].getData();
+        if (propName) { newCompData = newCompData[propName]; }
       }
       
       var compIsCached = this.cachedData.hasOwnProperty(compKey)
@@ -275,7 +277,7 @@ AFRAME.registerComponent('networked', {
       if (typeof components[i] === 'string') {
         name = components[i];
       } else {
-        name = this.childSchemaToKey(components[i]);
+        name = naf.utils.childSchemaToKey(components[i]);
       }
       if (syncComponents.hasOwnProperty(name)) {
         compMap[i] = syncComponents[name];
@@ -293,11 +295,5 @@ AFRAME.registerComponent('networked', {
   remove: function () {
     var data = { networkId: this.networkId };
     naf.connection.broadcastData('r', data);
-  },
-
-  /* Static schema calls */
-
-  childSchemaToKey: function(childSchema) {
-    return childSchema.selector + naf.utils.delimiter + childSchema.component;
   },
 });

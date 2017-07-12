@@ -84,11 +84,12 @@ AFRAME.registerComponent('networked-remote', {
     for (var key in components) {
       if (this.isSyncableComponent(key)) {
         var data = components[key];
-        if (this.isChildSchemaKey(key)) {
-          var schema = this.keyToChildSchema(key);
+        if (naf.utils.isChildSchemaKey(key)) {
+          var schema = naf.utils.keyToChildSchema(key);
           var childEl = this.el.querySelector(schema.selector);
           if (childEl) { // Is false when first called in init
-            childEl.setAttribute(schema.component, data);
+            if (schema.property) { childEl.setAttribute(schema.component, schema.property, data); }
+            else { childEl.setAttribute(schema.component, data); }
           }
         } else {
           this.el.setAttribute(key, data);
@@ -147,7 +148,7 @@ AFRAME.registerComponent('networked-remote', {
       if (typeof schemaComp === "string") {
         name = schemaComp;
       } else {
-        name = this.childSchemaToKey(schemaComp);
+        name = naf.utils.childSchemaToKey(schemaComp);
       }
       decompressed[name] = compressed[i];
     }
@@ -155,8 +156,8 @@ AFRAME.registerComponent('networked-remote', {
   },
 
   isSyncableComponent: function(key) {
-    if (this.isChildSchemaKey(key)) {
-      var schema = this.keyToChildSchema(key);
+    if (naf.utils.isChildSchemaKey(key)) {
+      var schema = naf.utils.keyToChildSchema(key);
       return this.hasThisChildSchema(schema);
     } else {
       return this.data.components.indexOf(key) != -1;
@@ -167,32 +168,10 @@ AFRAME.registerComponent('networked-remote', {
     var schemaComponents = this.data.components;
     for (var i in schemaComponents) {
       var localChildSchema = schemaComponents[i];
-      if (this.childSchemaEqual(localChildSchema, schema)) {
+      if (naf.utils.childSchemaEqual(localChildSchema, schema)) {
         return true;
       }
     }
     return false;
   },
-
-  /* Static schema calls */
-
-  childSchemaToKey: function(childSchema) {
-    return childSchema.selector + naf.utils.delimiter + childSchema.component;
-  },
-
-  isChildSchemaKey: function(key) {
-    return key.indexOf(naf.utils.delimiter) != -1;
-  },
-
-  keyToChildSchema: function(key) {
-    var split = key.split(naf.utils.delimiter);
-    return {
-      selector: split[0],
-      component: split[1]
-    };
-  },
-
-  childSchemaEqual: function(a, b) {
-    return a.selector == b.selector && a.component == b.component;
-  }
 });

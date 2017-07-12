@@ -51,3 +51,20 @@ module.exports.now = function() {
 };
 
 module.exports.delimiter = '---';
+
+module.exports.childSchemaToKey = function(schema) {
+  return (schema.selector || '') + module.exports.delimiter + schema.component + module.exports.delimiter + (schema.property || '');
+};
+
+module.exports.keyToChildSchema = function(key) {
+  var splitKey = key.split(module.exports.delimiter, 3);
+  return { selector: splitKey[0] || undefined, component: splitKey[1], property: splitKey[2] || undefined};
+};
+
+module.exports.isChildSchemaKey = function(key) {
+  return key.indexOf(module.exports.delimiter) != -1;
+};
+
+module.exports.childSchemaEqual = function(a, b) {
+  return a.selector == b.selector && a.component == b.component && a.property == b.property;
+};
