@@ -1817,7 +1817,7 @@
 	  return Date.now();
 	};
 
-	module.exports.delimiter = '|||';
+	module.exports.delimiter = '---';
 
 /***/ }),
 /* 49 */
@@ -2693,10 +2693,20 @@
 	    firebaseAuthDomain: { default: '' },
 	    firebaseDatabaseURL: { default: '' },
 
-	    debug: { default: false }
+	    debug: { default: false },
+
+	    updateRate: { default: 0 },
+	    useLerp: { default: true },
+	    compressSyncPackets: { default: false }
 	  },
 
 	  init: function init() {
+	    if (this.data.updateRate) {
+	      naf.options.updateRate = this.data.updateRate;
+	    }
+	    naf.options.useLerp = this.data.useLerp;
+	    naf.options.compressSyncPackets = this.data.compressSyncPackets;
+
 	    this.el.addEventListener('connect', this.connect.bind(this));
 	    if (this.data.connectOnLoad) {
 	      this.el.emit('connect', null, false);
@@ -3243,7 +3253,7 @@
 	  }, {
 	    key: 'shouldStartConnectionTo',
 	    value: function shouldStartConnectionTo(client) {
-	      return this.myRoomJoinTime <= client.roomJoinTime;
+	      return (this.myRoomJoinTime || 0) <= (client ? client.roomJoinTime : 0);
 	    }
 	  }, {
 	    key: 'startStreamConnection',
@@ -3265,6 +3275,9 @@
 	  }, {
 	    key: 'sendDataGuaranteed',
 	    value: function sendDataGuaranteed(networkId, dataType, data) {
+	      if (data.takeover === undefined) {
+	        data.takeover = null;
+	      }
 	      this.firebase.database().ref(this.getDataPath(this.id)).set({
 	        to: networkId,
 	        type: dataType,
@@ -3731,18 +3744,20 @@
 	  },
 
 	  attachAndShowTemplate: function attachAndShowTemplate(template, show) {
-	    if (show) {
-	      if (this.templateEl) {
-	        this.el.removeChild(this.templateEl);
-	      }
-
-	      var templateChild = document.createElement('a-entity');
-	      templateChild.setAttribute('template', 'src:' + template);
-	      templateChild.setAttribute('visible', show);
-
-	      this.el.appendChild(templateChild);
-	      this.templateEl = templateChild;
+	    if (this.templateEl) {
+	      this.el.removeChild(this.templateEl);
 	    }
+
+	    if (!template) {
+	      return;
+	    }
+
+	    var templateChild = document.createElement('a-entity');
+	    templateChild.setAttribute('template', 'src:' + template);
+	    templateChild.setAttribute('visible', show);
+
+	    this.el.appendChild(templateChild);
+	    this.templateEl = templateChild;
 	  },
 
 	  play: function play() {
@@ -4363,6 +4378,7 @@
 	    this.cachedData = {};
 	    this.initNetworkId();
 	    this.initNetworkParent();
+	    this.attachAndShowTemplate(this.data.template, this.data.showLocalTemplate);
 	    this.registerEntity(this.networkId);
 	    this.checkLoggedIn();
 
@@ -4407,6 +4423,25 @@
 	    NAF.log.write('Networked-Share registered: ', networkId);
 	  },
 
+	  attachAndShowTemplate: function attachAndShowTemplate(template, show) {
+	    if (this.templateEl) {
+	      this.el.removeChild(this.templateEl);
+	    }
+
+	    if (!template) {
+	      return;
+	    }
+
+	    if (show) {
+	      var templateChild = document.createElement('a-entity');
+	      templateChild.setAttribute('template', 'src:' + template);
+	      templateChild.setAttribute('visible', show);
+
+	      this.el.appendChild(templateChild);
+	      this.templateEl = templateChild;
+	    }
+	  },
+
 	  firstUpdate: function firstUpdate() {
 	    var entityData = this.el.firstUpdateData;
 	    this.networkUpdate(entityData); // updates root element only
@@ -4419,6 +4454,7 @@
 	      var entityData = that.el.firstUpdateData;
 	      that.networkUpdate(entityData);
 	    };
+	    // FIXME: this timeout-based stall should be event driven!!!
 	    setTimeout(callback, 50);
 	  },
 
@@ -4666,18 +4702,42 @@
 	    var dirtyComps = [];
 
 	    for (var i in syncedComps) {
-	      var name = syncedComps[i];
-	      if (!newComps.hasOwnProperty(name)) {
+	      var schema = syncedComps[i];
+	      var compKey;
+	      var newCompData;
+
+	      var isRootComponent = typeof schema === 'string';
+
+	      if (isRootComponent) {
+	        var hasComponent = newComps.hasOwnProperty(schema);
+	        if (!hasComponent) {
+	          continue;
+	        }
+	        compKey = schema;
+	        newCompData = newComps[schema].getData();
+	      } else {
+	        // is child component
+	        var selector = schema.selector;
+	        var compName = schema.component;
+
+	        var childEl = this.el.querySelector(selector);
+	        var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
+	        if (!hasComponent) {
+	          continue;
+	        }
+	        compKey = this.childSchemaToKey(schema);
+	        newCompData = childEl.components[compName].getData();
+	      }
+
+	      var compIsCached = this.cachedData.hasOwnProperty(compKey);
+	      if (!compIsCached) {
+	        dirtyComps.push(schema);
 	        continue;
 	      }
-	      if (!this.cachedData.hasOwnProperty(name)) {
-	        dirtyComps.push(name);
-	        continue;
-	      }
-	      var oldCompData = this.cachedData[name];
-	      var newCompData = newComps[name].getData();
+
+	      var oldCompData = this.cachedData[compKey];
 	      if (!deepEqual(oldCompData, newCompData)) {
-	        dirtyComps.push(name);
+	        dirtyComps.push(schema);
 	      }
 	    }
 	    return dirtyComps;
