@@ -383,7 +383,7 @@ AFRAME.registerComponent('template-set', {
   }
 });
 
-},{"es6-template-strings":39}],3:[function(require,module,exports){
+},{"es6-template-strings":40}],3:[function(require,module,exports){
 'use strict';
 
 var assign        = require('es5-ext/object/assign')
@@ -448,7 +448,7 @@ d.gs = function (dscr, get, set/*, options*/) {
 	return !options ? desc : assign(normalizeOpts(options), desc);
 };
 
-},{"es5-ext/object/assign":18,"es5-ext/object/is-callable":21,"es5-ext/object/normalize-options":25,"es5-ext/string/#/contains":29}],4:[function(require,module,exports){
+},{"es5-ext/object/assign":18,"es5-ext/object/is-callable":21,"es5-ext/object/normalize-options":26,"es5-ext/string/#/contains":30}],4:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var objectKeys = require('./lib/keys.js');
 var isArguments = require('./lib/is_arguments.js');
@@ -578,185 +578,202 @@ function shim (obj) {
 }
 
 },{}],7:[function(require,module,exports){
-'use strict';
+"use strict";
 
-module.exports = require('./is-implemented')()
+module.exports = require("./is-implemented")()
 	? Array.from
-	: require('./shim');
+	: require("./shim");
 
 },{"./is-implemented":8,"./shim":9}],8:[function(require,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function () {
 	var from = Array.from, arr, result;
-	if (typeof from !== 'function') return false;
-	arr = ['raz', 'dwa'];
+	if (typeof from !== "function") return false;
+	arr = ["raz", "dwa"];
 	result = from(arr);
-	return Boolean(result && (result !== arr) && (result[1] === 'dwa'));
+	return Boolean(result && (result !== arr) && (result[1] === "dwa"));
 };
 
 },{}],9:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var iteratorSymbol = require('es6-symbol').iterator
-  , isArguments    = require('../../function/is-arguments')
-  , isFunction     = require('../../function/is-function')
-  , toPosInt       = require('../../number/to-pos-integer')
-  , callable       = require('../../object/valid-callable')
-  , validValue     = require('../../object/valid-value')
-  , isString       = require('../../string/is-string')
-
-  , isArray = Array.isArray, call = Function.prototype.call
-  , desc = { configurable: true, enumerable: true, writable: true, value: null }
+var iteratorSymbol = require("es6-symbol").iterator
+  , isArguments    = require("../../function/is-arguments")
+  , isFunction     = require("../../function/is-function")
+  , toPosInt       = require("../../number/to-pos-integer")
+  , callable       = require("../../object/valid-callable")
+  , validValue     = require("../../object/valid-value")
+  , isValue        = require("../../object/is-value")
+  , isString       = require("../../string/is-string")
+  , isArray        = Array.isArray
+  , call           = Function.prototype.call
+  , desc           = { configurable: true, enumerable: true, writable: true, value: null }
   , defineProperty = Object.defineProperty;
 
-module.exports = function (arrayLike/*, mapFn, thisArg*/) {
-	var mapFn = arguments[1], thisArg = arguments[2], Constructor, i, j, arr, l, code, iterator
-	  , result, getIterator, value;
+// eslint-disable-next-line complexity
+module.exports = function (arrayLike /*, mapFn, thisArg*/) {
+	var mapFn = arguments[1]
+	  , thisArg = arguments[2]
+	  , Context
+	  , i
+	  , j
+	  , arr
+	  , length
+	  , code
+	  , iterator
+	  , result
+	  , getIterator
+	  , value;
 
 	arrayLike = Object(validValue(arrayLike));
 
-	if (mapFn != null) callable(mapFn);
-	if (!this || (this === Array) || !isFunction(this)) {
+	if (isValue(mapFn)) callable(mapFn);
+	if (!this || this === Array || !isFunction(this)) {
 		// Result: Plain array
 		if (!mapFn) {
 			if (isArguments(arrayLike)) {
 				// Source: Arguments
-				l = arrayLike.length;
-				if (l !== 1) return Array.apply(null, arrayLike);
+				length = arrayLike.length;
+				if (length !== 1) return Array.apply(null, arrayLike);
 				arr = new Array(1);
 				arr[0] = arrayLike[0];
 				return arr;
 			}
 			if (isArray(arrayLike)) {
 				// Source: Array
-				arr = new Array(l = arrayLike.length);
-				for (i = 0; i < l; ++i) arr[i] = arrayLike[i];
+				arr = new Array(length = arrayLike.length);
+				for (i = 0; i < length; ++i) arr[i] = arrayLike[i];
 				return arr;
 			}
 		}
 		arr = [];
 	} else {
 		// Result: Non plain array
-		Constructor = this;
+		Context = this;
 	}
 
 	if (!isArray(arrayLike)) {
 		if ((getIterator = arrayLike[iteratorSymbol]) !== undefined) {
 			// Source: Iterator
 			iterator = callable(getIterator).call(arrayLike);
-			if (Constructor) arr = new Constructor();
+			if (Context) arr = new Context();
 			result = iterator.next();
 			i = 0;
 			while (!result.done) {
 				value = mapFn ? call.call(mapFn, thisArg, result.value, i) : result.value;
-				if (!Constructor) {
-					arr[i] = value;
-				} else {
+				if (Context) {
 					desc.value = value;
 					defineProperty(arr, i, desc);
+				} else {
+					arr[i] = value;
 				}
 				result = iterator.next();
 				++i;
 			}
-			l = i;
+			length = i;
 		} else if (isString(arrayLike)) {
 			// Source: String
-			l = arrayLike.length;
-			if (Constructor) arr = new Constructor();
-			for (i = 0, j = 0; i < l; ++i) {
+			length = arrayLike.length;
+			if (Context) arr = new Context();
+			for (i = 0, j = 0; i < length; ++i) {
 				value = arrayLike[i];
-				if ((i + 1) < l) {
+				if (i + 1 < length) {
 					code = value.charCodeAt(0);
-					if ((code >= 0xD800) && (code <= 0xDBFF)) value += arrayLike[++i];
+					// eslint-disable-next-line max-depth
+					if (code >= 0xd800 && code <= 0xdbff) value += arrayLike[++i];
 				}
 				value = mapFn ? call.call(mapFn, thisArg, value, j) : value;
-				if (!Constructor) {
-					arr[j] = value;
-				} else {
+				if (Context) {
 					desc.value = value;
 					defineProperty(arr, j, desc);
+				} else {
+					arr[j] = value;
 				}
 				++j;
 			}
-			l = j;
+			length = j;
 		}
 	}
-	if (l === undefined) {
+	if (length === undefined) {
 		// Source: array or array-like
-		l = toPosInt(arrayLike.length);
-		if (Constructor) arr = new Constructor(l);
-		for (i = 0; i < l; ++i) {
+		length = toPosInt(arrayLike.length);
+		if (Context) arr = new Context(length);
+		for (i = 0; i < length; ++i) {
 			value = mapFn ? call.call(mapFn, thisArg, arrayLike[i], i) : arrayLike[i];
-			if (!Constructor) {
-				arr[i] = value;
-			} else {
+			if (Context) {
 				desc.value = value;
 				defineProperty(arr, i, desc);
+			} else {
+				arr[i] = value;
 			}
 		}
 	}
-	if (Constructor) {
+	if (Context) {
 		desc.value = null;
-		arr.length = l;
+		arr.length = length;
 	}
 	return arr;
 };
 
-},{"../../function/is-arguments":10,"../../function/is-function":11,"../../number/to-pos-integer":17,"../../object/valid-callable":27,"../../object/valid-value":28,"../../string/is-string":32,"es6-symbol":33}],10:[function(require,module,exports){
-'use strict';
+},{"../../function/is-arguments":10,"../../function/is-function":11,"../../number/to-pos-integer":17,"../../object/is-value":22,"../../object/valid-callable":28,"../../object/valid-value":29,"../../string/is-string":33,"es6-symbol":34}],10:[function(require,module,exports){
+"use strict";
 
-var toString = Object.prototype.toString
+var objToString = Object.prototype.toString
+  , id = objToString.call(
+	(function () {
+		return arguments;
+	})()
+);
 
-  , id = toString.call((function () { return arguments; }()));
-
-module.exports = function (x) { return (toString.call(x) === id); };
+module.exports = function (value) {
+	return objToString.call(value) === id;
+};
 
 },{}],11:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var toString = Object.prototype.toString
+var objToString = Object.prototype.toString, id = objToString.call(require("./noop"));
 
-  , id = toString.call(require('./noop'));
-
-module.exports = function (f) {
-	return (typeof f === "function") && (toString.call(f) === id);
+module.exports = function (value) {
+	return typeof value === "function" && objToString.call(value) === id;
 };
 
 },{"./noop":12}],12:[function(require,module,exports){
-'use strict';
+"use strict";
 
+// eslint-disable-next-line no-empty-function
 module.exports = function () {};
 
 },{}],13:[function(require,module,exports){
-'use strict';
+"use strict";
 
-module.exports = require('./is-implemented')()
+module.exports = require("./is-implemented")()
 	? Math.sign
-	: require('./shim');
+	: require("./shim");
 
 },{"./is-implemented":14,"./shim":15}],14:[function(require,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function () {
 	var sign = Math.sign;
-	if (typeof sign !== 'function') return false;
-	return ((sign(10) === 1) && (sign(-20) === -1));
+	if (typeof sign !== "function") return false;
+	return (sign(10) === 1) && (sign(-20) === -1);
 };
 
 },{}],15:[function(require,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function (value) {
 	value = Number(value);
 	if (isNaN(value) || (value === 0)) return value;
-	return (value > 0) ? 1 : -1;
+	return value > 0 ? 1 : -1;
 };
 
 },{}],16:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var sign = require('../math/sign')
+var sign = require("../math/sign")
 
   , abs = Math.abs, floor = Math.floor;
 
@@ -768,49 +785,52 @@ module.exports = function (value) {
 };
 
 },{"../math/sign":13}],17:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var toInteger = require('./to-integer')
+var toInteger = require("./to-integer")
 
   , max = Math.max;
 
-module.exports = function (value) { return max(0, toInteger(value)); };
+module.exports = function (value) {
+ return max(0, toInteger(value));
+};
 
 },{"./to-integer":16}],18:[function(require,module,exports){
-'use strict';
+"use strict";
 
-module.exports = require('./is-implemented')()
+module.exports = require("./is-implemented")()
 	? Object.assign
-	: require('./shim');
+	: require("./shim");
 
 },{"./is-implemented":19,"./shim":20}],19:[function(require,module,exports){
-'use strict';
+"use strict";
 
 module.exports = function () {
 	var assign = Object.assign, obj;
-	if (typeof assign !== 'function') return false;
-	obj = { foo: 'raz' };
-	assign(obj, { bar: 'dwa' }, { trzy: 'trzy' });
-	return (obj.foo + obj.bar + obj.trzy) === 'razdwatrzy';
+	if (typeof assign !== "function") return false;
+	obj = { foo: "raz" };
+	assign(obj, { bar: "dwa" }, { trzy: "trzy" });
+	return (obj.foo + obj.bar + obj.trzy) === "razdwatrzy";
 };
 
 },{}],20:[function(require,module,exports){
-'use strict';
+"use strict";
 
-var keys  = require('../keys')
-  , value = require('../valid-value')
+var keys  = require("../keys")
+  , value = require("../valid-value")
+  , max   = Math.max;
 
-  , max = Math.max;
-
-module.exports = function (dest, src/*, …srcn*/) {
-	var error, i, l = max(arguments.length, 2), assign;
+module.exports = function (dest, src /*, …srcn*/) {
+	var error, i, length = max(arguments.length, 2), assign;
 	dest = Object(value(dest));
 	assign = function (key) {
-		try { dest[key] = src[key]; } catch (e) {
+		try {
+			dest[key] = src[key];
+		} catch (e) {
 			if (!error) error = e;
 		}
 	};
-	for (i = 1; i < l; ++i) {
+	for (i = 1; i < length; ++i) {
 		src = arguments[i];
 		keys(src).forEach(assign);
 	}
@@ -818,41 +838,58 @@ module.exports = function (dest, src/*, …srcn*/) {
 	return dest;
 };
 
-},{"../keys":22,"../valid-value":28}],21:[function(require,module,exports){
+},{"../keys":23,"../valid-value":29}],21:[function(require,module,exports){
 // Deprecated
 
-'use strict';
+"use strict";
 
-module.exports = function (obj) { return typeof obj === 'function'; };
+module.exports = function (obj) {
+ return typeof obj === "function";
+};
 
 },{}],22:[function(require,module,exports){
-'use strict';
+"use strict";
 
-module.exports = require('./is-implemented')()
+var _undefined = require("../function/noop")(); // Support ES3 engines
+
+module.exports = function (val) {
+ return (val !== _undefined) && (val !== null);
+};
+
+},{"../function/noop":12}],23:[function(require,module,exports){
+"use strict";
+
+module.exports = require("./is-implemented")()
 	? Object.keys
-	: require('./shim');
+	: require("./shim");
 
-},{"./is-implemented":23,"./shim":24}],23:[function(require,module,exports){
-'use strict';
+},{"./is-implemented":24,"./shim":25}],24:[function(require,module,exports){
+"use strict";
 
 module.exports = function () {
 	try {
-		Object.keys('primitive');
+		Object.keys("primitive");
 		return true;
-	} catch (e) { return false; }
+	} catch (e) {
+ return false;
+}
 };
 
-},{}],24:[function(require,module,exports){
-'use strict';
+},{}],25:[function(require,module,exports){
+"use strict";
+
+var isValue = require("../is-value");
 
 var keys = Object.keys;
 
 module.exports = function (object) {
-	return keys(object == null ? object : Object(object));
+	return keys(isValue(object) ? Object(object) : object);
 };
 
-},{}],25:[function(require,module,exports){
-'use strict';
+},{"../is-value":22}],26:[function(require,module,exports){
+"use strict";
+
+var isValue = require("./is-value");
 
 var forEach = Array.prototype.forEach, create = Object.create;
 
@@ -861,61 +898,67 @@ var process = function (src, obj) {
 	for (key in src) obj[key] = src[key];
 };
 
-module.exports = function (options/*, …options*/) {
+// eslint-disable-next-line no-unused-vars
+module.exports = function (opts1 /*, …options*/) {
 	var result = create(null);
 	forEach.call(arguments, function (options) {
-		if (options == null) return;
+		if (!isValue(options)) return;
 		process(Object(options), result);
 	});
 	return result;
 };
 
-},{}],26:[function(require,module,exports){
-'use strict';
+},{"./is-value":22}],27:[function(require,module,exports){
+"use strict";
 
 var forEach = Array.prototype.forEach, create = Object.create;
 
-module.exports = function (arg/*, …args*/) {
+// eslint-disable-next-line no-unused-vars
+module.exports = function (arg /*, …args*/) {
 	var set = create(null);
-	forEach.call(arguments, function (name) { set[name] = true; });
+	forEach.call(arguments, function (name) {
+		set[name] = true;
+	});
 	return set;
 };
 
-},{}],27:[function(require,module,exports){
-'use strict';
+},{}],28:[function(require,module,exports){
+"use strict";
 
 module.exports = function (fn) {
-	if (typeof fn !== 'function') throw new TypeError(fn + " is not a function");
+	if (typeof fn !== "function") throw new TypeError(fn + " is not a function");
 	return fn;
 };
 
-},{}],28:[function(require,module,exports){
-'use strict';
+},{}],29:[function(require,module,exports){
+"use strict";
+
+var isValue = require("./is-value");
 
 module.exports = function (value) {
-	if (value == null) throw new TypeError("Cannot use null or undefined");
+	if (!isValue(value)) throw new TypeError("Cannot use null or undefined");
 	return value;
 };
 
-},{}],29:[function(require,module,exports){
-'use strict';
+},{"./is-value":22}],30:[function(require,module,exports){
+"use strict";
 
-module.exports = require('./is-implemented')()
+module.exports = require("./is-implemented")()
 	? String.prototype.contains
-	: require('./shim');
+	: require("./shim");
 
-},{"./is-implemented":30,"./shim":31}],30:[function(require,module,exports){
-'use strict';
+},{"./is-implemented":31,"./shim":32}],31:[function(require,module,exports){
+"use strict";
 
-var str = 'razdwatrzy';
+var str = "razdwatrzy";
 
 module.exports = function () {
-	if (typeof str.contains !== 'function') return false;
-	return ((str.contains('dwa') === true) && (str.contains('foo') === false));
+	if (typeof str.contains !== "function") return false;
+	return (str.contains("dwa") === true) && (str.contains("foo") === false);
 };
 
-},{}],31:[function(require,module,exports){
-'use strict';
+},{}],32:[function(require,module,exports){
+"use strict";
 
 var indexOf = String.prototype.indexOf;
 
@@ -923,24 +966,27 @@ module.exports = function (searchString/*, position*/) {
 	return indexOf.call(this, searchString, arguments[1]) > -1;
 };
 
-},{}],32:[function(require,module,exports){
-'use strict';
+},{}],33:[function(require,module,exports){
+"use strict";
 
-var toString = Object.prototype.toString
+var objToString = Object.prototype.toString, id = objToString.call("");
 
-  , id = toString.call('');
-
-module.exports = function (x) {
-	return (typeof x === 'string') || (x && (typeof x === 'object') &&
-		((x instanceof String) || (toString.call(x) === id))) || false;
+module.exports = function (value) {
+	return (
+		typeof value === "string" ||
+		(value &&
+			typeof value === "object" &&
+			(value instanceof String || objToString.call(value) === id)) ||
+		false
+	);
 };
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 'use strict';
 
 module.exports = require('./is-implemented')() ? Symbol : require('./polyfill');
 
-},{"./is-implemented":34,"./polyfill":36}],34:[function(require,module,exports){
+},{"./is-implemented":35,"./polyfill":37}],35:[function(require,module,exports){
 'use strict';
 
 var validTypes = { object: true, symbol: true };
@@ -959,7 +1005,7 @@ module.exports = function () {
 	return true;
 };
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
 module.exports = function (x) {
@@ -970,7 +1016,7 @@ module.exports = function (x) {
 	return (x[x.constructor.toStringTag] === 'Symbol');
 };
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 // ES2015 Symbol polyfill for environments that do not (or partially) support it
 
 'use strict';
@@ -1090,7 +1136,7 @@ defineProperty(HiddenSymbol.prototype, SymbolPolyfill.toStringTag,
 defineProperty(HiddenSymbol.prototype, SymbolPolyfill.toPrimitive,
 	d('c', SymbolPolyfill.prototype[SymbolPolyfill.toPrimitive]));
 
-},{"./validate-symbol":37,"d":3}],37:[function(require,module,exports){
+},{"./validate-symbol":38,"d":3}],38:[function(require,module,exports){
 'use strict';
 
 var isSymbol = require('./is-symbol');
@@ -1100,7 +1146,7 @@ module.exports = function (value) {
 	return value;
 };
 
-},{"./is-symbol":35}],38:[function(require,module,exports){
+},{"./is-symbol":36}],39:[function(require,module,exports){
 'use strict';
 
 var esniff = require('esniff')
@@ -1181,7 +1227,7 @@ module.exports = function (str) {
 	return result;
 };
 
-},{"esniff":43}],39:[function(require,module,exports){
+},{"esniff":44}],40:[function(require,module,exports){
 'use strict';
 
 var compile = require('./compile')
@@ -1191,7 +1237,7 @@ module.exports = function (template, context/*, options*/) {
 	return resolve(compile(template), context, arguments[2]);
 };
 
-},{"./compile":38,"./resolve-to-string":41}],40:[function(require,module,exports){
+},{"./compile":39,"./resolve-to-string":42}],41:[function(require,module,exports){
 'use strict';
 
 var reduce = Array.prototype.reduce;
@@ -1203,7 +1249,7 @@ module.exports = function (literals/*, …substitutions*/) {
 	});
 };
 
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 'use strict';
 
 var resolve  = require('./resolve')
@@ -1213,7 +1259,7 @@ module.exports = function (data, context/*, options*/) {
 	return passthru.apply(null, resolve(data, context, arguments[2]));
 };
 
-},{"./passthru":40,"./resolve":42}],42:[function(require,module,exports){
+},{"./passthru":41,"./resolve":43}],43:[function(require,module,exports){
 'use strict';
 
 var value          = require('es5-ext/object/valid-value')
@@ -1250,7 +1296,7 @@ module.exports = function (data, context/*, options*/) {
 	}));
 };
 
-},{"es5-ext/object/normalize-options":25,"es5-ext/object/valid-value":28,"esniff/is-var-name-valid":44}],43:[function(require,module,exports){
+},{"es5-ext/object/normalize-options":26,"es5-ext/object/valid-value":29,"esniff/is-var-name-valid":45}],44:[function(require,module,exports){
 'use strict';
 
 var from         = require('es5-ext/array/from')
@@ -1482,14 +1528,14 @@ Object.defineProperties(exports, {
 	resume: d(function () { return $common; })
 });
 
-},{"./lib/ws":47,"./lib/ws-eol":45,"d":3,"es5-ext/array/from":7,"es5-ext/object/primitive-set":26,"es5-ext/object/valid-callable":27,"es5-ext/object/valid-value":28}],44:[function(require,module,exports){
+},{"./lib/ws":48,"./lib/ws-eol":46,"d":3,"es5-ext/array/from":7,"es5-ext/object/primitive-set":27,"es5-ext/object/valid-callable":28,"es5-ext/object/valid-value":29}],45:[function(require,module,exports){
 // Credit: Mathias Bynens -> https://mathiasbynens.be/demo/javascript-identifier-regex
 
 'use strict';
 
 module.exports = RegExp.prototype.test.bind(/^(?!(?:do|if|in|for|let|new|try|var|case|else|enum|eval|null|this|true|void|with|await|break|catch|class|const|false|super|throw|while|yield|delete|export|import|public|return|static|switch|typeof|default|extends|finally|package|private|continue|debugger|function|arguments|interface|protected|implements|instanceof)$)(?:[\$A-Z_a-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0561-\u0587\u05D0-\u05EA\u05F0-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u08A0-\u08B4\u08B6-\u08BD\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E87\u0E88\u0E8A\u0E8D\u0E94-\u0E97\u0E99-\u0E9F\u0EA1-\u0EA3\u0EA5\u0EA7\u0EAA\u0EAB\u0EAD-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16EE-\u16F8\u1700-\u170C\u170E-\u1711\u1720-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1877\u1880-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4B\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1CE9-\u1CEC\u1CEE-\u1CF1\u1CF5\u1CF6\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2118-\u211D\u2124\u2126\u2128\u212A-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2160-\u2188\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303C\u3041-\u3096\u309B-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312D\u3131-\u318E\u31A0-\u31BA\u31F0-\u31FF\u3400-\u4DB5\u4E00-\u9FD5\uA000-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6EF\uA717-\uA71F\uA722-\uA788\uA78B-\uA7AE\uA7B0-\uA7B7\uA7F7-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB65\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDD40-\uDD74\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF30-\uDF4A\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF\uDFD1-\uDFD5]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE33\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2]|\uD804[\uDC03-\uDC37\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDF00-\uDF19]|\uD806[\uDCA0-\uDCDF\uDCFF\uDEC0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F]|\uD808[\uDC00-\uDF99]|\uD809[\uDC00-\uDC6E\uDC80-\uDD43]|[\uD80C\uD81C-\uD820\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2E]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDF00-\uDF44\uDF50\uDF93-\uDF9F\uDFE0]|\uD821[\uDC00-\uDFEC]|\uD822[\uDC00-\uDEF2]|\uD82C[\uDC00\uDC01]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDED6\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF34\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1]|\uD87E[\uDC00-\uDE1D])(?:[\$0-9A-Z_a-z\xAA\xB5\xB7\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0300-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u0483-\u0487\u048A-\u052F\u0531-\u0556\u0559\u0561-\u0587\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u05D0-\u05EA\u05F0-\u05F2\u0610-\u061A\u0620-\u0669\u066E-\u06D3\u06D5-\u06DC\u06DF-\u06E8\u06EA-\u06FC\u06FF\u0710-\u074A\u074D-\u07B1\u07C0-\u07F5\u07FA\u0800-\u082D\u0840-\u085B\u08A0-\u08B4\u08B6-\u08BD\u08D4-\u08E1\u08E3-\u0963\u0966-\u096F\u0971-\u0983\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BC-\u09C4\u09C7\u09C8\u09CB-\u09CE\u09D7\u09DC\u09DD\u09DF-\u09E3\u09E6-\u09F1\u0A01-\u0A03\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A3C\u0A3E-\u0A42\u0A47\u0A48\u0A4B-\u0A4D\u0A51\u0A59-\u0A5C\u0A5E\u0A66-\u0A75\u0A81-\u0A83\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABC-\u0AC5\u0AC7-\u0AC9\u0ACB-\u0ACD\u0AD0\u0AE0-\u0AE3\u0AE6-\u0AEF\u0AF9\u0B01-\u0B03\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3C-\u0B44\u0B47\u0B48\u0B4B-\u0B4D\u0B56\u0B57\u0B5C\u0B5D\u0B5F-\u0B63\u0B66-\u0B6F\u0B71\u0B82\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCD\u0BD0\u0BD7\u0BE6-\u0BEF\u0C00-\u0C03\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D-\u0C44\u0C46-\u0C48\u0C4A-\u0C4D\u0C55\u0C56\u0C58-\u0C5A\u0C60-\u0C63\u0C66-\u0C6F\u0C80-\u0C83\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBC-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCD\u0CD5\u0CD6\u0CDE\u0CE0-\u0CE3\u0CE6-\u0CEF\u0CF1\u0CF2\u0D01-\u0D03\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D-\u0D44\u0D46-\u0D48\u0D4A-\u0D4E\u0D54-\u0D57\u0D5F-\u0D63\u0D66-\u0D6F\u0D7A-\u0D7F\u0D82\u0D83\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0DCA\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DE6-\u0DEF\u0DF2\u0DF3\u0E01-\u0E3A\u0E40-\u0E4E\u0E50-\u0E59\u0E81\u0E82\u0E84\u0E87\u0E88\u0E8A\u0E8D\u0E94-\u0E97\u0E99-\u0E9F\u0EA1-\u0EA3\u0EA5\u0EA7\u0EAA\u0EAB\u0EAD-\u0EB9\u0EBB-\u0EBD\u0EC0-\u0EC4\u0EC6\u0EC8-\u0ECD\u0ED0-\u0ED9\u0EDC-\u0EDF\u0F00\u0F18\u0F19\u0F20-\u0F29\u0F35\u0F37\u0F39\u0F3E-\u0F47\u0F49-\u0F6C\u0F71-\u0F84\u0F86-\u0F97\u0F99-\u0FBC\u0FC6\u1000-\u1049\u1050-\u109D\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u135D-\u135F\u1369-\u1371\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16EE-\u16F8\u1700-\u170C\u170E-\u1714\u1720-\u1734\u1740-\u1753\u1760-\u176C\u176E-\u1770\u1772\u1773\u1780-\u17D3\u17D7\u17DC\u17DD\u17E0-\u17E9\u180B-\u180D\u1810-\u1819\u1820-\u1877\u1880-\u18AA\u18B0-\u18F5\u1900-\u191E\u1920-\u192B\u1930-\u193B\u1946-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u19D0-\u19DA\u1A00-\u1A1B\u1A20-\u1A5E\u1A60-\u1A7C\u1A7F-\u1A89\u1A90-\u1A99\u1AA7\u1AB0-\u1ABD\u1B00-\u1B4B\u1B50-\u1B59\u1B6B-\u1B73\u1B80-\u1BF3\u1C00-\u1C37\u1C40-\u1C49\u1C4D-\u1C7D\u1C80-\u1C88\u1CD0-\u1CD2\u1CD4-\u1CF6\u1CF8\u1CF9\u1D00-\u1DF5\u1DFB-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u200C\u200D\u203F\u2040\u2054\u2071\u207F\u2090-\u209C\u20D0-\u20DC\u20E1\u20E5-\u20F0\u2102\u2107\u210A-\u2113\u2115\u2118-\u211D\u2124\u2126\u2128\u212A-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2160-\u2188\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2CE4\u2CEB-\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D7F-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2DE0-\u2DFF\u3005-\u3007\u3021-\u302F\u3031-\u3035\u3038-\u303C\u3041-\u3096\u3099-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312D\u3131-\u318E\u31A0-\u31BA\u31F0-\u31FF\u3400-\u4DB5\u4E00-\u9FD5\uA000-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA62B\uA640-\uA66F\uA674-\uA67D\uA67F-\uA6F1\uA717-\uA71F\uA722-\uA788\uA78B-\uA7AE\uA7B0-\uA7B7\uA7F7-\uA827\uA840-\uA873\uA880-\uA8C5\uA8D0-\uA8D9\uA8E0-\uA8F7\uA8FB\uA8FD\uA900-\uA92D\uA930-\uA953\uA960-\uA97C\uA980-\uA9C0\uA9CF-\uA9D9\uA9E0-\uA9FE\uAA00-\uAA36\uAA40-\uAA4D\uAA50-\uAA59\uAA60-\uAA76\uAA7A-\uAAC2\uAADB-\uAADD\uAAE0-\uAAEF\uAAF2-\uAAF6\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB65\uAB70-\uABEA\uABEC\uABED\uABF0-\uABF9\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE00-\uFE0F\uFE20-\uFE2F\uFE33\uFE34\uFE4D-\uFE4F\uFE70-\uFE74\uFE76-\uFEFC\uFF10-\uFF19\uFF21-\uFF3A\uFF3F\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDD40-\uDD74\uDDFD\uDE80-\uDE9C\uDEA0-\uDED0\uDEE0\uDF00-\uDF1F\uDF30-\uDF4A\uDF50-\uDF7A\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF\uDFD1-\uDFD5]|\uD801[\uDC00-\uDC9D\uDCA0-\uDCA9\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00-\uDE03\uDE05\uDE06\uDE0C-\uDE13\uDE15-\uDE17\uDE19-\uDE33\uDE38-\uDE3A\uDE3F\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE6\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2]|\uD804[\uDC00-\uDC46\uDC66-\uDC6F\uDC7F-\uDCBA\uDCD0-\uDCE8\uDCF0-\uDCF9\uDD00-\uDD34\uDD36-\uDD3F\uDD50-\uDD73\uDD76\uDD80-\uDDC4\uDDCA-\uDDCC\uDDD0-\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE37\uDE3E\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEEA\uDEF0-\uDEF9\uDF00-\uDF03\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3C-\uDF44\uDF47\uDF48\uDF4B-\uDF4D\uDF50\uDF57\uDF5D-\uDF63\uDF66-\uDF6C\uDF70-\uDF74]|\uD805[\uDC00-\uDC4A\uDC50-\uDC59\uDC80-\uDCC5\uDCC7\uDCD0-\uDCD9\uDD80-\uDDB5\uDDB8-\uDDC0\uDDD8-\uDDDD\uDE00-\uDE40\uDE44\uDE50-\uDE59\uDE80-\uDEB7\uDEC0-\uDEC9\uDF00-\uDF19\uDF1D-\uDF2B\uDF30-\uDF39]|\uD806[\uDCA0-\uDCE9\uDCFF\uDEC0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC36\uDC38-\uDC40\uDC50-\uDC59\uDC72-\uDC8F\uDC92-\uDCA7\uDCA9-\uDCB6]|\uD808[\uDC00-\uDF99]|\uD809[\uDC00-\uDC6E\uDC80-\uDD43]|[\uD80C\uD81C-\uD820\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2E]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE60-\uDE69\uDED0-\uDEED\uDEF0-\uDEF4\uDF00-\uDF36\uDF40-\uDF43\uDF50-\uDF59\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDF00-\uDF44\uDF50-\uDF7E\uDF8F-\uDF9F\uDFE0]|\uD821[\uDC00-\uDFEC]|\uD822[\uDC00-\uDEF2]|\uD82C[\uDC00\uDC01]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99\uDC9D\uDC9E]|\uD834[\uDD65-\uDD69\uDD6D-\uDD72\uDD7B-\uDD82\uDD85-\uDD8B\uDDAA-\uDDAD\uDE42-\uDE44]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB\uDFCE-\uDFFF]|\uD836[\uDE00-\uDE36\uDE3B-\uDE6C\uDE75\uDE84\uDE9B-\uDE9F\uDEA1-\uDEAF]|\uD838[\uDC00-\uDC06\uDC08-\uDC18\uDC1B-\uDC21\uDC23\uDC24\uDC26-\uDC2A]|\uD83A[\uDC00-\uDCC4\uDCD0-\uDCD6\uDD00-\uDD4A\uDD50-\uDD59]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDED6\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF34\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1]|\uD87E[\uDC00-\uDE1D]|\uDB40[\uDD00-\uDDEF])*$/);
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 'use strict';
 
 var from         = require('es5-ext/array/from')
@@ -1497,7 +1543,7 @@ var from         = require('es5-ext/array/from')
 
 module.exports = primitiveSet.apply(null, from('\n\r\u2028\u2029'));
 
-},{"es5-ext/array/from":7,"es5-ext/object/primitive-set":26}],46:[function(require,module,exports){
+},{"es5-ext/array/from":7,"es5-ext/object/primitive-set":27}],47:[function(require,module,exports){
 'use strict';
 
 var from         = require('es5-ext/array/from')
@@ -1507,7 +1553,7 @@ module.exports = primitiveSet.apply(null, from(' \f\t\v​\u00a0\u1680​\u180e'
 	'\u2000​\u2001\u2002​\u2003\u2004​\u2005\u2006​\u2007\u2008​\u2009\u200a' +
 	'​​​\u202f\u205f​\u3000'));
 
-},{"es5-ext/array/from":7,"es5-ext/object/primitive-set":26}],47:[function(require,module,exports){
+},{"es5-ext/array/from":7,"es5-ext/object/primitive-set":27}],48:[function(require,module,exports){
 'use strict';
 
 var primitiveSet = require('es5-ext/object/primitive-set')
@@ -1517,7 +1563,7 @@ var primitiveSet = require('es5-ext/object/primitive-set')
 module.exports = primitiveSet.apply(null,
 	Object.keys(eol).concat(Object.keys(inline)));
 
-},{"./ws-eol":45,"./ws-inline":46,"es5-ext/object/primitive-set":26}],48:[function(require,module,exports){
+},{"./ws-eol":46,"./ws-inline":47,"es5-ext/object/primitive-set":27}],49:[function(require,module,exports){
 class ChildEntityCache {
 
   constructor() {
@@ -1546,7 +1592,7 @@ class ChildEntityCache {
   }
 }
 module.exports = ChildEntityCache;
-},{}],49:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 var options = require('./NafOptions');
 var util = require('./NafUtil');
 var physics = require('./NafPhysics');
@@ -1572,14 +1618,14 @@ naf.connection = naf.c = connection;
 naf.entities = naf.e = entities;
 
 module.exports = window.NAF = naf;
-},{"./NafLogger":51,"./NafOptions":52,"./NafPhysics":53,"./NafUtil":54,"./NetworkConnection":55,"./NetworkEntities":56,"./Schemas":57}],50:[function(require,module,exports){
+},{"./NafLogger":52,"./NafOptions":53,"./NafPhysics":54,"./NafUtil":55,"./NetworkConnection":56,"./NetworkEntities":57,"./Schemas":58}],51:[function(require,module,exports){
 class NafInterface {
   notImplemented() {
     console.error('Interface method not implemented.');
   }
 }
 module.exports = NafInterface;
-},{}],51:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 class NafLogger {
 
   constructor() {
@@ -1602,16 +1648,18 @@ class NafLogger {
 }
 
 module.exports = NafLogger;
-},{}],52:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 var options = {
   debug: false,
   updateRate: 15, // How often network components call `sync`
   compressSyncPackets: false, // compress network component sync packet json
-  useLerp: true // when networked entities are created the aframe-lerp-component is attched to the root
+  useLerp: true, // when networked entities are created the aframe-lerp-component is attached to the root
+  useShare: false // whether for remote entities, we use networked-share (instead of networked-remote)
 };
 
 module.exports = options;
-},{}],53:[function(require,module,exports){
+
+},{}],54:[function(require,module,exports){
 module.exports.getPhysicsData = function(entity) {
   if (entity.body) {
 
@@ -1753,7 +1801,7 @@ module.exports.getDataFromCollision = function(collisionEvent) {
     }
   }
 }
-},{}],54:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 module.exports.whenEntityLoaded = function(entity, callback) {
   if (entity.hasLoaded) { callback(); }
   entity.addEventListener('loaded', function () {
@@ -1772,6 +1820,8 @@ module.exports.getNetworkOwner = function(entity) {
   var components = entity.components;
   if (components.hasOwnProperty('networked-remote')) {
     return entity.components['networked-remote'].data.owner;
+  } else if (components.hasOwnProperty('networked-share')) {
+    return entity.components['networked-share'].data.owner;
   } else if (components.hasOwnProperty('networked')) {
     return entity.components['networked'].owner;
   }
@@ -1806,8 +1856,26 @@ module.exports.now = function() {
   return Date.now();
 };
 
-module.exports.delimiter = '|||';
-},{}],55:[function(require,module,exports){
+module.exports.delimiter = '---';
+
+module.exports.childSchemaToKey = function(schema) {
+  return (schema.selector || '') + module.exports.delimiter + schema.component + module.exports.delimiter + (schema.property || '');
+};
+
+module.exports.keyToChildSchema = function(key) {
+  var splitKey = key.split(module.exports.delimiter, 3);
+  return { selector: splitKey[0] || undefined, component: splitKey[1], property: splitKey[2] || undefined};
+};
+
+module.exports.isChildSchemaKey = function(key) {
+  return key.indexOf(module.exports.delimiter) != -1;
+};
+
+module.exports.childSchemaEqual = function(a, b) {
+  return a.selector == b.selector && a.component == b.component && a.property == b.property;
+};
+
+},{}],56:[function(require,module,exports){
 var NetworkInterface = require('./network_interfaces/NetworkInterface');
 
 class NetworkConnection {
@@ -1997,7 +2065,7 @@ class NetworkConnection {
 }
 
 module.exports = NetworkConnection;
-},{"./network_interfaces/NetworkInterface":64}],56:[function(require,module,exports){
+},{"./network_interfaces/NetworkInterface":66}],57:[function(require,module,exports){
 var ChildEntityCache = require('./ChildEntityCache');
 
 class NetworkEntities {
@@ -2024,6 +2092,34 @@ class NetworkEntities {
     this.addNetworkComponent(entity, entityData, components);
     this.entities[entityData.networkId] = entity;
 
+    if (template) {
+      entity.addEventListener('loaded', function () {
+
+      var templateChild = entity.firstChild;
+      templateChild.addEventListener('templaterendered', function () {
+        var cloned = templateChild.firstChild;
+	// mirror the attributes
+        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+          entity.setAttribute(attr.nodeName, attr.nodeValue);
+        });
+        // take the children
+        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+          cloned.removeChild(child);
+          entity.appendChild(child);
+        }
+
+        cloned.pause();
+        templateChild.pause();
+        setTimeout(function() {
+          try { templateChild.removeChild(cloned); } catch (e) {}
+          try { entity.removeChild(templateChild); } catch (e) {}
+	  // delete?
+        });
+      });
+
+      });
+    }
+
     return entity;
   }
 
@@ -2046,12 +2142,18 @@ class NetworkEntities {
   addNetworkComponent(entity, entityData, components) {
     var networkData = {
       template: entityData.template,
-      showTemplate: entityData.showTemplate,
       owner: entityData.owner,
       networkId: entityData.networkId,
       components: components
     };
-    entity.setAttribute('networked-remote', networkData);
+    if (NAF.options.useShare) {
+      networkData.showLocalTemplate = entityData.showTemplate;
+      networkData.showRemoteTemplate = entityData.showTemplate;
+      entity.setAttribute('networked-share', networkData);
+    } else {
+      networkData.showTemplate = entityData.showTemplate;
+      entity.setAttribute('networked-remote', networkData);
+    }
     entity.firstUpdateData = entityData;
   }
 
@@ -2155,7 +2257,8 @@ class NetworkEntities {
 }
 
 module.exports = NetworkEntities;
-},{"./ChildEntityCache":48}],57:[function(require,module,exports){
+
+},{"./ChildEntityCache":49}],58:[function(require,module,exports){
 class Schemas {
 
   constructor() {
@@ -2199,7 +2302,7 @@ class Schemas {
 }
 
 module.exports = Schemas;
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 var naf = require('../NafIndex');
 
 AFRAME.registerComponent('networked-remote', {
@@ -2286,11 +2389,12 @@ AFRAME.registerComponent('networked-remote', {
     for (var key in components) {
       if (this.isSyncableComponent(key)) {
         var data = components[key];
-        if (this.isChildSchemaKey(key)) {
-          var schema = this.keyToChildSchema(key);
-          var childEl = this.el.querySelector(schema.selector);
+        if (naf.utils.isChildSchemaKey(key)) {
+          var schema = naf.utils.keyToChildSchema(key);
+          var childEl = schema.selector ? this.el.querySelector(schema.selector) : this.el;
           if (childEl) { // Is false when first called in init
-            childEl.setAttribute(schema.component, data);
+            if (schema.property) { childEl.setAttribute(schema.component, schema.property, data); }
+            else { childEl.setAttribute(schema.component, data); }
           }
         } else {
           this.el.setAttribute(key, data);
@@ -2349,7 +2453,7 @@ AFRAME.registerComponent('networked-remote', {
       if (typeof schemaComp === "string") {
         name = schemaComp;
       } else {
-        name = this.childSchemaToKey(schemaComp);
+        name = naf.utils.childSchemaToKey(schemaComp);
       }
       decompressed[name] = compressed[i];
     }
@@ -2357,8 +2461,8 @@ AFRAME.registerComponent('networked-remote', {
   },
 
   isSyncableComponent: function(key) {
-    if (this.isChildSchemaKey(key)) {
-      var schema = this.keyToChildSchema(key);
+    if (naf.utils.isChildSchemaKey(key)) {
+      var schema = naf.utils.keyToChildSchema(key);
       return this.hasThisChildSchema(schema);
     } else {
       return this.data.components.indexOf(key) != -1;
@@ -2369,40 +2473,20 @@ AFRAME.registerComponent('networked-remote', {
     var schemaComponents = this.data.components;
     for (var i in schemaComponents) {
       var localChildSchema = schemaComponents[i];
-      if (this.childSchemaEqual(localChildSchema, schema)) {
+      if (naf.utils.childSchemaEqual(localChildSchema, schema)) {
         return true;
       }
     }
     return false;
   },
-
-  /* Static schema calls */
-
-  childSchemaToKey: function(childSchema) {
-    return childSchema.selector + naf.utils.delimiter + childSchema.component;
-  },
-
-  isChildSchemaKey: function(key) {
-    return key.indexOf(naf.utils.delimiter) != -1;
-  },
-
-  keyToChildSchema: function(key) {
-    var split = key.split(naf.utils.delimiter);
-    return {
-      selector: split[0],
-      component: split[1]
-    };
-  },
-
-  childSchemaEqual: function(a, b) {
-    return a.selector == b.selector && a.component == b.component;
-  }
 });
-},{"../NafIndex":49}],59:[function(require,module,exports){
+
+},{"../NafIndex":50}],60:[function(require,module,exports){
 var naf = require('../NafIndex');
 
 var EasyRtcInterface = require('../network_interfaces/EasyRtcInterface');
 var WebSocketEasyRtcInterface = require('../network_interfaces/WebSocketEasyRtcInterface');
+var FirebaseWebRtcInterface = require('../network_interfaces/FirebaseWebRtcInterface');
 
 AFRAME.registerComponent('networked-scene', {
   schema: {
@@ -2414,10 +2498,26 @@ AFRAME.registerComponent('networked-scene', {
     webrtc: {default: false},
     webrtcAudio: {default: false},
 
+    firebase: {default: false},
+    firebaseApiKey: {default: ''},
+    firebaseAuthType: {default: 'none', oneOf: ['none', 'anonymous']},
+    firebaseAuthDomain: {default: ''},
+    firebaseDatabaseURL: {default: ''},
+
     debug: {default: false},
+
+    updateRate: {default: 0},
+    useLerp: {default: true},
+    compressSyncPackets: {default: false},
+    useShare: {default: false},
   },
 
   init: function() {
+    if (this.data.updateRate) { naf.options.updateRate = this.data.updateRate; }
+    naf.options.useLerp = this.data.useLerp;
+    naf.options.compressSyncPackets = this.data.compressSyncPackets;
+    naf.options.useShare = this.data.useShare;
+
     this.el.addEventListener('connect', this.connect.bind(this));
     if (this.data.connectOnLoad) {
       this.el.emit('connect', null, false);
@@ -2448,9 +2548,19 @@ AFRAME.registerComponent('networked-scene', {
   setupNetworkInterface: function() {
     var networkInterface;
     if (this.data.webrtc) {
-      var easyRtcInterface = new EasyRtcInterface(easyrtc);
-      easyRtcInterface.setSignalUrl(this.data.signalURL);
-      networkInterface = easyRtcInterface;
+      if (this.data.firebase) {
+        var firebaseWebRtcInterface = new FirebaseWebRtcInterface(firebase, {
+          authType: this.data.firebaseAuthType,
+          apiKey: this.data.firebaseApiKey,
+          authDomain: this.data.firebaseAuthDomain,
+          databaseURL: this.data.firebaseDatabaseURL
+        });
+        networkInterface = firebaseWebRtcInterface;
+      } else {
+        var easyRtcInterface = new EasyRtcInterface(easyrtc);
+        easyRtcInterface.setSignalUrl(this.data.signalURL);
+        networkInterface = easyRtcInterface;
+      }
     } else {
       var websocketInterface = new WebSocketEasyRtcInterface(easyrtc);
       websocketInterface.setSignalUrl(this.data.signalURL);
@@ -2470,12 +2580,16 @@ AFRAME.registerComponent('networked-scene', {
     naf.connection.onLogin(window[this.data.onConnect]);
   }
 });
-},{"../NafIndex":49,"../network_interfaces/EasyRtcInterface":63,"../network_interfaces/WebSocketEasyRtcInterface":65}],60:[function(require,module,exports){
+
+},{"../NafIndex":50,"../network_interfaces/EasyRtcInterface":64,"../network_interfaces/FirebaseWebRtcInterface":65,"../network_interfaces/WebSocketEasyRtcInterface":67}],61:[function(require,module,exports){
 var naf = require('../NafIndex');
 var deepEqual = require('deep-equal');
 
 AFRAME.registerComponent('networked-share', {
   schema: {
+    template: {default: ''},
+    showLocalTemplate: {default: true},
+    showRemoteTemplate: {default: true},
     networkId: {default: ''},
     owner: {default: ''},
     takeOwnershipEvents: {
@@ -2503,7 +2617,9 @@ AFRAME.registerComponent('networked-share', {
 
     this.cachedData = {};
     this.initNetworkId();
+    this.initNetworkOwner();
     this.initNetworkParent();
+    this.attachAndShowTemplate(this.data.template, this.data.showLocalTemplate);
     this.registerEntity(this.networkId);
     this.checkLoggedIn();
 
@@ -2515,6 +2631,12 @@ AFRAME.registerComponent('networked-share', {
   },
 
   initNetworkId: function() {
+    if (!this.data.networkId) { this.data.networkId = Math.random().toString(36).substring(2, 9); }
+    this.networkId = this.data.networkId;
+  },
+
+  initNetworkOwner: function() {
+    if (!this.data.owner) { this.data.owner = NAF.clientId; }
     this.networkId = this.data.networkId;
   },
 
@@ -2548,6 +2670,46 @@ AFRAME.registerComponent('networked-share', {
     NAF.log.write('Networked-Share registered: ', networkId);
   },
 
+  attachAndShowTemplate: function(template, show) {
+    if (this.templateEl) {
+      this.el.removeChild(this.templateEl);
+    }
+
+    if (!template) { return; }
+
+    if (show) {
+      var templateChild = document.createElement('a-entity');
+      templateChild.setAttribute('template', 'src:' + template);
+      //templateChild.setAttribute('visible', show);
+
+      var self = this;
+      var el = this.el;
+      templateChild.addEventListener('templaterendered', function () {
+        var cloned = templateChild.firstChild;
+        // mirror the attributes
+        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+          el.setAttribute(attr.nodeName, attr.nodeValue);
+        });
+        // take the children
+        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+          cloned.removeChild(child);
+          el.appendChild(child);
+        }
+
+        cloned.pause();
+        templateChild.pause();
+        setTimeout(function() {
+	  templateChild.removeChild(cloned);
+          el.removeChild(self.templateEl);
+          delete self.templateEl;
+        });
+      });
+
+      this.el.appendChild(templateChild);
+      this.templateEl = templateChild;
+    }
+  },
+
   firstUpdate: function() {
     var entityData = this.el.firstUpdateData;
     this.networkUpdate(entityData); // updates root element only
@@ -2560,6 +2722,7 @@ AFRAME.registerComponent('networked-share', {
       var entityData = that.el.firstUpdateData;
       that.networkUpdate(entityData);
     };
+    // FIXME: this timeout-based stall should be event driven!!!
     setTimeout(callback, 50);
   },
 
@@ -2790,12 +2953,12 @@ AFRAME.registerComponent('networked-share', {
           compsWithData[name] = elComponent.getData();
         }
       } else {
-        var childKey = this.childSchemaToKey(element);
-        var child = this.el.querySelector(element.selector);
+        var childKey = naf.utils.childSchemaToKey(element);
+        var child = element.selector ? this.el.querySelector(element.selector) : this.el;
         if (child) {
           var comp = child.components[element.component];
           if (comp) {
-            var data = comp.getData();
+            var data = element.property ? comp.data[element.property] : comp.getData();
             compsWithData[childKey] = data;
           } else {
             naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
@@ -2812,18 +2975,45 @@ AFRAME.registerComponent('networked-share', {
     var dirtyComps = [];
 
     for (var i in syncedComps) {
-      var name = syncedComps[i];
-      if (!newComps.hasOwnProperty(name)) {
+      var schema = syncedComps[i];
+      var compKey;
+      var newCompData;
+
+      var isRootComponent = typeof schema === 'string';
+
+      if (isRootComponent) {
+        var hasComponent = newComps.hasOwnProperty(schema);
+        if (!hasComponent) {
+          continue;
+        }
+        compKey = schema;
+        newCompData = newComps[schema].getData();
+      }
+      else {
+        // is child component
+        var selector = schema.selector;
+        var compName = schema.component;
+        var propName = schema.property;
+
+        var childEl = selector ? this.el.querySelector(selector) : this.el;
+        var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
+        if (!hasComponent) {
+          continue;
+        }
+        compKey = naf.utils.childSchemaToKey(schema);
+	newCompData = childEl.components[compName].getData();
+	if (propName) { newCompData = newCompData[propName]; }
+      }
+
+      var compIsCached = this.cachedData.hasOwnProperty(compKey);
+      if (!compIsCached) {
+        dirtyComps.push(schema);
         continue;
       }
-      if (!this.cachedData.hasOwnProperty(name)) {
-        dirtyComps.push(name);
-        continue;
-      }
-      var oldCompData = this.cachedData[name];
-      var newCompData = newComps[name].getData();
+
+      var oldCompData = this.cachedData[compKey];
       if (!deepEqual(oldCompData, newCompData)) {
-        dirtyComps.push(name);
+        dirtyComps.push(schema);
       }
     }
     return dirtyComps;
@@ -2836,6 +3026,7 @@ AFRAME.registerComponent('networked-share', {
       owner: this.data.owner,
       takeover: this.takeover,
       template: this.data.template,
+      showTemplate: this.data.showRemoteTemplate,
       parent: this.getParentId(),
       components: components
     };
@@ -2882,11 +3073,12 @@ AFRAME.registerComponent('networked-share', {
     for (var key in components) {
       if (this.isSyncableComponent(key)) {
         var data = components[key];
-        if (this.isChildSchemaKey(key)) {
-          var schema = this.keyToChildSchema(key);
-          var childEl = this.el.querySelector(schema.selector);
+        if (naf.utils.isChildSchemaKey(key)) {
+          var schema = naf.utils.keyToChildSchema(key);
+          var childEl = schema.selector ? this.el.querySelector(schema.selector) : this.el;
           if (childEl) { // Is false when first called in init
-            childEl.setAttribute(schema.component, data);
+            if (schema.property) { childEl.setAttribute(schema.component, schema.property, data); }
+            else { childEl.setAttribute(schema.component, data); }
           }
         } else {
           this.el.setAttribute(key, data);
@@ -2955,7 +3147,7 @@ AFRAME.registerComponent('networked-share', {
       if (typeof components[i] === 'string') {
         name = components[i];
       } else {
-        name = this.childSchemaToKey(components[i]);
+        name = naf.utils.childSchemaToKey(components[i]);
       }
       if (syncComponents.hasOwnProperty(name)) {
         compMap[i] = syncComponents[name];
@@ -3003,7 +3195,7 @@ AFRAME.registerComponent('networked-share', {
       if (typeof schemaComp === "string") {
         name = schemaComp;
       } else {
-        name = this.childSchemaToKey(schemaComp);
+        name = naf.utils.childSchemaToKey(schemaComp);
       }
       decompressed[name] = compressed[i];
     }
@@ -3011,8 +3203,8 @@ AFRAME.registerComponent('networked-share', {
   },
 
   isSyncableComponent: function(key) {
-    if (this.isChildSchemaKey(key)) {
-      var schema = this.keyToChildSchema(key);
+    if (naf.utils.isChildSchemaKey(key)) {
+      var schema = naf.utils.keyToChildSchema(key);
       return this.hasThisChildSchema(schema);
     } else {
       return this.data.components.indexOf(key) != -1;
@@ -3029,33 +3221,11 @@ AFRAME.registerComponent('networked-share', {
     var schemaComponents = this.data.components;
     for (var i in schemaComponents) {
       var localChildSchema = schemaComponents[i];
-      if (this.childSchemaEqual(localChildSchema, schema)) {
+      if (naf.utils.childSchemaEqual(localChildSchema, schema)) {
         return true;
       }
     }
     return false;
-  },
-
-  /* Static schema calls */
-
-  childSchemaToKey: function(childSchema) {
-    return childSchema.selector + naf.utils.delimiter + childSchema.component;
-  },
-
-  isChildSchemaKey: function(key) {
-    return key.indexOf(naf.utils.delimiter) != -1;
-  },
-
-  keyToChildSchema: function(key) {
-    var split = key.split(naf.utils.delimiter);
-    return {
-      selector: split[0],
-      component: split[1]
-    };
-  },
-
-  childSchemaEqual: function(a, b) {
-    return a.selector == b.selector && a.component == b.component;
   },
 
   remove: function () {
@@ -3069,7 +3239,8 @@ AFRAME.registerComponent('networked-share', {
     this.unbindRemoteEvents();
   },
 });
-},{"../NafIndex":49,"deep-equal":4}],61:[function(require,module,exports){
+
+},{"../NafIndex":50,"deep-equal":4}],62:[function(require,module,exports){
 var naf = require('../NafIndex');
 var deepEqual = require('deep-equal');
 
@@ -3129,14 +3300,39 @@ AFRAME.registerComponent('networked', {
   },
 
   attachAndShowTemplate: function(template, show) {
-    if (show) {
-      if (this.templateEl) {
-        this.el.removeChild(this.templateEl);
-      }
+    if (this.templateEl) {
+      this.el.removeChild(this.templateEl);
+    }
 
+    if (!template) { return; }
+
+    if (show) {
       var templateChild = document.createElement('a-entity');
       templateChild.setAttribute('template', 'src:' + template);
-      templateChild.setAttribute('visible', show);
+      //templateChild.setAttribute('visible', show);
+
+      var self = this;
+      var el = this.el;
+      templateChild.addEventListener('templaterendered', function () {
+        var cloned = templateChild.firstChild;
+        // mirror the attributes
+        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+          el.setAttribute(attr.nodeName, attr.nodeValue);
+        });
+        // take the children
+        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+          cloned.removeChild(child);
+          el.appendChild(child);
+        }
+
+        cloned.pause();
+        templateChild.pause();
+        setTimeout(function() {
+          templateChild.removeChild(cloned);
+          el.removeChild(self.templateEl);
+          delete self.templateEl;
+        });
+      });
 
       this.el.appendChild(templateChild);
       this.templateEl = templateChild;
@@ -3215,12 +3411,12 @@ AFRAME.registerComponent('networked', {
           compsWithData[name] = elComponent.getData();
         }
       } else {
-        var childKey = this.childSchemaToKey(element);
-        var child = this.el.querySelector(element.selector);
+        var childKey = naf.utils.childSchemaToKey(element);
+        var child = element.selector ? this.el.querySelector(element.selector) : this.el;
         if (child) {
           var comp = child.components[element.component];
           if (comp) {
-            var data = comp.getData();
+            var data = element.property ? comp.data[element.property] : comp.getData();
             compsWithData[childKey] = data;
           } else {
             naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
@@ -3255,14 +3451,16 @@ AFRAME.registerComponent('networked', {
         // is child component
         var selector = schema.selector;
         var compName = schema.component;
+        var propName = schema.property;
 
-        var childEl = this.el.querySelector(selector);
+        var childEl = selector ? this.el.querySelector(selector) : this.el;
         var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
         if (!hasComponent) {
           continue;
         }
-        compKey = this.childSchemaToKey(schema);
+        compKey = naf.utils.childSchemaToKey(schema);
         newCompData = childEl.components[compName].getData();
+        if (propName) { newCompData = newCompData[propName]; }
       }
       
       var compIsCached = this.cachedData.hasOwnProperty(compKey)
@@ -3347,7 +3545,7 @@ AFRAME.registerComponent('networked', {
       if (typeof components[i] === 'string') {
         name = components[i];
       } else {
-        name = this.childSchemaToKey(components[i]);
+        name = naf.utils.childSchemaToKey(components[i]);
       }
       if (syncComponents.hasOwnProperty(name)) {
         compMap[i] = syncComponents[name];
@@ -3366,14 +3564,9 @@ AFRAME.registerComponent('networked', {
     var data = { networkId: this.networkId };
     naf.connection.broadcastData('r', data);
   },
-
-  /* Static schema calls */
-
-  childSchemaToKey: function(childSchema) {
-    return childSchema.selector + naf.utils.delimiter + childSchema.component;
-  },
 });
-},{"../NafIndex":49,"deep-equal":4}],62:[function(require,module,exports){
+
+},{"../NafIndex":50,"deep-equal":4}],63:[function(require,module,exports){
 // Dependencies
 require('aframe-template-component');
 require('aframe-lerp-component');
@@ -3386,7 +3579,7 @@ require('./components/networked-scene');
 require('./components/networked');
 require('./components/networked-remote');
 require('./components/networked-share');
-},{"./NafIndex.js":49,"./components/networked":61,"./components/networked-remote":58,"./components/networked-scene":59,"./components/networked-share":60,"aframe-lerp-component":1,"aframe-template-component":2}],63:[function(require,module,exports){
+},{"./NafIndex.js":50,"./components/networked":62,"./components/networked-remote":59,"./components/networked-scene":60,"./components/networked-share":61,"aframe-lerp-component":1,"aframe-template-component":2}],64:[function(require,module,exports){
 var naf = require('../NafIndex');
 var NetworkInterface = require('./NetworkInterface');
 
@@ -3533,7 +3726,562 @@ class EasyRtcInterface extends NetworkInterface {
 }
 
 module.exports = EasyRtcInterface;
-},{"../NafIndex":49,"./NetworkInterface":64}],64:[function(require,module,exports){
+},{"../NafIndex":50,"./NetworkInterface":66}],65:[function(require,module,exports){
+var naf = require('../NafIndex');
+var NetworkInterface = require('./NetworkInterface');
+
+class FirebaseWebRtcInterface extends NetworkInterface {
+  constructor(firebase, params) {
+    if (firebase === undefined) {
+      throw new Error('Import https://www.gstatic.com/firebasejs/x.x.x/firebase.js');
+    }
+
+    super();
+
+    this.rootPath = 'networked-aframe';
+
+    this.id = null;
+    this.appId = null;
+    this.roomId = null;
+
+    this.peers = {};     // id -> WebRtcPeer
+    this.occupants = {}; // id -> joinTimestamp
+
+    this.firebase = firebase;
+
+    this.authType = params.authType;
+    this.apiKey = params.apiKey;
+    this.authDomain = params.authDomain;
+    this.databaseURL = params.databaseURL;
+  }
+
+  /*
+   * Call before `connect`
+   */
+
+  joinRoom(roomId) {
+    this.roomId = roomId;
+  }
+
+  setRoomOccupantListener(occupantListener) {
+    this.occupantListener = occupantListener;
+  }
+
+  // options: { datachannel: bool, audio: bool }
+  setStreamOptions(options) {
+    // TODO: support audio and video
+    if (options.datachannel === false) console.warn('FirebaseWebRtcInterface.setStreamOptions: datachannel must be true.');
+    if (options.audio === true) console.warn('FirebaseWebRtcInterface does not support audio yet.');
+    if (options.video === true) console.warn('FirebaseWebRtcInterface does not support video yet.');
+  }
+
+  setDatachannelListeners(openListener, closedListener, messageListener) {
+    this.openListener = openListener;
+    this.closedListener = closedListener;
+    this.messageListener = messageListener;
+  }
+
+  setLoginListeners(successListener, failureListener) {
+    this.loginSuccess = successListener;
+    this.loginFailure = failureListener;
+  }
+
+  /*
+   * Network actions
+   */
+
+  connect(appId) {
+    var self = this;
+    var firebase = this.firebase;
+
+    this.appId = appId;
+
+    this.initFirebase(function(id) {
+      self.id = id;
+
+      // Note: assuming that data transfer via firebase realtime database
+      //       is reliable and in order
+      // TODO: can race among peers? If so, fix
+
+      self.getTimestamp(function(timestamp) {
+        self.myRoomJoinTime = timestamp;
+
+        var userRef = firebase.database().ref(self.getUserPath(self.id));
+        userRef.set({timestamp: timestamp, signal: '', data: ''});
+        userRef.onDisconnect().remove();
+
+        var roomRef = firebase.database().ref(self.getRoomPath());
+
+        roomRef.on('child_added', function (data) {
+          var remoteId = data.key;
+
+          if (remoteId === self.id || remoteId === 'timestamp' || self.peers[remoteId] !== undefined) return;
+
+          var remoteTimestamp = data.val().timestamp;
+
+          var peer = new WebRtcPeer(self.id, remoteId,
+            // send signal function
+            function (data) {
+              firebase.database().ref(self.getSignalPath(self.id)).set(data);
+            }
+          );
+          peer.setDatachannelListeners(self.openListener, self.closedListener, self.messageListener);
+
+          self.peers[remoteId] = peer;
+          self.occupants[remoteId] = remoteTimestamp;
+
+          // received signal
+          firebase.database().ref(self.getSignalPath(remoteId)).on('value', function (data) {
+            var value = data.val();
+            if (value === null || value === '') return;
+            peer.handleSignal(value);
+          });
+
+          // received data
+          firebase.database().ref(self.getDataPath(remoteId)).on('value', function (data) {
+            var value = data.val();
+            if (value === null || value === '' || value.to !== self.id) return;
+            self.messageListener(remoteId, value.type, value.data);
+          });
+
+          // send offer from a peer who
+          //   - later joined the room, or
+          //   - has larger id if two peers joined the room at same time
+          if (timestamp > remoteTimestamp ||
+              (timestamp === remoteTimestamp && self.id > remoteId)) peer.offer();
+
+          self.occupantListener(self.roomId, self.occupants, false);
+        });
+
+        roomRef.on('child_removed', function (data) {
+          var remoteId = data.key;
+
+          if (remoteId === self.id || remoteId === 'timestamp' || self.peers[remoteId] === undefined) return;
+
+          delete self.peers[remoteId];
+          delete self.occupants[remoteId];
+
+          self.occupantListener(self.roomId, self.occupants, false);
+        });
+
+        self.loginSuccess(self.id);
+      });
+    });
+  }
+
+  shouldStartConnectionTo(client) {
+    return (this.myRoomJoinTime || 0) <= (client ? client.roomJoinTime : 0);
+  }
+
+  startStreamConnection(networkId) {
+    // TODO: implement
+    console.warn('FirebaseWebRtcInterface does not imlement startStreamConnectionMethod yet.');
+  }
+
+  closeStreamConnection(networkId) {
+    // TODO: implement
+    console.warn('FirebaseWebRtcInterface does not imlement closeStreamConnectionMethod yet.');
+  }
+
+  sendData(networkId, dataType, data) {
+    this.peers[networkId].send(dataType, data);
+  }
+
+  sendDataGuaranteed(networkId, dataType, data) {
+    if (data.takeover === undefined) { data.takeover = null; }
+    this.firebase.database().ref(this.getDataPath(this.id)).set({
+      to: networkId,
+      type: dataType,
+      data: data
+    });
+  }
+
+  /*
+   * Getters
+   */
+
+  getRoomJoinTime(clientId) {
+    return this.occupants[clientId];
+  }
+
+  getConnectStatus(networkId) {
+    var peer = this.peers[networkId];
+
+    if (peer === undefined) return NetworkInterface.NOT_CONNECTED;
+
+    switch (peer.getStatus()) {
+      case WebRtcPeer.IS_CONNECTED:
+        return NetworkInterface.IS_CONNECTED;
+
+      case WebRtcPeer.CONNECTING:
+        return NetworkInterface.CONNECTING;
+
+      case WebRtcPeer.NOT_CONNECTED:
+      default:
+        return NetworkInterface.NOT_CONNECTED;
+    }
+  }
+
+  /*
+   * Privates
+   */
+
+  initFirebase(callback) {
+    this.firebase.initializeApp({
+      apiKey: this.apiKey,
+      authDomain: this.authDomain,
+      databaseURL: this.databaseURL
+    });
+
+    this.auth(this.authType, callback);
+  }
+
+  auth(type, callback) {
+    switch (type) {
+      case 'none':
+        this.authNone(callback);
+        break;
+
+      case 'anonymous':
+        this.authAnonymous(callback);
+        break;
+
+      // TODO: support other auth type
+      default:
+        console.log('FirebaseWebRtcInterface.auth: Unknown authType ' + type);
+        break;
+    }
+  }
+
+  authNone(callback) {
+    var self = this;
+
+    // asynchronously invokes open listeners for the compatibility with other auth types.
+    // TODO: generate not just random but also unique id
+    requestAnimationFrame(function () {
+      callback(self.randomString());
+    });
+  }
+
+  authAnonymous(callback) {
+    var self = this;
+    var firebase = this.firebase;
+
+    firebase.auth().signInAnonymously().catch(function (error) {
+      console.error('FirebaseWebRtcInterface.authAnonymous: ' + error);
+      self.loginFailure(null, error);
+    });
+
+    firebase.auth().onAuthStateChanged(function (user) {
+      if (user !== null) {
+        callback(user.uid);
+      }
+    });
+  }
+
+  /*
+   * realtime database layout
+   *
+   * /rootPath/appId/roomId/
+   *   - /userId/
+   *     - timestamp: joining the room timestamp
+   *     - signal: used to send signal
+   *     - data: used to send guaranteed data
+   *   - /timestamp/: working path to get timestamp
+   *     - userId: 
+   */
+
+  getRootPath() {
+    return this.rootPath;
+  }
+
+  getAppPath() {
+    return this.getRootPath() + '/' + this.appId;
+  }
+
+  getRoomPath() {
+    return this.getAppPath() + '/' + this.roomId;
+  }
+
+  getUserPath(id) {
+    return this.getRoomPath() + '/' + id;
+  }
+
+  getSignalPath(id) {
+    return this.getUserPath(id) + '/signal';
+  }
+
+  getDataPath(id) {
+    return this.getUserPath(id) + '/data';
+  }
+
+  getTimestampGenerationPath(id) {
+    return this.getRoomPath() + '/timestamp/' + id;
+  }
+
+  randomString() {
+    var stringLength = 16;
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789';
+    var string = '';
+
+    for (var i = 0; i < stringLength; i++) {
+        var randomNumber = Math.floor(Math.random() * chars.length);
+        string += chars.substring(randomNumber, randomNumber + 1);
+    }
+
+    return string;
+  }
+
+  getTimestamp(callback) {
+    var firebase = this.firebase;
+    var ref = firebase.database().ref(this.getTimestampGenerationPath(this.id));
+    ref.set(firebase.database.ServerValue.TIMESTAMP);
+    ref.once('value', function (data) {
+      var timestamp = data.val();
+      ref.remove();
+      callback(timestamp);
+    });
+    ref.onDisconnect().remove();
+  }
+}
+
+module.exports = FirebaseWebRtcInterface;
+
+class WebRtcPeer {
+  constructor(localId, remoteId, sendSignalFunc) {
+    this.localId = localId;
+    this.remoteId = remoteId;
+    this.sendSignalFunc = sendSignalFunc;
+    this.open = false;
+    this.channelLabel = 'networked-aframe-channel';
+
+    this.pc = this.createPeerConnection();
+    this.channel = null;
+  }
+
+  setDatachannelListeners(openListener, closedListener, messageListener) {
+    this.openListener = openListener;
+    this.closedListener = closedListener;
+    this.messageListener = messageListener;
+  }
+
+  offer() {
+    var self = this;
+    // reliable: false - UDP
+    this.setupChannel(this.pc.createDataChannel(this.channelLabel, {reliable: false}));
+    this.pc.createOffer(
+      function (sdp) {
+        self.handleSessionDescription(sdp);
+      },
+      function (error) {
+        console.error('WebRtcPeer.offer: ' + error);
+      }
+    );
+  }
+
+  handleSignal(signal) {
+    // ignores signal if it isn't for me
+    if (this.localId !== signal.to || this.remoteId !== signal.from) return;
+
+    switch (signal.type) {
+      case 'offer':
+        this.handleOffer(signal);
+        break;
+
+      case 'answer':
+        this.handleAnswer(signal);
+        break;
+
+      case 'candidate':
+        this.handleCandidate(signal);
+        break;
+
+      default:
+        console.error('WebRtcPeer.handleSignal: Unknown signal type ' + signal.type);
+        break;
+    }
+  }
+
+  send(type, data) {
+    // TODO: throw error?
+    if (this.channel === null || this.channel.readyState !== 'open') return;
+
+    this.channel.send(JSON.stringify({type: type, data: data}));
+  }
+
+  getStatus() {
+    if (this.channel === null) return WebRtcPeer.NOT_CONNECTED;
+
+    switch (this.channel.readyState) {
+      case 'open':
+        return WebRtcPeer.IS_CONNECTED;
+
+      case 'connecting':
+        return WebRtcPeer.CONNECTING;
+
+      case 'closing':
+      case 'closed':
+      default:
+        return WebRtcPeer.NOT_CONNECTED;
+    }
+  }
+
+  /*
+   * Privates
+   */
+
+  createPeerConnection() {
+    var self = this;
+    var RTCPeerConnection = window.RTCPeerConnection ||
+                            window.webkitRTCPeerConnection ||
+                            window.mozRTCPeerConnection ||
+                            window.msRTCPeerConnection;
+
+    if (RTCPeerConnection === undefined) {
+      throw new Error('WebRtcPeer.createPeerConnection: This browser does not seem to support WebRTC.');
+    }
+
+    var pc = new RTCPeerConnection({'iceServers': WebRtcPeer.ICE_SERVERS});
+
+    pc.onicecandidate = function (event) {
+      if (event.candidate) {
+        self.sendSignalFunc({
+          from: self.localId,
+          to: self.remoteId,
+          type: 'candidate',
+          sdpMLineIndex: event.candidate.sdpMLineIndex,
+          candidate: event.candidate.candidate
+        });
+      }
+    };
+
+    // Note: seems like channel.onclose hander is unreliable on some platforms,
+    //       so also tries to detect disconnection here.
+    pc.oniceconnectionstatechange = function() {
+      if(self.open && pc.iceConnectionState === 'disconnected') {
+        self.open = false;
+      }
+    };
+
+    return pc;
+  }
+
+  setupChannel(channel) {
+    var self = this;
+
+    this.channel = channel;
+
+    // received data from a remote peer
+    this.channel.onmessage = function (event) {
+      var data = JSON.parse(event.data);
+      self.messageListener(self.remoteId, data.type, data.data);
+    };
+
+    // connected with a remote peer
+    this.channel.onopen = function (event) {
+      self.open = true;
+      self.openListener(self.remoteId);
+    };
+
+    // disconnected with a remote peer
+    this.channel.onclose = function (event) {
+      if (! self.open) return;
+      self.open = false;
+      self.closedListener(self.remoteId);
+    };
+
+    // error occurred with a remote peer
+    this.channel.onerror = function (error) {
+      console.error('WebRtcPeer.channel.onerror: ' + error);
+    };
+  }
+
+  handleOffer(message) {
+    var self = this;
+
+    this.pc.ondatachannel = function (event) {
+      self.setupChannel(event.channel);
+    };
+
+    this.setRemoteDescription(message);
+
+    this.pc.createAnswer(
+      function (sdp) {
+        self.handleSessionDescription(sdp);
+      },
+      function (error) {
+        console.error('WebRtcPeer.handleOffer: ' + error);
+      }
+    );
+  }
+
+  handleAnswer(message) {
+    this.setRemoteDescription(message);
+  }
+
+  handleCandidate( message ) {
+    var self = this;
+    var RTCIceCandidate = window.RTCIceCandidate ||
+                          window.webkitRTCIceCandidate ||
+                          window.mozRTCIceCandidate;
+
+    this.pc.addIceCandidate(
+      new RTCIceCandidate(message),
+      function () {},
+      function (error) {
+        console.error('WebRtcPeer.handleCandidate: ' + error);
+      }
+    );
+  }
+
+  handleSessionDescription(sdp) {
+    var self = this;
+
+    this.pc.setLocalDescription(sdp,
+      function () {},
+      function (error) {
+        console.error('WebRtcPeer.handleSessionDescription: ' + error);
+      }
+    );
+
+    this.sendSignalFunc({
+      from: this.localId,
+      to: this.remoteId,
+      type: sdp.type,
+      sdp: sdp.sdp
+    });
+  }
+
+  setRemoteDescription( message ) {
+    var self = this;
+    var RTCSessionDescription = window.RTCSessionDescription ||
+                                window.webkitRTCSessionDescription ||
+                                window.mozRTCSessionDescription ||
+                                window.msRTCSessionDescription;
+
+    this.pc.setRemoteDescription(
+      new RTCSessionDescription(message),
+      function () {},
+      function (error) {
+        console.error('WebRtcPeer.setRemoteDescription: ' + error);
+      }
+    );
+  }
+}
+
+WebRtcPeer.IS_CONNECTED = 'IS_CONNECTED';
+WebRtcPeer.CONNECTING = 'CONNECTING';
+WebRtcPeer.NOT_CONNECTED = 'NOT_CONNECTED';
+
+WebRtcPeer.ICE_SERVERS = [
+  {urls: 'stun:stun.l.google.com:19302'},
+  {urls: 'stun:stun1.l.google.com:19302'},
+  {urls: 'stun:stun2.l.google.com:19302'},
+  {urls: 'stun:stun3.l.google.com:19302'},
+  {urls: 'stun:stun4.l.google.com:19302'}
+];
+
+},{"../NafIndex":50,"./NetworkInterface":66}],66:[function(require,module,exports){
 var NafInterface = require('../NafInterface');
 
 class NetworkInterface extends NafInterface {
@@ -3567,7 +4315,7 @@ NetworkInterface.CONNECTING = 'CONNECTING';
 NetworkInterface.NOT_CONNECTED = 'NOT_CONNECTED';
 
 module.exports = NetworkInterface;
-},{"../NafInterface":50}],65:[function(require,module,exports){
+},{"../NafInterface":51}],67:[function(require,module,exports){
 var naf = require('../NafIndex');
 var NetworkInterface = require('./NetworkInterface');
 
@@ -3662,4 +4410,4 @@ class WebSocketEasyRtcInterface extends NetworkInterface {
 }
 
 module.exports = WebSocketEasyRtcInterface;
-},{"../NafIndex":49,"./NetworkInterface":64}]},{},[62]);
+},{"../NafIndex":50,"./NetworkInterface":66}]},{},[63]);

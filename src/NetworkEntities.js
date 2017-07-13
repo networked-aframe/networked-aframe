@@ -24,6 +24,34 @@ class NetworkEntities {
     this.addNetworkComponent(entity, entityData, components);
     this.entities[entityData.networkId] = entity;
 
+    if (template) {
+      entity.addEventListener('loaded', function () {
+
+      var templateChild = entity.firstChild;
+      templateChild.addEventListener('templaterendered', function () {
+        var cloned = templateChild.firstChild;
+	// mirror the attributes
+        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+          entity.setAttribute(attr.nodeName, attr.nodeValue);
+        });
+        // take the children
+        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+          cloned.removeChild(child);
+          entity.appendChild(child);
+        }
+
+        cloned.pause();
+        templateChild.pause();
+        setTimeout(function() {
+          try { templateChild.removeChild(cloned); } catch (e) {}
+          try { entity.removeChild(templateChild); } catch (e) {}
+	  // delete?
+        });
+      });
+
+      });
+    }
+
     return entity;
   }
 
@@ -46,12 +74,18 @@ class NetworkEntities {
   addNetworkComponent(entity, entityData, components) {
     var networkData = {
       template: entityData.template,
-      showTemplate: entityData.showTemplate,
       owner: entityData.owner,
       networkId: entityData.networkId,
       components: components
     };
-    entity.setAttribute('networked-remote', networkData);
+    if (NAF.options.useShare) {
+      networkData.showLocalTemplate = entityData.showTemplate;
+      networkData.showRemoteTemplate = entityData.showTemplate;
+      entity.setAttribute('networked-share', networkData);
+    } else {
+      networkData.showTemplate = entityData.showTemplate;
+      entity.setAttribute('networked-remote', networkData);
+    }
     entity.firstUpdateData = entityData;
   }
 

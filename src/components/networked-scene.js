@@ -25,12 +25,14 @@ AFRAME.registerComponent('networked-scene', {
     updateRate: {default: 0},
     useLerp: {default: true},
     compressSyncPackets: {default: false},
+    useShare: {default: false},
   },
 
   init: function() {
     if (this.data.updateRate) { naf.options.updateRate = this.data.updateRate; }
     naf.options.useLerp = this.data.useLerp;
     naf.options.compressSyncPackets = this.data.compressSyncPackets;
+    naf.options.useShare = this.data.useShare;
 
     this.el.addEventListener('connect', this.connect.bind(this));
     if (this.data.connectOnLoad) {

@@ -86,7 +86,7 @@ AFRAME.registerComponent('networked-remote', {
         var data = components[key];
         if (naf.utils.isChildSchemaKey(key)) {
           var schema = naf.utils.keyToChildSchema(key);
-          var childEl = this.el.querySelector(schema.selector);
+          var childEl = schema.selector ? this.el.querySelector(schema.selector) : this.el;
           if (childEl) { // Is false when first called in init
             if (schema.property) { childEl.setAttribute(schema.component, schema.property, data); }
             else { childEl.setAttribute(schema.component, data); }

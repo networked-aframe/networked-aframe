@@ -1752,7 +1752,8 @@
 	  debug: false,
 	  updateRate: 15, // How often network components call `sync`
 	  compressSyncPackets: false, // compress network component sync packet json
-	  useLerp: true // when networked entities are created the aframe-lerp-component is attched to the root
+	  useLerp: true, // when networked entities are created the aframe-lerp-component is attached to the root
+	  useShare: false // whether for remote entities, we use networked-share (instead of networked-remote)
 	};
 
 	module.exports = options;
@@ -1783,6 +1784,8 @@
 	  var components = entity.components;
 	  if (components.hasOwnProperty('networked-remote')) {
 	    return entity.components['networked-remote'].data.owner;
+	  } else if (components.hasOwnProperty('networked-share')) {
+	    return entity.components['networked-share'].data.owner;
 	  } else if (components.hasOwnProperty('networked')) {
 	    return entity.components['networked'].owner;
 	  }
@@ -2127,6 +2130,37 @@
 	      this.addNetworkComponent(entity, entityData, components);
 	      this.entities[entityData.networkId] = entity;
 
+	      if (template) {
+	        entity.addEventListener('loaded', function () {
+
+	          var templateChild = entity.firstChild;
+	          templateChild.addEventListener('templaterendered', function () {
+	            var cloned = templateChild.firstChild;
+	            // mirror the attributes
+	            Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+	              entity.setAttribute(attr.nodeName, attr.nodeValue);
+	            });
+	            // take the children
+	            for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+	              cloned.removeChild(child);
+	              entity.appendChild(child);
+	            }
+
+	            cloned.pause();
+	            templateChild.pause();
+	            setTimeout(function () {
+	              try {
+	                templateChild.removeChild(cloned);
+	              } catch (e) {}
+	              try {
+	                entity.removeChild(templateChild);
+	              } catch (e) {}
+	              // delete?
+	            });
+	          });
+	        });
+	      }
+
 	      return entity;
 	    }
 	  }, {
@@ -2152,12 +2186,18 @@
 	    value: function addNetworkComponent(entity, entityData, components) {
 	      var networkData = {
 	        template: entityData.template,
-	        showTemplate: entityData.showTemplate,
 	        owner: entityData.owner,
 	        networkId: entityData.networkId,
 	        components: components
 	      };
-	      entity.setAttribute('networked-remote', networkData);
+	      if (NAF.options.useShare) {
+	        networkData.showLocalTemplate = entityData.showTemplate;
+	        networkData.showRemoteTemplate = entityData.showTemplate;
+	        entity.setAttribute('networked-share', networkData);
+	      } else {
+	        networkData.showTemplate = entityData.showTemplate;
+	        entity.setAttribute('networked-remote', networkData);
+	      }
 	      entity.firstUpdateData = entityData;
 	    }
 	  }, {
@@ -2714,7 +2754,8 @@
 
 	    updateRate: { default: 0 },
 	    useLerp: { default: true },
-	    compressSyncPackets: { default: false }
+	    compressSyncPackets: { default: false },
+	    useShare: { default: false }
 	  },
 
 	  init: function init() {
@@ -2723,6 +2764,7 @@
 	    }
 	    naf.options.useLerp = this.data.useLerp;
 	    naf.options.compressSyncPackets = this.data.compressSyncPackets;
+	    naf.options.useShare = this.data.useShare;
 
 	    this.el.addEventListener('connect', this.connect.bind(this));
 	    if (this.data.connectOnLoad) {
@@ -3769,12 +3811,37 @@
 	      return;
 	    }
 
-	    var templateChild = document.createElement('a-entity');
-	    templateChild.setAttribute('template', 'src:' + template);
-	    templateChild.setAttribute('visible', show);
+	    if (show) {
+	      var templateChild = document.createElement('a-entity');
+	      templateChild.setAttribute('template', 'src:' + template);
+	      //templateChild.setAttribute('visible', show);
 
-	    this.el.appendChild(templateChild);
-	    this.templateEl = templateChild;
+	      var self = this;
+	      var el = this.el;
+	      templateChild.addEventListener('templaterendered', function () {
+	        var cloned = templateChild.firstChild;
+	        // mirror the attributes
+	        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+	          el.setAttribute(attr.nodeName, attr.nodeValue);
+	        });
+	        // take the children
+	        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+	          cloned.removeChild(child);
+	          el.appendChild(child);
+	        }
+
+	        cloned.pause();
+	        templateChild.pause();
+	        setTimeout(function () {
+	          templateChild.removeChild(cloned);
+	          el.removeChild(self.templateEl);
+	          delete self.templateEl;
+	        });
+	      });
+
+	      this.el.appendChild(templateChild);
+	      this.templateEl = templateChild;
+	    }
 	  },
 
 	  play: function play() {
@@ -3850,7 +3917,7 @@
 	        }
 	      } else {
 	        var childKey = naf.utils.childSchemaToKey(element);
-	        var child = this.el.querySelector(element.selector);
+	        var child = element.selector ? this.el.querySelector(element.selector) : this.el;
 	        if (child) {
 	          var comp = child.components[element.component];
 	          if (comp) {
@@ -3890,7 +3957,7 @@
 	        var compName = schema.component;
 	        var propName = schema.property;
 
-	        var childEl = this.el.querySelector(selector);
+	        var childEl = selector ? this.el.querySelector(selector) : this.el;
 	        var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
 	        if (!hasComponent) {
 	          continue;
@@ -4239,7 +4306,7 @@
 	        var data = components[key];
 	        if (naf.utils.isChildSchemaKey(key)) {
 	          var schema = naf.utils.keyToChildSchema(key);
-	          var childEl = this.el.querySelector(schema.selector);
+	          var childEl = schema.selector ? this.el.querySelector(schema.selector) : this.el;
 	          if (childEl) {
 	            // Is false when first called in init
 	            if (schema.property) {
@@ -4374,6 +4441,7 @@
 
 	    this.cachedData = {};
 	    this.initNetworkId();
+	    this.initNetworkOwner();
 	    this.initNetworkParent();
 	    this.attachAndShowTemplate(this.data.template, this.data.showLocalTemplate);
 	    this.registerEntity(this.networkId);
@@ -4387,6 +4455,16 @@
 	  },
 
 	  initNetworkId: function initNetworkId() {
+	    if (!this.data.networkId) {
+	      this.data.networkId = Math.random().toString(36).substring(2, 9);
+	    }
+	    this.networkId = this.data.networkId;
+	  },
+
+	  initNetworkOwner: function initNetworkOwner() {
+	    if (!this.data.owner) {
+	      this.data.owner = NAF.clientId;
+	    }
 	    this.networkId = this.data.networkId;
 	  },
 
@@ -4432,7 +4510,30 @@
 	    if (show) {
 	      var templateChild = document.createElement('a-entity');
 	      templateChild.setAttribute('template', 'src:' + template);
-	      templateChild.setAttribute('visible', show);
+	      //templateChild.setAttribute('visible', show);
+
+	      var self = this;
+	      var el = this.el;
+	      templateChild.addEventListener('templaterendered', function () {
+	        var cloned = templateChild.firstChild;
+	        // mirror the attributes
+	        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+	          el.setAttribute(attr.nodeName, attr.nodeValue);
+	        });
+	        // take the children
+	        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+	          cloned.removeChild(child);
+	          el.appendChild(child);
+	        }
+
+	        cloned.pause();
+	        templateChild.pause();
+	        setTimeout(function () {
+	          templateChild.removeChild(cloned);
+	          el.removeChild(self.templateEl);
+	          delete self.templateEl;
+	        });
+	      });
 
 	      this.el.appendChild(templateChild);
 	      this.templateEl = templateChild;
@@ -4678,7 +4779,7 @@
 	        }
 	      } else {
 	        var childKey = naf.utils.childSchemaToKey(element);
-	        var child = this.el.querySelector(element.selector);
+	        var child = element.selector ? this.el.querySelector(element.selector) : this.el;
 	        if (child) {
 	          var comp = child.components[element.component];
 	          if (comp) {
@@ -4718,7 +4819,7 @@
 	        var compName = schema.component;
 	        var propName = schema.property;
 
-	        var childEl = this.el.querySelector(selector);
+	        var childEl = selector ? this.el.querySelector(selector) : this.el;
 	        var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
 	        if (!hasComponent) {
 	          continue;
@@ -4800,11 +4901,11 @@
 	        var data = components[key];
 	        if (naf.utils.isChildSchemaKey(key)) {
 	          var schema = naf.utils.keyToChildSchema(key);
-	          var childEl = this.el.querySelector(schema.selector);
+	          var childEl = schema.selector ? this.el.querySelector(schema.selector) : this.el;
 	          if (childEl) {
 	            // Is false when first called in init
 	            if (schema.property) {
-	              child.setAttribute(scheme.component, schema.property, data);
+	              childEl.setAttribute(schema.component, schema.property, data);
 	            } else {
 	              childEl.setAttribute(schema.component, data);
 	            }
