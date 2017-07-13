@@ -89,37 +89,22 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         <!-- Avatar -->
         <script id="avatar-template" type="text/html">
           <a-entity class="avatar">
-            <a-sphere class="head" static-body
-              color="#5985ff"
-              scale="0.45 0.5 0.4"
-              random-color
-            ></a-sphere>
-            <a-entity class="face"
-              position="0 0.05 0"
-            >
-              <a-sphere class="eye"
-                color="#efefef"
-                position="0.16 0.1 -0.35"
-                scale="0.12 0.12 0.12"
-              >
-                <a-sphere class="pupil"
-                  color="#000"
-                  position="0 0 -1"
-                  scale="0.2 0.2 0.2"
-                ></a-sphere>
+            <a-sphere class="head" static-body radius="0.5" scale="0.9 1 0.4" color="#5985ff" random-color></a-sphere>
+	    <a-entity scale="2.1 2.1 1.4" gltf-model="https://aframe.io/a-saturday-night/assets/avatar3/avatar3-head.gltf"></a-entity>
+	    <!--
+            <a-entity class="face" position="0 0.05 0">
+              <a-sphere class="eye" color="#efefef" position="0.16 0.1 -0.225" scale="0.12 0.12 0.06"
+                rotation="20 -25 0" phi-start="180" phi-length="180">
+                <a-sphere class="pupil" color="#000" position="-0.3 -0.2 -1" scale="0.2 0.2 0.1"
+		  phi-start="180" phi-length="180"></a-sphere>
               </a-sphere>
-              <a-sphere class="eye"
-                color="#efefef"
-                position="-0.16 0.1 -0.35"
-                scale="0.12 0.12 0.12"
-              >
-                <a-sphere class="pupil"
-                  color="#000"
-                  position="0 0 -1"
-                  scale="0.2 0.2 0.2"
-                ></a-sphere>
+              <a-sphere class="eye" color="#efefef" position="-0.16 0.1 -0.225" scale="0.12 0.12 0.06" 
+                rotation="20 25 0" phi-start="180" phi-length="180">
+                <a-sphere class="pupil" color="#000" position="0.3 -0.2 -1" scale="0.2 0.2 0.1"
+		  phi-start="180" phi-length="180"></a-sphere>
               </a-sphere>
             </a-entity>
+	    -->
           </a-entity>
         </script>
 
@@ -128,27 +113,28 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 
         <script id="ball-template" type="text/html">
             <a-entity
-	      geometry="primitive: sphere; radius: 0.2"
+	      geometry="primitive: sphere; radius: 0.17"
               static-body
-              material="color:#5985ff"
-              random-color
-            ></a-entity>
+              material="color:#5985ff" random-color>
+	      <!--a-entity gltf-model="https://aframe.io/a-saturday-night/assets/avatar3/avatar3-head.gltf"></a-entity-->
+	      <!-- a-box width="0.5" height="0.1" depth="0.1" color="red"></a-box -->
+            </a-entity>
         </script>        
 
         <script id="box-template" type="text/html">
             <a-entity
 	      geometry="primitive: box; width: 0.25; height: 0.25; depth: 0.25"
               static-body
-              material="color:blue"
-              random-color
-            ></a-entity>
+              material="color:blue" random-color>
+            </a-entity>
         </script>        
                 
         <!-- /Templates -->
       </a-assets>
 
       <a-entity id="player" 
-                networked="template:#avatar-template;showLocalTemplate:false;" 
+                networked="template:#avatar-template;would-showLocalTemplate:false;" 
+		static-body
                 camera 
                 spawn-in-circle="radius:3;" 
                 position="0 1.3 0" 
@@ -158,6 +144,11 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 
       <a-entity environment="preset:forest"></a-entity>
       <a-plane id="ground" width="1000" height="1000" rotation="90 0 0" static-body></a-plane>
+      <a-box position="0 0 5" width="10" height="10" depth="0.01" static-body></a-box>
+      <a-box position="0 0 -5" width="10" height="10" depth="0.01" static-body></a-box>
+      <a-box position="5 0 0" width="0.01" height="10" depth="10" static-body></a-box>
+      <a-box position="-5 0 0" width="0.01" height="10" depth="10" static-body></a-box>
+      <!-- a-box id="shareme" color="red" position="0.5 1 0" width="0.1" height="0.3" depth="0.1" dynamic-body></a-box -->
     </a-scene>
 
     <script>
@@ -204,11 +195,49 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 	return en;
       }
 
+      function addNetEntityFromElement(el, position, rotation, networkId) { 
+	if (!networkId) { networkId = Math.random().toString(36).substring(2, 9); }
+
+	el.flushToDOM(); // assume this is synchronous...?
+        var n = el.cloneNode(); // make a copy
+	n.removeAttribute('position');
+	n.removeAttribute('rotation');
+	n.removeAttribute('networked');
+	n.removeAttribute('networked-share');
+	n.removeAttribute('networked-remote');
+	n.removeAttribute('dynamic-body');
+	n.removeAttribute('static-body');
+	n.removeAttribute('id');
+
+        var template = document.createElement('script');
+	template.setAttribute('type', 'text/html');
+	template.setAttribute('id', 'tpl-' + networkId);
+	template.textContent = n.outerHTML;
+
+	var scene = document.querySelector('a-scene');
+	scene.appendChild(template);
+
+        //el.setAttribute('id', 'naf-' + networkId);
+        el.setAttribute('networked-share', {
+          physics: true,
+          template: '#tpl-' + networkId,
+	  showLocalTemplate: false,
+          networkId: networkId,
+          // this is default now... owner: NAF.clientId // we own it to start
+        });
+
+	return el;
+      }
+
       document.body.addEventListener('click', function (evt) {
         console.log(evt);
         console.log(NAF.connection);
         // make a ball that we own
-	addNetEntityFromSchema(ballSchema, '0 2 0');
+	var en = addNetEntityFromSchema(ballSchema, '0 2 0');
+	setTimeout(function() {
+          en.setAttribute('material', 'color', document.querySelector('#player .head').getAttribute('material').color);
+          en.setAttribute('constraint', 'target:#player');
+        }, 3000);
       });
 
       // add handlers for loggedIn, client connected / disconnected, etc.
@@ -216,19 +245,13 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
       document.body.addEventListener('loggedIn', function (evt) {
         console.log(evt);
         console.log(NAF.connection);
-        
-
-        // wait for a bit to see if it comes across the wire
-        // that's not gonna work, we don't get all the prior objects
+/*
+	// not gonna work right remotely because the template isn't there
+	// TODO: convey the template to remote parties (new message type?)
         setTimeout(function () {
-          
-        if (document.querySelector('#naf-onlyonebox')) { 
-          console.log('already naf-onlyonebox');
-          return; 
-        }
-
-        }, 1000);
-	addNetEntityFromSchema(boxSchema, '0.25 3 0', undefined, 'onlyonebox');
+	  addNetEntityFromElement(document.querySelector("#shareme"));
+	}, 1000);
+*/	
       });
       
       document.body.addEventListener('clientConnected', function (evt) {
