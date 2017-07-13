@@ -1753,7 +1753,8 @@
 	  updateRate: 15, // How often network components call `sync`
 	  compressSyncPackets: false, // compress network component sync packet json
 	  useLerp: true, // when networked entities are created the aframe-lerp-component is attached to the root
-	  useShare: false // whether for remote entities, we use networked-share (instead of networked-remote)
+	  useShare: true, // whether for remote entities, we use networked-share (instead of networked-remote)
+	  collisionOwnership: true // whether for networked-share, we take ownership when needed upon physics collision
 	};
 
 	module.exports = options;
@@ -2137,7 +2138,7 @@
 	          templateChild.addEventListener('templaterendered', function () {
 	            var cloned = templateChild.firstChild;
 	            // mirror the attributes
-	            Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+	            Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
 	              entity.setAttribute(attr.nodeName, attr.nodeValue);
 	            });
 	            // take the children
@@ -2146,7 +2147,7 @@
 	              entity.appendChild(child);
 	            }
 
-	            cloned.pause();
+	            cloned.pause && cloned.pause();
 	            templateChild.pause();
 	            setTimeout(function () {
 	              try {
@@ -2755,7 +2756,8 @@
 	    updateRate: { default: 0 },
 	    useLerp: { default: true },
 	    compressSyncPackets: { default: false },
-	    useShare: { default: false }
+	    useShare: { default: true },
+	    collisionOwnership: { default: true }
 	  },
 
 	  init: function init() {
@@ -2765,6 +2767,7 @@
 	    naf.options.useLerp = this.data.useLerp;
 	    naf.options.compressSyncPackets = this.data.compressSyncPackets;
 	    naf.options.useShare = this.data.useShare;
+	    naf.options.collisionOwnership = this.data.collisionOwnership;
 
 	    this.el.addEventListener('connect', this.connect.bind(this));
 	    if (this.data.connectOnLoad) {
@@ -3821,7 +3824,7 @@
 	      templateChild.addEventListener('templaterendered', function () {
 	        var cloned = templateChild.firstChild;
 	        // mirror the attributes
-	        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+	        Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
 	          el.setAttribute(attr.nodeName, attr.nodeValue);
 	        });
 	        // take the children
@@ -3833,8 +3836,12 @@
 	        cloned.pause();
 	        templateChild.pause();
 	        setTimeout(function () {
-	          templateChild.removeChild(cloned);
-	          el.removeChild(self.templateEl);
+	          try {
+	            templateChild.removeChild(cloned);
+	          } catch (e) {}
+	          try {
+	            el.removeChild(self.templateEl);
+	          } catch (e) {}
 	          delete self.templateEl;
 	        });
 	      });
@@ -4517,7 +4524,7 @@
 	      templateChild.addEventListener('templaterendered', function () {
 	        var cloned = templateChild.firstChild;
 	        // mirror the attributes
-	        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+	        Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
 	          el.setAttribute(attr.nodeName, attr.nodeValue);
 	        });
 	        // take the children
@@ -4526,11 +4533,15 @@
 	          el.appendChild(child);
 	        }
 
-	        cloned.pause();
+	        cloned.pause && cloned.pause();
 	        templateChild.pause();
 	        setTimeout(function () {
-	          templateChild.removeChild(cloned);
-	          el.removeChild(self.templateEl);
+	          try {
+	            templateChild.removeChild(cloned);
+	          } catch (e) {}
+	          try {
+	            el.removeChild(self.templateEl);
+	          } catch (e) {}
 	          delete self.templateEl;
 	        });
 	      });
@@ -4943,7 +4954,7 @@
 
 	  handlePhysicsCollision: function handlePhysicsCollision(e) {
 	    // FIXME: right now, this seems to allow race conditions that lead to stranded net entities...
-	    if (NAF.options.useShare) {
+	    if (NAF.options.useShare && !NAF.options.collisionOwnership) {
 	      return;
 	    }
 
