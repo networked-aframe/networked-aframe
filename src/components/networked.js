@@ -73,7 +73,7 @@ AFRAME.registerComponent('networked', {
       templateChild.addEventListener('templaterendered', function () {
         var cloned = templateChild.firstChild;
         // mirror the attributes
-        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+        Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
           el.setAttribute(attr.nodeName, attr.nodeValue);
         });
         // take the children
@@ -85,8 +85,8 @@ AFRAME.registerComponent('networked', {
         cloned.pause();
         templateChild.pause();
         setTimeout(function() {
-          templateChild.removeChild(cloned);
-          el.removeChild(self.templateEl);
+          try { templateChild.removeChild(cloned); } catch (e) {}
+          try { el.removeChild(self.templateEl); } catch (e) {}
           delete self.templateEl;
         });
       });

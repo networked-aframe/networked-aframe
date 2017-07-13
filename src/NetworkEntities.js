@@ -31,7 +31,7 @@ class NetworkEntities {
       templateChild.addEventListener('templaterendered', function () {
         var cloned = templateChild.firstChild;
 	// mirror the attributes
-        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+        Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
           entity.setAttribute(attr.nodeName, attr.nodeValue);
         });
         // take the children
@@ -40,7 +40,7 @@ class NetworkEntities {
           entity.appendChild(child);
         }
 
-        cloned.pause();
+        cloned.pause && cloned.pause();
         templateChild.pause();
         setTimeout(function() {
           try { templateChild.removeChild(cloned); } catch (e) {}
