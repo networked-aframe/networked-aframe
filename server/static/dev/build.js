@@ -1653,10 +1653,12 @@ var options = {
   debug: false,
   updateRate: 15, // How often network components call `sync`
   compressSyncPackets: false, // compress network component sync packet json
-  useLerp: true // when networked entities are created the aframe-lerp-component is attched to the root
+  useLerp: true, // when networked entities are created the aframe-lerp-component is attached to the root
+  useShare: false // whether for remote entities, we use networked-share (instead of networked-remote)
 };
 
 module.exports = options;
+
 },{}],54:[function(require,module,exports){
 module.exports.getPhysicsData = function(entity) {
   if (entity.body) {
@@ -2140,15 +2142,18 @@ class NetworkEntities {
   addNetworkComponent(entity, entityData, components) {
     var networkData = {
       template: entityData.template,
-      showTemplate: entityData.showTemplate,
-      //showLocalTemplate: entityData.showTemplate,
-      //showRemoteTemplate: entityData.showTemplate,
       owner: entityData.owner,
       networkId: entityData.networkId,
       components: components
     };
-    entity.setAttribute('networked-remote', networkData);
-    //entity.setAttribute('networked-share', networkData);
+    if (NAF.options.useShare) {
+      networkData.showLocalTemplate = entityData.showTemplate;
+      networkData.showRemoteTemplate = entityData.showTemplate;
+      entity.setAttribute('networked-share', networkData);
+    } else {
+      networkData.showTemplate = entityData.showTemplate;
+      entity.setAttribute('networked-remote', networkData);
+    }
     entity.firstUpdateData = entityData;
   }
 
@@ -2504,12 +2509,14 @@ AFRAME.registerComponent('networked-scene', {
     updateRate: {default: 0},
     useLerp: {default: true},
     compressSyncPackets: {default: false},
+    useShare: {default: false},
   },
 
   init: function() {
     if (this.data.updateRate) { naf.options.updateRate = this.data.updateRate; }
     naf.options.useLerp = this.data.useLerp;
     naf.options.compressSyncPackets = this.data.compressSyncPackets;
+    naf.options.useShare = this.data.useShare;
 
     this.el.addEventListener('connect', this.connect.bind(this));
     if (this.data.connectOnLoad) {

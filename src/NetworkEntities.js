@@ -74,15 +74,18 @@ class NetworkEntities {
   addNetworkComponent(entity, entityData, components) {
     var networkData = {
       template: entityData.template,
-      showTemplate: entityData.showTemplate,
-      //showLocalTemplate: entityData.showTemplate,
-      //showRemoteTemplate: entityData.showTemplate,
       owner: entityData.owner,
       networkId: entityData.networkId,
       components: components
     };
-    entity.setAttribute('networked-remote', networkData);
-    //entity.setAttribute('networked-share', networkData);
+    if (NAF.options.useShare) {
+      networkData.showLocalTemplate = entityData.showTemplate;
+      networkData.showRemoteTemplate = entityData.showTemplate;
+      entity.setAttribute('networked-share', networkData);
+    } else {
+      networkData.showTemplate = entityData.showTemplate;
+      entity.setAttribute('networked-remote', networkData);
+    }
     entity.firstUpdateData = entityData;
   }
 
