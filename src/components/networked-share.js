@@ -103,7 +103,7 @@ AFRAME.registerComponent('networked-share', {
       templateChild.addEventListener('templaterendered', function () {
         var cloned = templateChild.firstChild;
         // mirror the attributes
-        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+        Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
           el.setAttribute(attr.nodeName, attr.nodeValue);
         });
         // take the children
@@ -112,11 +112,11 @@ AFRAME.registerComponent('networked-share', {
           el.appendChild(child);
         }
 
-        cloned.pause();
+        cloned.pause && cloned.pause();
         templateChild.pause();
         setTimeout(function() {
-	  templateChild.removeChild(cloned);
-          el.removeChild(self.templateEl);
+	  try { templateChild.removeChild(cloned); } catch (e) {}
+          try { el.removeChild(self.templateEl); } catch (e) {}
           delete self.templateEl;
         });
       });
@@ -528,14 +528,23 @@ AFRAME.registerComponent('networked-share', {
   },
 
   handlePhysicsCollision: function(e) {
+    // FIXME: right now, this seems to allow race conditions that lead to stranded net entities...
+    if (NAF.options.useShare) { return; }
+
     // When a Collision happens, inherit ownership to collided object
     // so we can make sure, that my physics get propagated
     if (this.isMine()) {
       var collisionData = NAF.physics.getDataFromCollision(e);
-      if (collisionData.el && collisionData.el.components["networked-share"]) {
-        if (NAF.physics.isStrongerThan(this.el, collisionData.body) || collisionData.el.components["networked-share"].data.owner == "") {
-          collisionData.el.components["networked-share"].takeOwnership();
-          NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", collisionData.el.id);
+      if (collisionData.el) {
+        var collisionShare = collisionData.el.components["networked-share"];
+        if (collisionShare) {
+          var owner = collisionShare.data.owner;
+          if (owner !== NAF.clientId) {
+            if (NAF.physics.isStrongerThan(this.el, collisionData.body) || owner === "") {
+              collisionData.el.components["networked-share"].takeOwnership();
+              NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", collisionData.el.id);
+            }
+          }
         }
       }
     }

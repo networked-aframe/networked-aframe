@@ -4942,14 +4942,25 @@
 	  },
 
 	  handlePhysicsCollision: function handlePhysicsCollision(e) {
+	    // FIXME: right now, this seems to allow race conditions that lead to stranded net entities...
+	    if (NAF.options.useShare) {
+	      return;
+	    }
+
 	    // When a Collision happens, inherit ownership to collided object
 	    // so we can make sure, that my physics get propagated
 	    if (this.isMine()) {
 	      var collisionData = NAF.physics.getDataFromCollision(e);
-	      if (collisionData.el && collisionData.el.components["networked-share"]) {
-	        if (NAF.physics.isStrongerThan(this.el, collisionData.body) || collisionData.el.components["networked-share"].data.owner == "") {
-	          collisionData.el.components["networked-share"].takeOwnership();
-	          NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", collisionData.el.id);
+	      if (collisionData.el) {
+	        var collisionShare = collisionData.el.components["networked-share"];
+	        if (collisionShare) {
+	          var owner = collisionShare.data.owner;
+	          if (owner !== NAF.clientId) {
+	            if (NAF.physics.isStrongerThan(this.el, collisionData.body) || owner === "") {
+	              collisionData.el.components["networked-share"].takeOwnership();
+	              NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", collisionData.el.id);
+	            }
+	          }
 	        }
 	      }
 	    }
