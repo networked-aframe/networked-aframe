@@ -25,7 +25,8 @@ AFRAME.registerComponent('networked-scene', {
     updateRate: {default: 0},
     useLerp: {default: true},
     compressSyncPackets: {default: false},
-    useShare: {default: false},
+    useShare: {default: true},
+    collisionOwnership: {default: true},
   },
 
   init: function() {
@@ -33,6 +34,7 @@ AFRAME.registerComponent('networked-scene', {
     naf.options.useLerp = this.data.useLerp;
     naf.options.compressSyncPackets = this.data.compressSyncPackets;
     naf.options.useShare = this.data.useShare;
+    naf.options.collisionOwnership = this.data.collisionOwnership;
 
     this.el.addEventListener('connect', this.connect.bind(this));
     if (this.data.connectOnLoad) {
