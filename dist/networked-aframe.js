@@ -1853,6 +1853,35 @@
 	  return a.selector == b.selector && a.component == b.component && a.property == b.property;
 	};
 
+	module.exports.monkeyPatchEntityFromTemplateChild = function (entity, templateChild, callback) {
+	  templateChild.addEventListener('templaterendered', function () {
+	    var cloned = templateChild.firstChild;
+	    // mirror the attributes
+	    Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
+	      entity.setAttribute(attr.nodeName, attr.nodeValue);
+	    });
+	    // take the children
+	    for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+	      cloned.removeChild(child);
+	      entity.appendChild(child);
+	    }
+
+	    cloned.pause && cloned.pause();
+	    templateChild.pause();
+	    setTimeout(function () {
+	      try {
+	        templateChild.removeChild(cloned);
+	      } catch (e) {}
+	      try {
+	        entity.removeChild(templateChild);
+	      } catch (e) {}
+	      if (callback) {
+	        callback();
+	      }
+	    });
+	  });
+	};
+
 /***/ }),
 /* 49 */
 /***/ (function(module, exports) {
@@ -2167,30 +2196,7 @@
 	        entity.addEventListener('loaded', function () {
 
 	          var templateChild = entity.firstChild;
-	          templateChild.addEventListener('templaterendered', function () {
-	            var cloned = templateChild.firstChild;
-	            // mirror the attributes
-	            Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
-	              entity.setAttribute(attr.nodeName, attr.nodeValue);
-	            });
-	            // take the children
-	            for (var child = cloned.firstChild; child; child = cloned.firstChild) {
-	              cloned.removeChild(child);
-	              entity.appendChild(child);
-	            }
-
-	            cloned.pause && cloned.pause();
-	            templateChild.pause();
-	            setTimeout(function () {
-	              try {
-	                templateChild.removeChild(cloned);
-	              } catch (e) {}
-	              try {
-	                entity.removeChild(templateChild);
-	              } catch (e) {}
-	              // delete?
-	            });
-	          });
+	          NAF.utils.monkeyPatchEntityFromTemplateChild(entity, templateChild);
 	        });
 	      }
 
@@ -4552,34 +4558,12 @@
 	      //templateChild.setAttribute('visible', show);
 
 	      var self = this;
-	      var el = this.el;
-	      templateChild.addEventListener('templaterendered', function () {
-	        var cloned = templateChild.firstChild;
-	        // mirror the attributes
-	        Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
-	          el.setAttribute(attr.nodeName, attr.nodeValue);
-	        });
-	        // take the children
-	        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
-	          cloned.removeChild(child);
-	          el.appendChild(child);
-	        }
-
-	        cloned.pause && cloned.pause();
-	        templateChild.pause();
-	        setTimeout(function () {
-	          try {
-	            templateChild.removeChild(cloned);
-	          } catch (e) {}
-	          try {
-	            el.removeChild(self.templateEl);
-	          } catch (e) {}
-	          delete self.templateEl;
-	        });
+	      NAF.utils.monkeyPatchEntityFromTemplateChild(this.el, templateChild, function () {
+	        delete self.templateEl;
 	      });
 
-	      this.el.appendChild(templateChild);
 	      this.templateEl = templateChild;
+	      this.el.appendChild(templateChild);
 	    }
 	  },
 
@@ -4595,8 +4579,16 @@
 	      var entityData = that.el.firstUpdateData;
 	      that.networkUpdate(entityData);
 	    };
-	    // FIXME: this timeout-based stall should be event driven!!!
-	    setTimeout(callback, 50);
+
+	    // wait for template to render (and monkey-patching to finish, so next tick), then callback
+
+	    if (this.templateEl) {
+	      this.templateEl.addEventListener('templaterendered', function () {
+	        setTimeout(callback);
+	      });
+	    } else {
+	      setTimeout(callback);
+	    }
 	  },
 
 	  update: function update() {
