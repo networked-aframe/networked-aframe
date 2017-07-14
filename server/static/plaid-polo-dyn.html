@@ -52,17 +52,7 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         ]
       };
       NAF.schemas.add(ballSchema);
-      
-      // Define custom schema for syncing ball pose and color, set by random-color
-      var boxSchema = {
-        template: '#box-template',
-        components: [
-          'position',
-          'rotation',
-          {component: 'material', property: 'color'},
-        ]
-      };
-      NAF.schemas.add(boxSchema);
+
     </script>
    <a-scene networked-scene="
       room: basic;
@@ -130,14 +120,6 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
             </a-entity>
         </script>        
 
-        <script id="box-template" type="text/html">
-            <a-entity
-	      geometry="primitive: box; width: 0.25; height: 0.25; depth: 0.25"
-              dynamic-body
-              material="color:blue" random-color>
-            </a-entity>
-        </script>        
-                
         <!-- /Templates -->
       </a-assets>
 
