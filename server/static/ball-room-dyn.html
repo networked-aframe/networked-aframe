@@ -64,9 +64,12 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
       };
       NAF.schemas.add(boxSchema);
     </script>
+<!-- note: webrtc seems lossy -->
    <a-scene networked-scene="
       room: basic; debug: true;
-      updateRate: 30; useLerp: false; compressSyncPackets: true; useShare: true;
+      useLerp: false; compressSyncPackets: true; useShare: true;
+      updateRate: 30;
+      collisionOwnership: true;
       webrtc: true;
    ">
 <!--
@@ -148,13 +151,14 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
       <a-box position="0 0 -5" width="10" height="10" depth="0.01" static-body></a-box>
       <a-box position="5 0 0" width="0.01" height="10" depth="10" static-body></a-box>
       <a-box position="-5 0 0" width="0.01" height="10" depth="10" static-body></a-box>
-<!--
+
       <a-entity id="shareme" 
-        position="0.5 1 0"
+        position="0.5 1 0" spawn-in-circle
         material="color:red" 
         geometry="primitive:box; width:0.1; height:0.3; depth:0.1"
-        dynamic-body></a-entity>
--->
+        dynamic-body>
+      </a-entity>
+
     </a-scene>
 
     <script>
@@ -184,20 +188,8 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 
       function addNetEntityFromSchema(schema, position, rotation, networkId, el) {
         var en = createNetEntityFromSchema(schema, position, rotation, networkId);
-
 	if (!el) { el = document.querySelector('a-scene'); }
 	el.appendChild(en);
-
-        // NECESSARY EVIL HACK: we need to cheat and make ours dynamic-body not static-body
-        // FIXME: how do we know when the template has been instantiated?
-        // OK with this trickery, local template works!
-        setTimeout(function () {
-          en.removeAttribute('static-body');
-          en.setAttribute('dynamic-body', '');
-          en.body.type = 1; // dynamic
-          en.body.updateMassProperties();
-        }, 100);
-
 	return en;
       }
 
@@ -213,18 +205,19 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 	n.removeAttribute('networked-remote');
 	n.removeAttribute('dynamic-body');
 	n.removeAttribute('static-body');
+	n.removeAttribute('quaternion');
+	n.removeAttribute('velocity');
 	n.removeAttribute('id');
 
-        var template = document.createElement('script');
-	template.setAttribute('type', 'text/html');
-	template.setAttribute('id', 'tpl-' + networkId);
-	template.textContent = n.outerHTML;
+        var template = NAF.options.compressSyncPackets
+          ? ('data:text/html;charset=utf-8;base64,' + btoa(n.outerHTML))
+          : ('data:text/html;charset=utf-8,' + encodeURIComponent(n.outerHTML))
 
         //el.setAttribute('id', 'naf-' + networkId);
         el.setAttribute('networked-share', {
           physics: true,
           // doesn't work, kframe template doesn't seem to support inline data URI as src
-          template: 'data:text/html;charset=utf-8;base64,' + btoa(n.outerHTML),
+          template: template,
           showLocalTemplate: false,
           networkId: networkId,
           // this is default now... owner: NAF.clientId // we own it to start
@@ -249,11 +242,11 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
       document.body.addEventListener('loggedIn', function (evt) {
         console.log(evt);
         console.log(NAF.connection);
-/*
+
         setTimeout(function () {
 	  addNetEntityFromElement(document.querySelector("#shareme"));
 	}, 1000);
-*/
+
       });
       
       document.body.addEventListener('clientConnected', function (evt) {
