@@ -4,7 +4,8 @@
     <title>Basic Example — Networked-Aframe</title>
     <meta name="description" content="Basic Example — Networked-Aframe">
     <script src="//rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script>
-    <script src="//rawgit.com/feiss/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
+    <!-- script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script -->
+    <script src="//rawgit.com/chenzlabs/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
     <script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v1.4.2/dist/aframe-physics-system.min.js"></script>
 <!--
     <script src="//rawgit.com/chenzlabs/networked-aframe/toward-0.3.0/dist/networked-aframe.js"></script>
@@ -228,6 +229,7 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 	setTimeout(function() {
           en.setAttribute('material', 'color', document.querySelector('#player .head').getAttribute('material').color);
           en.setAttribute('constraint', 'target:#player');
+	  en.components['networked-share'].takeOwnership();
         }, 3000);
       });
 
