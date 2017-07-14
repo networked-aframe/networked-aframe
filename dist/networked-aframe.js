@@ -227,6 +227,19 @@
 	}
 
 	function fetchTemplateFromXHR(src, type) {
+	  if (src.indexOf('data:') === 0) {
+	    // Handle inline data URI.
+	    var split = src.split(',', 2);
+	    var inlineData = src.substring(split[1]);
+	    var uriType = split[0].substring(5);
+	    var isBase64 = uriType.endsWith(';base64');
+	    if (isBase64) {
+	      uriType = uriType.substring(0, uriType.length - 7);
+	    }
+	    var blob = new Blob(isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData), uriType);
+	    src = URL.createObjectURL(blob);
+	  }
+
 	  return new Promise(function (resolve) {
 	    var request;
 	    request = new XMLHttpRequest();
@@ -2125,6 +2138,25 @@
 	      entity.setAttribute('id', 'naf-' + entityData.networkId);
 
 	      var template = entityData.template;
+	      if (template.substring(0, 5) === 'data:') {
+	        // data URI, may need to replace with blob URL
+	        var split = template.split(',', 2);
+	        var inlineData = split[1];
+	        var uriType = split[0].substring(5);
+	        var isBase64 = uriType.endsWith(';base64');
+	        if (isBase64) {
+	          uriType = uriType.substring(0, uriType.length - 7);
+	        }
+	        inlineData = isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData);
+	        var script = document.createElement('script');
+	        var id = 'tpl-' + entityData.networkId;
+	        script.setAttribute('id', id);
+	        script.setAttribute('type', uriType);
+	        script.innerHTML = inlineData;
+	        document.body.appendChild(script);
+	        entityData.template = template = '#' + id;
+	        console.log('createRemoteEntity: data URI => template ' + template);
+	      }
 	      var components = NAF.schemas.getComponents(template);
 	      this.initPosition(entity, entityData.components);
 	      this.initRotation(entity, entityData.components);
