@@ -99,30 +99,11 @@ AFRAME.registerComponent('networked-share', {
       //templateChild.setAttribute('visible', show);
 
       var self = this;
-      var el = this.el;
-      templateChild.addEventListener('templaterendered', function () {
-        var cloned = templateChild.firstChild;
-        // mirror the attributes
-        Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
-          el.setAttribute(attr.nodeName, attr.nodeValue);
-        });
-        // take the children
-        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
-          cloned.removeChild(child);
-          el.appendChild(child);
-        }
+      NAF.utils.monkeyPatchEntityFromTemplateChild(this.el, templateChild,
+        function() { delete self.templateEl; });
 
-        cloned.pause && cloned.pause();
-        templateChild.pause();
-        setTimeout(function() {
-	  try { templateChild.removeChild(cloned); } catch (e) {}
-          try { el.removeChild(self.templateEl); } catch (e) {}
-          delete self.templateEl;
-        });
-      });
-
-      this.el.appendChild(templateChild);
       this.templateEl = templateChild;
+      this.el.appendChild(templateChild);
     }
   },
 
