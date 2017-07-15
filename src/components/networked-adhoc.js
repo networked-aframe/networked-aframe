@@ -1,18 +1,22 @@
 var naf = require('../NafIndex');
 
 AFRAME.registerComponent('networked-adhoc', {
-  schema: {default: ''},
-  init: function () { addNetEntityFromElement(this.el, this.data); }
+  schema: {
+    networkId: {default: ''},
+    components: {default: ''},
+  },
+  init: function () { addNetEntityFromElement(this.el, this.data.networkId, this.data); }
 });
 
-function addNetEntityFromElement(el, networkId) {
+function addNetEntityFromElement(el, networkId, data) {
   if (!networkId) { networkId = Math.random().toString(36).substring(2, 9); }
 
   // make an inline data URI template from the given element
 
   el.flushToDOM(); // assume this is synchronous
-  var n = el.cloneNode(); // make a copy
+  var n = el.cloneNode(true); // make a copy
   [ 'id',
+    'camera', 'look-controls', 'wasd-controls',
     // 'position', 'rotation',
     'networked', 'networked-share', 'networked-remote', 'networked-adhoc',
     'dynamic-body', // 'static-body',
@@ -27,6 +31,7 @@ function addNetEntityFromElement(el, networkId) {
   el.setAttribute('networked-share', {
     physics: true,
     template: template,
+    components: data.components,
     showLocalTemplate: false,
     networkId: networkId,
     // this is default now... owner: NAF.clientId // we own it to start
