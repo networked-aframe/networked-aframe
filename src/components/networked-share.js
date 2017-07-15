@@ -644,7 +644,7 @@ AFRAME.registerComponent('networked-share', {
     this.removeOwnership();
 
     var data = { networkId: this.networkId };
-    naf.connection.broadcastData('r', data);
+    naf.connection.broadcastDataGuaranteed('r', data);
 
     this.unbindOwnershipEvents();
     this.unbindOwnerEvents();
