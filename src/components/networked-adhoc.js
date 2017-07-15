@@ -13,9 +13,9 @@ function addNetEntityFromElement(el, networkId) {
   el.flushToDOM(); // assume this is synchronous
   var n = el.cloneNode(); // make a copy
   [ 'id',
-    'position', 'rotation',
+    // 'position', 'rotation',
     'networked', 'networked-share', 'networked-remote', 'networked-adhoc',
-    // 'dynamic-body', 'static-body',
+    'dynamic-body', // 'static-body',
     'quaternion', 'velocity',
   ].forEach(function (name) { n.removeAttribute(name); });
 
