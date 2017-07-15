@@ -2,6 +2,7 @@ var naf = require('../NafIndex');
 
 AFRAME.registerComponent('networked-adhoc', {
   schema: {
+    physics: {default: false},
     networkId: {default: ''},
     components: {default: ''},
   },
@@ -29,7 +30,7 @@ function addNetEntityFromElement(el, networkId, data) {
 
   //el.setAttribute('id', 'naf-' + networkId);
   el.setAttribute('networked-share', {
-    physics: true,
+    physics: data.physics,
     template: template,
     components: data.components,
     showLocalTemplate: false,
