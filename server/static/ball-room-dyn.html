@@ -176,39 +176,6 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 	return en;
       }
 
-      function addNetEntityFromElement(el, position, rotation, networkId) { 
-	if (!networkId) { networkId = Math.random().toString(36).substring(2, 9); }
-
-	el.flushToDOM(); // assume this is synchronous...?
-        var n = el.cloneNode(); // make a copy
-	n.removeAttribute('position');
-	n.removeAttribute('rotation');
-	n.removeAttribute('networked');
-	n.removeAttribute('networked-share');
-	n.removeAttribute('networked-remote');
-	n.removeAttribute('dynamic-body');
-	n.removeAttribute('static-body');
-	n.removeAttribute('quaternion');
-	n.removeAttribute('velocity');
-	n.removeAttribute('id');
-
-        var template = NAF.options.compressSyncPackets
-          ? ('data:text/html;charset=utf-8;base64,' + btoa(n.outerHTML))
-          : ('data:text/html;charset=utf-8,' + encodeURIComponent(n.outerHTML))
-
-        //el.setAttribute('id', 'naf-' + networkId);
-        el.setAttribute('networked-share', {
-          physics: true,
-          // doesn't work, kframe template doesn't seem to support inline data URI as src
-          template: template,
-          showLocalTemplate: false,
-          networkId: networkId,
-          // this is default now... owner: NAF.clientId // we own it to start
-        });
-
-	return el;
-      }
-
       document.body.addEventListener('click', function (evt) {
         console.log(evt);
         console.log(NAF.connection);
@@ -228,8 +195,8 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         console.log(NAF.connection);
 
         setTimeout(function () {
-	  addNetEntityFromElement(document.querySelector("#shareme"));
-	}, 1000);
+	  document.querySelector("#shareme").setAttribute('networked-adhoc', '');
+	}, 2000+Math.random(1000));
 
       });
       
