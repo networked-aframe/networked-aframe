@@ -5130,13 +5130,17 @@
 	var naf = __webpack_require__(46);
 
 	AFRAME.registerComponent('networked-adhoc', {
-	  schema: { default: '' },
+	  schema: {
+	    physics: { default: false },
+	    networkId: { default: '' },
+	    components: { default: '' }
+	  },
 	  init: function init() {
-	    addNetEntityFromElement(this.el, this.data);
+	    addNetEntityFromElement(this.el, this.data.networkId, this.data);
 	  }
 	});
 
-	function addNetEntityFromElement(el, networkId) {
+	function addNetEntityFromElement(el, networkId, data) {
 	  if (!networkId) {
 	    networkId = Math.random().toString(36).substring(2, 9);
 	  }
@@ -5144,8 +5148,8 @@
 	  // make an inline data URI template from the given element
 
 	  el.flushToDOM(); // assume this is synchronous
-	  var n = el.cloneNode(); // make a copy
-	  ['id',
+	  var n = el.cloneNode(true); // make a copy
+	  ['id', 'camera', 'look-controls', 'wasd-controls',
 	  // 'position', 'rotation',
 	  'networked', 'networked-share', 'networked-remote', 'networked-adhoc', 'dynamic-body', // 'static-body',
 	  'quaternion', 'velocity'].forEach(function (name) {
@@ -5156,8 +5160,9 @@
 
 	  //el.setAttribute('id', 'naf-' + networkId);
 	  el.setAttribute('networked-share', {
-	    physics: true,
+	    physics: data.physics,
 	    template: template,
+	    components: data.components,
 	    showLocalTemplate: false,
 	    networkId: networkId
 	    // this is default now... owner: NAF.clientId // we own it to start
