@@ -17,37 +17,41 @@ class NetworkEntities {
     var entity = document.createElement('a-entity');
     entity.setAttribute('id', 'naf-' + entityData.networkId);
 
+    var script;
     var template = entityData.template;
     if (template.substring(0,5) === 'data:') {
-      // data URI, may need to replace with blob URL
+      // data URI
       var split = template.split(',', 2);
       var inlineData = split[1];
       var uriType = split[0].substring(5);
       var isBase64 = uriType.endsWith(';base64');
       if (isBase64) { uriType = uriType.substring(0, uriType.length - 7); }
       inlineData = isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData);
-      var script = document.createElement('script');
+
+      // blob URLs do not survive template load, so make script element.
+      script = document.createElement('script');
       var id = 'tpl-' + entityData.networkId;
       script.setAttribute('id', id);
       script.setAttribute('type', uriType);
       script.innerHTML = inlineData;
       document.body.appendChild(script);
+
       entityData.template = template = '#' + id;
-      console.log('createRemoteEntity: data URI => template ' + template);
+      //console.log('createRemoteEntity: data URI => template ' + template);
     }
+
+    if (template) {
+      entity.addEventListener('loaded', function () {
+        var templateChild = entity.firstChild;
+        NAF.utils.monkeyPatchEntityFromTemplateChild(entity, templateChild);
+      });
+    }
+
     var components = NAF.schemas.getComponents(template);
     this.initPosition(entity, entityData.components);
     this.initRotation(entity, entityData.components);
     this.addNetworkComponent(entity, entityData, components);
     this.entities[entityData.networkId] = entity;
-
-    if (template) {
-      entity.addEventListener('loaded', function () {
-
-      var templateChild = entity.firstChild;
-        NAF.utils.monkeyPatchEntityFromTemplateChild(entity, templateChild);
-      });
-    }
 
     return entity;
   }
