@@ -4,8 +4,7 @@
     <title>Basic Example - Networked-Aframe</title>
     <meta name="description" content="Basic Example - Networked-Aframe">
     <script src="//rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script>
-    <!-- script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script -->
-    <script src="//rawgit.com/chenzlabs/aframe-environment-component/master/dist/aframe-environment-component.js"></script>
+    <script src="//rawgit.com/chenzlabs/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
     <script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v1.4.2/dist/aframe-physics-system.min.js"></script>
 <!--
     <script src="//rawgit.com/chenzlabs/networked-aframe/toward-0.3.0/dist/networked-aframe.js"></script>
@@ -53,7 +52,7 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         ]
       };
       NAF.schemas.add(ballSchema);
-      
+
     </script>
    <a-scene networked-scene="
       room: basic;
@@ -116,7 +115,7 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         <script id="ball-template" type="text/html">
             <a-entity
 	      geometry="primitive: sphere; radius: 0.2"
-              static-body
+              dynamic-body
               material="color:#5985ff" random-color>
             </a-entity>
         </script>        
@@ -162,17 +161,6 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         var en = createNetEntityFromSchema(schema, position, rotation, networkId);
 	if (!el) { el = document.querySelector('a-scene'); }
 	el.appendChild(en);
-
-// NECESSARY EVIL HACK: we need to cheat and make ours dynamic-body not static-body
-// FIXME: how do we know when the template has been instantiated?
-// OK with this trickery, local template works!
-setTimeout(function () {
-  en.removeAttribute('static-body');
-  en.setAttribute('dynamic-body', '');
-  en.body.type = 1; // dynamic
-  en.body.updateMassProperties();
-}, 1000 / NAF.options.updateRate);
-
 	return en;
       }
 

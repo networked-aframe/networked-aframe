@@ -1,11 +1,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Basic Example - Networked-Aframe</title>
-    <meta name="description" content="Basic Example - Networked-Aframe">
+    <title>Basic Example — Networked-Aframe</title>
+    <meta name="description" content="Basic Example — Networked-Aframe">
     <script src="//rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script>
     <!-- script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script -->
-    <script src="//rawgit.com/chenzlabs/aframe-environment-component/master/dist/aframe-environment-component.js"></script>
+    <script src="//rawgit.com/chenzlabs/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
     <script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v1.4.2/dist/aframe-physics-system.min.js"></script>
 <!--
     <script src="//rawgit.com/chenzlabs/networked-aframe/toward-0.3.0/dist/networked-aframe.js"></script>
@@ -55,14 +55,21 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
       NAF.schemas.add(ballSchema);
       
     </script>
+<!-- note: webrtc seems lossy -->
    <a-scene networked-scene="
       room: basic;
       useLerp: false; compressSyncPackets: true; useShare: true;
       updateRate: 30;
-      collisionOwnership: false;
+      collisionOwnership: true;
       webrtc: true;
    ">
 <!--
+   <a-scene networked-scene="
+      room: basic; debug: true;
+                  
+      updateRate: 30; useLerp: false; compressSyncPackets: true;
+                              
+      webrtc: true;
       firebase: true;
       firebaseAuthType: none;
       firebaseApiKey: redacted;
@@ -76,48 +83,35 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         <!-- Avatar -->
         <script id="avatar-template" type="text/html">
           <a-entity class="avatar">
-            <a-sphere class="head" static-body
-              color="#5985ff"
-              scale="0.45 0.5 0.4"
-              random-color
-            ></a-sphere>
-            <a-entity class="face"
-              position="0 0.05 0"
-            >
-              <a-sphere class="eye"
-                color="#efefef"
-                position="0.16 0.1 -0.35"
-                scale="0.12 0.12 0.12"
-              >
-                <a-sphere class="pupil"
-                  color="#000"
-                  position="0 0 -1"
-                  scale="0.2 0.2 0.2"
-                ></a-sphere>
+            <a-sphere class="head" static-body radius="0.5" scale="0.9 1 0.4" color="#5985ff" random-color></a-sphere>
+	    <a-entity scale="2.1 2.1 1.4" gltf-model="https://aframe.io/a-saturday-night/assets/avatar3/avatar3-head.gltf"></a-entity>
+	    <!--
+            <a-entity class="face" position="0 0.05 0">
+              <a-sphere class="eye" color="#efefef" position="0.16 0.1 -0.225" scale="0.12 0.12 0.06"
+                rotation="20 -25 0" phi-start="180" phi-length="180">
+                <a-sphere class="pupil" color="#000" position="-0.3 -0.2 -1" scale="0.2 0.2 0.1"
+		  phi-start="180" phi-length="180"></a-sphere>
               </a-sphere>
-              <a-sphere class="eye"
-                color="#efefef"
-                position="-0.16 0.1 -0.35"
-                scale="0.12 0.12 0.12"
-              >
-                <a-sphere class="pupil"
-                  color="#000"
-                  position="0 0 -1"
-                  scale="0.2 0.2 0.2"
-                ></a-sphere>
+              <a-sphere class="eye" color="#efefef" position="-0.16 0.1 -0.225" scale="0.12 0.12 0.06" 
+                rotation="20 25 0" phi-start="180" phi-length="180">
+                <a-sphere class="pupil" color="#000" position="0.3 -0.2 -1" scale="0.2 0.2 0.1"
+		  phi-start="180" phi-length="180"></a-sphere>
               </a-sphere>
             </a-entity>
+	    -->
           </a-entity>
         </script>
 
-<!-- with these templates, local and remote objects interact
- ... remote objects need to be static-body to avoid fighting -->
+        <!-- with this template, local and remote objects interact
+         ... remote objects need to be static-body to avoid fighting -->                
 
         <script id="ball-template" type="text/html">
             <a-entity
-	      geometry="primitive: sphere; radius: 0.2"
-              static-body
+	      geometry="primitive: sphere; radius: 0.17"
+              dynamic-body
               material="color:#5985ff" random-color>
+	      <!--a-entity gltf-model="https://aframe.io/a-saturday-night/assets/avatar3/avatar3-head.gltf"></a-entity-->
+	      <!-- a-box width="0.5" height="0.1" depth="0.1" color="red"></a-box -->
             </a-entity>
         </script>        
 
@@ -125,18 +119,28 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
       </a-assets>
 
       <a-entity id="player" 
-                networked="template:#avatar-template;showLocalTemplate:false;" 
+                networked="template:#avatar-template;would-showLocalTemplate:false;" 
+		static-body
                 camera 
-                position="0 1.3 0" spawn-in-circle="radius:3"
-                wasd-controls look-controls>
+                spawn-in-circle="radius:3;" 
+                position="0 1.3 0" 
+                wasd-controls 
+                look-controls>
       </a-entity>
 
       <a-entity environment="preset:forest"></a-entity>
+      <a-plane id="ground" width="1000" height="1000" rotation="90 0 0" static-body></a-plane>
+      <a-box position="0 0 5" width="10" height="10" depth="0.01" static-body></a-box>
+      <a-box position="0 0 -5" width="10" height="10" depth="0.01" static-body></a-box>
+      <a-box position="5 0 0" width="0.01" height="10" depth="10" static-body></a-box>
+      <a-box position="-5 0 0" width="0.01" height="10" depth="10" static-body></a-box>
 
-      <!-- solid ground - need to be thicker than plane for edge cases where it may pass through -->
-      <a-box id="ground" static-body visible="false"
-        width="1000" height="1000" rotation="90 0 0"
-        depth="10" position="0 -5 0"></a-box>
+      <a-entity id="shareme" 
+        position="0.5 1 0" spawn-in-circle
+        material="color:red" 
+        geometry="primitive:box; width:0.1; height:0.3; depth:0.1"
+        dynamic-body>
+      </a-entity>
 
     </a-scene>
 
@@ -145,6 +149,13 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         var en = document.createElement('a-entity');
 	if (position) { en.setAttribute('position', position); }
 	if (rotation) { en.setAttribute('rotation', rotation); }
+/*
+        en.setAttribute('networked', {
+          physics: true,
+          template: schema.template,
+          components: schema.components
+        });
+*/
 	if (!networkId) { networkId = Math.random().toString(36).substring(2, 9); }
         en.setAttribute('id', 'naf-' + networkId);
         en.setAttribute('networked-share', {
@@ -162,17 +173,6 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         var en = createNetEntityFromSchema(schema, position, rotation, networkId);
 	if (!el) { el = document.querySelector('a-scene'); }
 	el.appendChild(en);
-
-// NECESSARY EVIL HACK: we need to cheat and make ours dynamic-body not static-body
-// FIXME: how do we know when the template has been instantiated?
-// OK with this trickery, local template works!
-setTimeout(function () {
-  en.removeAttribute('static-body');
-  en.setAttribute('dynamic-body', '');
-  en.body.type = 1; // dynamic
-  en.body.updateMassProperties();
-}, 1000 / NAF.options.updateRate);
-
 	return en;
       }
 
@@ -180,7 +180,12 @@ setTimeout(function () {
         console.log(evt);
         console.log(NAF.connection);
         // make a ball that we own
-	addNetEntityFromSchema(ballSchema, '0 2 0');
+	var en = addNetEntityFromSchema(ballSchema, '0 2 0');
+	setTimeout(function() {
+          en.setAttribute('material', 'color', document.querySelector('#player .head').getAttribute('material').color);
+          en.setAttribute('constraint', 'target:#player');
+	  en.components['networked-share'].takeOwnership();
+        }, 3000);
       });
 
       // add handlers for loggedIn, client connected / disconnected, etc.
@@ -188,7 +193,13 @@ setTimeout(function () {
       document.body.addEventListener('loggedIn', function (evt) {
         console.log(evt);
         console.log(NAF.connection);
+
+        setTimeout(function () {
+	  document.querySelector("#shareme").setAttribute('networked-adhoc', '');
+	}, 2000+Math.random(1000));
+
       });
+      
       document.body.addEventListener('clientConnected', function (evt) {
         console.log(evt);
         console.log(NAF.connection);

@@ -99,30 +99,11 @@ AFRAME.registerComponent('networked-share', {
       //templateChild.setAttribute('visible', show);
 
       var self = this;
-      var el = this.el;
-      templateChild.addEventListener('templaterendered', function () {
-        var cloned = templateChild.firstChild;
-        // mirror the attributes
-        Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
-          el.setAttribute(attr.nodeName, attr.nodeValue);
-        });
-        // take the children
-        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
-          cloned.removeChild(child);
-          el.appendChild(child);
-        }
+      NAF.utils.monkeyPatchEntityFromTemplateChild(this.el, templateChild,
+        function() { delete self.templateEl; });
 
-        cloned.pause && cloned.pause();
-        templateChild.pause();
-        setTimeout(function() {
-	  try { templateChild.removeChild(cloned); } catch (e) {}
-          try { el.removeChild(self.templateEl); } catch (e) {}
-          delete self.templateEl;
-        });
-      });
-
-      this.el.appendChild(templateChild);
       this.templateEl = templateChild;
+      this.el.appendChild(templateChild);
     }
   },
 
@@ -138,8 +119,14 @@ AFRAME.registerComponent('networked-share', {
       var entityData = that.el.firstUpdateData;
       that.networkUpdate(entityData);
     };
-    // FIXME: this timeout-based stall should be event driven!!!
-    setTimeout(callback, 50);
+
+    // wait for template to render (and monkey-patching to finish, so next tick), then callback
+
+    if (this.templateEl) {
+      this.templateEl.addEventListener('templaterendered', function() { setTimeout(callback); });
+    } else {
+      setTimeout(callback);
+    }
   },
 
   update: function() {
@@ -529,7 +516,7 @@ AFRAME.registerComponent('networked-share', {
 
   handlePhysicsCollision: function(e) {
     // FIXME: right now, this seems to allow race conditions that lead to stranded net entities...
-    if (NAF.options.useShare) { return; }
+    if (NAF.options.useShare && !NAF.options.collisionOwnership) { return; }
 
     // When a Collision happens, inherit ownership to collided object
     // so we can make sure, that my physics get propagated
@@ -657,7 +644,7 @@ AFRAME.registerComponent('networked-share', {
     this.removeOwnership();
 
     var data = { networkId: this.networkId };
-    naf.connection.broadcastData('r', data);
+    naf.connection.broadcastDataGuaranteed('r', data);
 
     this.unbindOwnershipEvents();
     this.unbindOwnerEvents();

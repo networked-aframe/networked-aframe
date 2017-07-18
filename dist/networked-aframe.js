@@ -58,6 +58,7 @@
 	__webpack_require__(61);
 	__webpack_require__(65);
 	__webpack_require__(66);
+	__webpack_require__(67);
 
 /***/ }),
 /* 1 */
@@ -227,6 +228,19 @@
 	}
 
 	function fetchTemplateFromXHR(src, type) {
+	  if (src.indexOf('data:') === 0) {
+	    // Handle inline data URI.
+	    var split = src.split(',', 2);
+	    var inlineData = src.substring(split[1]);
+	    var uriType = split[0].substring(5);
+	    var isBase64 = uriType.endsWith(';base64');
+	    if (isBase64) {
+	      uriType = uriType.substring(0, uriType.length - 7);
+	    }
+	    var blob = new Blob(isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData), uriType);
+	    src = URL.createObjectURL(blob);
+	  }
+
 	  return new Promise(function (resolve) {
 	    var request;
 	    request = new XMLHttpRequest();
@@ -1753,7 +1767,8 @@
 	  updateRate: 15, // How often network components call `sync`
 	  compressSyncPackets: false, // compress network component sync packet json
 	  useLerp: true, // when networked entities are created the aframe-lerp-component is attached to the root
-	  useShare: false // whether for remote entities, we use networked-share (instead of networked-remote)
+	  useShare: true, // whether for remote entities, we use networked-share (instead of networked-remote)
+	  collisionOwnership: true // whether for networked-share, we take ownership when needed upon physics collision
 	};
 
 	module.exports = options;
@@ -1837,6 +1852,35 @@
 
 	module.exports.childSchemaEqual = function (a, b) {
 	  return a.selector == b.selector && a.component == b.component && a.property == b.property;
+	};
+
+	module.exports.monkeyPatchEntityFromTemplateChild = function (entity, templateChild, callback) {
+	  templateChild.addEventListener('templaterendered', function () {
+	    var cloned = templateChild.firstChild;
+	    // mirror the attributes
+	    Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
+	      entity.setAttribute(attr.nodeName, attr.nodeValue);
+	    });
+	    // take the children
+	    for (var child = cloned.firstChild; child; child = cloned.firstChild) {
+	      cloned.removeChild(child);
+	      entity.appendChild(child);
+	    }
+
+	    cloned.pause && cloned.pause();
+	    templateChild.pause();
+	    setTimeout(function () {
+	      try {
+	        templateChild.removeChild(cloned);
+	      } catch (e) {}
+	      try {
+	        entity.removeChild(templateChild);
+	      } catch (e) {}
+	      if (callback) {
+	        callback();
+	      }
+	    });
+	  });
 	};
 
 /***/ }),
@@ -2123,43 +2167,43 @@
 	      var entity = document.createElement('a-entity');
 	      entity.setAttribute('id', 'naf-' + entityData.networkId);
 
+	      var script;
 	      var template = entityData.template;
+	      if (template.substring(0, 5) === 'data:') {
+	        // data URI
+	        var split = template.split(',', 2);
+	        var inlineData = split[1];
+	        var uriType = split[0].substring(5);
+	        var isBase64 = uriType.endsWith(';base64');
+	        if (isBase64) {
+	          uriType = uriType.substring(0, uriType.length - 7);
+	        }
+	        inlineData = isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData);
+
+	        // blob URLs do not survive template load, so make script element.
+	        script = document.createElement('script');
+	        var id = 'tpl-' + entityData.networkId;
+	        script.setAttribute('id', id);
+	        script.setAttribute('type', uriType);
+	        script.innerHTML = inlineData;
+	        document.body.appendChild(script);
+
+	        entityData.template = template = '#' + id;
+	        //console.log('createRemoteEntity: data URI => template ' + template);
+	      }
+
+	      if (template) {
+	        entity.addEventListener('loaded', function () {
+	          var templateChild = entity.firstChild;
+	          NAF.utils.monkeyPatchEntityFromTemplateChild(entity, templateChild);
+	        });
+	      }
+
 	      var components = NAF.schemas.getComponents(template);
 	      this.initPosition(entity, entityData.components);
 	      this.initRotation(entity, entityData.components);
 	      this.addNetworkComponent(entity, entityData, components);
 	      this.entities[entityData.networkId] = entity;
-
-	      if (template) {
-	        entity.addEventListener('loaded', function () {
-
-	          var templateChild = entity.firstChild;
-	          templateChild.addEventListener('templaterendered', function () {
-	            var cloned = templateChild.firstChild;
-	            // mirror the attributes
-	            Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
-	              entity.setAttribute(attr.nodeName, attr.nodeValue);
-	            });
-	            // take the children
-	            for (var child = cloned.firstChild; child; child = cloned.firstChild) {
-	              cloned.removeChild(child);
-	              entity.appendChild(child);
-	            }
-
-	            cloned.pause();
-	            templateChild.pause();
-	            setTimeout(function () {
-	              try {
-	                templateChild.removeChild(cloned);
-	              } catch (e) {}
-	              try {
-	                entity.removeChild(templateChild);
-	              } catch (e) {}
-	              // delete?
-	            });
-	          });
-	        });
-	      }
 
 	      return entity;
 	    }
@@ -2755,7 +2799,8 @@
 	    updateRate: { default: 0 },
 	    useLerp: { default: true },
 	    compressSyncPackets: { default: false },
-	    useShare: { default: false }
+	    useShare: { default: true },
+	    collisionOwnership: { default: true }
 	  },
 
 	  init: function init() {
@@ -2765,6 +2810,7 @@
 	    naf.options.useLerp = this.data.useLerp;
 	    naf.options.compressSyncPackets = this.data.compressSyncPackets;
 	    naf.options.useShare = this.data.useShare;
+	    naf.options.collisionOwnership = this.data.collisionOwnership;
 
 	    this.el.addEventListener('connect', this.connect.bind(this));
 	    if (this.data.connectOnLoad) {
@@ -3821,7 +3867,7 @@
 	      templateChild.addEventListener('templaterendered', function () {
 	        var cloned = templateChild.firstChild;
 	        // mirror the attributes
-	        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
+	        Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
 	          el.setAttribute(attr.nodeName, attr.nodeValue);
 	        });
 	        // take the children
@@ -3833,8 +3879,12 @@
 	        cloned.pause();
 	        templateChild.pause();
 	        setTimeout(function () {
-	          templateChild.removeChild(cloned);
-	          el.removeChild(self.templateEl);
+	          try {
+	            templateChild.removeChild(cloned);
+	          } catch (e) {}
+	          try {
+	            el.removeChild(self.templateEl);
+	          } catch (e) {}
 	          delete self.templateEl;
 	        });
 	      });
@@ -4513,30 +4563,12 @@
 	      //templateChild.setAttribute('visible', show);
 
 	      var self = this;
-	      var el = this.el;
-	      templateChild.addEventListener('templaterendered', function () {
-	        var cloned = templateChild.firstChild;
-	        // mirror the attributes
-	        Array.prototype.slice.call(cloned.attributes).forEach(function (attr) {
-	          el.setAttribute(attr.nodeName, attr.nodeValue);
-	        });
-	        // take the children
-	        for (var child = cloned.firstChild; child; child = cloned.firstChild) {
-	          cloned.removeChild(child);
-	          el.appendChild(child);
-	        }
-
-	        cloned.pause();
-	        templateChild.pause();
-	        setTimeout(function () {
-	          templateChild.removeChild(cloned);
-	          el.removeChild(self.templateEl);
-	          delete self.templateEl;
-	        });
+	      NAF.utils.monkeyPatchEntityFromTemplateChild(this.el, templateChild, function () {
+	        delete self.templateEl;
 	      });
 
-	      this.el.appendChild(templateChild);
 	      this.templateEl = templateChild;
+	      this.el.appendChild(templateChild);
 	    }
 	  },
 
@@ -4552,8 +4584,16 @@
 	      var entityData = that.el.firstUpdateData;
 	      that.networkUpdate(entityData);
 	    };
-	    // FIXME: this timeout-based stall should be event driven!!!
-	    setTimeout(callback, 50);
+
+	    // wait for template to render (and monkey-patching to finish, so next tick), then callback
+
+	    if (this.templateEl) {
+	      this.templateEl.addEventListener('templaterendered', function () {
+	        setTimeout(callback);
+	      });
+	    } else {
+	      setTimeout(callback);
+	    }
 	  },
 
 	  update: function update() {
@@ -4943,7 +4983,7 @@
 
 	  handlePhysicsCollision: function handlePhysicsCollision(e) {
 	    // FIXME: right now, this seems to allow race conditions that lead to stranded net entities...
-	    if (NAF.options.useShare) {
+	    if (NAF.options.useShare && !NAF.options.collisionOwnership) {
 	      return;
 	    }
 
@@ -5073,13 +5113,63 @@
 	    this.removeOwnership();
 
 	    var data = { networkId: this.networkId };
-	    naf.connection.broadcastData('r', data);
+	    naf.connection.broadcastDataGuaranteed('r', data);
 
 	    this.unbindOwnershipEvents();
 	    this.unbindOwnerEvents();
 	    this.unbindRemoteEvents();
 	  }
 	});
+
+/***/ }),
+/* 67 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var naf = __webpack_require__(46);
+
+	AFRAME.registerComponent('networked-adhoc', {
+	  schema: {
+	    physics: { default: false },
+	    networkId: { default: '' },
+	    components: { default: '' }
+	  },
+	  init: function init() {
+	    addNetEntityFromElement(this.el, this.data.networkId, this.data);
+	  }
+	});
+
+	function addNetEntityFromElement(el, networkId, data) {
+	  if (!networkId) {
+	    networkId = Math.random().toString(36).substring(2, 9);
+	  }
+
+	  // make an inline data URI template from the given element
+
+	  el.flushToDOM(); // assume this is synchronous
+	  var n = el.cloneNode(true); // make a copy
+	  ['id', 'camera', 'look-controls', 'wasd-controls',
+	  // 'position', 'rotation',
+	  'networked', 'networked-share', 'networked-remote', 'networked-adhoc', 'dynamic-body', // 'static-body',
+	  'quaternion', 'velocity'].forEach(function (name) {
+	    n.removeAttribute(name);
+	  });
+
+	  var template = NAF.options.compressSyncPackets ? 'data:text/html;charset=utf-8;base64,' + btoa(n.outerHTML) : 'data:text/html;charset=utf-8,' + encodeURIComponent(n.outerHTML);
+
+	  //el.setAttribute('id', 'naf-' + networkId);
+	  el.setAttribute('networked-share', {
+	    physics: data.physics,
+	    template: template,
+	    components: data.components,
+	    showLocalTemplate: false,
+	    networkId: networkId
+	    // this is default now... owner: NAF.clientId // we own it to start
+	  });
+
+	  return el;
+	}
 
 /***/ })
 /******/ ]);
