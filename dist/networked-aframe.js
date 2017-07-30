@@ -2035,10 +2035,13 @@
 	    }
 	  }, {
 	    key: 'createAndAppendChildren',
-	    value: function createAndAppendChildren(networkId, parentEntity) {
-	      var children = this.childCache.getChildren(networkId);
+	    value: function createAndAppendChildren(parentId, parentEntity) {
+	      var children = this.childCache.getChildren(parentId);
 	      for (var i = 0; i < children.length; i++) {
-	        var childEntity = this.createRemoteEntity(children[i]);
+	        var childEntityData = children[i];
+	        var childEntity = this.createRemoteEntity(childEntityData);
+	        var childId = childEntityData.networkId;
+	        this.createAndAppendChildren(childId, childEntity);
 	        parentEntity.appendChild(childEntity);
 	      }
 	    }
