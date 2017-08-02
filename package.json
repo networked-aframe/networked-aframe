@@ -1,6 +1,6 @@
 {
   "name": "networked-aframe",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "A web framework for building multi-user virtual reality experiences.",
   "homepage": "",
   "main": "dist/networked-aframe.js",
@@ -28,7 +28,7 @@
   "dependencies": {
     "easyrtc": "1.1.0",
     "express": "^4.10.7",
-    "aframe-lerp-component": "^1.0.1",
+    "aframe-lerp-component": "^1.1.0",
     "aframe-template-component": "3.2.1",
     "serve-static": "^1.8.0",
     "socket.io": "^1.4.5",
