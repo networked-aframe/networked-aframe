@@ -4029,7 +4029,7 @@
 	        if (elComponents.hasOwnProperty(element)) {
 	          var name = element;
 	          var elComponent = elComponents[name];
-	          compsWithData[name] = elComponent.getData();
+	          compsWithData[name] = elComponent.data;
 	        }
 	      } else {
 	        var childKey = naf.utils.childSchemaToKey(element);
@@ -4037,7 +4037,7 @@
 	        if (child) {
 	          var comp = child.components[element.component];
 	          if (comp) {
-	            var data = element.property ? comp.data[element.property] : comp.getData();
+	            var data = element.property ? comp.data[element.property] : comp.data;
 	            compsWithData[childKey] = data;
 	          } else {
 	            naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
@@ -4066,7 +4066,7 @@
 	          continue;
 	        }
 	        compKey = schema;
-	        newCompData = newComps[schema].getData();
+	        newCompData = newComps[schema].data;
 	      } else {
 	        // is child component
 	        var selector = schema.selector;
@@ -4079,7 +4079,7 @@
 	          continue;
 	        }
 	        compKey = naf.utils.childSchemaToKey(schema);
-	        newCompData = childEl.components[compName].getData();
+	        newCompData = childEl.components[compName].data;
 	        if (propName) {
 	          newCompData = newCompData[propName];
 	        }
@@ -4883,7 +4883,7 @@
 	        if (elComponents.hasOwnProperty(element)) {
 	          var name = element;
 	          var elComponent = elComponents[name];
-	          compsWithData[name] = elComponent.getData();
+	          compsWithData[name] = elComponent.data;
 	        }
 	      } else {
 	        var childKey = naf.utils.childSchemaToKey(element);
@@ -4891,7 +4891,7 @@
 	        if (child) {
 	          var comp = child.components[element.component];
 	          if (comp) {
-	            var data = element.property ? comp.data[element.property] : comp.getData();
+	            var data = element.property ? comp.data[element.property] : comp.data;
 	            compsWithData[childKey] = data;
 	          } else {
 	            naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
@@ -4920,7 +4920,7 @@
 	          continue;
 	        }
 	        compKey = schema;
-	        newCompData = newComps[schema].getData();
+	        newCompData = newComps[schema].data;
 	      } else {
 	        // is child component
 	        var selector = schema.selector;
@@ -4933,7 +4933,7 @@
 	          continue;
 	        }
 	        compKey = naf.utils.childSchemaToKey(schema);
-	        newCompData = childEl.components[compName].getData();
+	        newCompData = childEl.components[compName].data;
 	        if (propName) {
 	          newCompData = newCompData[propName];
 	        }
