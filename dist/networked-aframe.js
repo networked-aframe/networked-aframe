@@ -4029,7 +4029,7 @@
 	        if (elComponents.hasOwnProperty(element)) {
 	          var name = element;
 	          var elComponent = elComponents[name];
-	          compsWithData[name] = elComponent.data;
+	          compsWithData[name] = AFRAME.utils.clone(elComponent.data);
 	        }
 	      } else {
 	        var childKey = naf.utils.childSchemaToKey(element);
@@ -4038,7 +4038,7 @@
 	          var comp = child.components[element.component];
 	          if (comp) {
 	            var data = element.property ? comp.data[element.property] : comp.data;
-	            compsWithData[childKey] = data;
+	            compsWithData[childKey] = AFRAME.utils.clone(data);
 	          } else {
 	            naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
 	          }
@@ -4883,7 +4883,7 @@
 	        if (elComponents.hasOwnProperty(element)) {
 	          var name = element;
 	          var elComponent = elComponents[name];
-	          compsWithData[name] = elComponent.data;
+	          compsWithData[name] = AFRAME.utils.clone(elComponent.data);
 	        }
 	      } else {
 	        var childKey = naf.utils.childSchemaToKey(element);
@@ -4892,7 +4892,7 @@
 	          var comp = child.components[element.component];
 	          if (comp) {
 	            var data = element.property ? comp.data[element.property] : comp.data;
-	            compsWithData[childKey] = data;
+	            compsWithData[childKey] = AFRAME.utils.clone(data);
 	          } else {
 	            naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
 	          }
