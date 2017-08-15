@@ -11,7 +11,7 @@ contribute to this related component:
 # Join the Community on Slack
 
 1. [Invite yourself][slack] to the A-Frame Slack channel.
-2. [Open the A-Frame slack](https://aframevr.slack.com)!
+2. [Join the A-Frame slack](https://aframevr.slack.com)
 3. Join the #networked-aframe channel
 
 # Get Help or Ask a Question
@@ -87,23 +87,3 @@ If you want to hold an event and talk about WebVR, A-Frame and/or Networked-Afra
 presentation kit](https://github.com/aframevr/aframe-presentation-kit).
 
 Thanks so much for contributing and helping grow WebVR!
-
-
-
-Contributor docs
-- server/static/ is where the examples are
-- server/static/dev/ is where the dev examples are. These use build.js whereas the server/static/ examples use the CDN
-- Code style
-- Talking to the community: aframevr@slack#networked-aframe
-- Twitter: @haydenlee337
-- List of devices to test on:
-   - GearVR browsers: Chrome, Samsung, Oculus, Firefox?
-   - Daydream
-   - Desktop: Chrome, IE, Firefox
-
-- How to merge / PR format
-   - Must have documentation
-   - Don't hesitate to post the PR early in development so people can help
-   - Try not to add more than one "feature" per PR
-   - Examples
-   - Tests
