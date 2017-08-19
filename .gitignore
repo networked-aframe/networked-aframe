@@ -55,6 +55,7 @@ errorShots
 
 # Temp build file
 server/static/js/build.js
+server/static/dev/build.js
 
 # Webstorm
 /.idea/*
