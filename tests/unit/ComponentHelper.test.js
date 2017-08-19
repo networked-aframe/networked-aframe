@@ -179,6 +179,45 @@ suite('ComponentHelper', function () {
       });
     });
 
+    test('changing non-watched component returns empty array', function(done) {
+      var components = {
+        'position': { x: 1, y: 2, z: 3 },
+        'rotation': { x: 4, y: 3, z: 2 }
+      };
+      var el = addEntityWithComponents(components);
+      var componentsToCheck = ['position', 'rotation'];
+      var cached = components;
+
+      utils.whenEntityLoaded(el, function() {
+
+        el.setAttribute('light');
+        var result = componentHelper.findDirtyComponents(el, componentsToCheck, cached);
+
+        var expected = [];
+        assert.deepEqual(result, expected);
+        done();
+      });
+    });
+
+    test('checking non-existent root component is ok', function(done) {
+      var components = {
+        'position': { x: 1, y: 2, z: 3 },
+        'rotation': { x: 4, y: 3, z: 2 }
+      };
+      var el = addEntityWithComponents(components);
+      var componentsToCheck = ['position', 'rotation', 'light'];
+      var cached = components;
+
+      utils.whenEntityLoaded(el, function() {
+
+        var result = componentHelper.findDirtyComponents(el, componentsToCheck, cached);
+
+        var expected = [];
+        assert.deepEqual(result, expected);
+        done();
+      });
+    });
+
     test('dirty position on root and child', function(done) {
       var el = addEntityWithComponents({
         'position': { x: 1, y: 2, z: 3 },
@@ -202,6 +241,32 @@ suite('ComponentHelper', function () {
         var result = componentHelper.findDirtyComponents(el, componentsToCheck, cached);
 
         var expected = componentsToCheck;
+        assert.deepEqual(result, expected);
+        done();
+      });
+    });
+
+    test('checking non-existent child component is ok', function(done) {
+      var el = addEntityWithComponents({
+        'position': { x: 1, y: 2, z: 3 },
+      });
+      var child = addEntityWithComponents({
+        'position': { x: 5, y: 5, z: 1 },
+      });
+
+      child.className = 'child';
+      el.appendChild(child);
+      var componentsToCheck = ['position', { selector: '.child', component: 'light' }];
+      var cached = {
+        'position': { x: 1, y: 2, z: 3 },
+        '.child---position': { x: 5, y: 5, z: 1 }
+      };
+
+      utils.whenEntityLoaded(child, function() {
+
+        var result = componentHelper.findDirtyComponents(el, componentsToCheck, cached);
+
+        var expected = [];
         assert.deepEqual(result, expected);
         done();
       });
