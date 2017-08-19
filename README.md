@@ -289,9 +289,8 @@ Roadmap
 -------
 
 * More examples!
-* Master client concept
-* Positional audio
-* Networked physics
+* [Roadmap](https://github.com/haydenjameslee/networked-aframe/projects/1)
+* [Add your suggestions](https://github.com/haydenjameslee/networked-aframe/issues)
 
 Interested in contributing? [Shoot me a message](https://twitter.com/haydenlee37) or send a pull request.
 
