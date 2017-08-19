@@ -10,20 +10,20 @@
 <!--
     <script src="//rawgit.com/chenzlabs/networked-aframe/toward-0.3.0/dist/networked-aframe.js"></script>
 -->
-    <script src="dev/build.js"></script>
+    <script src="build.js"></script>
 <!-- 
     Currently, networked-aframe uses EasyRTC, which uses socket.io.
     This stack appears to impose some early scaling constraints (~700 users max?)
 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
-    <script src="easyrtc/easyrtc.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
 <!-- 
     Firebase 
 
     <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
 -->    
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
-    <script src="js/spawn-in-circle.component.js"></script>
+    <script src="../js/spawn-in-circle.component.js"></script>
 
   </head>
   <body>
@@ -38,7 +38,7 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         components: [
           'position',
           'rotation',
-          {selector: 'a-sphere', component: 'material', property: 'color'},
+          // {selector: 'a-sphere', component: 'material', property: 'color'},
         ]
       };
       NAF.schemas.add(avatarSchema);
@@ -58,8 +58,8 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 <!-- note: webrtc seems lossy -->
    <a-scene networked-scene="
       room: basic;
-      useLerp: false; compressSyncPackets: true; useShare: true;
-      updateRate: 30;
+      useLerp: true; compressSyncPackets: true; useShare: true;
+      updateRate: 1;
       collisionOwnership: true;
       webrtc: true;
    ">
@@ -83,8 +83,8 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         <!-- Avatar -->
         <script id="avatar-template" type="text/html">
           <a-entity class="avatar">
-            <a-sphere class="head" static-body radius="0.5" scale="0.9 1 0.4" color="#5985ff" random-color></a-sphere>
-	    <a-entity scale="2.1 2.1 1.4" gltf-model="https://aframe.io/a-saturday-night/assets/avatar3/avatar3-head.gltf"></a-entity>
+            <!-- <a-sphere class="head" radius="0.5" scale="0.9 1 0.4" color="#5985ff" random-color></a-sphere> -->
+	          <a-entity scale="2.1 2.1 1.4" gltf-model="https://aframe.io/a-saturday-night/assets/avatar3/avatar3-head.gltf"></a-entity>
 	    <!--
             <a-entity class="face" position="0 0.05 0">
               <a-sphere class="eye" color="#efefef" position="0.16 0.1 -0.225" scale="0.12 0.12 0.06"
@@ -107,7 +107,7 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 
         <script id="ball-template" type="text/html">
             <a-entity
-	      geometry="primitive: sphere; radius: 0.17"
+	            geometry="primitive: sphere; radius: 0.17"
               static-body
               material="color:#5985ff" random-color>
 	      <!--a-entity gltf-model="https://aframe.io/a-saturday-night/assets/avatar3/avatar3-head.gltf"></a-entity-->
@@ -120,7 +120,7 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 
       <a-entity id="player" 
                 networked="template:#avatar-template;would-showLocalTemplate:false;" 
-		static-body
+		            static-body
                 camera 
                 spawn-in-circle="radius:3;" 
                 position="0 1.3 0" 
@@ -147,8 +147,8 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
     <script>
       function createNetEntityFromSchema(schema, position, rotation, networkId) { 
         var en = document.createElement('a-entity');
-	if (position) { en.setAttribute('position', position); }
-	if (rotation) { en.setAttribute('rotation', rotation); }
+      	if (position) { en.setAttribute('position', position); }
+      	if (rotation) { en.setAttribute('rotation', rotation); }
 /*
         en.setAttribute('networked', {
           physics: true,
@@ -156,7 +156,7 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
           components: schema.components
         });
 */
-	if (!networkId) { networkId = Math.random().toString(36).substring(2, 9); }
+	      if (!networkId) { networkId = Math.random().toString(36).substring(2, 9); }
         en.setAttribute('id', 'naf-' + networkId);
         en.setAttribute('networked-share', {
           physics: true,
@@ -172,8 +172,10 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
       function addNetEntityFromSchema(schema, position, rotation, networkId, el) {
         var en = createNetEntityFromSchema(schema, position, rotation, networkId);
 
-	if (!el) { el = document.querySelector('a-scene'); }
-	el.appendChild(en);
+      	if (!el) {
+          el = document.querySelector('a-scene');
+        }
+      	el.appendChild(en);
 
         // NECESSARY EVIL HACK: we need to cheat and make ours dynamic-body not static-body
         // FIXME: how do we know when the template has been instantiated?
@@ -185,18 +187,19 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
           en.body.updateMassProperties();
         }, 100);
 
-	return en;
+	      return en;
       }
 
       document.body.addEventListener('click', function (evt) {
         console.log(evt);
         console.log(NAF.connection);
         // make a ball that we own
-	var en = addNetEntityFromSchema(ballSchema, '0 2 0');
-	setTimeout(function() {
-          en.setAttribute('material', 'color', document.querySelector('#player .head').getAttribute('material').color);
+      	var en = addNetEntityFromSchema(ballSchema, '0 2 0');
+      	setTimeout(function() {
+          var color = document.querySelector('#player .head').getAttribute('material').color;
+          en.setAttribute('material', 'color', color);
           en.setAttribute('constraint', 'target:#player');
-	  en.components['networked-share'].takeOwnership();
+      	  en.components['networked-share'].takeOwnership();
         }, 3000);
       });
 
@@ -207,9 +210,8 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         console.log(NAF.connection);
 
         setTimeout(function () {
-	  document.querySelector("#shareme").setAttribute('networked-adhoc', '');
-	}, 2000+Math.random(1000));
-
+      	  document.querySelector("#shareme").setAttribute('networked-adhoc', '');
+      	}, 2000+Math.random(1000));
       });
       
       document.body.addEventListener('clientConnected', function (evt) {
