@@ -1,5 +1,4 @@
 var naf = require('../NafIndex');
-var deepEqual = require('deep-equal');
 
 AFRAME.registerComponent('networked', {
   schema: {
@@ -23,7 +22,7 @@ AFRAME.registerComponent('networked', {
   },
 
   initNetworkId: function() {
-    this.networkId = this.createNetworkId();
+    this.networkId = NAF.utils.createNetworkId();
   },
 
   initNetworkParent: function() {
@@ -35,16 +34,12 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  createNetworkId: function() {
-    return Math.random().toString(36).substring(2, 9);
-  },
-
   listenForLoggedIn: function() {
     document.body.addEventListener('loggedIn', this.onLoggedIn.bind(this), false);
   },
 
   checkLoggedIn: function() {
-    if (naf.clientId) {
+    if (NAF.clientId) {
       this.onLoggedIn();
     } else {
       this.listenForLoggedIn();
@@ -52,12 +47,12 @@ AFRAME.registerComponent('networked', {
   },
 
   onLoggedIn: function() {
-    this.owner = naf.clientId;
+    this.owner = NAF.clientId;
     this.syncAll();
   },
 
   registerEntity: function(networkId) {
-    naf.entities.registerLocalEntity(networkId, this.el);
+    NAF.entities.registerLocalEntity(networkId, this.el);
   },
 
   attachAndShowTemplate: function(template, show) {
@@ -135,8 +130,8 @@ AFRAME.registerComponent('networked', {
 
   syncAll: function() {
     this.updateNextSyncTime();
-    var allSyncedComponents = this.getAllSyncedComponents();
-    var components = NAF.utils.getNetworkedComponentsData(this.el, allSyncedComponents);
+    var syncedComps = this.getAllSyncedComponents();
+    var components = NAF.utils.getNetworkedComponentsData(this.el, syncedComps);
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
@@ -145,78 +140,27 @@ AFRAME.registerComponent('networked', {
 
   syncDirty: function() {
     this.updateNextSyncTime();
-    var dirtyComps = this.getDirtyComponents();
+    var syncedComps = this.getAllSyncedComponents();
+    var dirtyComps = NAF.utils.getDirtyComponents(this.el, syncedComps, this.cachedData);
     if (dirtyComps.length == 0) {
       return;
     }
     var components = NAF.utils.getNetworkedComponentsData(this.el, dirtyComps);
     var syncData = this.createSyncData(components);
-    if (naf.options.compressSyncPackets) {
-      syncData = this.compressSyncData(syncData);
+    if (NAF.options.compressSyncPackets) {
+      syncData = NAF.utils.compressSyncData(syncData, syncedComps);
     }
-    naf.connection.broadcastData('u', syncData);
+    NAF.connection.broadcastData('u', syncData);
     // console.error('syncDirty', syncData);
     this.updateCache(components);
   },
 
   needsToSync: function() {
-    return naf.utils.now() >= this.nextSyncTime;
+    return NAF.utils.now() >= this.nextSyncTime;
   },
 
   updateNextSyncTime: function() {
-    this.nextSyncTime = naf.utils.now() + 1000 / naf.options.updateRate;
-  },
-
-  getDirtyComponents: function() {
-    var newComps = this.el.components;
-    var syncedComps = this.getAllSyncedComponents();
-    var dirtyComps = [];
-
-    for (var i in syncedComps) {
-      var schema = syncedComps[i];
-      var compKey;
-      var newCompData;
-
-      var isRootComponent = typeof schema === 'string';
-
-      if (isRootComponent) {
-        var hasComponent = newComps.hasOwnProperty(schema)
-        if (!hasComponent) {
-          continue;
-        }
-        compKey = schema;
-        newCompData = newComps[schema].data;
-      }
-      else {
-        // is child component
-        var selector = schema.selector;
-        var compName = schema.component;
-        var propName = schema.property;
-
-        var childEl = selector ? this.el.querySelector(selector) : this.el;
-        var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
-        if (!hasComponent) {
-          continue;
-        }
-        compKey = naf.utils.childSchemaToKey(schema);
-        newCompData = childEl.components[compName].data;
-        if (propName) {
-          newCompData = newCompData[propName];
-        }
-      }
-      
-      var compIsCached = this.cachedData.hasOwnProperty(compKey)
-      if (!compIsCached) {
-        dirtyComps.push(schema);
-        continue;
-      }
-
-      var oldCompData = this.cachedData[compKey];
-      if (!deepEqual(oldCompData, newCompData)) {
-        dirtyComps.push(schema);
-      }
-    }
-    return dirtyComps;
+    this.nextSyncTime = NAF.utils.now() + 1000 / naf.options.updateRate;
   },
 
   createSyncData: function(components) {
@@ -256,54 +200,7 @@ AFRAME.registerComponent('networked', {
   },
 
   getAllSyncedComponents: function() {
-    return naf.schemas.getComponents(this.data.template);
-  },
-
-  /**
-    Compressed packet structure:
-    [
-      1, // 1 for compressed
-      networkId,
-      ownerId,
-      template,
-      parent,
-      {
-        0: data, // key maps to index of synced components in network component schema
-        3: data,
-        4: data
-      }
-    ]
-  */
-  compressSyncData: function(syncData) {
-    var compressed = [];
-    compressed.push(1);
-    compressed.push(syncData.networkId);
-    compressed.push(syncData.owner);
-    compressed.push(syncData.parent);
-    compressed.push(syncData.template);
-    compressed.push(syncData.physics);
-
-    var compMap = this.compressComponents(syncData.components);
-    compressed.push(compMap);
-
-    return compressed;
-  },
-
-  compressComponents: function(syncComponents) {
-    var compMap = {};
-    var components = this.getAllSyncedComponents();
-    for (var i = 0; i < components.length; i++) {
-      var name;
-      if (typeof components[i] === 'string') {
-        name = components[i];
-      } else {
-        name = naf.utils.childSchemaToKey(components[i]);
-      }
-      if (syncComponents.hasOwnProperty(name)) {
-        compMap[i] = syncComponents[name];
-      }
-    }
-    return compMap;
+    return NAF.schemas.getComponents(this.data.template);
   },
 
   updateCache: function(components) {
@@ -314,6 +211,6 @@ AFRAME.registerComponent('networked', {
 
   remove: function () {
     var data = { networkId: this.networkId };
-    naf.connection.broadcastData('r', data);
+    NAF.connection.broadcastData('r', data);
   },
 });

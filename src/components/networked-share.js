@@ -321,8 +321,8 @@ AFRAME.registerComponent('networked-share', {
 
   syncAll: function() {
     this.updateNextSyncTime();
-    var allSyncedComponents = this.getAllSyncedComponents();
-    var components = NAF.utils.getNetworkedComponentsData(this.el, allSyncedComponents);
+    var syncedComps = this.getAllSyncedComponents();
+    var components = NAF.utils.getNetworkedComponentsData(this.el, syncedComps);
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
@@ -331,17 +331,18 @@ AFRAME.registerComponent('networked-share', {
 
   syncDirty: function() {
     this.updateNextSyncTime();
-    var dirtyComps = this.getDirtyComponents();
-    if (dirtyComps.length == 0 && !this.data.physics) {
+    var syncedComps = this.getAllSyncedComponents();
+    var dirtyComps = NAF.utils.getDirtyComponents(this.el, syncedComps, this.cachedData);
+    if (dirtyComps.length == 0) {
       return;
     }
     var components = NAF.utils.getNetworkedComponentsData(this.el, dirtyComps);
     var syncData = this.createSyncData(components);
-    if (naf.options.compressSyncPackets) {
-      syncData = this.compressSyncData(syncData);
+    if (NAF.options.compressSyncPackets) {
+      syncData = NAF.utils.compressSyncData(syncData, syncedComps);
     }
-    naf.connection.broadcastData('u', syncData);
-    // console.log('syncDirty', syncData);
+    NAF.connection.broadcastData('u', syncData);
+    // console.error('syncDirty', syncData);
     this.updateCache(components);
   },
 
@@ -353,73 +354,31 @@ AFRAME.registerComponent('networked-share', {
     this.nextSyncTime = naf.utils.now() + 1000 / naf.options.updateRate;
   },
 
-  getDirtyComponents: function() {
-    var newComps = this.el.components;
-    var syncedComps = this.getAllSyncedComponents();
-    var dirtyComps = [];
-
-    for (var i in syncedComps) {
-      var schema = syncedComps[i];
-      var compKey;
-      var newCompData;
-
-      var isRootComponent = typeof schema === 'string';
-
-      if (isRootComponent) {
-        var hasComponent = newComps.hasOwnProperty(schema);
-        if (!hasComponent) {
-          continue;
-        }
-        compKey = schema;
-        newCompData = newComps[schema].data;
-      }
-      else {
-        // is child component
-        var selector = schema.selector;
-        var compName = schema.component;
-        var propName = schema.property;
-
-        var childEl = selector ? this.el.querySelector(selector) : this.el;
-        var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
-        if (!hasComponent) {
-          continue;
-        }
-        compKey = naf.utils.childSchemaToKey(schema);
-	newCompData = childEl.components[compName].data;
-	if (propName) { newCompData = newCompData[propName]; }
-      }
-
-      var compIsCached = this.cachedData.hasOwnProperty(compKey);
-      if (!compIsCached) {
-        dirtyComps.push(schema);
-        continue;
-      }
-
-      var oldCompData = this.cachedData[compKey];
-      if (!deepEqual(oldCompData, newCompData)) {
-        dirtyComps.push(schema);
-      }
-    }
-    return dirtyComps;
-  },
-
   createSyncData: function(components) {
-    var data = {
+    var data = this.data;
+
+    var sync = {
       0: 0, // 0 for not compressed
       networkId: this.networkId,
-      owner: this.data.owner,
-      template: this.data.template,
-      showTemplate: this.data.showRemoteTemplate,
+      owner: this.owner,
+      template: data.template,
       parent: this.getParentId(),
+      physics: this.getPhysicsData(),
       components: components,
-      takeover: this.takeover
     };
+    return sync;
+  },
 
+  getPhysicsData: function() {
     if (this.data.physics) {
-      data['physics'] = NAF.physics.getPhysicsData(this.el);
+      var physicsData = NAF.physics.getPhysicsData(this.el);
+      if (physicsData) {
+        return physicsData;
+      } else {
+        NAF.log.error('Physics is set to true on this entity but no physics component detected. el=', this.el);
+      }
     }
-
-    return data;
+    return null;
   },
 
   getParentId: function() {

@@ -1,3 +1,5 @@
+var deepEqual = require('deep-equal');
+
 module.exports.whenEntityLoaded = function(entity, callback) {
   if (entity.hasLoaded) { callback(); }
   entity.addEventListener('loaded', function () {
@@ -130,4 +132,102 @@ module.exports.getNetworkedComponentsData = function(el, schemaComponents) {
     }
   }
   return compsWithData;
+};
+
+module.exports.getDirtyComponents = function(el, syncedComps, cachedData) {
+  var newComps = el.components;
+  var dirtyComps = [];
+
+  for (var i in syncedComps) {
+    var schema = syncedComps[i];
+    var compKey;
+    var newCompData;
+
+    var isRootComponent = typeof schema === 'string';
+
+    if (isRootComponent) {
+      var hasComponent = newComps.hasOwnProperty(schema)
+      if (!hasComponent) {
+        continue;
+      }
+      compKey = schema;
+      newCompData = newComps[schema].data;
+    }
+    else {
+      // is child component
+      var selector = schema.selector;
+      var compName = schema.component;
+      var propName = schema.property;
+
+      var childEl = selector ? el.querySelector(selector) : el;
+      var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
+      if (!hasComponent) {
+        continue;
+      }
+      compKey = NAF.utils.childSchemaToKey(schema);
+      newCompData = childEl.components[compName].data;
+      if (propName) {
+        newCompData = newCompData[propName];
+      }
+    }
+    
+    var compIsCached = cachedData.hasOwnProperty(compKey)
+    if (!compIsCached) {
+      dirtyComps.push(schema);
+      continue;
+    }
+
+    var oldCompData = cachedData[compKey];
+    if (!deepEqual(oldCompData, newCompData)) {
+      dirtyComps.push(schema);
+    }
+  }
+  return dirtyComps;
+};
+
+/**
+  Compressed packet structure:
+  [
+    1, // 1 for compressed
+    networkId,
+    ownerId,
+    parent,
+    template,
+    physics,
+    {
+      0: data, // key maps to index of synced components in network component schema
+      3: data,
+      4: data
+    }
+  ]
+*/
+module.exports.compressSyncData = function(syncData, allComponents) {
+  var compressed = [];
+  compressed.push(1);
+  compressed.push(syncData.networkId);
+  compressed.push(syncData.owner);
+  compressed.push(syncData.parent);
+  compressed.push(syncData.template);
+  compressed.push(syncData.physics);
+
+  var compressedComps = NAF.utils.compressComponents(syncData.components, allComponents);
+  compressed.push(compressedComps);
+
+  return compressed;
+};
+
+module.exports.compressComponents = function(syncComponents, allComponents) {
+  var compressed = {};
+  for (var i = 0; i < allComponents.length; i++) {
+    var name;
+    if (typeof allComponents[i] === 'string') {
+      name = allComponents[i];
+    } else {
+      name = NAF.utils.childSchemaToKey(allComponents[i]);
+    }
+    if (syncComponents.hasOwnProperty(name)) {
+      compressed[i] = syncComponents[name];
+    }
+  }
+  return compressed;
 };
