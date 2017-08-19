@@ -173,6 +173,7 @@ AFRAME.registerComponent('networked', {
       template: data.template,
       parent: this.getParentId(),
       physics: this.getPhysicsData(),
+      takeover: false,
       components: components,
     };
     return sync;
@@ -211,6 +212,6 @@ AFRAME.registerComponent('networked', {
 
   remove: function () {
     var data = { networkId: this.networkId };
-    NAF.connection.broadcastData('r', data);
+    NAF.connection.broadcastDataGuaranteed('r', data);
   },
 });

@@ -364,6 +364,7 @@ AFRAME.registerComponent('networked-share', {
       template: data.template,
       parent: this.getParentId(),
       physics: this.getPhysicsData(),
+      takeover: this.takeover,
       components: components,
     };
     return sync;
@@ -401,7 +402,7 @@ AFRAME.registerComponent('networked-share', {
 
   networkUpdate: function(entityData) {
     if (entityData[0] == 1) {
-      entityData = this.decompressSyncData(entityData);
+      entityData = NAF.utils.decompressSyncData(entityData, this.data.components);
     }
     this.updateOwnership(entityData.owner, entityData.takeover);
 
@@ -427,6 +428,15 @@ AFRAME.registerComponent('networked-share', {
           this.el.setAttribute(key, data);
         }
       }
+    }
+  },
+
+  isSyncableComponent: function(key) {
+    if (NAF.utils.isChildSchemaKey(key)) {
+      var schema = naf.utils.keyToChildSchema(key);
+      return this.hasThisChildSchema(schema);
+    } else {
+      return this.data.components.indexOf(key) != -1;
     }
   },
 
@@ -474,95 +484,6 @@ AFRAME.registerComponent('networked-share', {
           }
         }
       }
-    }
-  },
-
-  compressSyncData: function(syncData) {
-    var compressed = [];
-    compressed.push(1);
-    compressed.push(syncData.networkId);
-    compressed.push(syncData.owner);
-    compressed.push(syncData.parent);
-    compressed.push(syncData.template);
-
-    var compMap = this.compressComponents(syncData.components);
-    compressed.push(compMap);
-
-    compressed.push(syncData.takeover);
-    return compressed;
-  },
-
-  compressComponents: function(syncComponents) {
-    var compMap = {};
-    var components = this.getAllSyncedComponents();
-    for (var i = 0; i < components.length; i++) {
-      var name;
-      if (typeof components[i] === 'string') {
-        name = components[i];
-      } else {
-        name = naf.utils.childSchemaToKey(components[i]);
-      }
-      if (syncComponents.hasOwnProperty(name)) {
-        compMap[i] = syncComponents[name];
-      }
-    }
-    return compMap;
-  },
-
-  /**
-    Decompressed packet structure:
-    [
-      0: 0, // 0 for uncompressed
-      networkId: networkId,
-      owner: clientId,
-      parent: parentNetworkId,
-      template: template,
-      components: {
-        position: data,
-        scale: data,
-        .head|||visible: data
-      },
-      takeover: data
-    ]
-  */
-  decompressSyncData: function(compressed) {
-    var entityData = {};
-    entityData[0] = 1;
-    entityData.networkId = compressed[1];
-    entityData.owner = compressed[2];
-    entityData.parent = compressed[3];
-    entityData.template = compressed[4];
-
-    var compressedComps = compressed[5];
-    var components = this.decompressComponents(compressedComps);
-    entityData.components = components;
-
-    entityData.takeover = compressed[6];
-    return entityData;
-  },
-
-  decompressComponents: function(compressed) {
-    var decompressed = {};
-    for (var i in compressed) {
-      var name;
-      var schemaComp = this.data.components[i];
-
-      if (typeof schemaComp === "string") {
-        name = schemaComp;
-      } else {
-        name = naf.utils.childSchemaToKey(schemaComp);
-      }
-      decompressed[name] = compressed[i];
-    }
-    return decompressed;
-  },
-
-  isSyncableComponent: function(key) {
-    if (naf.utils.isChildSchemaKey(key)) {
-      var schema = naf.utils.keyToChildSchema(key);
-      return this.hasThisChildSchema(schema);
-    } else {
-      return this.data.components.indexOf(key) != -1;
     }
   },
 

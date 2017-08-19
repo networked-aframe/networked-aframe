@@ -193,6 +193,7 @@ suite('networked', function() {
         parent: null,
         template: 't1',
         physics: null,
+        takeover: false,
         components: {
           position: { x: 1, y: 2, z: 3 },
           rotation: { x: 4, y: 3, z: 2 }
@@ -247,6 +248,7 @@ suite('networked', function() {
         parent: null,
         template: 't1',
         physics: null,
+        takeover: false,
         components: {
           rotation: { x: 4, y: 3, z: 2 }
         }
@@ -269,7 +271,7 @@ suite('networked', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
-      var expected = [1, 'network1', 'owner1', null, 't1', null, { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, 't1', null, false, { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
 
       networked.init();
       networked.updateCache(oldData);
@@ -288,7 +290,7 @@ suite('networked', function() {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
-      var expected = [1, 'network1', 'owner1', null, 't1', null, { 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, 't1', null, false, { 1: { x: 4, y: 3, z: 2 } }];
 
       networked.init();
       networked.updateCache(oldData);

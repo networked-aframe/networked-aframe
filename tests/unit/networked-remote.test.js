@@ -220,6 +220,7 @@ suite('networked-remote', function() {
         null,
         '',
         null,
+        false,
         {
           0: { x: 10, y: 20, z: 30 },
           1: { x: 40, y: 30, z: 20 }
@@ -259,6 +260,7 @@ suite('networked-remote', function() {
         parent: null,
         template: '',
         physics: null,
+        takeover: false,
         components: components
       };
       var compressed = [
@@ -268,19 +270,21 @@ suite('networked-remote', function() {
         entityData.parent,
         entityData.template,
         entityData.physics,
+        entityData.takeover,
         {
           0: components.position,
           1: components.rotation
         }
       ];
+      var syncedComponents = ['position', 'rotation'];
 
-      var result = component.decompressSyncData(compressed);
+      var result = NAF.utils.decompressSyncData(compressed, syncedComponents);
 
       assert.deepEqual(result, entityData);
     });
 
     test('example packet with non-sequential components', function() {
-      component.data.components = ['position', 'rotation', 'scale'];
+      var syncedComponents = ['position', 'rotation', 'scale'];
       var components = {
         position: { x: 1, y: 2, z: 3 },
         scale: { x: 10, y: 11, z: 12 }
@@ -292,6 +296,7 @@ suite('networked-remote', function() {
         parent: null,
         template: '',
         physics: null,
+        takeover: false,
         components: components
       };
       var compressed = [
@@ -301,13 +306,14 @@ suite('networked-remote', function() {
         entityData.parent,
         entityData.template,
         entityData.physics,
+        entityData.takeover,
         {
           0: components.position,
           2: components.scale
         }
       ];
 
-      var result = component.decompressSyncData(compressed);
+      var result = NAF.utils.decompressSyncData(compressed, syncedComponents);
 
       assert.deepEqual(result, entityData);
     });
@@ -317,7 +323,7 @@ suite('networked-remote', function() {
         selector: '.head',
         component: 'visible'
       };
-      component.data.components = ['position', 'rotation', 'scale', childComponent];
+      var syncedComponents = ['position', 'rotation', 'scale', childComponent];
 
       var components = {
         position: { x: 1, y: 2, z: 3 },
@@ -333,6 +339,7 @@ suite('networked-remote', function() {
         parent: null,
         template: '',
         physics: null,
+        takeover: false,
         components: components
       };
 
@@ -343,6 +350,7 @@ suite('networked-remote', function() {
         entityData.parent,
         entityData.template,
         entityData.physics,
+        entityData.takeover,
         {
           0: components.position,
           2: components.scale,
@@ -351,7 +359,7 @@ suite('networked-remote', function() {
       ];
 
       var expected = entityData;
-      var result = component.decompressSyncData(compressed);
+      var result = NAF.utils.decompressSyncData(compressed, syncedComponents);
 
       console.error('result=', result);
       console.error('expected=', expected);
@@ -367,6 +375,7 @@ suite('networked-remote', function() {
         parent: null,
         template: '#template1',
         physics: null,
+        takeover: false,
         components: {}
       };
       var compressed = [
@@ -376,10 +385,12 @@ suite('networked-remote', function() {
         entityData.parent,
         entityData.template,
         entityData.physics,
+        entityData.takeover,
         {}
       ];
+      var defaultComps = ['position', 'rotation'];
 
-      var result = component.decompressSyncData(compressed);
+      var result = NAF.utils.decompressSyncData(compressed, defaultComps);
 
       assert.deepEqual(result, entityData);
     });

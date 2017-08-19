@@ -69,6 +69,7 @@ suite('networked_WithParent', function() {
         parent: 'parentId',
         template: 't1',
         physics: null,
+        takeover: false,
         components: {
           position: { x: 1, y: 2, z: 3 },
           rotation: { x: 4, y: 3, z: 2 }

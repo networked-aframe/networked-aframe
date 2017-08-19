@@ -203,15 +203,16 @@ module.exports.getDirtyComponents = function(el, syncedComps, cachedData) {
 */
 module.exports.compressSyncData = function(syncData, allComponents) {
   var compressed = [];
-  compressed.push(1);
-  compressed.push(syncData.networkId);
-  compressed.push(syncData.owner);
-  compressed.push(syncData.parent);
-  compressed.push(syncData.template);
-  compressed.push(syncData.physics);
+  compressed.push(1); // 0
+  compressed.push(syncData.networkId); // 1
+  compressed.push(syncData.owner); // 2
+  compressed.push(syncData.parent); // 3
+  compressed.push(syncData.template); // 4
+  compressed.push(syncData.physics); // 5
+  compressed.push(syncData.takeover); // 6
 
   var compressedComps = NAF.utils.compressComponents(syncData.components, allComponents);
-  compressed.push(compressedComps);
+  compressed.push(compressedComps); // 7
 
   return compressed;
 };
@@ -230,4 +231,54 @@ module.exports.compressComponents = function(syncComponents, allComponents) {
     }
   }
   return compressed;
+};
+
+/**
+  Decompressed packet structure:
+  [
+    0: 0, // 0 for uncompressed
+    networkId: networkId,
+    owner: clientId,
+    parent: parentNetworkId or null,
+    template: template,
+    physics: physicsData or null,
+    takeover: data,
+    components: {
+      position: data,
+      scale: data,
+      .head|||visible: data
+    },
+  ]
+*/
+module.exports.decompressSyncData = function(compressed, components) {
+  var entityData = {};
+  entityData[0] = 1;
+  entityData.networkId = compressed[1];
+  entityData.owner = compressed[2];
+  entityData.parent = compressed[3];
+  entityData.template = compressed[4];
+  entityData.physics = compressed[5];
+  entityData.takeover = compressed[6];
+
+  var compressedComps = compressed[7];
+  var components = NAF.utils.decompressComponents(compressedComps, components);
+  entityData.components = components;
+
+  return entityData;
+};
+
+module.exports.decompressComponents = function(compressed, components) {
+  var decompressed = {};
+  for (var i in compressed) {
+    var schemaComp = components[i];
+
+    var name;
+    if (typeof schemaComp === "string") {
+      name = schemaComp;
+    } else {
+      name = NAF.utils.childSchemaToKey(schemaComp);
+    }
+    decompressed[name] = compressed[i];
+  }
+  return decompressed;
 };

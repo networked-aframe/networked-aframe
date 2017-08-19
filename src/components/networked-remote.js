@@ -72,7 +72,7 @@ AFRAME.registerComponent('networked-remote', {
 
   networkUpdate: function(entityData) {
     if (entityData[0] == 1) {
-      entityData = this.decompressSyncData(entityData);
+      entityData = NAF.utils.decompressSyncData(entityData, this.data.components);
     }
 
     if (entityData.physics) {
@@ -113,53 +113,6 @@ AFRAME.registerComponent('networked-remote', {
         NAF.physics.updatePhysics(this.el, physics);
       }
     }
-  },
-
-  /**
-    Decompressed packet structure:
-    [
-      0: 0, // 0 for uncompressed
-      networkId: networkId,
-      owner: clientId,
-      parent: parentNetworkId,
-      template: template,
-      components: {
-        position: data,
-        scale: data,
-        .head|||visible: data
-      }
-    ]
-  */
-  decompressSyncData: function(compressed) {
-    var entityData = {};
-    entityData[0] = 1;
-    entityData.networkId = compressed[1];
-    entityData.owner = compressed[2];
-    entityData.parent = compressed[3];
-    entityData.template = compressed[4];
-    entityData.physics = compressed[5];
-
-    var compressedComps = compressed[6];
-    var components = this.decompressComponents(compressedComps);
-    entityData.components = components;
-
-    return entityData;
-  },
-
-  decompressComponents: function(compressed) {
-    var decompressed = {};
-    for (var i in compressed) {
-      var name;
-      var schemaComp = this.data.components[i];
-
-      if (typeof schemaComp === "string") {
-        name = schemaComp;
-      } else {
-        name = naf.utils.childSchemaToKey(schemaComp);
-      }
-      decompressed[name] = compressed[i];
-    }
-    return decompressed;
   },
 
   isSyncableComponent: function(key) {
