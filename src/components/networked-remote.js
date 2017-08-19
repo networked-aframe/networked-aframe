@@ -3,27 +3,29 @@ var naf = require('../NafIndex');
 AFRAME.registerComponent('networked-remote', {
   schema: {
     template: {default: ''},
-    showTemplate: {default: true},
     networkId: {default: ''},
     owner: {default: ''},
     components: {default: ['position', 'rotation']}
   },
 
   init: function() {
-    this.attachTemplate(this.data.template, this.data.showTemplate);
+    var el = this.el;
+    var data = this.data;
+
+    if (data.template) {
+      this.attachTemplate(data.template);
+    }
     this.attachLerp();
 
-    if (this.el.firstUpdateData) {
+    if (el.firstUpdateData) {
       this.firstUpdate();
     }
   },
 
-  attachTemplate: function(template, show) {
-    if (show) {
-      var templateChild = document.createElement('a-entity');
-      templateChild.setAttribute('template', 'src:' + template);
-      this.el.appendChild(templateChild);
-    }
+  attachTemplate: function(template) {
+    var templateChild = document.createElement('a-entity');
+    templateChild.setAttribute('template', 'src:' + template);
+    this.el.appendChild(templateChild);
   },
 
   attachLerp: function() {
@@ -88,8 +90,12 @@ AFRAME.registerComponent('networked-remote', {
           var schema = naf.utils.keyToChildSchema(key);
           var childEl = schema.selector ? this.el.querySelector(schema.selector) : this.el;
           if (childEl) { // Is false when first called in init
-            if (schema.property) { childEl.setAttribute(schema.component, schema.property, data); }
-            else { childEl.setAttribute(schema.component, data); }
+            if (schema.property) {
+              childEl.setAttribute(schema.component, schema.property, data);
+            }
+            else {
+              childEl.setAttribute(schema.component, data);
+            }
           }
         } else {
           this.el.setAttribute(key, data);
@@ -131,8 +137,9 @@ AFRAME.registerComponent('networked-remote', {
     entityData.owner = compressed[2];
     entityData.parent = compressed[3];
     entityData.template = compressed[4];
+    entityData.physics = compressed[5];
 
-    var compressedComps = compressed[5];
+    var compressedComps = compressed[6];
     var components = this.decompressComponents(compressedComps);
     entityData.components = components;
 

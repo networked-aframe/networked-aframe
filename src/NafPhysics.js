@@ -1,20 +1,18 @@
 module.exports.getPhysicsData = function(entity) {
-  if (entity.body) {
-
+  var body = entity.body;
+  if (body) {
     var constraints = NAF.physics.getConstraints(entity);
 
     var physicsData = {
-      type: entity.body.type,
+      type: body.type,
       hasConstraint: (constraints != null && constraints.length > 0),
-      position: entity.body.position,
-      quaternion: entity.body.quaternion,
-      velocity: entity.body.velocity,
-      angularVelocity: entity.body.angularVelocity,
+      position: body.position,
+      quaternion: body.quaternion,
+      velocity: body.velocity,
+      angularVelocity: body.angularVelocity,
       timestamp: NAF.utils.now()
     };
-
     return physicsData;
-
   } else {
     return null;
   }

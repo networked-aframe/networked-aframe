@@ -9,5 +9,5 @@ require('./NafIndex.js');
 require('./components/networked-scene');
 require('./components/networked');
 require('./components/networked-remote');
-require('./components/networked-share');
-require('./components/networked-adhoc');
+// require('./components/networked-share');
+// require('./components/networked-adhoc');

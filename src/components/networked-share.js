@@ -1,5 +1,6 @@
 var naf = require('../NafIndex');
 var deepEqual = require('deep-equal');
+var bind = AFRAME.utils.bind;
 
 AFRAME.registerComponent('networked-share', {
   schema: {
@@ -21,12 +22,15 @@ AFRAME.registerComponent('networked-share', {
   },
 
   init: function() {
-    this.networkUpdateHandler = this.networkUpdateHandler.bind(this);
-    this.syncDirty = this.syncDirty.bind(this);
-    this.syncAll = this.syncAll.bind(this);
-    this.takeOwnership = this.takeOwnership.bind(this);
-    this.removeOwnership = this.removeOwnership.bind(this);
-    this.handlePhysicsCollision = this.handlePhysicsCollision.bind(this);
+    var el = this.el;
+    var data = this.data;
+
+    this.networkUpdateHandler = bind(this.networkUpdateHandler, this);
+    this.syncDirty = bind(this.syncDirty, this);
+    this.syncAll = bind(this.syncAll, this);
+    this.takeOwnership = bind(this.takeOwnership, this);
+    this.removeOwnership = bind(this.removeOwnership, this);
+    this.handlePhysicsCollision = bind(this.handlePhysicsCollision, this);
 
     this.bindOwnershipEvents();
     this.bindRemoteEvents();
@@ -35,10 +39,12 @@ AFRAME.registerComponent('networked-share', {
     this.initNetworkId();
     this.initNetworkParent();
     this.registerEntity(this.networkId);
-    this.attachAndShowTemplate(this.data.template, this.data.showLocalTemplate);
+    if (data.template) {
+      this.attachAndShowTemplate(data.template, data.showLocalTemplate);
+    }
     this.checkLoggedIn();
 
-    if (this.el.firstUpdateData) {
+    if (el.firstUpdateData) {
       this.firstUpdate();
     }
 
@@ -46,8 +52,11 @@ AFRAME.registerComponent('networked-share', {
   },
 
   initNetworkId: function() {
-    if (!this.data.networkId) { this.data.networkId = Math.random().toString(36).substring(2, 9); }
-    this.networkId = this.data.networkId;
+    var id = this.data.networkId;
+    if (!id) {
+      id = NAF.utils.createNetworkId();
+    }
+    this.networkId = id;
   },
 
   initNetworkOwner: function() {
@@ -66,16 +75,16 @@ AFRAME.registerComponent('networked-share', {
     }
   },
 
-  listenForLoggedIn: function() {
-    document.body.addEventListener('loggedIn', this.onLoggedIn.bind(this), false);
-  },
-
   checkLoggedIn: function() {
     if (naf.clientId) {
       this.onLoggedIn();
     } else {
       this.listenForLoggedIn();
     }
+  },
+
+  listenForLoggedIn: function() {
+    document.body.addEventListener('loggedIn', bind(this.onLoggedIn, this), false);
   },
 
   onLoggedIn: function() {
@@ -91,24 +100,24 @@ AFRAME.registerComponent('networked-share', {
   },
 
   attachAndShowTemplate: function(template, show) {
+    var el = this.el;
+
     if (this.templateEl) {
-      this.el.removeChild(this.templateEl);
+      el.removeChild(this.templateEl);
     }
 
-    if (!template) { return; }
+    var templateChild = document.createElement('a-entity');
+    templateChild.setAttribute('template', 'src:' + template);
+    templateChild.setAttribute('visible', show);
 
-    if (show) {
-      var templateChild = document.createElement('a-entity');
-      templateChild.setAttribute('template', 'src:' + template);
-      //templateChild.setAttribute('visible', show);
+    var self = this;
+    NAF.utils.monkeyPatchEntityFromTemplateChild(el, templateChild,
+      function() {
+        delete self.templateEl;
+      });
 
-      var self = this;
-      NAF.utils.monkeyPatchEntityFromTemplateChild(this.el, templateChild,
-        function() { delete self.templateEl; });
-
-      this.templateEl = templateChild;
-      this.el.appendChild(templateChild);
-    }
+    this.templateEl = templateChild;
+    el.appendChild(templateChild);
   },
 
   firstUpdate: function() {
@@ -118,14 +127,13 @@ AFRAME.registerComponent('networked-share', {
   },
 
   waitForTemplateAndUpdateChildren: function() {
-    var that = this;
+    var self = this;
     var callback = function() {
-      var entityData = that.el.firstUpdateData;
-      that.networkUpdate(entityData);
+      var entityData = self.el.firstUpdateData;
+      self.networkUpdate(entityData);
     };
 
     // wait for template to render (and monkey-patching to finish, so next tick), then callback
-
     if (this.templateEl) {
       this.templateEl.addEventListener('templaterendered', function() { setTimeout(callback); });
     } else {
@@ -134,42 +142,45 @@ AFRAME.registerComponent('networked-share', {
   },
 
   update: function() {
-    if (this.data.physics) {
-      this.el.addEventListener(NAF.physics.collisionEvent, this.handlePhysicsCollision);
+    var el = this.el;
+    var data = this.data;
+
+    if (data.physics) {
+      el.addEventListener(NAF.physics.collisionEvent, this.handlePhysicsCollision);
     } else {
-      this.el.removeEventListener(NAF.physics.collisionEvent, this.handlePhysicsCollision);
+      el.removeEventListener(NAF.physics.collisionEvent, this.handlePhysicsCollision);
     }
 
     this.lastPhysicsUpdateTimestamp = null;
   },
 
   takeOwnership: function() {
+    var el = this.el;
+    var data = this.data;
+
     if (!this.isMine()) {
       this.unbindOwnerEvents();
       this.unbindRemoteEvents();
 
-      this.data.owner = NAF.clientId;
+      data.owner = NAF.clientId;
 
-      if (!this.data.physics) {
+      if (!data.physics) {
         this.detachLerp();
       } else {
-        NAF.physics.detachPhysicsLerp(this.el);
+        NAF.physics.detachPhysicsLerp(el);
         // WakeUp Element - We are not interpolating anymore
-        NAF.physics.wakeUp(this.el);
+        NAF.physics.wakeUp(el);
       }
 
       this.el.emit("networked-ownership-taken");
-
       this.takeover = true;
-
       this.syncAll();
-
       this.takeover = false;
 
       this.bindOwnerEvents();
       this.bindRemoteEvents();
 
-      NAF.log.write('Networked-Share: Taken ownership of ', this.el.id);
+      NAF.log.write('Networked-Share: Taken ownership of ', el.id);
     }
   },
 
@@ -177,30 +188,36 @@ AFRAME.registerComponent('networked-share', {
     // We should never really remove ownership of an element
     // until it falls into the "sleep"-State in the physics engine.
     // TODO: Sleep State handling
+    var el = this.el;
+    var data = this.data;
+
     if (this.isMine()) {
       this.unbindOwnerEvents();
       this.unbindRemoteEvents();
 
-      this.data.owner = "";
+      data.owner = "";
 
       this.bindRemoteEvents();
 
-      if (!this.data.physics) {
+      if (!data.physics) {
         // No need to attach physics lerp
         // the physics engine itself interpolates
         this.attachLerp();
       }
 
-      this.el.emit("networked-ownership-removed");
+      el.emit("networked-ownership-removed");
 
       this.syncAll();
 
-      NAF.log.write('Networked-Share: Removed ownership of ', this.el.id);
+      NAF.log.write('Networked-Share: Removed ownership of ', el.id);
     }
   },
 
   updateOwnership: function(owner, takeover) {
-    var ownerChanged = !(this.data.owner == owner);
+    var el = this.el;
+    var data = this.data;
+
+    var ownerChanged = !(data.owner == owner);
     var ownerIsMe = (NAF.clientId == owner);
 
     if (this.isMine() && !ownerIsMe && ownerChanged && takeover) {
@@ -208,25 +225,25 @@ AFRAME.registerComponent('networked-share', {
       this.unbindOwnerEvents();
       this.unbindRemoteEvents();
 
-      this.data.owner = owner;
+      data.owner = owner;
 
       this.bindRemoteEvents();
 
-      if (!this.data.physics) {
+      if (!data.physics) {
         // No need to attach physics lerp
         // the physics engine itself interpolates
         this.attachLerp();
       }
 
-      this.el.emit("networked-ownership-lost");
+      el.emit("networked-ownership-lost");
 
-      NAF.log.write('Networked-Share: Friendly takeover of: ' + this.el.id + ' by ', this.data.owner);
+      NAF.log.write('Networked-Share: Friendly takeover of: ' + el.id + ' by ', data.owner);
     } else if (!this.isMine() && ownerChanged) {
       // Just update the owner, it's not me.
-      this.data.owner = owner;
+      data.owner = owner;
 
-      this.el.emit("networked-ownership-changed");
-      NAF.log.write('Networked-Share: Updated owner of: ' + this.el.id + ' to ', this.data.owner);
+      el.emit("networked-ownership-changed");
+      NAF.log.write('Networked-Share: Updated owner of: ' + el.id + ' to ', data.owner);
     }
   },
 
@@ -242,23 +259,18 @@ AFRAME.registerComponent('networked-share', {
     }
   },
 
-  play: function() {
-
-  },
-
   bindOwnershipEvents: function() {
-    if (this.data.takeOwnershipEvents) {
-      // Register Events when ownership should be taken
-      for (var i = 0; i < this.data.takeOwnershipEvents.length; i++) {
-        this.el.addEventListener(this.data.takeOwnershipEvents[i], this.takeOwnership);
-      }
+    var el = this.el;
+    var data = this.data;
+
+    // Register Events when ownership should be taken
+    for (var i = 0; i < data.takeOwnershipEvents.length; i++) {
+      el.addEventListener(data.takeOwnershipEvents[i], this.takeOwnership);
     }
 
-    if (this.data.removeOwnershipEvents) {
-      // Register Events when ownership should be removed
-      for (var i = 0; i < this.data.removeOwnershipEvents.length; i++) {
-        this.el.addEventListener(this.data.removeOwnershipEvents[i], this.removeOwnership);
-      }
+    // Register Events when ownership should be removed
+    for (var i = 0; i < data.removeOwnershipEvents.length; i++) {
+      el.addEventListener(data.removeOwnershipEvents[i], this.removeOwnership);
     }
   },
 
@@ -271,23 +283,18 @@ AFRAME.registerComponent('networked-share', {
     this.el.addEventListener('syncAll', this.syncAll);
   },
 
-  pause: function() {
-
-  },
-
   unbindOwnershipEvents: function() {
-    if (this.data.takeOwnershipEvents) {
-      // Unbind Events when ownership should be taken
-      for (var i = 0; i < this.data.takeOwnershipEvents.length; i++) {
-        this.el.removeEventListener(this.data.takeOwnershipEvents[i], this.takeOwnership);
-      }
+    var el = this.el;
+    var data = this.data;
+
+    // Unbind Events when ownership should be taken
+    for (var i = 0; i < data.takeOwnershipEvents.length; i++) {
+      el.removeEventListener(data.takeOwnershipEvents[i], this.takeOwnership);
     }
 
-    if (this.data.removeOwnershipEvents) {
-      // Unbind Events when ownership should be removed
-      for (var i = 0; i < this.data.removeOwnershipEvents.length; i++) {
-        this.el.removeEventListener(this.data.removeOwnershipEvents[i], this.removeOwnership);
-      }
+    // Unbind Events when ownership should be removed
+    for (var i = 0; i < data.removeOwnershipEvents.length; i++) {
+      el.removeEventListener(data.removeOwnershipEvents[i], this.removeOwnership);
     }
   },
 
@@ -315,7 +322,7 @@ AFRAME.registerComponent('networked-share', {
   syncAll: function() {
     this.updateNextSyncTime();
     var allSyncedComponents = this.getAllSyncedComponents();
-    var components = this.getComponentsData(allSyncedComponents);
+    var components = NAF.utils.getNetworkedComponentsData(this.el, allSyncedComponents);
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
@@ -328,7 +335,7 @@ AFRAME.registerComponent('networked-share', {
     if (dirtyComps.length == 0 && !this.data.physics) {
       return;
     }
-    var components = this.getComponentsData(dirtyComps);
+    var components = NAF.utils.getNetworkedComponentsData(this.el, dirtyComps);
     var syncData = this.createSyncData(components);
     if (naf.options.compressSyncPackets) {
       syncData = this.compressSyncData(syncData);
@@ -344,36 +351,6 @@ AFRAME.registerComponent('networked-share', {
 
   updateNextSyncTime: function() {
     this.nextSyncTime = naf.utils.now() + 1000 / naf.options.updateRate;
-  },
-
-  getComponentsData: function(schemaComponents) {
-    var elComponents = this.el.components;
-    var compsWithData = {};
-
-    for (var i in schemaComponents) {
-      var element = schemaComponents[i];
-
-      if (typeof element === 'string') {
-        if (elComponents.hasOwnProperty(element)) {
-          var name = element;
-          var elComponent = elComponents[name];
-          compsWithData[name] = AFRAME.utils.clone(elComponent.data);
-        }
-      } else {
-        var childKey = naf.utils.childSchemaToKey(element);
-        var child = element.selector ? this.el.querySelector(element.selector) : this.el;
-        if (child) {
-          var comp = child.components[element.component];
-          if (comp) {
-            var data = element.property ? comp.data[element.property] : comp.data;
-            compsWithData[childKey] = AFRAME.utils.clone(data);
-          } else {
-            naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
-          }
-        }
-      }
-    }
-    return compsWithData;
   },
 
   getDirtyComponents: function() {

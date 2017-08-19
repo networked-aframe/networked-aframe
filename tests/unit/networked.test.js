@@ -12,7 +12,7 @@ suite('networked', function() {
 
   function initScene(done) {
     var opts = {};
-    opts.entity = '<a-entity id="test-entity" networked="template:t1;showLocalTemplate:false;components:position,rotation" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity>';
+    opts.entity = '<a-entity id="test-entity" networked="template:t1;showLocalTemplate:false;" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity>';
     scene = helpers.sceneFactory(opts);
     naf.utils.whenEntityLoaded(scene, done);
   }
@@ -192,6 +192,7 @@ suite('networked', function() {
         owner: 'owner1',
         parent: null,
         template: 't1',
+        physics: null,
         components: {
           position: { x: 1, y: 2, z: 3 },
           rotation: { x: 4, y: 3, z: 2 }
@@ -245,6 +246,7 @@ suite('networked', function() {
         owner: 'owner1',
         parent: null,
         template: 't1',
+        physics: null,
         components: {
           rotation: { x: 4, y: 3, z: 2 }
         }
@@ -267,7 +269,7 @@ suite('networked', function() {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
-      var expected = [1, 'network1', 'owner1', null, 't1', { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, 't1', null, { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
 
       networked.init();
       networked.updateCache(oldData);
@@ -286,7 +288,7 @@ suite('networked', function() {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
-      var expected = [1, 'network1', 'owner1', null, 't1', { 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, 't1', null, { 1: { x: 4, y: 3, z: 2 } }];
 
       networked.init();
       networked.updateCache(oldData);

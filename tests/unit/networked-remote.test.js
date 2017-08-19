@@ -219,6 +219,7 @@ suite('networked-remote', function() {
         'owner1',
         null,
         '',
+        null,
         {
           0: { x: 10, y: 20, z: 30 },
           1: { x: 40, y: 30, z: 20 }
@@ -257,6 +258,7 @@ suite('networked-remote', function() {
         owner: 'owner1',
         parent: null,
         template: '',
+        physics: null,
         components: components
       };
       var compressed = [
@@ -265,6 +267,7 @@ suite('networked-remote', function() {
         entityData.owner,
         entityData.parent,
         entityData.template,
+        entityData.physics,
         {
           0: components.position,
           1: components.rotation
@@ -288,6 +291,7 @@ suite('networked-remote', function() {
         owner: 'owner1',
         parent: null,
         template: '',
+        physics: null,
         components: components
       };
       var compressed = [
@@ -296,6 +300,7 @@ suite('networked-remote', function() {
         entityData.owner,
         entityData.parent,
         entityData.template,
+        entityData.physics,
         {
           0: components.position,
           2: components.scale
@@ -327,6 +332,7 @@ suite('networked-remote', function() {
         owner: 'owner1',
         parent: null,
         template: '',
+        physics: null,
         components: components
       };
 
@@ -336,6 +342,7 @@ suite('networked-remote', function() {
         entityData.owner,
         entityData.parent,
         entityData.template,
+        entityData.physics,
         {
           0: components.position,
           2: components.scale,
@@ -343,9 +350,13 @@ suite('networked-remote', function() {
         }
       ];
 
+      var expected = entityData;
       var result = component.decompressSyncData(compressed);
 
-      assert.deepEqual(result, entityData);
+      console.error('result=', result);
+      console.error('expected=', expected);
+
+      assert.deepEqual(result, expected);
     });
 
     test('example packet with no components', function() {
@@ -355,6 +366,7 @@ suite('networked-remote', function() {
         owner: 'owner1',
         parent: null,
         template: '#template1',
+        physics: null,
         components: {}
       };
       var compressed = [
@@ -363,6 +375,7 @@ suite('networked-remote', function() {
         entityData.owner,
         entityData.parent,
         entityData.template,
+        entityData.physics,
         {}
       ];
 

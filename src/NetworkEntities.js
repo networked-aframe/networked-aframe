@@ -14,33 +14,19 @@ class NetworkEntities {
   createRemoteEntity(entityData) {
     NAF.log.write('Creating remote entity', entityData);
 
+    var networkId = entityData.networkId;
+
     var entity = document.createElement('a-entity');
-    entity.setAttribute('id', 'naf-' + entityData.networkId);
+    entity.setAttribute('id', 'naf-' + networkId);
 
-    var script;
     var template = entityData.template;
-    if (template.substring(0,5) === 'data:') {
-      // data URI
-      var split = template.split(',', 2);
-      var inlineData = split[1];
-      var uriType = split[0].substring(5);
-      var isBase64 = uriType.endsWith(';base64');
-      if (isBase64) { uriType = uriType.substring(0, uriType.length - 7); }
-      inlineData = isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData);
-
-      // blob URLs do not survive template load, so make script element.
-      script = document.createElement('script');
-      var id = 'tpl-' + entityData.networkId;
-      script.setAttribute('id', id);
-      script.setAttribute('type', uriType);
-      script.innerHTML = inlineData;
-      document.body.appendChild(script);
-
+    if (this.isDynamicTemplate(template)) {      
+      var templateData = this.parseDynamicTemplate(template);
+      this.addTemplateToAssets(networkId, templateData);
       entityData.template = template = '#' + id;
-      //console.log('createRemoteEntity: data URI => template ' + template);
     }
 
-    if (template) {
+    if (template && entityData.physics) {
       entity.addEventListener('loaded', function () {
         var templateChild = entity.firstChild;
         NAF.utils.monkeyPatchEntityFromTemplateChild(entity, templateChild);
@@ -51,9 +37,44 @@ class NetworkEntities {
     this.initPosition(entity, entityData.components);
     this.initRotation(entity, entityData.components);
     this.addNetworkComponent(entity, entityData, components);
-    this.entities[entityData.networkId] = entity;
+    this.entities[networkId] = entity;
 
     return entity;
+  }
+
+  isDynamicTemplate(template) {
+    return template.substring(0,5) === 'data:'
+  }
+
+  parseDynamicTemplate(template) {
+    var split = template.split(',', 2);
+    var inlineData = split[1];
+    var uriType = split[0].substring(5);
+    var isBase64 = uriType.endsWith(';base64');
+    if (isBase64) {
+      uriType = uriType.substring(0, uriType.length - 7);
+    }
+    inlineData = isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData);
+
+    var templateData = {
+      inlineData: inlineData,
+      uriType: uriType,
+    };
+    return templateData;
+  }
+
+  addTemplateToAssets(networkId, templateData) {
+    var uriType = templateData.uriType;
+    var inlineData = templateData.inlineData;
+
+    // blob URLs do not survive template load, so make script element.
+    var script = document.createElement('script');
+    var id = 'naf-tpl-' + entityData.networkId;
+    script.setAttribute('id', id);
+    script.setAttribute('type', uriType);
+    script.innerHTML = inlineData;
+    var assets = document.querySelector('a-assets');
+    assets.appendChild(script);
   }
 
   initPosition(entity, componentData) {
@@ -84,7 +105,6 @@ class NetworkEntities {
       networkData.showRemoteTemplate = entityData.showTemplate;
       entity.setAttribute('networked-share', networkData);
     } else {
-      networkData.showTemplate = entityData.showTemplate;
       entity.setAttribute('networked-remote', networkData);
     }
     entity.firstUpdateData = entityData;

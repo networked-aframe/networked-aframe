@@ -30,7 +30,9 @@ AFRAME.registerComponent('networked-scene', {
   },
 
   init: function() {
-    if (this.data.updateRate) { naf.options.updateRate = this.data.updateRate; }
+    if (this.data.updateRate) {
+      naf.options.updateRate = this.data.updateRate;
+    }
     naf.options.useLerp = this.data.useLerp;
     naf.options.compressSyncPackets = this.data.compressSyncPackets;
     naf.options.useShare = this.data.useShare;

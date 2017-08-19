@@ -55,7 +55,11 @@ module.exports.now = function() {
 module.exports.delimiter = '---';
 
 module.exports.childSchemaToKey = function(schema) {
-  return (schema.selector || '') + module.exports.delimiter + schema.component + module.exports.delimiter + (schema.property || '');
+  var key = schema.selector + module.exports.delimiter + schema.component;
+  if (schema.property) {
+    key += module.exports.delimiter + schema.property
+  }
+  return key;
 };
 
 module.exports.keyToChildSchema = function(key) {
@@ -71,8 +75,8 @@ module.exports.childSchemaEqual = function(a, b) {
   return a.selector == b.selector && a.component == b.component && a.property == b.property;
 };
 
-module.exports.monkeyPatchEntityFromTemplateChild = function (entity, templateChild, callback) {
-  templateChild.addEventListener('templaterendered', function () {
+module.exports.monkeyPatchEntityFromTemplateChild = function(entity, templateChild, callback) {
+  templateChild.addEventListener('templaterendered', function() {
     var cloned = templateChild.firstChild;
     // mirror the attributes
     Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
@@ -92,4 +96,38 @@ module.exports.monkeyPatchEntityFromTemplateChild = function (entity, templateCh
       if (callback) { callback(); }
     });
   });
+};
+
+module.exports.createNetworkId = function() {
+  return Math.random().toString(36).substring(2, 9);
+};
+
+module.exports.getNetworkedComponentsData = function(el, schemaComponents) {
+  var elComponents = el.components;
+  var compsWithData = {};
+
+  for (var i in schemaComponents) {
+    var element = schemaComponents[i];
+
+    if (typeof element === 'string') {
+      if (elComponents.hasOwnProperty(element)) {
+        var name = element;
+        var elComponent = elComponents[name];
+        compsWithData[name] = AFRAME.utils.clone(elComponent.data);
+      }
+    } else {
+      var childKey = NAF.utils.childSchemaToKey(element);
+      var child = element.selector ? el.querySelector(element.selector) : el;
+      if (child) {
+        var comp = child.components[element.component];
+        if (comp) {
+          var data = element.property ? comp.data[element.property] : comp.data;
+          compsWithData[childKey] = AFRAME.utils.clone(data);
+        } else {
+          NAF.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
+        }
+      }
+    }
+  }
+  return compsWithData;
 };

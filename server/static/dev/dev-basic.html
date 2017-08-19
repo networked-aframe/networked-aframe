@@ -24,7 +24,8 @@
           'rotation',
           {
             selector: '.head',
-            component: 'material'
+            component: 'material',
+            property: 'color'
           }
         ]
       };
@@ -41,6 +42,8 @@
     <a-scene networked-scene="
       room: dev;
       debug: true;
+      useShare: false;
+      compressSyncPackets: true;
     ">
       <a-assets>
 
