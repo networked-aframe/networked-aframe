@@ -1,7 +1,53 @@
 var utils = require('../../src/utils');
 var Compressor = require('../../src/Compressor');
 
+function createExampleEntityData(components) {
+  return {
+    0: 0,
+    networkId: 'network1',
+    owner: 'owner1',
+    parent: null,
+    template: 't1',
+    physics: null,
+    takeover: false,
+    components: components
+  };
+}
+
 suite('Compressor',function () {
+
+  suite('compressSyncData', function() {
+
+    test('example basic compression', function() {
+      var components = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2 }
+      };
+      var entityData = createExampleEntityData(components);
+      var syncedComponents = ['position', 'rotation'];
+
+      var result = Compressor.compressSyncData(entityData, syncedComponents);
+
+      var expected = [1, 'network1', 'owner1', null, 't1', null, false, { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
+      assert.deepEqual(result, expected);
+    });
+
+    test('example compression with child components', function() {
+      var components = {
+        position: { x: 1, y: 2, z: 3 },
+        rotation: { x: 4, y: 3, z: 2 }
+      };
+      components['.child---comp1'] = { example: true };
+
+      var entityData = createExampleEntityData(components);
+      var syncedComponents = ['position', 'rotation', '.child---comp1'];
+
+      var result = Compressor.compressSyncData(entityData, syncedComponents);
+
+      var expected = [1, 'network1', 'owner1', null, 't1', null, false, { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 }, 2: { example: true} }];
+      assert.deepEqual(result, expected);
+    });
+  });
 
   suite('decompressSyncData', function() {
 
@@ -10,16 +56,7 @@ suite('Compressor',function () {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 3, z: 2 }
       };
-      var entityData = {
-        0: 1,
-        networkId: 'network1',
-        owner: 'owner1',
-        parent: null,
-        template: '',
-        physics: null,
-        takeover: false,
-        components: components
-      };
+      var entityData = createExampleEntityData(components);
       var compressed = [
         1,
         entityData.networkId,
@@ -41,21 +78,11 @@ suite('Compressor',function () {
     });
 
     test('example packet with non-sequential components', function() {
-      var syncedComponents = ['position', 'rotation', 'scale'];
       var components = {
         position: { x: 1, y: 2, z: 3 },
         scale: { x: 10, y: 11, z: 12 }
       };
-      var entityData = {
-        0: 1,
-        networkId: 'network1',
-        owner: 'owner1',
-        parent: null,
-        template: '',
-        physics: null,
-        takeover: false,
-        components: components
-      };
+      var entityData = createExampleEntityData(components);
       var compressed = [
         1,
         entityData.networkId,
@@ -69,6 +96,7 @@ suite('Compressor',function () {
           2: components.scale
         }
       ];
+      var syncedComponents = ['position', 'rotation', 'scale'];
 
       var result = Compressor.decompressSyncData(compressed, syncedComponents);
 
@@ -88,17 +116,7 @@ suite('Compressor',function () {
       };
       var childKey = '.head' + utils.delimiter + 'visible';
       components[childKey] = false;
-
-      var entityData = {
-        0: 1,
-        networkId: 'network1',
-        owner: 'owner1',
-        parent: null,
-        template: '',
-        physics: null,
-        takeover: false,
-        components: components
-      };
+      var entityData = createExampleEntityData(components);
 
       var compressed = [
         1,
@@ -122,16 +140,8 @@ suite('Compressor',function () {
     });
 
     test('example packet with no components', function() {
-      var entityData = {
-        0: 1,
-        networkId: 'network1',
-        owner: 'owner1',
-        parent: null,
-        template: '#template1',
-        physics: null,
-        takeover: false,
-        components: {}
-      };
+      var entityData = createExampleEntityData({});
+
       var compressed = [
         1,
         entityData.networkId,

@@ -30,6 +30,7 @@ var karma_conf = {
     {pattern: './tests/unit/ChildEntityCache.test.js'},
     {pattern: './tests/unit/Compressor.test.js'},
 
+
     {pattern: './src/**/*.js', included: false}
     // Serve test assets.
     // {pattern: 'tests/assets/**/*', included: false, served: true}

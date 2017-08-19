@@ -59,13 +59,13 @@ module.exports.compressComponents = function(syncComponents, allComponents) {
     components: {
       position: data,
       scale: data,
-      .head|||visible: data
+      .head---visible: data
     },
   ]
 */
 module.exports.decompressSyncData = function(compressed, components) {
   var entityData = {};
-  entityData[0] = 1;
+  entityData[0] = 0;
   entityData.networkId = compressed[1];
   entityData.owner = compressed[2];
   entityData.parent = compressed[3];
