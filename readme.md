@@ -128,10 +128,10 @@ Required on the A-Frame `<a-scene>` component.
 | debug  | Turn on / off Networked-Aframe debug logs | false |
 
 
-### Creating Network Entities
+### Creating Networked Entities
 
 ```html
-<a-entity networked="template=YOUR_TEMPLATE, showLocalTemplate=true"></a-entity>
+<a-entity networked="template=YOUR_TEMPLATE;showLocalTemplate=true"></a-entity>
 ```
 
 Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is added to allow for less network updates while keeping smooth motion.
@@ -143,42 +143,42 @@ Create an instance of a template to be synced across clients. The position and r
 | showLocalTemplate  | Set to false to hide the template for the local user. This is most useful for hiding your own avatar's head | true
 
 
-### Deleting Network Entities
+### Deleting Networked Entities
 
 Currently only the creator of a network entity can delete it. To delete, simply delete the element from the HTML using regular DOM APIs and Networked-Aframe will handle the syncing automatically.
 
 
 ### Syncing Custom Components
 
-By default, the A-Frame `position` and `rotation` components on the root entity are synced when a network entity is created.
+By default, the `position` and `rotation` components on the root entity are synced.
 
 To sync other components and components of child entities you need to define a schema per template. Here's how to define and add a schema:
 
 ```javascript
-var avatarSchema = {
+NAF.schemas.add({
   template: '#avatar-template',
   components: [
     'position',
     'rotation',
     'scale',
     {
-      selector: '.head',
-      component: 'material'
-    },
-    {
       selector: '.hairs',
       component: 'show-child'
-    }
+    },
+    {
+      selector: '.head',
+      component: 'material',
+      property: 'color'
+    },
   ]
-};
-NAF.schemas.add(avatarSchema);
+});
 ```
 
-Components of the root entity can be defined with the name of the component. Components of child entities can be defined with an object with both the `selector` field, which uses a standard CSS selector to be used by `document.querySelector`, and the `component` field which specifies the name of the component.
+Components of the root entity can be defined with the name of the component. Components of child entities can be defined with an object with both the `selector` field, which uses a standard CSS selector to be used by `document.querySelector`, and the `component` field which specifies the name of the component. To only sync one property of a multi-property component, add the `property` field with the name of the property.
 
 Once you've defined the schema then add it to the list of schemas by calling `NAF.schemas.add(YOUR_SCHEMA)`.
 
-Component data is retrieved by the A-Frame `getData` function. During the network tick each component's data is checked against its previous synced value; if the data object has changed at all it will be synced across the network.
+Component data is retrieved by the A-Frame Component `data` property. During the network tick each component's data is checked against its previous synced value; if the data object has changed at all it will be synced across the network.
 
 
 ### Syncing nested templates - eg. hands
