@@ -1,4 +1,6 @@
 var naf = require('../NafIndex');
+var NetComponents = require('../NetworkedComponents');
+var Compressor = require('../Compressor');
 
 AFRAME.registerComponent('networked', {
   schema: {
@@ -22,7 +24,7 @@ AFRAME.registerComponent('networked', {
   },
 
   initNetworkId: function() {
-    this.networkId = NAF.utils.createNetworkId();
+    this.networkId = naf.utils.createNetworkId();
   },
 
   initNetworkParent: function() {
@@ -131,7 +133,7 @@ AFRAME.registerComponent('networked', {
   syncAll: function() {
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
-    var components = NAF.utils.getNetworkedComponentsData(this.el, syncedComps);
+    var components = NetComponents.gatherComponentsData(this.el, syncedComps);
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
@@ -141,14 +143,14 @@ AFRAME.registerComponent('networked', {
   syncDirty: function() {
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
-    var dirtyComps = NAF.utils.getDirtyComponents(this.el, syncedComps, this.cachedData);
+    var dirtyComps = NetComponents.findDirtyComponents(this.el, syncedComps, this.cachedData);
     if (dirtyComps.length == 0) {
       return;
     }
-    var components = NAF.utils.getNetworkedComponentsData(this.el, dirtyComps);
+    var components = NetComponents.gatherComponentsData(this.el, dirtyComps);
     var syncData = this.createSyncData(components);
     if (NAF.options.compressSyncPackets) {
-      syncData = NAF.utils.compressSyncData(syncData, syncedComps);
+      syncData = Compressor.compressSyncData(syncData, syncedComps);
     }
     NAF.connection.broadcastData('u', syncData);
     // console.error('syncDirty', syncData);

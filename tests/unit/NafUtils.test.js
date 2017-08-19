@@ -1,9 +1,9 @@
 /* global assert, process, setup, suite, test */
 var aframe = require('aframe');
 var helpers = require('./helpers');
-var nafUtil = require('../../src/NafUtil');
+var utils = require('../../src/utils');
 
-suite('NafUtil', function() {
+suite('utils', function() {
   var scene;
 
   function initScene() {
@@ -24,7 +24,7 @@ suite('NafUtil', function() {
       var entity = document.createElement('a-entity');
       var callback = sinon.stub();
 
-      nafUtil.whenEntityLoaded(entity, callback);
+      utils.whenEntityLoaded(entity, callback);
       assert.isFalse(callback.called);
 
       scene.appendChild(entity);
@@ -43,7 +43,7 @@ suite('NafUtil', function() {
       var callback = sinon.stub();
       entity.hasLoaded = true
 
-      nafUtil.whenEntityLoaded(entity, callback);
+      utils.whenEntityLoaded(entity, callback);
       assert.isTrue(callback.called);
     });
   });
@@ -52,7 +52,7 @@ suite('NafUtil', function() {
     test('basic html string', function() {
       var htmlStr = '<div id="rainbows"><span id="end">Test</span></div>';
 
-      var el = nafUtil.createHtmlNodeFromString(htmlStr);
+      var el = utils.createHtmlNodeFromString(htmlStr);
 
       assert.equal(el.id, 'rainbows');
       assert.equal(el.firstChild.id, 'end');
@@ -70,7 +70,7 @@ suite('NafUtil', function() {
         }
       };
 
-      var result = nafUtil.getNetworkOwner(entity);
+      var result = utils.getNetworkOwner(entity);
 
       assert.equal(result, owner);
     });
@@ -78,7 +78,7 @@ suite('NafUtil', function() {
     test('no network component', function() {
       var entity = { components: {}};
 
-      var result = nafUtil.getNetworkOwner(entity);
+      var result = utils.getNetworkOwner(entity);
 
       assert.isNull(result);
     });
@@ -89,9 +89,30 @@ suite('NafUtil', function() {
     test('returns current time in ms', function() {
       var time = Date.now();
 
-      var result = nafUtil.now();
+      var result = utils.now();
 
       assert.approximately(result, time, 1);
+    });
+  });
+
+  suite('createNetworkId', function() {
+
+    test('length', function() {
+      var id = utils.createNetworkId();
+      assert.equal(id.length, 7);
+    });
+
+    test('object type', function() {
+      var id = utils.createNetworkId();
+      assert.isString(id);
+    });
+
+    test('alphanumeric', function () {
+      var regex = /^[a-z0-9]+$/i;
+
+      var id = utils.createNetworkId();
+
+      assert.match(id, regex);
     });
   });
 });

@@ -2,8 +2,8 @@
 var aframe = require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
-
 var NetworkEntities = require('../../src/NetworkEntities');
+
 require('../../src/components/networked-remote');
 
 suite('NetworkEntities', function() {

@@ -20,7 +20,7 @@ var karma_conf = {
     // {pattern: './tests/unit/**/*.test.js'},
     {pattern: './tests/unit/NafInterface.test.js'},
     {pattern: './tests/unit/NafLogger.test.js'},
-    {pattern: './tests/unit/NafUtil.test.js'},
+    {pattern: './tests/unit/utils.test.js'},
     {pattern: './tests/unit/NetworkConnection.test.js'},
     {pattern: './tests/unit/networked.test.js'},
     {pattern: './tests/unit/networked_WithParent.test.js'},
@@ -28,6 +28,7 @@ var karma_conf = {
     {pattern: './tests/unit/NetworkEntities.test.js'},
     {pattern: './tests/unit/Schemas.test.js'},
     {pattern: './tests/unit/ChildEntityCache.test.js'},
+    {pattern: './tests/unit/Compressor.test.js'},
 
     {pattern: './src/**/*.js', included: false}
     // Serve test assets.

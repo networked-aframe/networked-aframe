@@ -1,6 +1,7 @@
 var naf = require('../NafIndex');
 var deepEqual = require('deep-equal');
 var bind = AFRAME.utils.bind;
+var Compressor = require('../Compressor');
 
 AFRAME.registerComponent('networked-share', {
   schema: {
@@ -322,7 +323,7 @@ AFRAME.registerComponent('networked-share', {
   syncAll: function() {
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
-    var components = NAF.utils.getNetworkedComponentsData(this.el, syncedComps);
+    var components = NAF.utils.gatherComponentsData(this.el, syncedComps);
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
@@ -332,14 +333,14 @@ AFRAME.registerComponent('networked-share', {
   syncDirty: function() {
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
-    var dirtyComps = NAF.utils.getDirtyComponents(this.el, syncedComps, this.cachedData);
+    var dirtyComps = NAF.utils.findDirtyComponents(this.el, syncedComps, this.cachedData);
     if (dirtyComps.length == 0) {
       return;
     }
-    var components = NAF.utils.getNetworkedComponentsData(this.el, dirtyComps);
+    var components = NAF.utils.gatherComponentsData(this.el, dirtyComps);
     var syncData = this.createSyncData(components);
     if (NAF.options.compressSyncPackets) {
-      syncData = NAF.utils.compressSyncData(syncData, syncedComps);
+      syncData = Compressor.compressSyncData(syncData, syncedComps);
     }
     NAF.connection.broadcastData('u', syncData);
     // console.error('syncDirty', syncData);
@@ -347,11 +348,11 @@ AFRAME.registerComponent('networked-share', {
   },
 
   needsToSync: function() {
-    return naf.utils.now() >= this.nextSyncTime;
+    return NAF.utils.now() >= this.nextSyncTime;
   },
 
   updateNextSyncTime: function() {
-    this.nextSyncTime = naf.utils.now() + 1000 / naf.options.updateRate;
+    this.nextSyncTime = NAF.utils.now() + 1000 / naf.options.updateRate;
   },
 
   createSyncData: function(components) {

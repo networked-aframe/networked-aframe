@@ -2,6 +2,7 @@
 var aframe = require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
+var NetComponents = require('../../src/NetworkedComponents');
 
 require('../../src/components/networked');
 
@@ -75,7 +76,7 @@ suite('networked_WithParent', function() {
           rotation: { x: 4, y: 3, z: 2 }
         }
       };
-      var networkIdStub = this.stub(NAF.utils, 'createNetworkId').returns('parentId');
+      var networkIdStub = this.stub(naf.utils, 'createNetworkId').returns('parentId');
       parentNetworked.init();
       networkIdStub.returns('network1');
       networked.init();

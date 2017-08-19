@@ -1,4 +1,5 @@
 var naf = require('../NafIndex');
+var Compressor = require('../Compressor');
 
 AFRAME.registerComponent('networked-remote', {
   schema: {
@@ -72,7 +73,7 @@ AFRAME.registerComponent('networked-remote', {
 
   networkUpdate: function(entityData) {
     if (entityData[0] == 1) {
-      entityData = NAF.utils.decompressSyncData(entityData, this.data.components);
+      entityData = Compressor.decompressSyncData(entityData, this.data.components);
     }
 
     if (entityData.physics) {

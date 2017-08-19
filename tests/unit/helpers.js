@@ -1,5 +1,5 @@
 /* global suite */
-var utils = require('../../src/NafUtil');
+var utils = require('../../src/utils');
 
 
 /**

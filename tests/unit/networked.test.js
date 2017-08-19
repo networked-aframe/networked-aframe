@@ -2,6 +2,7 @@
 var aframe = require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
+var NetComponents = require('../../src/NetworkedComponents');
 
 require('../../src/components/networked');
 
@@ -44,7 +45,7 @@ suite('networked', function() {
   suite('init', function() {
 
     test('sets networkId', sinon.test(function() {
-      this.stub(NAF.utils, 'createNetworkId').returns('nid1');
+      this.stub(naf.utils, 'createNetworkId').returns('nid1');
 
       networked.init();
 
@@ -74,7 +75,7 @@ suite('networked', function() {
 
     test('registers entity', sinon.test(function() {
       var networkId = 'nid2';
-      this.stub(NAF.utils, 'createNetworkId').returns(networkId);
+      this.stub(naf.utils, 'createNetworkId').returns(networkId);
       var stub = this.stub(naf.entities, 'registerLocalEntity');
 
       networked.init();
@@ -116,27 +117,6 @@ suite('networked', function() {
     }));
   });
 
-  suite('createNetworkId', function() {
-
-    test('length', function() {
-      var id = NAF.utils.createNetworkId();
-      assert.equal(id.length, 7);
-    });
-
-    test('object type', function() {
-      var id = NAF.utils.createNetworkId();
-      assert.isString(id)
-    });
-
-    test('alphanumeric', function () {
-      var regex = /^[a-z0-9]+$/i;
-
-      var id = NAF.utils.createNetworkId();
-
-      assert.match(id, regex);
-    });
-  });
-
   suite('attachAndShowTemplate', function() {
 
     test('shows template', sinon.test(function() {
@@ -161,7 +141,7 @@ suite('networked', function() {
   suite('tick', function() {
 
     test('syncs if need to', sinon.test(function() {
-      this.stub(naf.utils, 'now').returns(4);
+      this.stub(NAF.utils, 'now').returns(4);
       this.stub(networked, 'syncDirty');
       networked.nextSyncTime = 4;
 
@@ -171,7 +151,7 @@ suite('networked', function() {
     }));
 
     test('does not sync if does not need to', sinon.test(function() {
-      this.stub(naf.utils, 'now').returns(3.9);
+      this.stub(NAF.utils, 'now').returns(3.9);
       this.stub(networked, 'syncDirty');
       networked.nextSyncTime = 4;
 
@@ -184,7 +164,7 @@ suite('networked', function() {
   suite('syncAll', function() {
 
     test('broadcasts uncompressed data', sinon.test(function() {
-      this.stub(NAF.utils, 'createNetworkId').returns('network1');
+      this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastDataGuaranteed');
       var expected = {
         0: 0,
@@ -235,7 +215,7 @@ suite('networked', function() {
   suite('syncDirty', function() {
 
     test('syncs uncompressed data that has changed', sinon.test(function() {
-      this.stub(NAF.utils, 'createNetworkId').returns('network1');
+      this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastData');
       var oldData = {
         position: { x: 1, y: 2, z: 3 },
@@ -264,7 +244,7 @@ suite('networked', function() {
     }));
 
     test('syncs compressed data that has changed (all components changed)', sinon.test(function() {
-      this.stub(NAF.utils, 'createNetworkId').returns('network1');
+      this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(NAF.connection, 'broadcastData');
       NAF.options.compressSyncPackets = true;
       var oldData = {
@@ -283,7 +263,7 @@ suite('networked', function() {
     }));
 
     test('syncs compressed data that has changed (some components changed)', sinon.test(function() {
-      this.stub(NAF.utils, 'createNetworkId').returns('network1');
+      this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastData');
       naf.options.compressSyncPackets = true;
       var oldData = {
