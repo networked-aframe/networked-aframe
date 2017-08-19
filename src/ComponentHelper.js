@@ -2,7 +2,7 @@ var deepEqual = require('deep-equal');
 
 module.exports.gatherComponentsData = function(el, schemaComponents) {
   var elComponents = el.components;
-  var compsWithData = {};
+  var compsData = {};
 
   for (var i in schemaComponents) {
     var element = schemaComponents[i];
@@ -11,7 +11,7 @@ module.exports.gatherComponentsData = function(el, schemaComponents) {
       if (elComponents.hasOwnProperty(element)) {
         var name = element;
         var elComponent = elComponents[name];
-        compsWithData[name] = AFRAME.utils.clone(elComponent.data);
+        compsData[name] = AFRAME.utils.clone(elComponent.data);
       }
     } else {
       var childKey = NAF.utils.childSchemaToKey(element);
@@ -20,14 +20,14 @@ module.exports.gatherComponentsData = function(el, schemaComponents) {
         var comp = child.components[element.component];
         if (comp) {
           var data = element.property ? comp.data[element.property] : comp.data;
-          compsWithData[childKey] = AFRAME.utils.clone(data);
+          compsData[childKey] = AFRAME.utils.clone(data);
         } else {
           NAF.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
         }
       }
     }
   }
-  return compsWithData;
+  return compsData;
 };
 
 module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
@@ -39,9 +39,8 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
     var compKey;
     var newCompData;
 
-    var isRootComponent = typeof schema === 'string';
-
-    if (isRootComponent) {
+    var isRoot = typeof schema === 'string';
+    if (isRoot) {
       var hasComponent = newComps.hasOwnProperty(schema)
       if (!hasComponent) {
         continue;
@@ -50,7 +49,7 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
       newCompData = newComps[schema].data;
     }
     else {
-      // is child component
+      // is child
       var selector = schema.selector;
       var compName = schema.component;
       var propName = schema.property;

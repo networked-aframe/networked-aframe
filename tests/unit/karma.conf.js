@@ -29,7 +29,7 @@ var karma_conf = {
     {pattern: './tests/unit/Schemas.test.js'},
     {pattern: './tests/unit/ChildEntityCache.test.js'},
     {pattern: './tests/unit/Compressor.test.js'},
-
+    {pattern: './tests/unit/ComponentHelper.test.js'},
 
     {pattern: './src/**/*.js', included: false}
     // Serve test assets.

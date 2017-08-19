@@ -2,7 +2,7 @@
 var aframe = require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
-var NetComponents = require('../../src/NetworkedComponents');
+var componentHelper = require('../../src/ComponentHelper');
 
 require('../../src/components/networked');
 

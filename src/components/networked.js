@@ -1,5 +1,5 @@
 var naf = require('../NafIndex');
-var NetComponents = require('../NetworkedComponents');
+var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 
 AFRAME.registerComponent('networked', {
@@ -133,7 +133,7 @@ AFRAME.registerComponent('networked', {
   syncAll: function() {
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
-    var components = NetComponents.gatherComponentsData(this.el, syncedComps);
+    var components = componentHelper.gatherComponentsData(this.el, syncedComps);
     var syncData = this.createSyncData(components);
     naf.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
@@ -143,11 +143,11 @@ AFRAME.registerComponent('networked', {
   syncDirty: function() {
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
-    var dirtyComps = NetComponents.findDirtyComponents(this.el, syncedComps, this.cachedData);
+    var dirtyComps = componentHelper.findDirtyComponents(this.el, syncedComps, this.cachedData);
     if (dirtyComps.length == 0) {
       return;
     }
-    var components = NetComponents.gatherComponentsData(this.el, dirtyComps);
+    var components = componentHelper.gatherComponentsData(this.el, dirtyComps);
     var syncData = this.createSyncData(components);
     if (NAF.options.compressSyncPackets) {
       syncData = Compressor.compressSyncData(syncData, syncedComps);
