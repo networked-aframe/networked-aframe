@@ -252,8 +252,8 @@ Stay in Touch
 
 - Follow Hayden on [Twitter](https://twitter.com/haydenlee37)
 - Follow changes on [GitHub](https://github.com/haydenjameslee/networked-aframe/subscription)
-- Hang out with the A-Frame community: [A-Frame Slack](https://aframevr-slack.herokuapp.com)
-- Let us know if you've made something with Networked-Aframe! We'd love to see it!
+- Join the [A-Frame Slack](https://aframevr-slack.herokuapp.com) and add the #networked-aframe channel
+- Let us know if you've made something with Networked-Aframe. We'd love to see it!
 
 
 Help and More Information
