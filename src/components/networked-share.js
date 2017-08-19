@@ -33,10 +33,9 @@ AFRAME.registerComponent('networked-share', {
 
     this.cachedData = {};
     this.initNetworkId();
-    this.initNetworkOwner();
     this.initNetworkParent();
-    this.attachAndShowTemplate(this.data.template, this.data.showLocalTemplate);
     this.registerEntity(this.networkId);
+    this.attachAndShowTemplate(this.data.template, this.data.showLocalTemplate);
     this.checkLoggedIn();
 
     if (this.el.firstUpdateData) {
@@ -52,8 +51,10 @@ AFRAME.registerComponent('networked-share', {
   },
 
   initNetworkOwner: function() {
-    if (!this.data.owner) { this.data.owner = NAF.clientId; }
-    this.networkId = this.data.networkId;
+    if (!this.data.owner) {
+      // Careful - this means that we assert ownership by default!
+      this.takeOwnership();
+    }
   },
 
   initNetworkParent: function() {
@@ -78,7 +79,10 @@ AFRAME.registerComponent('networked-share', {
   },
 
   onLoggedIn: function() {
-    this.syncAll();
+    this.initNetworkOwner();
+    if (this.isMine()) {
+      this.syncAll();
+    }
   },
 
   registerEntity: function(networkId) {
@@ -353,7 +357,7 @@ AFRAME.registerComponent('networked-share', {
         if (elComponents.hasOwnProperty(element)) {
           var name = element;
           var elComponent = elComponents[name];
-          compsWithData[name] = elComponent.getData();
+          compsWithData[name] = AFRAME.utils.clone(elComponent.data);
         }
       } else {
         var childKey = naf.utils.childSchemaToKey(element);
@@ -361,8 +365,8 @@ AFRAME.registerComponent('networked-share', {
         if (child) {
           var comp = child.components[element.component];
           if (comp) {
-            var data = element.property ? comp.data[element.property] : comp.getData();
-            compsWithData[childKey] = data;
+            var data = element.property ? comp.data[element.property] : comp.data;
+            compsWithData[childKey] = AFRAME.utils.clone(data);
           } else {
             naf.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
           }
@@ -390,7 +394,7 @@ AFRAME.registerComponent('networked-share', {
           continue;
         }
         compKey = schema;
-        newCompData = newComps[schema].getData();
+        newCompData = newComps[schema].data;
       }
       else {
         // is child component
@@ -404,7 +408,7 @@ AFRAME.registerComponent('networked-share', {
           continue;
         }
         compKey = naf.utils.childSchemaToKey(schema);
-	newCompData = childEl.components[compName].getData();
+	newCompData = childEl.components[compName].data;
 	if (propName) { newCompData = newCompData[propName]; }
       }
 
@@ -427,11 +431,11 @@ AFRAME.registerComponent('networked-share', {
       0: 0, // 0 for not compressed
       networkId: this.networkId,
       owner: this.data.owner,
-      takeover: this.takeover,
       template: this.data.template,
       showTemplate: this.data.showRemoteTemplate,
       parent: this.getParentId(),
-      components: components
+      components: components,
+      takeover: this.takeover
     };
 
     if (this.data.physics) {
@@ -548,6 +552,7 @@ AFRAME.registerComponent('networked-share', {
     var compMap = this.compressComponents(syncData.components);
     compressed.push(compMap);
 
+    compressed.push(syncData.takeover);
     return compressed;
   },
 
@@ -580,7 +585,8 @@ AFRAME.registerComponent('networked-share', {
         position: data,
         scale: data,
         .head|||visible: data
-      }
+      },
+      takeover: data
     ]
   */
   decompressSyncData: function(compressed) {
@@ -595,6 +601,7 @@ AFRAME.registerComponent('networked-share', {
     var components = this.decompressComponents(compressedComps);
     entityData.components = components;
 
+    entityData.takeover = compressed[6];
     return entityData;
   },
 
