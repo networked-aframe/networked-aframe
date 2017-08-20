@@ -139,7 +139,7 @@ suite('NafPhysics', function() {
       var result = physics.getPhysicsData(elStatic);
 
       var expected = createDefaultPhysicsData('static', timestamp);
-      assertPhysicsDataWithoutGeo(assert, result, expected)
+      assertPhysicsDataWithoutGeo(assert, result, expected);
     }));
 
     test('has dynamic-body physics component with default values', sinon.test(function() {
@@ -149,7 +149,7 @@ suite('NafPhysics', function() {
       var result = physics.getPhysicsData(elDynamic);
 
       var expected = createDefaultPhysicsData('dynamic', timestamp);
-      assertPhysicsDataWithoutGeo(assert, result, expected)
+      assertPhysicsDataWithoutGeo(assert, result, expected);
     }));
 
     test('has dynamic-body physics component with constraint', sinon.test(function() {
@@ -160,8 +160,44 @@ suite('NafPhysics', function() {
 
       var expected = createDefaultPhysicsData('dynamic', timestamp);
       expected.hasConstraint = true;
-      assertPhysicsDataWithoutGeo(assert, result, expected)
+      assertPhysicsDataWithoutGeo(assert, result, expected);
     }));
+  });
+
+  suite('updatePhysics', function() {
+
+    test('no error on non-physics entity', function() {
+      physics.updatePhysics(elNaked, {});
+    });
+
+    test('sets body with default data', function() {
+      var timestamp = 10;
+      var physicsData = createDefaultPhysicsData('dynamic', timestamp);
+
+      physics.updatePhysics(elDynamic, physicsData);
+
+      var body = elDynamic.body;
+      assert.deepEqual(body.position, new CANNON.Vec3());
+      assert.deepEqual(body.quaternion, new CANNON.Quaternion());
+      assert.deepEqual(body.velocity, new CANNON.Vec3());
+      assert.deepEqual(body.angularVelocity, new CANNON.Vec3());
+    });
+
+    test('sets body with actual data', function() {
+      var physicsData = createDefaultPhysicsData('dynamic', 0);
+      physicsData.position = new CANNON.Vec3(1, 2, 3);
+      physicsData.quaternion = new CANNON.Quaternion(0.1, 0.2, 0.3, 1);
+      physicsData.velocity = new CANNON.Vec3(4, 5, 6);
+      physicsData.angularVelocity = new CANNON.Vec3(7, 8, 9);
+
+      physics.updatePhysics(elDynamic, physicsData);
+
+      var body = elDynamic.body;
+      assert.deepEqual(body.position, new CANNON.Vec3(1, 2, 3), 'position');
+      assert.deepEqual(body.quaternion, new CANNON.Quaternion(0.1, 0.2, 0.3, 1), 'rotation');
+      assert.deepEqual(body.velocity, new CANNON.Vec3(4, 5, 6), 'velocity');
+      assert.deepEqual(body.angularVelocity, new CANNON.Vec3(7, 8, 9), 'angularVelocity');
+    });
   });
 
   suite('calculatePhysicsStrength', function() {
@@ -250,5 +286,149 @@ suite('NafPhysics', function() {
       assert.isFalse(result);
     });
   });
-  
+
+  suite('attachPhysicsLerp', function() {
+
+    test('attaches component', function() {
+      var physicsData = createDefaultPhysicsData('dynamic', 0);
+
+      physics.attachPhysicsLerp(elDynamic, physicsData);
+
+      var result = elDynamic.hasAttribute('physics-lerp');
+      assert.isTrue(result);
+    });
+
+    // TODO Where is physics-lerp.js?
+
+    // test('attach with values', function() {
+    //   var physicsData = createDefaultPhysicsData('dynamic', 0);
+    //   physicsData.position = new CANNON.Vec3(1, 2, 3);
+    //   physicsData.quaternion = new CANNON.Quaternion(0.1, 0.2, 0.3, 1);
+    //   physicsData.velocity = new CANNON.Vec3(4, 5, 6);
+    //   physicsData.angularVelocity = new CANNON.Vec3(7, 8, 9);
+
+    //   physics.attachPhysicsLerp(elDynamic, physicsData);
+
+    //   var component = elDynamic.getAttribute('physics-lerp').data;
+    //   assert.deepEqual(componentData.targetPosition, new CANNON.Vec3(1, 2, 3), 'position');
+    //   assert.deepEqual(componentData.targetQuaternion, new CANNON.Quaternion(0.1, 0.2, 0.3, 1), 'rotation');
+    //   assert.deepEqual(componentData.targetVelocity, new CANNON.Vec3(4, 5, 6), 'velocity');
+    //   assert.deepEqual(componentData.targetAngularVelocity, new CANNON.Vec3(7, 8, 9), 'angularVelocity');
+    //   assert.equal(componentData.time , )
+    // });
+  });
+
+  suite('detachPhysicsLerp', function() {
+
+    test('handles entity without component', function() {
+      physics.detachPhysicsLerp(elNaked);
+    });
+
+    test('detaches component', function() {
+      var physicsData = createDefaultPhysicsData('dynamic', 0);
+
+      physics.attachPhysicsLerp(elDynamic, physicsData);
+
+      var hasComponent = elDynamic.hasAttribute('physics-lerp');
+      assert.isTrue(hasComponent)
+
+      physics.detachPhysicsLerp(elDynamic);
+
+      hasComponent = elDynamic.hasAttribute('physics-lerp');
+      assert.isFalse(hasComponent)
+    });
+  });
+
+  suite('sleep', function() {
+
+    test('handles non-physics entity', function() {
+      physics.sleep(elNaked);
+    });
+
+    test('puts physics entity to sleep', function() {
+      assert.notEqual(elDynamic.body.sleepState, CANNON.Body.SLEEPING);
+
+      physics.sleep(elDynamic);
+
+      assert.equal(elDynamic.body.sleepState, CANNON.Body.SLEEPING);
+    });
+  });
+
+  suite('wakeUp', function() {
+
+    test('handles non-physics entity', function() {
+      physics.wakeUp(elNaked);
+    });
+
+    test('wakes up physics entity', function() {
+      elDynamic.body.sleepState = CANNON.Body.SLEEPING;
+
+      physics.wakeUp(elDynamic);
+
+      assert.notEqual(elDynamic.body.sleepState, CANNON.Body.SLEEPING);
+    });
+  });
+
+  suite('getEntityBody', function () {
+    
+    test('handles non-physics entity', function() {
+      var result = physics.getEntityBody(elNaked);
+
+      assert.isNull(result);
+    });
+
+    test('physics component on root', function() {
+      var result = physics.getEntityBody(elDynamic);
+
+      assert.isOk(result);
+    });
+
+    test('physics component on child', function(done) {
+      var child = document.createElement('a-box');
+      child.setAttribute('dynamic-body', {});
+      elNaked.appendChild(child); 
+
+      utils.whenEntityLoaded(child, function() {
+        var result = physics.getEntityBody(elNaked);
+
+        assert.isOk(result);
+        done();
+      });
+    });
+
+    test('no physics component on root or child', function(done) {
+      var child = document.createElement('a-box');
+      elNaked.appendChild(child); 
+
+      utils.whenEntityLoaded(child, function() {
+        var result = physics.getEntityBody(elNaked);
+
+        assert.isNull(result);
+        done();
+      });
+    });
+  });
+
+  suite('getDataFromCollision', function() {
+
+    test('gets data', function() {
+      var collisionEvent ={
+        detail: {
+          body: {
+            el: 'test'
+          }
+        }
+      };
+
+      var result = physics.getDataFromCollision(collisionEvent);
+
+      var expected = {
+        body: {
+          el: 'test'
+        },
+        el: 'test'
+      };
+      assert.deepEqual(result, expected);
+    });
+  });
 });
