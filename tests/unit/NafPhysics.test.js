@@ -217,4 +217,38 @@ suite('NafPhysics', function() {
       assert.equal(result, 52);
     });
   });
+
+  suite('isStrongerThan', function() {
+
+    test('non-physics entity', function() {
+      var result = physics.isStrongerThan(elNaked, elStatic.body);
+
+      assert.isFalse(result);
+    });
+
+    test('no body on B', function() {
+      var result = physics.isStrongerThan(elStatic, elNaked.body);
+
+      assert.isFalse(result);
+    });
+
+    test('A is stronger than B', function() {
+      var result = physics.isStrongerThan(elDynamic, elStatic.body);
+
+      assert.isTrue(result);
+    });
+
+    test('B is stronger than A', function() {
+      var result = physics.isStrongerThan(elStatic, elDynamic.body);
+
+      assert.isFalse(result);
+    });
+
+    test('A equals B', function() {
+      var result = physics.isStrongerThan(elDynamic, elDynamic.body);
+
+      assert.isFalse(result);
+    });
+  });
+  
 });
