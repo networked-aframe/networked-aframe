@@ -8,9 +8,6 @@ suite('ComponentHelper', function () {
 
   function initScene(done) {
     var opts = {};
-    opts.entities = [
-      '<a-entity id="test-entity" networked-remote="template:t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>',
-    ];
     scene = helpers.sceneFactory(opts);
     utils.whenEntityLoaded(scene, done);
   }

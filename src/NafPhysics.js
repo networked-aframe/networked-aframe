@@ -5,7 +5,7 @@ module.exports.getPhysicsData = function(entity) {
 
     var physicsData = {
       type: body.type,
-      hasConstraint: (constraints != null && constraints.length > 0),
+      hasConstraint: (constraints.length > 0),
       position: body.position,
       quaternion: body.quaternion,
       velocity: body.velocity,
@@ -23,7 +23,7 @@ module.exports.getConstraints = function(entity) {
   // So that others can react to that special case
 
   if (!entity.sceneEl.systems.physics || !entity.body) {
-    return null;
+    return [];
   }
 
   var constraints = entity.sceneEl.systems.physics.world.constraints;
@@ -35,8 +35,6 @@ module.exports.getConstraints = function(entity) {
         myConstraints.push(constraints[i]);
       }
     }
-  } else {
-    return null;
   }
 
   return myConstraints;
@@ -73,41 +71,35 @@ module.exports.calculatePhysicsStrength = function(body) {
 }
 
 module.exports.attachPhysicsLerp = function(entity, physicsData) {
-  if (entity && physicsData) {
-    AFRAME.utils.entity.setComponentProperty(entity, "physics-lerp", {
-      targetPosition: physicsData.position,
-      targetQuaternion: physicsData.quaternion,
-      targetVelocity: physicsData.velocity,
-      targetAngularVelocity: physicsData.angularVelocity,
-      time: 1000 / NAF.options.updateRate
-    });
-  }
+  AFRAME.utils.entity.setComponentProperty(entity, "physics-lerp", {
+    targetPosition: physicsData.position,
+    targetQuaternion: physicsData.quaternion,
+    targetVelocity: physicsData.velocity,
+    targetAngularVelocity: physicsData.angularVelocity,
+    time: 1000 / NAF.options.updateRate
+  });
 }
 
 module.exports.detachPhysicsLerp = function(entity) {
-  if (entity && entity.components['physics-lerp']) {
+  if (entity.hasAttribute('physics-lerp')) {
     entity.removeAttribute("physics-lerp");
   }
 }
 
 module.exports.sleep = function(entity) {
-  if (entity) {
-    var body = NAF.physics.getEntityBody(entity);
+  var body = NAF.physics.getEntityBody(entity);
 
-    if (body) {
-      body.sleep();
-    }
+  if (body) { // TODO need this check? can non-physics entities get passed to this?
+    body.sleep();
   }
 }
 
 module.exports.wakeUp = function(entity) {
-  if (entity) {
-    var body = NAF.physics.getEntityBody(entity);
+  var body = NAF.physics.getEntityBody(entity);
 
-    if (body) {
-      if (body.sleepState == CANNON.Body.SLEEPING) {
-        body.wakeUp();
-      }
+  if (body) { // TODO need this check? can non-physics entities get passed to this?
+    if (body.sleepState == CANNON.Body.SLEEPING) {
+      body.wakeUp();
     }
   }
 }
@@ -117,7 +109,9 @@ module.exports.getEntityBody = function(entity) {
   if (entity.body) {
     return entity.body;
   } else {
+    console.error(entity);
     var childBody = entity.querySelector("[dynamic-body], [static-body]");
+    console.error('child el=', childBody);
 
     if (childBody && childBody.body) {
       return childBody.body;
@@ -130,10 +124,8 @@ module.exports.getEntityBody = function(entity) {
 module.exports.collisionEvent = "collide";
 
 module.exports.getDataFromCollision = function(collisionEvent) {
-  if (collisionEvent) {
-    return {
-      body: collisionEvent.detail.body,
-      el: collisionEvent.detail.body.el
-    }
+  return {
+    body: collisionEvent.detail.body,
+    el: collisionEvent.detail.body.el
   }
 }
