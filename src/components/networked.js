@@ -24,7 +24,7 @@ AFRAME.registerComponent('networked', {
   },
 
   initNetworkId: function() {
-    this.networkId = naf.utils.createNetworkId();
+    this.networkId = NAF.utils.createNetworkId();
   },
 
   initNetworkParent: function() {
@@ -135,7 +135,7 @@ AFRAME.registerComponent('networked', {
     var syncedComps = this.getAllSyncedComponents();
     var components = componentHelper.gatherComponentsData(this.el, syncedComps);
     var syncData = this.createSyncData(components);
-    naf.connection.broadcastDataGuaranteed('u', syncData);
+    NAF.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
     this.updateCache(components);
   },
@@ -162,7 +162,7 @@ AFRAME.registerComponent('networked', {
   },
 
   updateNextSyncTime: function() {
-    this.nextSyncTime = NAF.utils.now() + 1000 / naf.options.updateRate;
+    this.nextSyncTime = NAF.utils.now() + 1000 / NAF.options.updateRate;
   },
 
   createSyncData: function(components) {

@@ -1,6 +1,7 @@
 var naf = require('../NafIndex');
 var deepEqual = require('deep-equal');
 var bind = AFRAME.utils.bind;
+var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 
 AFRAME.registerComponent('networked-share', {
@@ -58,7 +59,7 @@ AFRAME.registerComponent('networked-share', {
       id = NAF.utils.createNetworkId();
     }
     this.networkId = id;
-  },
+  },  
 
   initNetworkOwner: function() {
     if (!this.data.owner) {
@@ -96,7 +97,7 @@ AFRAME.registerComponent('networked-share', {
   },
 
   registerEntity: function(networkId) {
-    naf.entities.registerLocalEntity(networkId, this.el);
+    NAF.entities.registerLocalEntity(networkId, this.el);
     NAF.log.write('Networked-Share registered: ', networkId);
   },
 
@@ -317,15 +318,15 @@ AFRAME.registerComponent('networked-share', {
   // Will only succeed if object is created after connected
   isMine: function() {
     return this.hasOwnProperty('data')
-        && naf.connection.isMineAndConnected(this.data.owner);
+        && NAF.connection.isMineAndConnected(this.data.owner);
   },
 
   syncAll: function() {
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
-    var components = NAF.utils.gatherComponentsData(this.el, syncedComps);
+    var components = componentHelper.gatherComponentsData(this.el, syncedComps);
     var syncData = this.createSyncData(components);
-    naf.connection.broadcastDataGuaranteed('u', syncData);
+    NAF.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
     this.updateCache(components);
   },
@@ -333,11 +334,11 @@ AFRAME.registerComponent('networked-share', {
   syncDirty: function() {
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
-    var dirtyComps = NAF.utils.findDirtyComponents(this.el, syncedComps, this.cachedData);
+    var dirtyComps = componentHelper.findDirtyComponents(this.el, syncedComps, this.cachedData);
     if (dirtyComps.length == 0) {
       return;
     }
-    var components = NAF.utils.gatherComponentsData(this.el, dirtyComps);
+    var components = componentHelper.gatherComponentsData(this.el, dirtyComps);
     var syncData = this.createSyncData(components);
     if (NAF.options.compressSyncPackets) {
       syncData = Compressor.compressSyncData(syncData, syncedComps);
@@ -403,7 +404,7 @@ AFRAME.registerComponent('networked-share', {
 
   networkUpdate: function(entityData) {
     if (entityData[0] == 1) {
-      entityData = NAF.utils.decompressSyncData(entityData, this.data.components);
+      entityData = Compressor.decompressSyncData(entityData, this.data.components);
     }
     this.updateOwnership(entityData.owner, entityData.takeover);
 
@@ -418,8 +419,8 @@ AFRAME.registerComponent('networked-share', {
     for (var key in components) {
       if (this.isSyncableComponent(key)) {
         var data = components[key];
-        if (naf.utils.isChildSchemaKey(key)) {
-          var schema = naf.utils.keyToChildSchema(key);
+        if (NAF.utils.isChildSchemaKey(key)) {
+          var schema = NAF.utils.keyToChildSchema(key);
           var childEl = schema.selector ? this.el.querySelector(schema.selector) : this.el;
           if (childEl) { // Is false when first called in init
             if (schema.property) { childEl.setAttribute(schema.component, schema.property, data); }
@@ -498,7 +499,7 @@ AFRAME.registerComponent('networked-share', {
     var schemaComponents = this.data.components;
     for (var i in schemaComponents) {
       var localChildSchema = schemaComponents[i];
-      if (naf.utils.childSchemaEqual(localChildSchema, schema)) {
+      if (NAF.utils.childSchemaEqual(localChildSchema, schema)) {
         return true;
       }
     }
@@ -509,7 +510,7 @@ AFRAME.registerComponent('networked-share', {
     this.removeOwnership();
 
     var data = { networkId: this.networkId };
-    naf.connection.broadcastDataGuaranteed('r', data);
+    NAF.connection.broadcastDataGuaranteed('r', data);
 
     this.unbindOwnershipEvents();
     this.unbindOwnerEvents();
