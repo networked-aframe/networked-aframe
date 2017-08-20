@@ -5,7 +5,7 @@ module.exports.getPhysicsData = function(entity) {
 
     var physicsData = {
       type: body.type,
-      hasConstraint: (constraints != null && constraints.length > 0),
+      hasConstraint: (constraints.length > 0),
       position: body.position,
       quaternion: body.quaternion,
       velocity: body.velocity,
@@ -23,7 +23,7 @@ module.exports.getConstraints = function(entity) {
   // So that others can react to that special case
 
   if (!entity.sceneEl.systems.physics || !entity.body) {
-    return null;
+    return [];
   }
 
   var constraints = entity.sceneEl.systems.physics.world.constraints;
@@ -35,8 +35,6 @@ module.exports.getConstraints = function(entity) {
         myConstraints.push(constraints[i]);
       }
     }
-  } else {
-    return null;
   }
 
   return myConstraints;
