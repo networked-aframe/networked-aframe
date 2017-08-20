@@ -164,4 +164,57 @@ suite('NafPhysics', function() {
     }));
   });
 
+  suite('calculatePhysicsStrength', function() {
+
+    test('static body has zero strength', function() {
+      var result = physics.calculatePhysicsStrength(elStatic.body);
+
+      assert.equal(result, 0);
+    });
+
+    test('dynamic body has zero strength when zero speed', function() {
+      elDynamic.body.velocity = new CANNON.Vec3();
+      elDynamic.body.angularVelocity = new CANNON.Vec3();
+
+      var result = physics.calculatePhysicsStrength(elDynamic.body);
+
+      assert.equal(result, 0);
+    });
+
+    test('dynamic body with velocity only', function() {
+      elDynamic.body.velocity = new CANNON.Vec3(1, 2, 1);
+      elDynamic.body.angularVelocity = new CANNON.Vec3();
+
+      var result = physics.calculatePhysicsStrength(elDynamic.body);
+
+      assert.equal(result, 8);
+    });
+
+    test('dynamic body with velocity only with a negative value', function() {
+      elDynamic.body.velocity = new CANNON.Vec3(1, -2, 3);
+      elDynamic.body.angularVelocity = new CANNON.Vec3();
+
+      var result = physics.calculatePhysicsStrength(elDynamic.body);
+
+      assert.equal(result, 12);
+    });
+
+    test('dynamic body with angular velocity only ', function() {
+      elDynamic.body.velocity = new CANNON.Vec3();
+      elDynamic.body.angularVelocity = new CANNON.Vec3(2, -2, 10);
+
+      var result = physics.calculatePhysicsStrength(elDynamic.body);
+
+      assert.equal(result, 14);
+    });
+
+    test('dynamic body with velocity and angularVelocity ', function() {
+      elDynamic.body.velocity = new CANNON.Vec3(-2, -2, 20);
+      elDynamic.body.angularVelocity = new CANNON.Vec3(2, 1, 1);
+
+      var result = physics.calculatePhysicsStrength(elDynamic.body);
+
+      assert.equal(result, 52);
+    });
+  });
 });
