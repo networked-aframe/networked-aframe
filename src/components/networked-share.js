@@ -8,7 +8,6 @@ AFRAME.registerComponent('networked-share', {
   schema: {
     template: {default: ''},
     showLocalTemplate: {default: true},
-    showRemoteTemplate: {default: true},
     networkId: {default: ''},
     owner: {default: ''},
     takeOwnershipEvents: {
@@ -78,7 +77,7 @@ AFRAME.registerComponent('networked-share', {
   },
 
   checkLoggedIn: function() {
-    if (naf.clientId) {
+    if (NAF.clientId) {
       this.onLoggedIn();
     } else {
       this.listenForLoggedIn();
@@ -362,7 +361,7 @@ AFRAME.registerComponent('networked-share', {
     var sync = {
       0: 0, // 0 for not compressed
       networkId: this.networkId,
-      owner: this.owner,
+      owner: this.data.owner,
       template: data.template,
       parent: this.getParentId(),
       physics: this.getPhysicsData(),
@@ -377,8 +376,6 @@ AFRAME.registerComponent('networked-share', {
       var physicsData = NAF.physics.getPhysicsData(this.el);
       if (physicsData) {
         return physicsData;
-      } else {
-        NAF.log.error('Physics is set to true on this entity but no physics component detected. el=', this.el);
       }
     }
     return null;

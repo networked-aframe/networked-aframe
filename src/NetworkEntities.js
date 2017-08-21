@@ -101,8 +101,7 @@ class NetworkEntities {
       components: components
     };
     if (NAF.options.useShare) {
-      networkData.showLocalTemplate = entityData.showTemplate;
-      networkData.showRemoteTemplate = entityData.showTemplate;
+      networkData.showLocalTemplate = true;
       entity.setAttribute('networked-share', networkData);
     } else {
       entity.setAttribute('networked-remote', networkData);
@@ -122,6 +121,8 @@ class NetworkEntities {
   }
 
   receiveFirstUpdateFromEntity(entityData) {
+    console.log(entityData);
+
     var parent = entityData.parent;
     var networkId = entityData.networkId;
 
@@ -131,7 +132,7 @@ class NetworkEntities {
     } else {
       var remoteEntity = this.createRemoteEntity(entityData);
       this.createAndAppendChildren(networkId, remoteEntity);
-      this.addEntity(remoteEntity, parent);
+      this.addEntityToPage(remoteEntity, parent);
     }
   }
 
@@ -146,22 +147,22 @@ class NetworkEntities {
     }
   }
 
-  addEntity(entity, parentId) {
+  addEntityToPage(entity, parentId) {
     if (this.hasEntity(parentId)) {
       this.addEntityToParent(entity, parentId);
     } else {
-      this.addEntityToScene(entity);
+      this.addEntityToSceneRoot(entity);
     }
-  }
-
-  addEntityToScene(entity) {
-    var scene = document.querySelector('a-scene');
-    scene.appendChild(entity);
   }
 
   addEntityToParent(entity, parentId) {
     var parentEl = document.getElementById('naf-' + parentId);
     parentEl.appendChild(entity);
+  }
+
+  addEntityToSceneRoot(entity) {
+    var scene = document.querySelector('a-scene');
+    scene.appendChild(entity);
   }
 
   completeSync() {

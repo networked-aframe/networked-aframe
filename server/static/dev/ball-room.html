@@ -3,14 +3,14 @@
     <meta charset="utf-8">
     <title>Basic Example — Networked-Aframe</title>
     <meta name="description" content="Basic Example — Networked-Aframe">
-    <script src="//rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script>
-    <!-- script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script -->
+    <!-- <script src="//rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script> -->
+    <script src="https://aframe.io/releases/0.6.1/aframe.min.js"></script>
     <script src="//rawgit.com/chenzlabs/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
     <script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v1.4.2/dist/aframe-physics-system.min.js"></script>
 <!--
     <script src="//rawgit.com/chenzlabs/networked-aframe/toward-0.3.0/dist/networked-aframe.js"></script>
 -->
-    <script src="build.js"></script>
+    <script src="/dev/build.js"></script>
 <!-- 
     Currently, networked-aframe uses EasyRTC, which uses socket.io.
     This stack appears to impose some early scaling constraints (~700 users max?)
@@ -23,15 +23,12 @@
     <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
 -->    
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
-    <script src="../js/spawn-in-circle.component.js"></script>
+    <script src="/js/spawn-in-circle.component.js"></script>
 
   </head>
   <body>
 
-    <script>
-/* Firebase problem... selectors will contain . or # in all likelihood
-firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an invalid key (.head|||material) in property 'networked-aframe.default.basic.qOs6mmtIbr396x4t.data.data.components'.  Keys must be non-empty strings and can't contain ".", "#", "$", "/", "[", or "]"
-*/               
+    <script>       
       // Define custom schema for syncing avatar color, set by random-color
       var avatarSchema = {
         template: '#avatar-template',
@@ -59,7 +56,7 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
    <a-scene networked-scene="
       room: basic;
       useLerp: true; compressSyncPackets: true; useShare: true;
-      updateRate: 1;
+      updateRate: 30;
       collisionOwnership: true;
       webrtc: true;
    ">
@@ -83,7 +80,7 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         <!-- Avatar -->
         <script id="avatar-template" type="text/html">
           <a-entity class="avatar">
-            <!-- <a-sphere class="head" radius="0.5" scale="0.9 1 0.4" color="#5985ff" random-color></a-sphere> -->
+            <a-sphere class="head" radius="0.5" scale="0.9 1 0.4" color="#5985ff" random-color></a-sphere>
 	          <a-entity scale="2.1 2.1 1.4" gltf-model="https://aframe.io/a-saturday-night/assets/avatar3/avatar3-head.gltf"></a-entity>
 	    <!--
             <a-entity class="face" position="0 0.05 0">
@@ -118,13 +115,13 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" 
-                networked="template:#avatar-template;would-showLocalTemplate:false;" 
+      <a-entity id="player"
+                networked="template:#avatar-template;showLocalTemplate:false;"
 		            static-body
-                camera 
-                spawn-in-circle="radius:3;" 
-                position="0 1.3 0" 
-                wasd-controls 
+                camera
+                spawn-in-circle="radius:3;"
+                position="0 1.3 0"
+                wasd-controls
                 look-controls>
       </a-entity>
 
@@ -135,12 +132,12 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
       <a-box position="5 0 0" width="0.01" height="10" depth="10" static-body></a-box>
       <a-box position="-5 0 0" width="0.01" height="10" depth="10" static-body></a-box>
 
-      <a-entity id="shareme" 
+      <!-- <a-entity id="shareme" 
         position="0.5 1 0" spawn-in-circle
         material="color:red" 
         geometry="primitive:box; width:0.1; height:0.3; depth:0.1"
         dynamic-body>
-      </a-entity>
+      </a-entity> -->
 
     </a-scene>
 
@@ -190,17 +187,23 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 	      return en;
       }
 
+      document.body.onkeyup = function(e) {
+        if(e.keyCode == 32){
+          console.log(e);
+          console.log(NAF.connection);
+          // make a ball that we own
+          var ball = addNetEntityFromSchema(ballSchema, '0 2 0');
+          setTimeout(function() {
+            var color = document.querySelector('#player .head').getAttribute('material').color;
+            ball.setAttribute('material', 'color', color);
+            ball.setAttribute('constraint', 'target:#player');
+            ball.components['networked-share'].takeOwnership();
+          }, 3000);
+        }
+      };
+
       document.body.addEventListener('click', function (evt) {
-        console.log(evt);
-        console.log(NAF.connection);
-        // make a ball that we own
-      	var en = addNetEntityFromSchema(ballSchema, '0 2 0');
-      	setTimeout(function() {
-          var color = document.querySelector('#player .head').getAttribute('material').color;
-          en.setAttribute('material', 'color', color);
-          en.setAttribute('constraint', 'target:#player');
-      	  en.components['networked-share'].takeOwnership();
-        }, 3000);
+        
       });
 
       // add handlers for loggedIn, client connected / disconnected, etc.
@@ -209,9 +212,9 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         console.log(evt);
         console.log(NAF.connection);
 
-        setTimeout(function () {
-      	  document.querySelector("#shareme").setAttribute('networked-adhoc', '');
-      	}, 2000+Math.random(1000));
+       //  setTimeout(function () {
+      	//   document.querySelector("#shareme").setAttribute('networked-adhoc', '');
+      	// }, 2000+Math.random(1000));
       });
       
       document.body.addEventListener('clientConnected', function (evt) {

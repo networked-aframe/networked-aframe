@@ -82,7 +82,7 @@ module.exports.attachPhysicsLerp = function(entity, physicsData) {
 
 module.exports.detachPhysicsLerp = function(entity) {
   if (entity.hasAttribute('physics-lerp')) {
-    entity.removeAttribute("physics-lerp");
+    entity.removeAttribute('physics-lerp');
   }
 }
 
@@ -109,9 +109,7 @@ module.exports.getEntityBody = function(entity) {
   if (entity.body) {
     return entity.body;
   } else {
-    console.error(entity);
     var childBody = entity.querySelector("[dynamic-body], [static-body]");
-    console.error('child el=', childBody);
 
     if (childBody && childBody.body) {
       return childBody.body;

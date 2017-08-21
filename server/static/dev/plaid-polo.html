@@ -4,44 +4,39 @@
     <title>Basic Example - Networked-Aframe</title>
     <meta name="description" content="Basic Example - Networked-Aframe">
     <script src="//rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script>
-    <!-- script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script -->
     <script src="//rawgit.com/chenzlabs/aframe-environment-component/master/dist/aframe-environment-component.js"></script>
     <script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v1.4.2/dist/aframe-physics-system.min.js"></script>
 <!--
     <script src="//rawgit.com/chenzlabs/networked-aframe/toward-0.3.0/dist/networked-aframe.js"></script>
 -->
-    <script src="dev/build.js"></script>
+    <script src="/dev/build.js"></script>
 <!-- 
     Currently, networked-aframe uses EasyRTC, which uses socket.io.
     This stack appears to impose some early scaling constraints (~700 users max?)
 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
-    <script src="easyrtc/easyrtc.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
 <!-- 
     Firebase 
 
     <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
 -->    
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
-    <script src="js/spawn-in-circle.component.js"></script>
+    <script src="/js/spawn-in-circle.component.js"></script>
 
   </head>
   <body>
 
-    <script>
-/* Firebase problem... selectors will contain . or # in all likelihood
-firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an invalid key (.head|||material) in property 'networked-aframe.default.basic.qOs6mmtIbr396x4t.data.data.components'.  Keys must be non-empty strings and can't contain ".", "#", "$", "/", "[", or "]"
-*/               
+    <script>   
       // Define custom schema for syncing avatar color, set by random-color
-      var avatarSchema = {
+      NAF.schemas.add({
         template: '#avatar-template',
         components: [
           'position',
           'rotation',
           {selector: 'a-sphere', component: 'material', property: 'color'},
         ]
-      };
-      NAF.schemas.add(avatarSchema);
+      });
       
       // Define custom schema for syncing ball pose and color, set by random-color
       var ballSchema = {
@@ -56,11 +51,11 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
       
     </script>
    <a-scene networked-scene="
-      room: basic;
-      useLerp: false; compressSyncPackets: true; useShare: true;
+      room: plaid;
+      useLerp: false; compressSyncPackets: false; useShare: true; collisionOwnership: false;
       updateRate: 30;
-      collisionOwnership: false;
       webrtc: true;
+      debug: true;
    ">
 <!--
       firebase: true;
@@ -76,7 +71,8 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
         <!-- Avatar -->
         <script id="avatar-template" type="text/html">
           <a-entity class="avatar">
-            <a-sphere class="head" static-body
+            <a-sphere class="head"
+              static-body
               color="#5985ff"
               scale="0.45 0.5 0.4"
               random-color
@@ -110,16 +106,16 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
           </a-entity>
         </script>
 
-<!-- with these templates, local and remote objects interact
- ... remote objects need to be static-body to avoid fighting -->
+        <!-- with these templates, local and remote objects interact
+         ... remote objects need to be static-body to avoid fighting -->
 
         <script id="ball-template" type="text/html">
             <a-entity
-	      geometry="primitive: sphere; radius: 0.2"
+	            geometry="primitive: sphere; radius: 0.2"
               static-body
               material="color:#5985ff" random-color>
             </a-entity>
-        </script>        
+        </script>
 
         <!-- /Templates -->
       </a-assets>
@@ -143,9 +139,9 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
     <script>
       function createNetEntityFromSchema(schema, position, rotation, networkId) { 
         var en = document.createElement('a-entity');
-	if (position) { en.setAttribute('position', position); }
-	if (rotation) { en.setAttribute('rotation', rotation); }
-	if (!networkId) { networkId = Math.random().toString(36).substring(2, 9); }
+      	if (position) { en.setAttribute('position', position); }
+      	if (rotation) { en.setAttribute('rotation', rotation); }
+      	if (!networkId) { networkId = NAF.utils.createNetworkId(); }
         en.setAttribute('id', 'naf-' + networkId);
         en.setAttribute('networked-share', {
           physics: true,
@@ -160,28 +156,30 @@ firebase.js:370 Uncaught Error: Firebase.set failed: First argument  contains an
 
       function addNetEntityFromSchema(schema, position, rotation, networkId, el) {
         var en = createNetEntityFromSchema(schema, position, rotation, networkId);
-	if (!el) { el = document.querySelector('a-scene'); }
-	el.appendChild(en);
+      	if (!el) { el = document.querySelector('a-scene'); }
+      	el.appendChild(en);
 
-// NECESSARY EVIL HACK: we need to cheat and make ours dynamic-body not static-body
-// FIXME: how do we know when the template has been instantiated?
-// OK with this trickery, local template works!
-setTimeout(function () {
-  en.removeAttribute('static-body');
-  en.setAttribute('dynamic-body', '');
-  en.body.type = 1; // dynamic
-  en.body.updateMassProperties();
-}, 1000 / NAF.options.updateRate);
+        // NECESSARY EVIL HACK: we need to cheat and make ours dynamic-body not static-body
+        // FIXME: how do we know when the template has been instantiated?
+        // OK with this trickery, local template works!
+        setTimeout(function () {
+          en.removeAttribute('static-body');
+          en.setAttribute('dynamic-body', '');
+          en.body.type = 1; // dynamic
+          en.body.updateMassProperties();
+        }, 1000 / NAF.options.updateRate);
 
-	return en;
+	      return en;
       }
 
-      document.body.addEventListener('click', function (evt) {
-        console.log(evt);
-        console.log(NAF.connection);
-        // make a ball that we own
-	addNetEntityFromSchema(ballSchema, '0 2 0');
-      });
+      document.body.onkeyup = function(e) {
+        if(e.keyCode == 32){
+          console.log(e);
+          console.log(NAF.connection);
+          // make a ball that we own
+          addNetEntityFromSchema(ballSchema, '0 2 0');
+        }
+      };
 
       // add handlers for loggedIn, client connected / disconnected, etc.
       

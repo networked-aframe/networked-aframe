@@ -22,7 +22,7 @@ module.exports.gatherComponentsData = function(el, schemaComponents) {
           var data = element.property ? comp.data[element.property] : comp.data;
           compsData[childKey] = AFRAME.utils.clone(data);
         } else {
-          NAF.log.write('Could not find component ' + element.component + ' on child ', child, child.components);
+          NAF.log.write('ComponentHelper.gatherComponentsData: Could not find component ' + element.component + ' on child ', child, child.components);
         }
       }
     }

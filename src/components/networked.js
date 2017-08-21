@@ -6,7 +6,6 @@ AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
     showLocalTemplate: {default: true},
-    showRemoteTemplate: {default: true},
     physics: { default: false }
   },
 
