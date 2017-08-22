@@ -77,16 +77,16 @@ suite('networked_remote', function() {
       assert.isFalse(result);
     });
 
-    // test('updates root immediately', sinon.test(function() {
-    //   this.stub(component, 'networkUpdate');
-    //   this.stub(component, 'waitForTemplateAndUpdateChildren');
-    //   var testData = {test: "testing"};
-    //   el.firstUpdateData = testData;
+    test('updates root immediately', sinon.test(function() {
+      this.stub(component, 'networkUpdate');
+      this.stub(component, 'waitForTemplateAndUpdateChildren');
+      var testData = {test: "testing"};
+      el.firstUpdateData = testData;
 
-    //   component.init();
+      component.init();
 
-    //   assert.isTrue(component.networkUpdate.calledWith(testData));
-    // }));
+      assert.isTrue(component.networkUpdate.calledWith(testData));
+    }));
   });
 
   suite('networkUpdateHandler', function() {

@@ -35,6 +35,7 @@ AFRAME.registerComponent('networked', {
     }
 
     if (wasCreatedByNetwork) {
+      this.firstUpdate();
       this.attachLerp();
     }
 
@@ -134,6 +135,27 @@ AFRAME.registerComponent('networked', {
         delete self.templateEl;
       });
     });
+  },
+
+  firstUpdate: function() {
+    var entityData = this.el.firstUpdateData;
+    this.networkUpdate(entityData); // updates root element only
+    this.waitForTemplateAndUpdateChildren();
+  },
+
+  waitForTemplateAndUpdateChildren: function() {
+    var self = this;
+    var callback = function() {
+      var entityData = self.el.firstUpdateData;
+      self.networkUpdate(entityData);
+    };
+
+    // wait for template to render (and monkey-patching to finish, so next tick), then callback
+    if (this.templateEl) {
+      this.templateEl.addEventListener('templaterendered', function() { setTimeout(callback); });
+    } else {
+      setTimeout(callback);
+    }
   },
 
   checkLoggedIn: function() {
