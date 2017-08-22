@@ -7,7 +7,7 @@ class NetworkEntities {
     this.childCache = new ChildEntityCache();
   }
 
-  registerLocalEntity(networkId, entity) {
+  registerEntity(networkId, entity) {
     this.entities[networkId] = entity;
   }
 
@@ -16,8 +16,8 @@ class NetworkEntities {
 
     var networkId = entityData.networkId;
 
-    var entity = document.createElement('a-entity');
-    entity.setAttribute('id', 'naf-' + networkId);
+    var el = document.createElement('a-entity');
+    el.setAttribute('id', 'naf-' + networkId);
 
     var template = entityData.template;
     if (this.isDynamicTemplate(template)) {      
@@ -27,19 +27,18 @@ class NetworkEntities {
     }
 
     if (template && entityData.physics) {
-      entity.addEventListener('loaded', function () {
-        var templateChild = entity.firstChild;
-        NAF.utils.monkeyPatchEntityFromTemplateChild(entity, templateChild);
+      el.addEventListener('loaded', function () {
+        var templateChild = el.firstChild;
+        NAF.utils.monkeyPatchEntityFromTemplateChild(el, templateChild);
       });
     }
 
     var components = NAF.schemas.getComponents(template);
-    this.initPosition(entity, entityData.components);
-    this.initRotation(entity, entityData.components);
-    this.addNetworkComponent(entity, entityData, components);
-    this.entities[networkId] = entity;
+    this.initPosition(el, entityData.components);
+    this.initRotation(el, entityData.components);
+    this.addNetworkComponent(el, entityData, components);
 
-    return entity;
+    return el;
   }
 
   isDynamicTemplate(template) {
@@ -100,12 +99,8 @@ class NetworkEntities {
       networkId: entityData.networkId,
       components: components
     };
-    if (NAF.options.useShare) {
-      networkData.showLocalTemplate = true;
-      entity.setAttribute('networked-share', networkData);
-    } else {
-      entity.setAttribute('networked-remote', networkData);
-    }
+    
+    entity.setAttribute('networked', networkData);
     entity.firstUpdateData = entityData;
   }
 
@@ -121,8 +116,6 @@ class NetworkEntities {
   }
 
   receiveFirstUpdateFromEntity(entityData) {
-    console.log(entityData);
-
     var parent = entityData.parent;
     var networkId = entityData.networkId;
 

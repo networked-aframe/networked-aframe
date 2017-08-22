@@ -1,29 +1,52 @@
 var naf = require('../NafIndex');
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
+var bind = AFRAME.utils.bind;
 
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
     showLocalTemplate: {default: true},
-    physics: { default: false }
+
+    networkId: {default: ''},
+    owner: {default: ''},
+    components: {default: ['position', 'rotation']},
   },
 
   init: function() {
     var data = this.data;
+    var wasCreatedByNetwork = this.wasCreatedByNetwork();
+
+    this.onLoggedIn = bind(this.onLoggedIn, this);
+    this.syncAll = bind(this.syncAll, this);
+    this.syncDirty = bind(this.syncDirty, this);
+    this.networkUpdateHandler = bind(this.networkUpdateHandler, this);
 
     this.cachedData = {};
-    this.initNetworkId();
     this.initNetworkParent();
-    this.registerEntity(this.networkId);
-    if (data.template) {
-      this.attachAndShowTemplate(data.template, data.showLocalTemplate);
+    this.initPhysics();
+
+    if (data.networkId === '') {
+      data.networkId = NAF.utils.createNetworkId();
     }
-    this.checkLoggedIn();
+
+    if (data.template != '') {
+      this.initTemplate();
+    }
+
+    if (wasCreatedByNetwork) {
+      this.attachLerp();
+    }
+
+    if (this.data.owner === '') {
+      this.checkLoggedIn();
+    }
+
+    this.registerEntity(data.networkId);
   },
 
-  initNetworkId: function() {
-    this.networkId = NAF.utils.createNetworkId();
+  wasCreatedByNetwork: function() {
+    return !!this.el.firstUpdateData;
   },
 
   initNetworkParent: function() {
@@ -35,25 +58,33 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  listenForLoggedIn: function() {
-    document.body.addEventListener('loggedIn', this.onLoggedIn.bind(this), false);
-  },
-
-  checkLoggedIn: function() {
-    if (NAF.clientId) {
-      this.onLoggedIn();
+  initPhysics: function() {
+    var el = this.el;
+    if (el.hasAttribute('networked-physics')) {
+      this.physics = el.components['networked-physics'];
     } else {
-      this.listenForLoggedIn();
+      this.physics = null;
     }
   },
 
-  onLoggedIn: function() {
-    this.owner = NAF.clientId;
-    this.syncAll();
+  hasPhysics: function() {
+    return !!this.physics;
+  },
+
+  attachLerp: function() {
+    if (NAF.options.useLerp) {
+      this.el.setAttribute('lerp', '');
+    }
   },
 
   registerEntity: function(networkId) {
-    NAF.entities.registerLocalEntity(networkId, this.el);
+    NAF.entities.registerEntity(networkId, this.el);
+  },
+
+  initTemplate: function() {
+    var data = this.data;
+    var showTemplate = !this.wasCreatedByNetwork() && data.showLocalTemplate;
+    this.attachAndShowTemplate(data.template, data.showLocalTemplate);
   },
 
   attachAndShowTemplate: function(template, show) {
@@ -72,7 +103,7 @@ AFRAME.registerComponent('networked', {
     el.appendChild(templateChild);
     self.templateEl = templateChild;
 
-    if (data.physics) {
+    if (self.hasPhysics()) {
       self.setupPhysicsTemplate(templateChild);
     }
   },
@@ -105,13 +136,36 @@ AFRAME.registerComponent('networked', {
     });
   },
 
+  checkLoggedIn: function() {
+    if (NAF.clientId) {
+      this.onLoggedIn();
+    } else {
+      this.listenForLoggedIn();
+    }
+  },
+
+  listenForLoggedIn: function() {
+    document.body.addEventListener('loggedIn', this.onLoggedIn, false);
+  },
+
+  onLoggedIn: function() {
+    this.data.owner = NAF.clientId
+    this.syncAll();
+  },
+
+  isMine: function() {
+    return NAF.connection.isMineAndConnected(this.data.owner);
+  },
+
   play: function() {
     this.bindEvents();
   },
 
   bindEvents: function() {
-    this.el.addEventListener('sync', this.syncDirty.bind(this));
-    this.el.addEventListener('syncAll', this.syncAll.bind(this));
+    var el = this.el;
+    el.addEventListener('sync', this.syncDirty);
+    el.addEventListener('syncAll', this.syncAll);
+    el.addEventListener('networkUpdate', this.networkUpdateHandler);
   },
 
   pause: function() {
@@ -119,15 +173,20 @@ AFRAME.registerComponent('networked', {
   },
 
   unbindEvents: function() {
-    this.el.removeEventListener('sync', this.syncDirty.bind(this));
-    this.el.removeEventListener('syncAll', this.syncAll.bind(this));
+    var el = this.el;
+    el.removeEventListener('sync', this.syncDirty);
+    el.removeEventListener('syncAll', this.syncAll);
+    el.removeEventListener('networkUpdate', this.networkUpdateHandler);
   },
 
   tick: function() {
-    if (this.needsToSync()) {
+    if (this.isMine() && this.needsToSync()) {
       this.syncDirty();
     }
   },
+
+
+  /* Sending updates */
 
   syncAll: function() {
     this.updateNextSyncTime();
@@ -169,8 +228,8 @@ AFRAME.registerComponent('networked', {
 
     var sync = {
       0: 0, // 0 for not compressed
-      networkId: this.networkId,
-      owner: this.owner,
+      networkId: data.networkId,
+      owner: data.owner,
       template: data.template,
       parent: this.getParentId(),
       physics: this.getPhysicsData(),
@@ -181,24 +240,24 @@ AFRAME.registerComponent('networked', {
   },
 
   getPhysicsData: function() {
-    if (this.data.physics) {
+    if (this.hasPhysics()) {
       var physicsData = NAF.physics.getPhysicsData(this.el);
       if (physicsData) {
         return physicsData;
       } else {
-        NAF.log.error('Physics is set to true on this entity but no physics component detected. el=', this.el);
+        NAF.log.error('networked.getPhysicsData: Has networked-physics component but no aframe-physics-system component detected. el=', this.el, this.el.components);
       }
     }
     return null;
   },
 
   getParentId: function() {
-    this.initNetworkParent();
-    if (this.parent == null) {
+    this.initNetworkParent(); // TODO fix calling this each network tick
+    if (!this.parent) {
       return null;
     }
-    var component = this.parent.components.networked;
-    return component.networkId;
+    var netComp = this.parent.getAttribute('networked');
+    return netComp.networkId;
   },
 
   getAllSyncedComponents: function() {
@@ -211,8 +270,83 @@ AFRAME.registerComponent('networked', {
     }
   },
 
+
+  /* Receiving updates */
+
+  networkUpdateHandler: function(received) {
+    var entityData = received.detail.entityData;
+    this.networkUpdate(entityData);
+  },
+
+  networkUpdate: function(entityData) {
+    if (entityData[0] == 1) {
+      entityData = Compressor.decompressSyncData(entityData, this.data.components);
+    }
+
+    if (entityData.physics) {
+      this.updatePhysics(entityData.physics);
+    }
+
+    this.updateComponents(entityData.components);
+  },
+
+  updatePhysics: function(physics) {
+    if (physics) {
+      if (NAF.options.useLerp) {
+        NAF.physics.attachPhysicsLerp(this.el, physics);
+      } else {
+        NAF.physics.detachPhysicsLerp(this.el);
+        NAF.physics.updatePhysics(this.el, physics);
+      }
+    }
+  },
+
+  updateComponents: function(components) {
+    for (var key in components) {
+      if (this.isSyncableComponent(key)) {
+        var data = components[key];
+        if (NAF.utils.isChildSchemaKey(key)) {
+          var schema = NAF.utils.keyToChildSchema(key);
+          var childEl = schema.selector ? this.el.querySelector(schema.selector) : this.el;
+          if (childEl) { // Is false when first called in init
+            if (schema.property) {
+              childEl.setAttribute(schema.component, schema.property, data);
+            }
+            else {
+              childEl.setAttribute(schema.component, data);
+            }
+          }
+        } else {
+          this.el.setAttribute(key, data);
+        }
+      }
+    }
+  },
+
+  isSyncableComponent: function(key) {
+    if (NAF.utils.isChildSchemaKey(key)) {
+      var schema = NAF.utils.keyToChildSchema(key);
+      return this.hasThisChildSchema(schema);
+    } else {
+      return this.data.components.indexOf(key) != -1;
+    }
+  },
+
+  hasThisChildSchema: function(schema) {
+    var schemaComponents = this.data.components;
+    for (var i in schemaComponents) {
+      var localChildSchema = schemaComponents[i];
+      if (NAF.utils.childSchemaEqual(localChildSchema, schema)) {
+        return true;
+      }
+    }
+    return false;
+  },
+
   remove: function () {
-    var data = { networkId: this.networkId };
-    NAF.connection.broadcastDataGuaranteed('r', data);
+    if (this.isMine()) {
+      var syncData = { networkId: this.data.networkId };
+      NAF.connection.broadcastDataGuaranteed('r', syncData);
+    }
   },
 });

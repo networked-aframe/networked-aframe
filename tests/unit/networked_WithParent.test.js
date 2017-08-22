@@ -6,7 +6,7 @@ var componentHelper = require('../../src/ComponentHelper');
 
 require('../../src/components/networked');
 
-suite('networked_WithParent', function() {
+suite('networked_withParent', function() {
   var scene;
   var entity;
   var networked;
@@ -26,7 +26,11 @@ suite('networked_WithParent', function() {
       parent = document.querySelector('#test-parent');
 
       networked = entity.components['networked'];
+      networked.data.networkId = '';
+
       parentNetworked = parent.components['networked'];
+      parentNetworked.data.networkId = '';
+      
       done();
     });
   });

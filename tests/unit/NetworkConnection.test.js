@@ -37,6 +37,10 @@ suite('NetworkConnection', function() {
     connection.setNetworkInterface(new NetworkInterfaceStub());
   });
 
+  teardown(function() {
+    NAF.clientId = '';
+  });
+
   suite('setupDefaultDCSubs', function() {
 
     test('subscribes to NetworkEntities DC callbacks', function() {
@@ -118,7 +122,7 @@ suite('NetworkConnection', function() {
   suite('loginSuccess', function() {
 
     test('setting client id', function() {
-      var id = 'testId';
+      var id = 'testId1';
 
       connection.loginSuccess(id);
 
@@ -468,7 +472,7 @@ suite('NetworkConnection', function() {
   suite('isConnected', function() {
 
     test('true when connected', function() {
-      connection.loginSuccess('testid');
+      connection.loginSuccess('testid2');
 
       var result = connection.isConnected();
 

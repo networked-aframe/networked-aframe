@@ -23,6 +23,7 @@ suite('networked', function() {
     initScene(function() {
       entity = document.querySelector('#test-entity');
       networked = entity.components['networked'];
+      networked.data.networkId = '';
       done();
     });
   });
@@ -49,7 +50,7 @@ suite('networked', function() {
 
       networked.init();
 
-      var result = networked.networkId;
+      var result = networked.data.networkId;
       assert.equal(result, 'nid1');
     }));
 
@@ -59,7 +60,7 @@ suite('networked', function() {
       networked.init();
       document.body.dispatchEvent(new Event('loggedIn'));
 
-      var result = networked.owner;
+      var result = networked.data.owner;
       assert.equal(result, 'owner1');
     }));
 
@@ -76,7 +77,7 @@ suite('networked', function() {
     test('registers entity', sinon.test(function() {
       var networkId = 'nid2';
       this.stub(naf.utils, 'createNetworkId').returns(networkId);
-      var stub = this.stub(naf.entities, 'registerLocalEntity');
+      var stub = this.stub(naf.entities, 'registerEntity');
 
       networked.init();
 
@@ -100,7 +101,8 @@ suite('networked', function() {
 
       assert.isTrue(entity.addEventListener.calledWith('sync'), 'sync');
       assert.isTrue(entity.addEventListener.calledWith('syncAll'), 'syncAll');
-      assert.isTrue(entity.addEventListener.calledTwice, 'called twice');
+      assert.isTrue(entity.addEventListener.calledWith('networkUpdate'), 'networkUpdate');
+      assert.equal(entity.addEventListener.callCount, 3, 'called thrice');
     }));
   });
 
@@ -113,7 +115,8 @@ suite('networked', function() {
 
       assert.isTrue(entity.removeEventListener.calledWith('sync'), 'sync');
       assert.isTrue(entity.removeEventListener.calledWith('syncAll'), 'syncAll');
-      assert.isTrue(entity.removeEventListener.calledTwice, 'called twice');
+      assert.isTrue(entity.removeEventListener.calledWith('networkUpdate'), 'networkUpdate');
+      assert.equal(entity.removeEventListener.callCount, 3, 'called thrice');
     }));
   });
 
