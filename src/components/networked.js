@@ -214,6 +214,7 @@ AFRAME.registerComponent('networked', {
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
     var components = componentHelper.gatherComponentsData(this.el, syncedComps);
+    console.error('components to send=', components, syncedComps);
     var syncData = this.createSyncData(components);
     NAF.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
@@ -332,9 +333,11 @@ AFRAME.registerComponent('networked', {
           var childEl = schema.selector ? this.el.querySelector(schema.selector) : this.el;
           if (childEl) { // Is false when first called in init
             if (schema.property) {
+              console.error(schema.component, schema.property, data);
               childEl.setAttribute(schema.component, schema.property, data);
             }
             else {
+              console.error('wrong');
               childEl.setAttribute(schema.component, data);
             }
           }

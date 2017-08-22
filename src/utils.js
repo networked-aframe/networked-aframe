@@ -59,10 +59,11 @@ module.exports.createNetworkId = function() {
 module.exports.delimiter = '---';
 
 module.exports.childSchemaToKey = function(schema) {
-  var key = schema.selector + module.exports.delimiter + schema.component;
-  if (schema.property) {
-    key += module.exports.delimiter + schema.property
-  }
+  var key = (schema.selector || '')
+            + module.exports.delimiter
+            + (schema.component || '')
+            + module.exports.delimiter
+            + (schema.property || '');
   return key;
 };
 
