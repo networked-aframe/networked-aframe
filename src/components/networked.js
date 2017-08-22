@@ -305,8 +305,8 @@ AFRAME.registerComponent('networked', {
       entityData = Compressor.decompressSyncData(entityData, this.data.components);
     }
 
-    if (entityData.physics) {
-      this.updatePhysics(entityData.physics);
+    if (this.hasPhysics()) {
+      this.physics.networkUpdate(entityData);
     }
 
     this.updateComponents(entityData.components);
