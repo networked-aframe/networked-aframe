@@ -55,9 +55,10 @@ module.exports.isStrongerThan = function(entity, otherBody) {
   // A way to decide which element is stronger
   // when a collision happens
   // so that we can decide which one inherits ownership
-  if (entity.body && otherBody) {
+  var elBody = entity.body;
+  if (elBody && otherBody) {
     // TODO: What if they are equal?
-    return NAF.physics.calculatePhysicsStrength(entity.body) > NAF.physics.calculatePhysicsStrength(otherBody);
+    return NAF.physics.calculatePhysicsStrength(elBody) > NAF.physics.calculatePhysicsStrength(otherBody);
   } else {
     return false;
   }

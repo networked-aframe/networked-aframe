@@ -213,6 +213,31 @@ suite('networked', function() {
 
       assert.isTrue(networked.updateNextSyncTime.calledOnce);
     }));
+
+    test('broadcasts uncompressed data with takeover flag', sinon.test(function() {
+      this.stub(naf.utils, 'createNetworkId').returns('network1');
+      this.stub(naf.connection, 'broadcastDataGuaranteed');
+      var expected = {
+        0: 0,
+        networkId: 'network1',
+        owner: 'owner1',
+        parent: null,
+        template: 't1',
+        physics: null,
+        takeover: true,
+        components: {
+          position: { x: 1, y: 2, z: 3 },
+          rotation: { x: 4, y: 3, z: 2 }
+        }
+      };
+
+      networked.init();
+      document.body.dispatchEvent(new Event('loggedIn'));
+      networked.syncAll(true);
+
+      var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('u', expected);
+      assert.isTrue(called);
+    }));
   });
 
   suite('syncDirty', function() {

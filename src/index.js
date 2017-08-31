@@ -8,5 +8,6 @@ require('./NafIndex.js');
 // Network components
 require('./components/networked-scene');
 require('./components/networked');
-require('./components/networked-share');
-require('./components/networked-adhoc');
+require('./components/networked-physics');
+// require('./components/networked-share');
+// require('./components/networked-adhoc');

@@ -4,14 +4,20 @@ var bind = AFRAME.utils.bind;
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 
+function UserException(message) {
+   this.message = message;
+   this.name = 'UserException';
+}
+
 AFRAME.registerComponent('networked-physics', {
   schema: {
+    canLoseOwnership: {default: true},
     takeOwnershipEvents: {
-     type: "array",
-     default: ["grabbed", "touched"]
+     type: 'array',
+     default: ['grabbed', 'touched']
     },
     removeOwnershipEvents: {
-     type: "array",
+     type: 'array',
      default: []
     },
   },
@@ -21,9 +27,8 @@ AFRAME.registerComponent('networked-physics', {
     var data = this.data;
     var components = el.components;
 
-    if (!components.hasOwnProperty('networked')) {
-        console.error('networked-physics component needs the networked component on the same element. Element=', el);
-        return;
+    if (!el.hasAttribute('networked')) {
+        throw new UserException('networked-physics component needs the networked component on the same element.');
     }
     this.networked = components.networked;
 
@@ -32,7 +37,6 @@ AFRAME.registerComponent('networked-physics', {
     this.handlePhysicsCollision = bind(this.handlePhysicsCollision, this);
 
     this.bindOwnershipEvents();
-    this.bindRemoteEvents();
 
     this.lastPhysicsUpdateTimestamp = null;
   },
@@ -55,8 +59,10 @@ AFRAME.registerComponent('networked-physics', {
 
   bindOwnershipEvents: function() {
     var el = this.el;
-    var takeEvents = el.data.takeOwnershipEvents;
-    var removeEvents = el.data.removeOwnershipEvents;
+    var data = this.data;
+
+    var takeEvents = data.takeOwnershipEvents;
+    var removeEvents = data.removeOwnershipEvents;
 
     for (var i = 0; i < takeEvents.length; i++) {
       el.addEventListener(takeEvents[i], this.takeOwnership);
@@ -69,8 +75,10 @@ AFRAME.registerComponent('networked-physics', {
 
   unbindOwnershipEvents: function() {
     var el = this.el;
-    var takeEvents = el.data.takeOwnershipEvents;
-    var removeEvents = el.data.removeOwnershipEvents;
+    var data = this.data;
+
+    var takeEvents = data.takeOwnershipEvents;
+    var removeEvents = data.removeOwnershipEvents;
 
     for (var i = 0; i < takeEvents.length; i++) {
       el.removeEventListener(takeEvents[i], this.takeOwnership);
@@ -97,12 +105,10 @@ AFRAME.registerComponent('networked-physics', {
       // WakeUp Element - We are not interpolating anymore
       NAF.physics.wakeUp(el);
 
-      this.el.emit("networked-ownership-taken");
-      this.takeover = true; // TODO
-      this.networked.syncAll();
-      this.takeover = false;
+      el.emit('networked-ownership-taken');
+      this.networked.syncAll(true);
 
-      NAF.log.write('Networked-Share: Taken ownership of ', el.id);
+      NAF.log.write('Networked-Physics: Taken ownership of ', el.id);
     }
   },
 
@@ -113,12 +119,13 @@ AFRAME.registerComponent('networked-physics', {
     var el = this.el;
     var data = this.data;
 
-    if (this.isMine()) {
-      this.setOwner("");
-      el.emit("networked-ownership-removed");
+    if (this.isMine() && !data.canLoseOwnership) {
+      this.clearOwner();
+
+      el.emit('networked-ownership-removed');
       this.networked.syncAll();
 
-      NAF.log.write('Networked-Share: Removed ownership of ', el.id);
+      NAF.log.write('Networked-Physics: Removed ownership of ', el.id);
     }
   },
 
@@ -126,23 +133,23 @@ AFRAME.registerComponent('networked-physics', {
     var el = this.el;
     var data = this.data;
 
+    if (!data.canLoseOwnership) { return; }
+
     var ownerChanged = !(this.getOwner() == owner);
     var ownerIsMe = (NAF.clientId == owner);
 
     if (this.isMine() && !ownerIsMe && ownerChanged && takeover) {
       this.setOwner(owner);
-      this.bindRemoteEvents();
 
-      el.emit("networked-ownership-lost");
-
-      NAF.log.write('Networked-Share: Friendly takeover of: ' + el.id + ' by ', owner);
+      NAF.log.write('Networked-Physics: Friendly takeover of: ' + el.id + ' by ', owner);
+            el.emit('networked-ownership-lost');
     }
     else if (!this.isMine() && ownerChanged) {
       // Just update the owner, it's not me.
       this.setOwner(owner);
 
-      el.emit("networked-ownership-changed");
-      NAF.log.write('Networked-Share: Updated owner of: ' + el.id + ' to ', owner);
+      el.emit('networked-ownership-changed');
+      NAF.log.write('Networked-Physics: Updated owner of: ' + el.id + ' to ', owner);
     }
   },
 
@@ -151,7 +158,7 @@ AFRAME.registerComponent('networked-physics', {
       // Check if this physics state is NEWER than the last one we updated
       // Network-Packets don't always arrive in order as they have been sent
       if (!this.lastPhysicsUpdateTimestamp || physics.timestamp > this.lastPhysicsUpdateTimestamp) {
-        // TODO: CHeck if constraint is shared
+        // TODO: Check if constraint is shared
         // Don't sync when constraints are applied
         // The constraints are synced and we don't want the jitter
         if (!physics.hasConstraint || !NAF.options.useLerp) {
@@ -172,24 +179,31 @@ AFRAME.registerComponent('networked-physics', {
 
   handlePhysicsCollision: function(e) {
     // FIXME: right now, this seems to allow race conditions that lead to stranded net entities...
-    if (NAF.options.useShare && !NAF.options.collisionOwnership) { return; }
+    if (!NAF.options.collisionOwnership) { return; }
 
     // When a Collision happens, inherit ownership to collided object
     // so we can make sure, that my physics get propagated
     if (this.isMine()) {
-      var collisionData = NAF.physics.getDataFromCollision(e);
-      if (collisionData.el) {
-        var collisionShare = collisionData.el.components["networked-physics"];
-        if (collisionShare) {
-          var owner = collisionShare.getOwner();
-          if (owner !== NAF.clientId) {
-            if (NAF.physics.isStrongerThan(this.el, collisionData.body) || owner === "") {
-              collisionData.el.components["networked-physics"].takeOwnership();
-              NAF.log.write("Networked-Share: Inheriting ownership after collision to: ", collisionData.el.id);
-            }
-          }
+      var collision = NAF.physics.getDataFromCollision(e);
+      if (collision.el) {
+        var remotePhysics = collision.el.components['networked-physics'];
+        if (remotePhysics) {
+          this.handleNetworkedPhysicsCollision(remotePhysics, collision);
         }
       }
+    }
+  },
+
+  handleNetworkedPhysicsCollision: function(remotePhysics, collision) {
+    var owner = remotePhysics.getOwner();
+    var isMe = owner === NAF.clientId;
+    var hasOwner = owner == '';
+    var canLoseOwnership = remotePhysics.data.canLoseOwnership;
+
+    var shouldTake = !isMe && canLoseOwnership && (!hasOwner || NAF.physics.isStrongerThan(this.el, collision.body));
+    if (shouldTake) {
+      remotePhysics.takeOwnership();
+      NAF.log.write('Networked-Physics: Inheriting ownership after collision to: ', collision.el.id);
     }
   },
 
@@ -199,6 +213,10 @@ AFRAME.registerComponent('networked-physics', {
 
   setOwner: function(owner) {
     this.networked.data.owner = owner;
+  },
+
+  clearOwner: function() {
+    this.setOwner('');
   },
 
   getOwner: function() {

@@ -81,7 +81,6 @@ module.exports.childSchemaEqual = function(a, b) {
 };
 
 module.exports.monkeyPatchEntityFromTemplateChild = function(entity, templateChild, callback) {
-  // console.log('monkeyPatchEntityFromTemplateChild');
   templateChild.addEventListener('templaterendered', function() {
     var cloned = templateChild.firstChild;
     // mirror the attributes

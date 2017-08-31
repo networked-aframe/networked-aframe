@@ -465,7 +465,7 @@ AFRAME.registerComponent('networked-share', {
 
   handlePhysicsCollision: function(e) {
     // FIXME: right now, this seems to allow race conditions that lead to stranded net entities...
-    if (NAF.options.useShare && !NAF.options.collisionOwnership) { return; }
+    if (!NAF.options.collisionOwnership) { return; }
 
     // When a Collision happens, inherit ownership to collided object
     // so we can make sure, that my physics get propagated

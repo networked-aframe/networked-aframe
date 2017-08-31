@@ -52,8 +52,10 @@
     </script>
    <a-scene networked-scene="
       room: plaid;
-      useLerp: false; compressSyncPackets: false; useShare: true; collisionOwnership: false;
-      updateRate: 30;
+      useLerp: false;
+      compressSyncPackets: false;
+      collisionOwnership: true;
+      updateRate: 20;
       webrtc: true;
       debug: true;
    ">
@@ -72,10 +74,8 @@
         <script id="avatar-template" type="text/html">
           <a-entity class="avatar">
             <a-sphere class="head"
-              static-body
-              color="#5985ff"
+              color="#ff3af1"
               scale="0.45 0.5 0.4"
-              random-color
             ></a-sphere>
             <a-entity class="face"
               position="0 0.05 0"
@@ -111,20 +111,24 @@
 
         <script id="ball-template" type="text/html">
             <a-entity
+              class="ball"
 	            geometry="primitive: sphere; radius: 0.2"
-              static-body
-              material="color:#5985ff" random-color>
+              dynamic-body
+              material="color:#ff3af1">
             </a-entity>
         </script>
 
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" 
-                networked="template:#avatar-template;showLocalTemplate:false;" 
-                camera 
-                position="0 1.3 0" spawn-in-circle="radius:3"
-                wasd-controls look-controls>
+      <a-entity id="player"
+                networked="template:#avatar-template;showLocalTemplate:false;"
+                networked-physics="canLoseOwnership:false;"
+                camera="userHeight: 0.5"
+                spawn-in-circle="radius:3"
+                wasd-controls look-controls
+                static-body
+                >
       </a-entity>
 
       <a-entity environment="preset:forest"></a-entity>
@@ -138,44 +142,44 @@
 
     <script>
       function createNetEntityFromSchema(schema, position, rotation, networkId) { 
-        var en = document.createElement('a-entity');
-      	if (position) { en.setAttribute('position', position); }
-      	if (rotation) { en.setAttribute('rotation', rotation); }
+        var el = document.createElement('a-entity');
+      	if (position) { el.setAttribute('position', position); }
+      	if (rotation) { el.setAttribute('rotation', rotation); }
       	if (!networkId) { networkId = NAF.utils.createNetworkId(); }
-        en.setAttribute('id', 'naf-' + networkId);
-        en.setAttribute('networked-share', {
-          physics: true,
-          template: schema.template,
-          components: schema.components,
-          networkId: networkId,
-          // this is default now... owner: NAF.clientId // we own it to start
-        });
-
-        return en;
+        el.setAttribute('id', 'naf-' + networkId);
+        el.setAttribute('networked', {networkId: networkId, template: schema.template});
+        el.setAttribute('networked-physics', '');
+        return el;
       }
 
-      function addNetEntityFromSchema(schema, position, rotation, networkId, el) {
-        var en = createNetEntityFromSchema(schema, position, rotation, networkId);
-      	if (!el) { el = document.querySelector('a-scene'); }
-      	el.appendChild(en);
+      function addNetEntityFromSchema(schema, position, rotation, networkId, parent) {
+        var el = createNetEntityFromSchema(schema, position, rotation, networkId);
+      	if (!parent) { parent = document.querySelector('a-scene'); }
+      	parent.appendChild(el);
 
         // NECESSARY EVIL HACK: we need to cheat and make ours dynamic-body not static-body
         // FIXME: how do we know when the template has been instantiated?
         // OK with this trickery, local template works!
         setTimeout(function () {
-          en.removeAttribute('static-body');
-          en.setAttribute('dynamic-body', '');
-          en.body.type = 1; // dynamic
-          en.body.updateMassProperties();
-        }, 1000 / NAF.options.updateRate);
+          // en.removeAttribute('static-body');
+          // en.setAttribute('dynamic-body', '');
+          // en.body.type = 1; // dynamic
+          // en.body.updateMassProperties();
+          el.setAttribute('material', 'color', localColor);
+        }, 500);
 
-	      return en;
+	      return el;
       }
+
+      var localColor = '#' + getRandomColor();
+      console.error('local color', localColor);
+      setTimeout(function() {
+        var head = document.querySelector('#player .head');
+        head.setAttribute('material', 'color', localColor);
+      }, 1000);
 
       document.body.onkeyup = function(e) {
         if(e.keyCode == 32){
-          console.log(e);
-          console.log(NAF.connection);
           // make a ball that we own
           addNetEntityFromSchema(ballSchema, '0 2 0');
         }
@@ -204,7 +208,30 @@
       document.body.addEventListener('dataChannelClosed', function (evt) {
         console.log(evt);
         console.log(NAF.connection);
-      });      
+      });
+      document.body.addEventListener('remoteEntityCreated', function (evt) {
+        var el = evt.detail.el;
+        console.error('remoteEntityCreated', el);
+        el.addEventListener('networked-ownership-taken', function (evt) {
+          console.error('this is mine now!', el);
+          el.setAttribute('material', 'color', localColor);
+        });
+        el.addEventListener('networked-ownership-lost', function (evt) {
+          console.error('good bye, sweet prince', el);
+        });
+      });
+
+      function getRandomColor() {
+        var min = new THREE.Color(0,0,0);
+        var max = new THREE.Color(1,1,1);
+        var color = new THREE.Color(
+          Math.random() * max.r + min.r,
+          Math.random() * max.g + min.g,
+          Math.random() * max.b + min.b
+        );
+        var hex = color.getHexString();
+        return hex;
+      }
     </script>
   </body>
 </html>

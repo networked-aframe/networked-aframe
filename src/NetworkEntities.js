@@ -5,6 +5,8 @@ class NetworkEntities {
   constructor() {
     this.entities = {};
     this.childCache = new ChildEntityCache();
+
+    this.onRemoteEntityCreatedEvent = new Event('remoteEntityCreated');
   }
 
   registerEntity(networkId, entity) {
@@ -20,7 +22,7 @@ class NetworkEntities {
     el.setAttribute('id', 'naf-' + networkId);
 
     var template = entityData.template;
-    if (this.isDynamicTemplate(template)) {      
+    if (this.isDynamicTemplate(template)) {
       var templateData = this.parseDynamicTemplate(template);
       this.addTemplateToAssets(networkId, templateData);
       entityData.template = template = '#' + id;
@@ -153,9 +155,14 @@ class NetworkEntities {
     parentEl.appendChild(entity);
   }
 
-  addEntityToSceneRoot(entity) {
+  addEntityToSceneRoot(el) {
     var scene = document.querySelector('a-scene');
-    scene.appendChild(entity);
+    scene.appendChild(el);
+    document.body.dispatchEvent(this.newRemoteEntityCreatedEvent(el));
+  }
+
+  newRemoteEntityCreatedEvent(el) {
+    return new CustomEvent('remoteEntityCreated', { detail: {el : el} });
   }
 
   completeSync() {
