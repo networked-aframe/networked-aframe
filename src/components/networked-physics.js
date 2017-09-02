@@ -100,6 +100,7 @@ AFRAME.registerComponent('networked-physics', {
 
     if (!this.isMine()) {
       this.setOwner(NAF.clientId);
+      this.changeToDynamic();
 
       NAF.physics.detachPhysicsLerp(el);
       // WakeUp Element - We are not interpolating anymore
@@ -121,6 +122,7 @@ AFRAME.registerComponent('networked-physics', {
 
     if (this.isMine() && !data.canLoseOwnership) {
       this.clearOwner();
+      this.changeToStatic();
 
       el.emit('networked-ownership-removed');
       this.networked.syncAll();
@@ -140,6 +142,7 @@ AFRAME.registerComponent('networked-physics', {
 
     if (this.isMine() && !ownerIsMe && ownerChanged && takeover) {
       this.setOwner(owner);
+      this.changeToStatic();
 
       NAF.log.write('Networked-Physics: Friendly takeover of: ' + el.id + ' by ', owner);
             el.emit('networked-ownership-lost');
@@ -205,6 +208,22 @@ AFRAME.registerComponent('networked-physics', {
       remotePhysics.takeOwnership();
       NAF.log.write('Networked-Physics: Inheriting ownership after collision to: ', collision.el.id);
     }
+  },
+
+  changeToStatic: function() {
+    var el = this.el;
+    el.removeAttribute('dynamic-body');
+    el.setAttribute('static-body', '');
+    el.body.type = 0; // static
+    el.body.updateMassProperties();
+  },
+
+  changeToDynamic: function() {
+    var el = this.el;
+    el.removeAttribute('static-body');
+    el.setAttribute('dynamic-body', '');
+    el.body.type = 1; // dynamic
+    el.body.updateMassProperties();
   },
 
   isMine: function() {

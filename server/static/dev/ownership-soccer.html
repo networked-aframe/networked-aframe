@@ -51,13 +51,14 @@
       
     </script>
    <a-scene networked-scene="
-      room: plaid;
+      room: ownership;
       useLerp: false;
       compressSyncPackets: false;
-      collisionOwnership: true;
+      collisionOwnership: false;
       updateRate: 20;
-      webrtc: true;
+      webrtc: false;
       debug: true;
+      signalURL: https://haydenlee.io;
    ">
 <!--
       firebase: true;
@@ -113,7 +114,7 @@
             <a-entity
               class="ball"
 	            geometry="primitive: sphere; radius: 0.2"
-              dynamic-body
+              static-body
               material="color:#ff3af1">
             </a-entity>
         </script>
@@ -156,17 +157,18 @@
         var el = createNetEntityFromSchema(schema, position, rotation, networkId);
       	if (!parent) { parent = document.querySelector('a-scene'); }
       	parent.appendChild(el);
+        handleOwnershipChange(el);
 
         // NECESSARY EVIL HACK: we need to cheat and make ours dynamic-body not static-body
         // FIXME: how do we know when the template has been instantiated?
         // OK with this trickery, local template works!
         setTimeout(function () {
-          // en.removeAttribute('static-body');
-          // en.setAttribute('dynamic-body', '');
-          // en.body.type = 1; // dynamic
-          // en.body.updateMassProperties();
+          el.removeAttribute('static-body');
+          el.setAttribute('dynamic-body', '');
+          el.body.type = 1; // dynamic
+          el.body.updateMassProperties();
           el.setAttribute('material', 'color', localColor);
-        }, 500);
+        });
 
 	      return el;
       }
@@ -209,9 +211,14 @@
         console.log(evt);
         console.log(NAF.connection);
       });
-      document.body.addEventListener('remoteEntityCreated', function (evt) {
+
+      function handleRemoteOwnershipChange(evt) {
         var el = evt.detail.el;
-        console.error('remoteEntityCreated', el);
+        handleOwnershipChange(el);
+      }
+        
+      function handleOwnershipChange(el) {
+        // console.error('entityCreated', el);
         el.addEventListener('networked-ownership-taken', function (evt) {
           console.error('this is mine now!', el);
           el.setAttribute('material', 'color', localColor);
@@ -219,7 +226,8 @@
         el.addEventListener('networked-ownership-lost', function (evt) {
           console.error('good bye, sweet prince', el);
         });
-      });
+      }
+      document.body.addEventListener('remoteEntityCreated', handleRemoteOwnershipChange);
 
       function getRandomColor() {
         var min = new THREE.Color(0,0,0);

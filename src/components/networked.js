@@ -23,6 +23,8 @@ AFRAME.registerComponent('networked', {
     this.networkUpdateHandler = bind(this.networkUpdateHandler, this);
 
     this.cachedData = {};
+    this.framesSent = 0;
+    this.lastFrameReceived = -1;
     this.initNetworkParent();
     this.initPhysics();
 
@@ -228,6 +230,7 @@ AFRAME.registerComponent('networked', {
     NAF.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData);
     this.updateCache(components);
+    this.framesSent += 1;
   },
 
   syncDirty: function() {
@@ -245,6 +248,7 @@ AFRAME.registerComponent('networked', {
     NAF.connection.broadcastData('u', syncData);
     // console.error('syncDirty', syncData);
     this.updateCache(components);
+    this.framesSent += 1;
   },
 
   needsToSync: function() {
@@ -268,6 +272,7 @@ AFRAME.registerComponent('networked', {
       physics: this.getPhysicsData(),
       takeover: takeover,
       components: components,
+      syncNum: this.framesSent,
     };
     return sync;
   },
@@ -313,6 +318,11 @@ AFRAME.registerComponent('networked', {
   },
 
   networkUpdate: function(entityData) {
+    if (entityData.syncNum < this.lastFrameReceived) {
+      console.error('received frame num:', entityData.syncNum, 'last frame was ', this.lastFrameReceived);
+    }
+    this.lastFrameReceived = entityData.syncNum;
+
     if (entityData[0] == 1) {
       entityData = Compressor.decompressSyncData(entityData, this.data.components);
     }
@@ -329,7 +339,7 @@ AFRAME.registerComponent('networked', {
     }
 
     if (entityData.components.hasOwnProperty('---material---color')) {
-      console.error('syncing material', entityData);
+      // console.error('syncing material', entityData);
     }
     this.updateComponents(entityData.components);
   },
@@ -356,9 +366,6 @@ AFRAME.registerComponent('networked', {
           var childEl = schema.selector ? el.querySelector(schema.selector) : el;
           if (childEl) { // Is false when first called in init
             if (schema.property) {
-              // if (components.hasOwnProperty('---material---color')) {
-
-              // }
               childEl.setAttribute(schema.component, schema.property, data);
             }
             else {
