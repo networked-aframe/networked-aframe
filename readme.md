@@ -296,6 +296,13 @@ Roadmap
 Interested in contributing? [Shoot me a message](https://twitter.com/haydenlee37) or send a pull request.
 
 
+Warning
+--------
+
+NAF is not supported on nodejs version 7.2.0. Please use a different version of nodejs.
+
+
+
 License
 -------
 
