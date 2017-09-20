@@ -64,7 +64,7 @@ To integrate XirSys into your hosted NAF instance follow these steps:
 
 ### WebRTC Audio requires a SSL Certificate
 
-If your experience uses WebRTC audio functionality, you need to setup an SSL certificate for your domain name (so your domain uses https instead of http). This is neccessary because web browsers to enforce a strict rule that in order to use WebRTC audio streaming, your web page must be encrypted to stop man-in-the-middle attacks from being able to take control of your computer's microphone or webcam.
+If your experience uses WebRTC audio functionality, you need to setup an SSL certificate for your domain name (so your domain uses https instead of http). This is neccessary because web browsers enforce a strict rule that in order to use WebRTC audio streaming your web page must be encrypted. This is to stop man-in-the-middle attacks from being able to take control of your computer's microphone or webcam.
 
 
 ## Other Solutions
