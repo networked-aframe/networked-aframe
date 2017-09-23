@@ -120,7 +120,6 @@ class NetworkEntities {
   }
 
   receiveFirstUpdateFromEntity(entityData) {
-    console.error('receiveFirstUpdateFromEntity', entityData);
     var parent = entityData.parent;
     var networkId = entityData.networkId;
 
@@ -177,7 +176,6 @@ class NetworkEntities {
   }
 
   removeRemoteEntity(toClient, dataType, data) {
-    console.error('removeRemoteEntity');
     var id = data.networkId;
     return this.removeEntity(id);
   }
@@ -186,7 +184,6 @@ class NetworkEntities {
     var entityList = [];
     for (var id in this.entities) {
       var entityOwner = NAF.utils.getNetworkOwner(this.entities[id]);
-      console.error('entityOwner', entityOwner, 'user', user);
       if (entityOwner == user) {
         var entity = this.removeEntity(id);
         entityList.push(entity);
