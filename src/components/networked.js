@@ -9,8 +9,7 @@ AFRAME.registerComponent('networked', {
     showLocalTemplate: {default: true},
 
     networkId: {default: ''},
-    owner: {default: ''},
-    components: {default: ['position', 'rotation']},
+    owner: {default: ''}
   },
 
   init: function() {

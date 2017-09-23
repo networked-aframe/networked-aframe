@@ -22,11 +22,11 @@ class NetworkEntities {
     el.setAttribute('id', 'naf-' + networkId);
 
     var template = entityData.template;
-    if (this.isDynamicTemplate(template)) {
-      var templateData = this.parseDynamicTemplate(template);
-      this.addTemplateToAssets(networkId, templateData);
-      entityData.template = template = '#' + id;
-    }
+    // if (this.isDynamicTemplate(template)) {
+    //   var templateData = this.parseDynamicTemplate(template);
+    //   this.addTemplateToAssets(networkId, templateData);
+    //   entityData.template = template = '#' + id;
+    // }
 
     if (template && entityData.physics) {
       el.addEventListener('loaded', function () {
@@ -35,50 +35,49 @@ class NetworkEntities {
       });
     }
 
-    var components = NAF.schemas.getComponents(template);
     this.initPosition(el, entityData.components);
     this.initRotation(el, entityData.components);
-    this.addNetworkComponent(el, entityData, components);
+    this.addNetworkComponent(el, entityData);
 
     this.registerEntity(networkId, el);
 
     return el;
   }
 
-  isDynamicTemplate(template) {
-    return template.substring(0,5) === 'data:'
-  }
+  // isDynamicTemplate(template) {
+  //   return template.substring(0,5) === 'data:'
+  // }
 
-  parseDynamicTemplate(template) {
-    var split = template.split(',', 2);
-    var inlineData = split[1];
-    var uriType = split[0].substring(5);
-    var isBase64 = uriType.endsWith(';base64');
-    if (isBase64) {
-      uriType = uriType.substring(0, uriType.length - 7);
-    }
-    inlineData = isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData);
+  // parseDynamicTemplate(template) {
+  //   var split = template.split(',', 2);
+  //   var inlineData = split[1];
+  //   var uriType = split[0].substring(5);
+  //   var isBase64 = uriType.endsWith(';base64');
+  //   if (isBase64) {
+  //     uriType = uriType.substring(0, uriType.length - 7);
+  //   }
+  //   inlineData = isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData);
 
-    var templateData = {
-      inlineData: inlineData,
-      uriType: uriType,
-    };
-    return templateData;
-  }
+  //   var templateData = {
+  //     inlineData: inlineData,
+  //     uriType: uriType,
+  //   };
+  //   return templateData;
+  // }
 
-  addTemplateToAssets(networkId, templateData) {
-    var uriType = templateData.uriType;
-    var inlineData = templateData.inlineData;
+  // addTemplateToAssets(networkId, templateData) {
+  //   var uriType = templateData.uriType;
+  //   var inlineData = templateData.inlineData;
 
-    // blob URLs do not survive template load, so make script element.
-    var script = document.createElement('script');
-    var id = 'naf-tpl-' + entityData.networkId;
-    script.setAttribute('id', id);
-    script.setAttribute('type', uriType);
-    script.innerHTML = inlineData;
-    var assets = document.querySelector('a-assets');
-    assets.appendChild(script);
-  }
+  //   // blob URLs do not survive template load, so make script element.
+  //   var script = document.createElement('script');
+  //   var id = 'naf-tpl-' + entityData.networkId;
+  //   script.setAttribute('id', id);
+  //   script.setAttribute('type', uriType);
+  //   script.innerHTML = inlineData;
+  //   var assets = document.querySelector('a-assets');
+  //   assets.appendChild(script);
+  // }
 
   initPosition(entity, componentData) {
     var hasPosition = componentData.hasOwnProperty('position');
@@ -96,12 +95,11 @@ class NetworkEntities {
     }
   }
 
-  addNetworkComponent(entity, entityData, components) {
+  addNetworkComponent(entity, entityData) {
     var networkData = {
       template: entityData.template,
       owner: entityData.owner,
-      networkId: entityData.networkId,
-      components: components
+      networkId: entityData.networkId
     };
     
     entity.setAttribute('networked', networkData);

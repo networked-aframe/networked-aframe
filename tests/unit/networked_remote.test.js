@@ -155,7 +155,7 @@ suite('networked_remote', function() {
         selector: '.head',
         component: 'visible'
       };
-      component.data.components.push(childComponent);
+      // component.data.components.push(childComponent);
       var childKey = '.head'+naf.utils.delimiter+'visible';
       entityData.components[childKey] = true;
 
@@ -186,7 +186,7 @@ suite('networked_remote', function() {
         selector: '.head',
         component: 'visible'
       };
-      component.data.components.push(childComponent);
+      // component.data.components.push(childComponent);
       var childKey = '.head'+naf.utils.delimiter+'visible';
       entityData.components[childKey] = true;
       while (el.firstChild) { // Remove children

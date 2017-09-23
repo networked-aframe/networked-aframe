@@ -108,65 +108,6 @@ suite('NetworkEntities', function() {
         done();
       });
     });
-
-    test('entity has correct components when no components schema defined', function(done) {
-      entityData.template = '#template3';
-      var entity = entities.createRemoteEntity(entityData);
-      scene.appendChild(entity);
-
-      naf.utils.whenEntityLoaded(entity, function() {
-        var network = entity.getAttribute('networked');
-
-        assert.deepEqual(network.components, ['position', 'rotation']);
-        done();
-      });
-    });
-
-    test('entity has correct advanced components', function(done) {
-      entityData.template = '#template2';
-      var schema = {
-        template: '#template2',
-        components: [
-          'position',
-          {
-            selector: '.test-child',
-            component: 'visible'
-          }
-        ]
-      };
-      naf.schemas.add(schema);
-
-      var entity = entities.createRemoteEntity(entityData);
-      scene.appendChild(entity);
-
-      naf.utils.whenEntityLoaded(entity, function() {
-        var network = entity.getAttribute('networked');
-
-        assert.deepEqual(network.components, schema.components);
-        done();
-      });
-    });
-
-    test('entity has correct simple components', function(done) {
-      entityData.template = '#template2';
-      var schema = {
-        template: '#template2',
-        components: [
-          'position'
-        ]
-      };
-      naf.schemas.add(schema);
-
-      var entity = entities.createRemoteEntity(entityData);
-      scene.appendChild(entity);
-
-      naf.utils.whenEntityLoaded(entity, function() {
-        var network = entity.getAttribute('networked');
-
-        assert.deepEqual(network.components, ['position']);
-        done();
-      });
-    });
   });
 
   suite('updateEntity', function() {
