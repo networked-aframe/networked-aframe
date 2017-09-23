@@ -170,7 +170,7 @@ class NetworkEntities {
 
   completeSync() {
     for (var id in this.entities) {
-      if (this.entities.hasOwnProperty(id) && this.entities[id].components.networked.isMine()) {
+      if (this.entities.hasOwnProperty(id)) {
         this.entities[id].emit('syncAll', null, false);
       }
     }

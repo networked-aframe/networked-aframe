@@ -296,7 +296,9 @@ suite('NetworkEntities', function() {
         entityList.push(entity);
         sinon.spy(entity, 'emit');
       }
+
       entities.completeSync();
+
       for (var i = 0; i < 3; i++) {
         assert.isTrue(entityList[i].emit.calledWith('syncAll'))
       }
@@ -311,7 +313,9 @@ suite('NetworkEntities', function() {
         entityList.push(entity);
         sinon.spy(entity, 'emit');
       }
+
       entities.completeSync();
+      
       for (var i = 0; i < 20; i++) {
         assert.isTrue(entityList[i].emit.calledWith('syncAll'))
       }

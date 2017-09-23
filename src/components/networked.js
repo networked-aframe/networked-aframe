@@ -24,7 +24,6 @@ AFRAME.registerComponent('networked', {
 
     this.cachedData = {};
     this.framesSent = 0;
-    this.lastFrameReceived = -1;
     this.initNetworkParent();
     this.initPhysics();
 
@@ -269,8 +268,7 @@ AFRAME.registerComponent('networked', {
       parent: this.getParentId(),
       physics: this.getPhysicsData(),
       takeover: takeover,
-      components: components,
-      syncNum: this.framesSent,
+      components: components
     };
     return sync;
   },
@@ -316,13 +314,8 @@ AFRAME.registerComponent('networked', {
   },
 
   networkUpdate: function(entityData) {
-    if (entityData.syncNum < this.lastFrameReceived) {
-      console.error('received frame num:', entityData.syncNum, 'last frame was ', this.lastFrameReceived);
-    }
-    this.lastFrameReceived = entityData.syncNum;
-
     if (entityData[0] == 1) {
-      entityData = Compressor.decompressSyncData(entityData, this.data.components);
+      entityData = Compressor.decompressSyncData(entityData, this.getAllSyncedComponents());
     }
 
     if (!this.hasPhysics() && entityData.physics) {
@@ -374,17 +367,16 @@ AFRAME.registerComponent('networked', {
   },
 
   isSyncableComponent: function(key) {
-    return true;
-    // if (NAF.utils.isChildSchemaKey(key)) {
-    //   var schema = NAF.utils.keyToChildSchema(key);
-    //   return this.hasThisChildSchema(schema);
-    // } else {
-    //   return this.data.components.indexOf(key) != -1;
-    // }
+    if (NAF.utils.isChildSchemaKey(key)) {
+      var schema = NAF.utils.keyToChildSchema(key);
+      return this.hasThisChildSchema(schema);
+    } else {
+      return this.getAllSyncedComponents().indexOf(key) != -1;
+    }
   },
 
   hasThisChildSchema: function(schema) {
-    var schemaComponents = this.data.components;
+    var schemaComponents = this.getAllSyncedComponents();
     for (var i in schemaComponents) {
       var localChildSchema = schemaComponents[i];
       if (NAF.utils.childSchemaEqual(localChildSchema, schema)) {
