@@ -2,7 +2,6 @@ var naf = require('../NafIndex');
 
 var EasyRtcInterface = require('../network_interfaces/EasyRtcInterface');
 var WebSocketEasyRtcInterface = require('../network_interfaces/WebSocketEasyRtcInterface');
-var FirebaseWebRtcInterface = require('../network_interfaces/FirebaseWebRtcInterface');
 
 AFRAME.registerComponent('networked-scene', {
   schema: {
@@ -13,32 +12,14 @@ AFRAME.registerComponent('networked-scene', {
     onConnect: {default: 'onConnect'},
     webrtc: {default: false},
     webrtcAudio: {default: false},
-
-    firebase: {default: false},
-    firebaseApiKey: {default: ''},
-    firebaseAuthType: {default: 'none', oneOf: ['none', 'anonymous']},
-    firebaseAuthDomain: {default: ''},
-    firebaseDatabaseURL: {default: ''},
-
-    debug: {default: false},
-
-    updateRate: {default: 0},
-    useLerp: {default: true},
-    compressSyncPackets: {default: false},
-    collisionOwnership: {default: true},
+    debug: {default: false}
   },
 
   init: function() {
-    if (this.data.updateRate) {
-      naf.options.updateRate = this.data.updateRate;
-    }
-    naf.options.useLerp = this.data.useLerp;
-    naf.options.compressSyncPackets = this.data.compressSyncPackets;
-    naf.options.collisionOwnership = this.data.collisionOwnership;
-
-    this.el.addEventListener('connect', this.connect.bind(this));
+    var el = this.el;
+    el.addEventListener('connect', this.connect.bind(this));
     if (this.data.connectOnLoad) {
-      this.el.emit('connect', null, false);
+      el.emit('connect', null, false);
     }
   },
 
@@ -46,17 +27,16 @@ AFRAME.registerComponent('networked-scene', {
    * Connect to signalling server and begin connecting to other clients
    */
   connect: function () {
-    naf.log.setDebug(this.data.debug);
-    naf.log.write('Networked-Aframe Connecting...');
+    NAF.log.setDebug(this.data.debug);
+    NAF.log.write('Networked-Aframe Connecting...');
 
-    // easyrtc.enableDebug(true);
     this.checkDeprecatedProperties();
     this.setupNetworkInterface();
 
     if (this.hasOnConnectFunction()) {
       this.callOnConnect();
     }
-    naf.connection.connect(this.data.app, this.data.room, this.data.webrtcAudio);
+    NAF.connection.connect(this.data.app, this.data.room, this.data.webrtcAudio);
   },
 
   checkDeprecatedProperties: function() {
@@ -66,28 +46,18 @@ AFRAME.registerComponent('networked-scene', {
   setupNetworkInterface: function() {
     var networkInterface;
     if (this.data.webrtc) {
-      if (this.data.firebase) {
-        var firebaseWebRtcInterface = new FirebaseWebRtcInterface(firebase, {
-          authType: this.data.firebaseAuthType,
-          apiKey: this.data.firebaseApiKey,
-          authDomain: this.data.firebaseAuthDomain,
-          databaseURL: this.data.firebaseDatabaseURL
-        });
-        networkInterface = firebaseWebRtcInterface;
-      } else {
-        var easyRtcInterface = new EasyRtcInterface(easyrtc);
-        easyRtcInterface.setSignalUrl(this.data.signalURL);
-        networkInterface = easyRtcInterface;
-      }
+      var easyRtcInterface = new EasyRtcInterface(easyrtc);
+      easyRtcInterface.setSignalUrl(this.data.signalURL);
+      networkInterface = easyRtcInterface;
     } else {
       var websocketInterface = new WebSocketEasyRtcInterface(easyrtc);
       websocketInterface.setSignalUrl(this.data.signalURL);
       networkInterface = websocketInterface;
       if (this.data.webrtcAudio) {
-        naf.log.error('networked-scene: webrtcAudio option will only be used if webrtc is set to true. webrtc is currently false');
+        NAF.log.error('networked-scene: webrtcAudio option will only be used if webrtc is set to true. webrtc is currently false');
       }
     }
-    naf.connection.setNetworkInterface(networkInterface);
+    NAF.connection.setNetworkInterface(networkInterface);
   },
 
   hasOnConnectFunction: function() {
@@ -95,6 +65,6 @@ AFRAME.registerComponent('networked-scene', {
   },
 
   callOnConnect: function() {
-    naf.connection.onLogin(window[this.data.onConnect]);
+    NAF.connection.onLogin(window[this.data.onConnect]);
   }
 });

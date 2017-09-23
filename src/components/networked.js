@@ -40,6 +40,9 @@ AFRAME.registerComponent('networked', {
       this.firstUpdate();
       this.attachLerp();
     }
+    else {
+      this.registerEntity(data.networkId);
+    }
 
     if (this.data.owner === '') {
       var self = this;
@@ -47,8 +50,6 @@ AFRAME.registerComponent('networked', {
         self.checkLoggedIn();
       });
     }
-
-    this.registerEntity(data.networkId);
   },
 
   wasCreatedByNetwork: function() {
@@ -207,9 +208,6 @@ AFRAME.registerComponent('networked', {
   },
 
   tick: function() {
-    // if (!this.isPlayer()) {
-    //   console.log('ismine', this.isMine());
-    // }
     if (this.isMine() && this.needsToSync()) {
       this.syncDirty();
     }
@@ -336,10 +334,6 @@ AFRAME.registerComponent('networked', {
     }
     if (this.hasPhysics()) {
       this.physics.networkUpdate(entityData);
-    }
-
-    if (entityData.components.hasOwnProperty('---material---color')) {
-      // console.error('syncing material', entityData);
     }
     this.updateComponents(entityData.components);
   },

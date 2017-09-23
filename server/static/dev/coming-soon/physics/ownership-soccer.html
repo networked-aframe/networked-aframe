@@ -48,18 +48,17 @@
         ]
       };
       NAF.schemas.add(ballSchema);
-      
     </script>
-   <a-scene networked-scene="
+    <a-scene networked-scene="
       room: ownership;
       useLerp: false;
       compressSyncPackets: false;
-      collisionOwnership: false;
+      collisionOwnership: true;
       updateRate: 20;
-      webrtc: false;
+      webrtc: true;
       debug: true;
       signalURL: https://haydenlee.io;
-   ">
+    ">
 <!--
       firebase: true;
       firebaseAuthType: none;
@@ -114,9 +113,9 @@
             <a-entity
               class="ball"
 	            geometry="primitive: sphere; radius: 0.2"
+              material="color:#ff3af1"
               static-body
-              material="color:#ff3af1">
-            </a-entity>
+            ></a-entity>
         </script>
 
         <!-- /Templates -->
@@ -129,8 +128,7 @@
                 spawn-in-circle="radius:3"
                 wasd-controls look-controls
                 static-body
-                >
-      </a-entity>
+      ></a-entity>
 
       <a-entity environment="preset:forest"></a-entity>
 
@@ -174,7 +172,7 @@
       }
 
       var localColor = '#' + getRandomColor();
-      console.error('local color', localColor);
+      // console.error('local color', localColor);
       setTimeout(function() {
         var head = document.querySelector('#player .head');
         head.setAttribute('material', 'color', localColor);
@@ -220,11 +218,11 @@
       function handleOwnershipChange(el) {
         // console.error('entityCreated', el);
         el.addEventListener('networked-ownership-taken', function (evt) {
-          console.error('this is mine now!', el);
+          console.log('this is mine now!', el);
           el.setAttribute('material', 'color', localColor);
         });
         el.addEventListener('networked-ownership-lost', function (evt) {
-          console.error('good bye, sweet prince', el);
+          console.log('good bye, sweet prince', el);
         });
       }
       document.body.addEventListener('remoteEntityCreated', handleRemoteOwnershipChange);
