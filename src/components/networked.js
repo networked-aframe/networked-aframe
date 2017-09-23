@@ -22,9 +22,9 @@ AFRAME.registerComponent('networked', {
     this.networkUpdateHandler = bind(this.networkUpdateHandler, this);
 
     this.cachedData = {};
-    this.framesSent = 0;
     this.initNetworkParent();
     this.initPhysics();
+    this.hasSentFirstSync = false;
 
     if (data.networkId === '') {
       data.networkId = NAF.utils.createNetworkId();
@@ -43,10 +43,7 @@ AFRAME.registerComponent('networked', {
     }
 
     if (this.data.owner === '') {
-      var self = this;
-      setTimeout(function() {
-        self.checkLoggedIn();
-      });
+      this.checkLoggedIn();
     }
   },
 
@@ -93,12 +90,11 @@ AFRAME.registerComponent('networked', {
   },
 
   attachAndShowTemplate: function(template, show) {
-    var self = this;
     var el = this.el;
     var data = this.data;
 
-    if (self.templateEl) {
-      el.removeChild(self.templateEl);
+    if (this.templateEl) {
+      el.removeChild(this.templateEl);
     }
 
     var templateChild = document.createElement('a-entity');
@@ -106,10 +102,10 @@ AFRAME.registerComponent('networked', {
     templateChild.setAttribute('visible', show);
 
     el.appendChild(templateChild);
-    self.templateEl = templateChild;
+    this.templateEl = templateChild;
 
-    if (self.hasPhysics()) {
-      self.setupPhysicsTemplate(templateChild);
+    if (this.hasPhysics()) {
+      this.setupPhysicsTemplate(templateChild);
     }
   },
 
@@ -175,7 +171,8 @@ AFRAME.registerComponent('networked', {
   },
 
   onLoggedIn: function() {
-    this.data.owner = NAF.clientId
+    // console.error('setting el', this.data.networkId, 'to owner', NAF.clientId);
+    this.data.owner = NAF.clientId;
     this.syncAll();
   },
 
@@ -211,25 +208,27 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  isPlayer: function() {
-    return this.el.getAttribute('id') == 'player';
-  },
-
 
   /* Sending updates */
 
   syncAll: function(takeover) {
+    if (!this.data.owner) {
+      return;
+    }
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
     var components = componentHelper.gatherComponentsData(this.el, syncedComps);
     var syncData = this.createSyncData(components, takeover);
     NAF.connection.broadcastDataGuaranteed('u', syncData);
-    // console.error('syncAll', syncData);
+    // console.error('syncAll', syncData, NAF.clientId);
     this.updateCache(components);
-    this.framesSent += 1;
+    this.hasSentFirstSync = true;
   },
 
   syncDirty: function() {
+    if (!this.hasSentFirstSync) {
+      return;
+    }
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
     var dirtyComps = componentHelper.findDirtyComponents(this.el, syncedComps, this.cachedData);
@@ -242,9 +241,8 @@ AFRAME.registerComponent('networked', {
       syncData = Compressor.compressSyncData(syncData, syncedComps);
     }
     NAF.connection.broadcastData('u', syncData);
-    // console.error('syncDirty', syncData);
+    // console.error('syncDirty', syncData, NAF.clientId);
     this.updateCache(components);
-    this.framesSent += 1;
   },
 
   needsToSync: function() {

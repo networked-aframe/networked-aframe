@@ -265,6 +265,7 @@ suite('networked', function() {
       networked.init();
       networked.updateCache(oldData);
       document.body.dispatchEvent(new Event('loggedIn'));
+      networked.hasSentFirstSync = true;
       networked.syncDirty();
 
       var called = naf.connection.broadcastData.calledWithExactly('u', expected);
@@ -284,6 +285,7 @@ suite('networked', function() {
       networked.init();
       networked.updateCache(oldData);
       document.body.dispatchEvent(new Event('loggedIn'));
+      networked.hasSentFirstSync = true;
       networked.syncDirty();
 
       var called = NAF.connection.broadcastData.calledWithExactly('u', expected);
@@ -303,6 +305,7 @@ suite('networked', function() {
       networked.init();
       networked.updateCache(oldData);
       document.body.dispatchEvent(new Event('loggedIn'));
+      networked.hasSentFirstSync = true;
       networked.syncDirty();
 
       var called = naf.connection.broadcastData.calledWithExactly('u', expected);

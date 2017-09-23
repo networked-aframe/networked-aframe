@@ -101,6 +101,7 @@ class NetworkEntities {
       owner: entityData.owner,
       networkId: entityData.networkId
     };
+    // console.error('setting owner to ', entityData.owner);
     
     entity.setAttribute('networked', networkData);
     entity.firstUpdateData = entityData;
