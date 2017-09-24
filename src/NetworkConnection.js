@@ -173,17 +173,17 @@ class NetworkConnection {
     this.sendData(toClient, msgType, msg, true);
   }
 
-  subscribeToMessage(msgType, callback) {
+  subscribeToDataChannel(msgType, callback) {
     if (this.isReservedMessage(msgType)) {
-      NAF.log.error('NetworkConnection@subscribeToMessage: ' + msgType + ' is a reserved msgType. Choose another');
+      NAF.log.error('NetworkConnection@subscribeToDataChannel: ' + msgType + ' is a reserved msgType. Choose another');
       return;
     }
     this.messageSubs[msgType] = callback;
   }
 
-  unsubscribeFromMessage(msgType) {
+  unsubscribeFromDataChannel(msgType) {
     if (this.isReservedMessage(msgType)) {
-      NAF.log.error('NetworkConnection@unsubscribeFromMessage: ' + msgType + ' is a reserved msgType. Choose another');
+      NAF.log.error('NetworkConnection@unsubscribeFromDataChannel: ' + msgType + ' is a reserved msgType. Choose another');
       return;
     }
     delete this.messageSubs[msgType];
@@ -198,7 +198,7 @@ class NetworkConnection {
     if (this.messageSubs.hasOwnProperty(msgType)) {
       this.messageSubs[msgType](fromClient, msgType, msg);
     } else {
-      NAF.log.error('NetworkConnection@receivedMessage: ' + msgType + ' has not been subscribed to yet. Call subscribeToMessage()');
+      NAF.log.error('NetworkConnection@receivedMessage: ' + msgType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
     }
   }
 }

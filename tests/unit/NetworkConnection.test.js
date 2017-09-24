@@ -359,27 +359,27 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('subscribeToMessage', function() {
+  suite('subscribeToDataChannel', function() {
 
     test('is added to datachannel subscribers', function() {
       var dataType = 'method1';
       var callback = function() { return 'callback' };
 
-      connection.subscribeToMessage(dataType, callback);
+      connection.subscribeToDataChannel(dataType, callback);
 
       var actual = connection.messageSubs[dataType];
       assert.deepEqual(actual, callback);
     });
   });
 
-  suite('unsubscribeFromMessage', function() {
+  suite('unsubscribeFromDataChannel', function() {
 
     test('is removed from datachannel subscribers', function() {
       var dataType = 'method1';
       var callback = function() { return 'callback' };
       connection.messageSubs[dataType] = callback;
 
-      connection.unsubscribeFromMessage(dataType);
+      connection.unsubscribeFromDataChannel(dataType);
 
       assert.isFalse(connection.messageSubs.hasOwnProperty(dataType));
     });
@@ -412,7 +412,7 @@ suite('NetworkConnection', function() {
       var dataType = 'method1';
       var stub = sinon.stub();
       var data = { test: true };
-      connection.subscribeToMessage(dataType, stub);
+      connection.subscribeToDataChannel(dataType, stub);
 
       connection.receivedMessage('client1', dataType, data);
 
