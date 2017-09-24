@@ -210,7 +210,7 @@ AFRAME.registerComponent('networked', {
   /* Sending updates */
 
   syncAll: function(takeover) {
-    if (!this.data.owner) {
+    if (!this.canSync()) {
       return;
     }
     this.updateNextSyncTime();
@@ -223,6 +223,9 @@ AFRAME.registerComponent('networked', {
   },
 
   syncDirty: function() {
+    if (!this.canSync()) {
+      return;
+    }
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
     var dirtyComps = componentHelper.findDirtyComponents(this.el, syncedComps, this.cachedData);
@@ -237,6 +240,10 @@ AFRAME.registerComponent('networked', {
     NAF.connection.broadcastData('u', syncData);
     // console.error('syncDirty', syncData, NAF.clientId);
     this.updateCache(components);
+  },
+
+  canSync: function() {
+    return this.data.owner && this.isMine();
   },
 
   needsToSync: function() {
