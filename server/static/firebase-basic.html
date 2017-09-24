@@ -14,11 +14,28 @@
 
     <script>
       // Setup Firebase
+
+      /**
+        Steps to setup:
+        1. Sign up for Firebase account: https://firebase.google.com/
+        2. Create a new project
+        3. Go to Database -> Rules and change them to the following (warning: not safe for production, just developing)
+            {
+              "rules": {
+                ".read": true,
+                ".write": true
+              }
+            }
+        4. Click publish
+        5. Go back to the project overview
+        6. Click "Add Firebase to your web app"
+        7. Copy the credentials below
+       */
       window.firebaseConfig = {
         authType: 'none',
-        apiKey: 'AIzaSyCoUs0zrSUHYdxrMhTYlDg3KJj6xeQD_cw',
-        authDomain: 'networked-aframe-example.firebaseapp.com',
-        databaseURL: 'https://networked-aframe-example.firebaseio.com'
+        apiKey: 'your-api-key',
+        authDomain: 'xxx.firebaseapp.com',
+        databaseURL: 'https://xxx.firebaseio.com'
       };
 
       // Define custom schema for syncing avatar color, set by random-color
