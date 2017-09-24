@@ -22,10 +22,14 @@
   </head>
   <body>
   	<!-- "Solid Gold" by Miami Slice is licensed under CC 4.0: http://freemusicarchive.org/music/Miami_Slice/Disco_Cuts/Solid_Gold -->
-  	<audio style="display:none;" autoplay loop>
+  	<audio id="song" style="display:none;" autoplay loop volume="0">
 		  <source src="assets/sounds/Miami_Slice_Solid_Gold.mp3" type="audio/mpeg">
 			Your browser does not support the audio element.
 		</audio>
+    <script>
+      var audio = document.getElementById('song');
+      audio.volume = 0.4;
+    </script>
     <a-scene networked-scene="
 		  app: club;
 		  room: default;
