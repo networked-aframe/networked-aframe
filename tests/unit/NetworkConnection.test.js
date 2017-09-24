@@ -11,7 +11,7 @@ suite('NetworkConnection', function() {
 
   function NetworkEntitiesStub() {
     this.completeSync = sinon.stub();
-    this.removeEntitiesFromUser = sinon.stub();
+    this.removeEntitiesFromClient = sinon.stub();
     this.updateEntity = sinon.stub();
     this.removeRemoteEntity = sinon.stub();
     this.removeEntity = sinon.stub();
@@ -234,12 +234,12 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('messageChannelOpen', function() {
+  suite('dataChannelOpen', function() {
 
     test('connects and syncs', function() {
       var clientId = 'other';
 
-      connection.messageChannelOpen(clientId);
+      connection.dataChannelOpen(clientId);
 
       var hasMessageChannel = connection.hasActiveMessageChannel(clientId);
       assert.isTrue(hasMessageChannel);
@@ -250,7 +250,7 @@ suite('NetworkConnection', function() {
       var clientId = 'correct';
       var wrongClientId = 'wrong';
 
-      connection.messageChannelOpen(clientId);
+      connection.dataChannelOpen(clientId);
 
       var hasMessageChannel = connection.hasActiveMessageChannel(wrongClientId);
       assert.isFalse(hasMessageChannel);
@@ -258,28 +258,28 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('messageChannelClosed', function() {
+  suite('dataChannelClosed', function() {
 
     test('connects and syncs', function() {
       var clientId = 'client';
 
-      connection.messageChannelClosed(clientId);
+      connection.dataChannelClosed(clientId);
 
       var hasMessageChannel = connection.hasActiveMessageChannel(clientId);
       assert.isFalse(hasMessageChannel);
-      assert.isTrue(entities.removeEntitiesFromUser.called);
+      assert.isTrue(entities.removeEntitiesFromClient.called);
     });
 
     test('is still connected to other', function() {
       var clientId = 'removeMe';
       var otherClientId = 'other';
 
-      connection.messageChannelOpen(otherClientId);
-      connection.messageChannelClosed(clientId);
+      connection.dataChannelOpen(otherClientId);
+      connection.dataChannelClosed(clientId);
 
       var hasMessageChannel = connection.hasActiveMessageChannel(otherClientId);
       assert.isTrue(hasMessageChannel);
-      assert.isTrue(entities.removeEntitiesFromUser.called);
+      assert.isTrue(entities.removeEntitiesFromClient.called);
     });
   });
 

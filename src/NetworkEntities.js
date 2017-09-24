@@ -184,11 +184,11 @@ class NetworkEntities {
     return this.removeEntity(id);
   }
 
-  removeEntitiesFromUser(user) {
+  removeEntitiesFromClient(clientId) {
     var entityList = [];
     for (var id in this.entities) {
       var entityOwner = NAF.utils.getNetworkOwner(this.entities[id]);
-      if (entityOwner == user) {
+      if (entityOwner == clientId) {
         var entity = this.removeEntity(id);
         entityList.push(entity);
       }

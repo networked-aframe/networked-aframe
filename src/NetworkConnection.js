@@ -53,8 +53,8 @@ class NetworkConnection {
       this.connectFailure.bind(this)
     );
     this.adapter.setDataChannelListeners(
-      this.messageChannelOpen.bind(this),
-      this.messageChannelClosed.bind(this),
+      this.dataChannelOpen.bind(this),
+      this.dataChannelClosed.bind(this),
       this.receivedMessage.bind(this)
     );
     this.adapter.setRoomOccupantListener(this.occupantsReceived.bind(this));
@@ -119,34 +119,34 @@ class NetworkConnection {
     return this.connected;
   }
 
-  isMineAndConnected(client) {
-    return NAF.clientId == client;
+  isMineAndConnected(clientId) {
+    return NAF.clientId == clientId;
   }
 
-  isNewClient(client) {
-    return !this.isConnectedTo(client);
+  isNewClient(clientId) {
+    return !this.isConnectedTo(clientId);
   }
 
-  isConnectedTo(client) {
-    return this.adapter.getConnectStatus(client) === INetworkAdapter.IS_CONNECTED;
+  isConnectedTo(clientId) {
+    return this.adapter.getConnectStatus(clientId) === INetworkAdapter.IS_CONNECTED;
   }
 
-  messageChannelOpen(client) {
-    NAF.log.write('Opened message channel from ' + client);
-    this.activeMessageChannels[client] = true;
+  dataChannelOpen(clientId) {
+    NAF.log.write('Opened data channel from ' + clientId);
+    this.activeMessageChannels[clientId] = true;
     this.entities.completeSync();
     document.body.dispatchEvent(this.onDCOpenEvent);
   }
 
-  messageChannelClosed(client) {
-    NAF.log.write('Closed message channel from ' + client);
-    this.activeMessageChannels[client] = false;
-    this.entities.removeEntitiesFromUser(client);
+  dataChannelClosed(clientId) {
+    NAF.log.write('Closed data channel from ' + clientId);
+    this.activeMessageChannels[clientId] = false;
+    this.entities.removeEntitiesFromClient(clientId);
     document.body.dispatchEvent(this.onDCCloseEvent);
   }
 
-  hasActiveMessageChannel(client) {
-    return this.activeMessageChannels.hasOwnProperty(client) && this.activeMessageChannels[client];
+  hasActiveMessageChannel(clientId) {
+    return this.activeMessageChannels.hasOwnProperty(clientId) && this.activeMessageChannels[clientId];
   }
 
   broadcastData(msgType, msg) {
@@ -157,20 +157,20 @@ class NetworkConnection {
     this.adapter.broadcastDataGuaranteed(msgType, msg);
   }
 
-  sendData(toClient, msgType, msg, guaranteed) {
-    if (this.hasActiveMessageChannel(toClient)) {
+  sendData(toClientId, msgType, msg, guaranteed) {
+    if (this.hasActiveMessageChannel(toClientId)) {
       if (guaranteed) {
-        this.adapter.sendDataGuaranteed(toClient, msgType, msg);
+        this.adapter.sendDataGuaranteed(toClientId, msgType, msg);
       } else {
-        this.adapter.sendData(toClient, msgType, msg);
+        this.adapter.sendData(toClientId, msgType, msg);
       }
     } else {
       // console.error("NOT-CONNECTED", "not connected to " + toClient);
     }
   }
 
-  sendDataGuaranteed(toClient, msgType, msg) {
-    this.sendData(toClient, msgType, msg, true);
+  sendDataGuaranteed(toClientId, msgType, msg) {
+    this.sendData(toClientId, msgType, msg, true);
   }
 
   subscribeToDataChannel(msgType, callback) {
@@ -194,9 +194,9 @@ class NetworkConnection {
         || msgType == ReservedMessage.Remove;
   }
 
-  receivedMessage(fromClient, msgType, msg) {
+  receivedMessage(fromClientId, msgType, msg) {
     if (this.messageSubs.hasOwnProperty(msgType)) {
-      this.messageSubs[msgType](fromClient, msgType, msg);
+      this.messageSubs[msgType](fromClientId, msgType, msg);
     } else {
       NAF.log.error('NetworkConnection@receivedMessage: ' + msgType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
     }

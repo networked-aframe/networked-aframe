@@ -452,8 +452,9 @@ class WebRtcPeer {
     // Note: seems like channel.onclose hander is unreliable on some platforms,
     //       so also tries to detect disconnection here.
     pc.oniceconnectionstatechange = function() {
-      if(self.open && pc.iceConnectionState === 'disconnected') {
+      if (self.open && pc.iceConnectionState === 'disconnected') {
         self.open = false;
+        self.closedListener(self.remoteId);
       }
     };
 
@@ -479,7 +480,7 @@ class WebRtcPeer {
 
     // disconnected with a remote peer
     this.channel.onclose = function (event) {
-      if (! self.open) return;
+      if (!self.open) return;
       self.open = false;
       self.closedListener(self.remoteId);
     };
