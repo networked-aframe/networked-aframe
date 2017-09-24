@@ -30,6 +30,7 @@
         5. Go back to the project overview
         6. Click "Add Firebase to your web app"
         7. Copy the credentials below
+        8. Remove the console.error
        */
       window.firebaseConfig = {
         authType: 'none',
@@ -37,6 +38,7 @@
         authDomain: 'xxx.firebaseapp.com',
         databaseURL: 'https://xxx.firebaseio.com'
       };
+      console.error('You need to enter your own firebase credentials. Remove this error when you have.');
 
       // Define custom schema for syncing avatar color, set by random-color
       NAF.schemas.add({
