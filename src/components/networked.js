@@ -82,7 +82,7 @@ AFRAME.registerComponent('networked', {
 
   registerEntity: function(networkId) {
     NAF.entities.registerEntity(networkId, this.el);
-  }
+  },
 
   initTemplate: function() {
     var data = this.data;
@@ -326,7 +326,7 @@ AFRAME.registerComponent('networked', {
     if (this.hasPhysics()) {
       this.physics.networkUpdate(entityData);
     }
-    
+
     this.updateComponents(entityData.components);
   },
 

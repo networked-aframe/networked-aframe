@@ -62,7 +62,7 @@ class NetworkConnection {
     this.adapter.connect();
   }
 
-  onLogin(callback) {
+  onConnect(callback) {
     if (this.connected) {
       callback();
     } else {

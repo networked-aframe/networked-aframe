@@ -34,7 +34,7 @@ AFRAME.registerComponent('networked-scene', {
     if (this.hasOnConnectFunction()) {
       this.callOnConnect();
     }
-    NAF.connection.connect(this.data.serverUrl, this.data.app, this.data.room, this.data.audio);
+    NAF.connection.connect(this.data.serverURL, this.data.app, this.data.room, this.data.audio);
   },
 
   checkDeprecatedProperties: function() {
@@ -52,6 +52,6 @@ AFRAME.registerComponent('networked-scene', {
   },
 
   callOnConnect: function() {
-    NAF.connection.onLogin(window[this.data.onConnect]);
+    NAF.connection.onConnect(window[this.data.onConnect]);
   }
 });

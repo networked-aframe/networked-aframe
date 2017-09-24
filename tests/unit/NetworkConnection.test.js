@@ -1,12 +1,13 @@
 /* global assert, process, setup, suite, test */
 var NetworkConnection = require('../../src/NetworkConnection');
-var NetworkInterface = require('../../src/network_interfaces/NetworkInterface');
+var NetworkAdapter = require('../../src/adapters/INetworkAdapter');
 var NetworkEntities = require('../../src/NetworkEntities');
 var naf = require('../../src/NafIndex');
 
 suite('NetworkConnection', function() {
   var connection;
   var entities;
+  var adapter;
 
   function NetworkEntitiesStub() {
     this.completeSync = sinon.stub();
@@ -16,81 +17,75 @@ suite('NetworkConnection', function() {
     this.removeEntity = sinon.stub();
   }
 
-  function NetworkInterfaceStub() {
-    this.setStreamOptions = sinon.stub();
-    this.joinRoom = sinon.stub();
-    this.setDatachannelListeners = sinon.stub();
-    this.setLoginListeners = sinon.stub();
+  function MockNetworkAdapter() {
+    this.setServerUrl = sinon.stub();
+    this.setApp = sinon.stub();
+    this.setRoom = sinon.stub();
+    this.setWebRtcOptions = sinon.stub();
+
+    this.setServerConnectListeners = sinon.stub();
     this.setRoomOccupantListener = sinon.stub();
+    this.setMessageChannelListeners = sinon.stub();
+
     this.connect = sinon.stub();
-    this.sendData = sinon.stub();
-    this.sendDataGuaranteed = sinon.stub();
     this.shouldStartConnectionTo = sinon.stub();
     this.startStreamConnection = sinon.stub();
     this.closeStreamConnection = sinon.stub();
     this.getConnectStatus = sinon.stub();
+
+    this.sendData = sinon.stub();
+    this.sendDataGuaranteed = sinon.stub();
+    this.broadcastData = sinon.stub();
+    this.broadcastDataGuaranteed = sinon.stub();
   }
 
   setup(function() {
     entities = new NetworkEntitiesStub();
     connection = new NetworkConnection(entities);
-    connection.setNetworkInterface(new NetworkInterfaceStub());
+    adapter = new MockNetworkAdapter();
+    connection.setNetworkAdapter(adapter);
   });
 
   teardown(function() {
     NAF.clientId = '';
   });
 
-  suite('setupDefaultDCSubs', function() {
+  suite('setupDefaultMessageSubs', function() {
 
     test('subscribes to NetworkEntities DC callbacks', function() {
-      var actualSync = connection.dcSubscribers['u'];
-      var actualRemove = connection.dcSubscribers['r'];
+      var actualSync = connection.messageSubs['u'];
+      var actualRemove = connection.messageSubs['r'];
       assert.isOk(actualSync);
       assert.isOk(actualRemove);
     });
   });
 
-  suite('connect', function() {
+  suite('onConnect', function () {
 
-    test('calls correct webrtc interface calls, without audio', function() {
-      connection.connect('app1', 'room1', false);
-
-      assert.isTrue(connection.network.setStreamOptions.called);
-      assert.isTrue(connection.network.joinRoom.called);
-      assert.isTrue(connection.network.setDatachannelListeners.called);
-      assert.isTrue(connection.network.setLoginListeners.called);
-      assert.isTrue(connection.network.setRoomOccupantListener.called);
-      assert.isTrue(connection.network.connect.called);
-    });
-  });
-
-  suite('subscribeToLoginSuccess', function () {
-
-    test('callback is called immediately if already logged in', function() {
+    test('callback is called immediately if already connected', function() {
       var stub = sinon.stub();
 
-      connection.loginSuccess('test-id');
-      connection.onLogin(stub);
+      connection.connectSuccess('test-id');
+      connection.onConnect(stub);
 
       assert.isTrue(stub.called);
     });
 
-    test('callback is not called immediately if not logged in', function() {
+    test('callback is not called immediately if not connected', function() {
       var stub = sinon.stub();
 
-      connection.onLogin(stub);
+      connection.onConnect(stub);
 
       assert.isFalse(stub.called);
     });
 
-    test('callback is fired when logged in', function() {
+    test('callback is fired when connected', function() {
       var stub = sinon.stub();
 
-      connection.onLogin(stub);
+      connection.onConnect(stub);
       assert.isFalse(stub.called);
 
-      connection.loginSuccess('test-id');
+      connection.connectSuccess('test-id');
       assert.isTrue(stub.called);
     });
 
@@ -98,42 +93,42 @@ suite('NetworkConnection', function() {
       var stub = sinon.stub();
       var stub2 = sinon.stub();
 
-      connection.onLogin(stub);
-      connection.onLogin(stub2);
+      connection.onConnect(stub);
+      connection.onConnect(stub2);
       assert.isFalse(stub.called);
       assert.isFalse(stub2.called);
 
-      connection.loginSuccess('test-id');
+      connection.connectSuccess('test-id');
       assert.isTrue(stub.called);
       assert.isTrue(stub2.called);
     });
 
-    test('callback is not fired when logged in unsuccessful', function() {
+    test('callback is not fired when connecting in unsuccessful', function() {
       var stub = sinon.stub();
 
-      connection.onLogin(stub);
+      connection.onConnect(stub);
       assert.isFalse(stub.called);
 
-      connection.loginFailure('test-id');
+      connection.connectFailure('test-id');
       assert.isFalse(stub.called);
     });
   });
 
-  suite('loginSuccess', function() {
+  suite('connectSuccess', function() {
 
     test('setting client id', function() {
       var id = 'testId1';
 
-      connection.loginSuccess(id);
+      connection.connectSuccess(id);
 
       assert.isTrue(connection.isMineAndConnected(id));
     });
   });
 
-  suite('loginFailure', function() {
+  suite('connectFailure', function() {
 
     test('runs', function() {
-      connection.loginFailure(0, 'msg');
+      connection.connectFailure(0, 'msg');
     });
   });
 
@@ -142,7 +137,7 @@ suite('NetworkConnection', function() {
     test('updates connect list', function() {
       var occupants = { 'user1': true };
 
-      connection.occupantsReceived('room1', occupants, false);
+      connection.occupantsReceived(occupants);
 
       assert.equal(connection.connectedClients, occupants);
     });
@@ -151,33 +146,33 @@ suite('NetworkConnection', function() {
       connection.myRoomJoinTime = 1;
       var newClient = { roomJoinTime: 10 };
       var occupants = { 'user1': newClient };
-      connection.network.getConnectStatus
-          = sinon.stub().returns(NetworkInterface.NOT_CONNECTED);
-      connection.network.shouldStartConnectionTo
+      adapter.getConnectStatus
+          = sinon.stub().returns(NetworkAdapter.NOT_CONNECTED);
+      adapter.shouldStartConnectionTo
           = sinon.stub().returns(true);
 
-      connection.occupantsReceived('room1', occupants, false);
+      connection.occupantsReceived(occupants);
 
-      assert.isTrue(connection.network.startStreamConnection.called);
+      assert.isTrue(adapter.startStreamConnection.called);
     });
 
     test('older client joins and does not start call', function() {
       connection.myRoomJoinTime = 10;
       var olderClient = { roomJoinTime: 1 };
       var occupants = { 'user1': olderClient };
-      connection.network.getConnectStatus
-          = sinon.stub().returns(NetworkInterface.NOT_CONNECTED);
+      adapter.getConnectStatus
+          = sinon.stub().returns(NetworkAdapter.NOT_CONNECTED);
 
-      connection.occupantsReceived('room1', occupants, false);
+      connection.occupantsReceived(occupants);
 
-      assert.isFalse(connection.network.startStreamConnection.called);
+      assert.isFalse(adapter.startStreamConnection.called);
     });
   });
 
   suite('isMineAndConnected', function() {
     test('is my client id', function() {
       var testId = 'test1';
-      connection.loginSuccess(testId);
+      connection.connectSuccess(testId);
 
       var result = connection.isMineAndConnected(testId);
 
@@ -186,7 +181,7 @@ suite('NetworkConnection', function() {
 
     test('is not my client id', function() {
       var testId = 'test1';
-      connection.loginSuccess(testId);
+      connection.connectSuccess(testId);
 
       var result = connection.isMineAndConnected('wrong');
 
@@ -197,8 +192,8 @@ suite('NetworkConnection', function() {
   suite('isNewClient', function() {
     test('not connected', function() {
       var testId = 'test1';
-      connection.network.getConnectStatus
-          = sinon.stub().returns(NetworkInterface.NOT_CONNECTED);
+      adapter.getConnectStatus
+          = sinon.stub().returns(NetworkAdapter.NOT_CONNECTED);
 
       var result = connection.isNewClient(testId);
 
@@ -207,8 +202,8 @@ suite('NetworkConnection', function() {
 
     test('is connected', function() {
       var testId = 'test1';
-      connection.network.getConnectStatus
-          = sinon.stub().returns(NetworkInterface.IS_CONNECTED);
+      adapter.getConnectStatus
+          = sinon.stub().returns(NetworkAdapter.IS_CONNECTED);
 
       var result = connection.isNewClient(testId);
 
@@ -220,8 +215,8 @@ suite('NetworkConnection', function() {
 
     test('is connected', function() {
       var otherClientId = 'other';
-      var connected = NetworkInterface.IS_CONNECTED;
-      connection.network.getConnectStatus = sinon.stub().returns(connected);
+      var connected = NetworkAdapter.IS_CONNECTED;
+      adapter.getConnectStatus = sinon.stub().returns(connected);
 
       var result = connection.isConnectedTo(otherClientId);
 
@@ -230,8 +225,8 @@ suite('NetworkConnection', function() {
 
     test('is not connected', function() {
       var otherClientId = 'other';
-      var notConnected = NetworkInterface.NOT_CONNECTED;
-      connection.network.getConnectStatus = sinon.stub().returns(notConnected);
+      var notConnected = NetworkAdapter.NOT_CONNECTED;
+      adapter.getConnectStatus = sinon.stub().returns(notConnected);
 
       var result = connection.isConnectedTo(otherClientId);
 
@@ -239,15 +234,15 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('dcOpenListener', function() {
+  suite('messageChannelOpen', function() {
 
     test('connects and syncs', function() {
       var clientId = 'other';
 
-      connection.dcOpenListener(clientId);
+      connection.messageChannelOpen(clientId);
 
-      var dcIsConnected = connection.dcIsConnectedTo(clientId);
-      assert.isTrue(dcIsConnected);
+      var hasMessageChannel = connection.hasActiveMessageChannel(clientId);
+      assert.isTrue(hasMessageChannel);
       assert.isTrue(entities.completeSync.called);
     });
 
@@ -255,23 +250,23 @@ suite('NetworkConnection', function() {
       var clientId = 'correct';
       var wrongClientId = 'wrong';
 
-      connection.dcOpenListener(clientId);
+      connection.messageChannelOpen(clientId);
 
-      var dcIsConnected = connection.dcIsConnectedTo(wrongClientId);
-      assert.isFalse(dcIsConnected);
+      var hasMessageChannel = connection.hasActiveMessageChannel(wrongClientId);
+      assert.isFalse(hasMessageChannel);
       assert.isTrue(entities.completeSync.called);
     });
   });
 
-  suite('dcCloseListener', function() {
+  suite('messageChannelClosed', function() {
 
     test('connects and syncs', function() {
       var clientId = 'client';
 
-      connection.dcCloseListener(clientId);
+      connection.messageChannelClosed(clientId);
 
-      var dcIsConnected = connection.dcIsConnectedTo(clientId);
-      assert.isFalse(dcIsConnected);
+      var hasMessageChannel = connection.hasActiveMessageChannel(clientId);
+      assert.isFalse(hasMessageChannel);
       assert.isTrue(entities.removeEntitiesFromUser.called);
     });
 
@@ -279,64 +274,23 @@ suite('NetworkConnection', function() {
       var clientId = 'removeMe';
       var otherClientId = 'other';
 
-      connection.dcOpenListener(otherClientId);
-      connection.dcCloseListener(clientId);
+      connection.messageChannelOpen(otherClientId);
+      connection.messageChannelClosed(clientId);
 
-      var dcIsConnectedToOther = connection.dcIsConnectedTo(otherClientId);
-      assert.isTrue(dcIsConnectedToOther);
+      var hasMessageChannel = connection.hasActiveMessageChannel(otherClientId);
+      assert.isTrue(hasMessageChannel);
       assert.isTrue(entities.removeEntitiesFromUser.called);
     });
   });
 
-  suite('dcIsConnectedTo', function() {
-
-    test('is connected', function() {
-      var client = 'client';
-      connection.dcIsActive[client] = true;
-
-      var result = connection.dcIsConnectedTo(client);
-
-      assert.isTrue(result);
-    });
-
-    test('is not connected', function() {
-      var client = 'client';
-      connection.dcIsActive[client] = false;
-
-      var result = connection.dcIsConnectedTo(client);
-
-      assert.isFalse(result);
-    });
-
-    test('is not connected, has no key', function() {
-      var client = 'client';
-
-      var result = connection.dcIsConnectedTo(client);
-
-      assert.isFalse(result);
-    });
-  });
-
   suite('broadcastData', function() {
-    test('sends data to each client', function() {
+
+    test('broadcast data to adapter', function() {
       var data = {things:true};
-      var clients = { 'c1': {}, 'c2': {}, 'c3': {} };
-      sinon.stub(connection, 'sendData');
-      connection.connectedClients = clients;
 
       connection.broadcastData('s', data);
 
-      assert.isTrue(connection.sendData.calledWith('c1', 's', data));
-      assert.isTrue(connection.sendData.calledWith('c2', 's', data));
-      assert.isTrue(connection.sendData.calledWith('c3', 's', data));
-    });
-
-    test('no connected clients', function() {
-      var data = {things:true};
-      sinon.spy(connection, 'sendData');
-      connection.broadcastData('s', data);
-
-      assert.isFalse(connection.sendData.called);
+      assert.isTrue(adapter.broadcastData.calledWith('s', data));
     });
   });
 
@@ -344,13 +298,10 @@ suite('NetworkConnection', function() {
 
     test('sends guaranteed data to each client', function() {
       var data = {things:true};
-      var clients = { 'c1': {}, 'c2': {}, 'c3': {} };
-      sinon.stub(connection, 'broadcastData');
-      connection.connectList = clients;
 
       connection.broadcastDataGuaranteed('s', data);
 
-      assert.isTrue(connection.broadcastData.calledWith('s', data, true));
+      assert.isTrue(adapter.broadcastDataGuaranteed.calledWith('s', data));
     });
   });
 
@@ -360,36 +311,36 @@ suite('NetworkConnection', function() {
       var clientId = 'client1';
       var dataType = 's';
       var data = {};
-      sinon.stub(connection, 'dcIsConnectedTo').returns(true);
+      sinon.stub(connection, 'hasActiveMessageChannel').returns(true);
 
       connection.sendData(clientId, dataType, data, false);
 
-      assert.isFalse(connection.network.sendDataGuaranteed.called);
-      assert.isTrue(connection.network.sendData.calledWith(clientId, dataType, data));
+      assert.isFalse(adapter.sendDataGuaranteed.called);
+      assert.isTrue(adapter.sendData.calledWith(clientId, dataType, data));
     });
 
     test('is connected, guaranteed', function() {
       var clientId = 'client1';
       var dataType = 's';
       var data = {};
-      sinon.stub(connection, 'dcIsConnectedTo').returns(true);
+      sinon.stub(connection, 'hasActiveMessageChannel').returns(true);
 
       connection.sendData(clientId, dataType, data, true);
 
-      assert.isFalse(connection.network.sendData.called);
-      assert.isTrue(connection.network.sendDataGuaranteed.calledWith(clientId, dataType, data));
+      assert.isFalse(adapter.sendData.called);
+      assert.isTrue(adapter.sendDataGuaranteed.calledWith(clientId, dataType, data));
     });
 
     test('not connected', function() {
       var clientId = 'client1';
       var dataType = 's';
       var data = {};
-      sinon.stub(connection, 'dcIsConnectedTo').returns(false);
+      sinon.stub(connection, 'hasActiveMessageChannel').returns(false);
 
       connection.sendData(clientId, dataType, data);
 
-      assert.isFalse(connection.network.sendData.called);
-      assert.isFalse(connection.network.sendDataGuaranteed.called);
+      assert.isFalse(adapter.sendData.called);
+      assert.isFalse(adapter.sendDataGuaranteed.called);
     });
   });
 
@@ -399,7 +350,7 @@ suite('NetworkConnection', function() {
       var clientId = 'client1';
       var dataType = 's';
       var data = {};
-      sinon.stub(connection, 'dcIsConnectedTo').returns(true);
+      sinon.stub(connection, 'hasActiveMessageChannel').returns(true);
       sinon.spy(connection, 'sendData');
 
       connection.sendDataGuaranteed(clientId, dataType, data);
@@ -408,50 +359,50 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('subscribeToDataChannel', function() {
+  suite('subscribeToMessage', function() {
 
     test('is added to datachannel subscribers', function() {
       var dataType = 'method1';
       var callback = function() { return 'callback' };
 
-      connection.subscribeToDataChannel(dataType, callback);
+      connection.subscribeToMessage(dataType, callback);
 
-      var actual = connection.dcSubscribers[dataType];
+      var actual = connection.messageSubs[dataType];
       assert.deepEqual(actual, callback);
     });
   });
 
-  suite('unsubscribeFromDataChannel', function() {
+  suite('unsubscribeFromMessage', function() {
 
     test('is removed from datachannel subscribers', function() {
       var dataType = 'method1';
       var callback = function() { return 'callback' };
-      connection.dcSubscribers[dataType] = callback;
+      connection.messageSubs[dataType] = callback;
 
-      connection.unsubscribeFromDataChannel(dataType);
+      connection.unsubscribeFromMessage(dataType);
 
-      assert.isFalse(connection.dcSubscribers.hasOwnProperty(dataType));
+      assert.isFalse(connection.messageSubs.hasOwnProperty(dataType));
     });
   });
 
-  suite('receiveDataChannelMessage', function() {
+  suite('receivedMessage', function() {
 
     test('sync entity', function() {
-      connection.receiveDataChannelMessage('client', 'u', {testData:true});
+      connection.receivedMessage('client', 'u', {testData:true});
 
       assert.isTrue(entities.updateEntity.called);
       assert.isFalse(entities.removeEntity.called);
     });
 
     test('remove entity', function() {
-      connection.receiveDataChannelMessage('client', 'r', {testData:true});
+      connection.receivedMessage('client', 'r', {testData:true});
 
       assert.isFalse(entities.updateEntity.called);
       assert.isTrue(entities.removeRemoteEntity.called);
     });
 
     test('unknown msg type', function() {
-      connection.receiveDataChannelMessage('client', 'unknown', {testData:true});
+      connection.receivedMessage('client', 'unknown', {testData:true});
 
       assert.isFalse(entities.updateEntity.called);
       assert.isFalse(entities.removeEntity.called);
@@ -461,9 +412,9 @@ suite('NetworkConnection', function() {
       var dataType = 'method1';
       var stub = sinon.stub();
       var data = { test: true };
-      connection.subscribeToDataChannel(dataType, stub);
+      connection.subscribeToMessage(dataType, stub);
 
-      connection.receiveDataChannelMessage('client1', dataType, data);
+      connection.receivedMessage('client1', dataType, data);
 
       assert.isTrue(stub.calledWith('client1', dataType, data));
     });
@@ -472,7 +423,7 @@ suite('NetworkConnection', function() {
   suite('isConnected', function() {
 
     test('true when connected', function() {
-      connection.loginSuccess('testid2');
+      connection.connectSuccess('testid2');
 
       var result = connection.isConnected();
 

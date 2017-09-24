@@ -18,8 +18,31 @@ suite('networked', function() {
     naf.utils.whenEntityLoaded(scene, done);
   }
 
+  function MockNetworkAdapter() {
+    this.setServerUrl = sinon.stub();
+    this.setApp = sinon.stub();
+    this.setRoom = sinon.stub();
+    this.setWebRtcOptions = sinon.stub();
+
+    this.setServerConnectListeners = sinon.stub();
+    this.setRoomOccupantListener = sinon.stub();
+    this.setMessageChannelListeners = sinon.stub();
+
+    this.connect = sinon.stub();
+    this.shouldStartConnectionTo = sinon.stub();
+    this.startStreamConnection = sinon.stub();
+    this.closeStreamConnection = sinon.stub();
+    this.getConnectStatus = sinon.stub();
+
+    this.sendData = sinon.stub();
+    this.sendDataGuaranteed = sinon.stub();
+    this.broadcastData = sinon.stub();
+    this.broadcastDataGuaranteed = sinon.stub();
+  }
+
   setup(function(done) {
     naf.options.compressSyncPackets = false;
+    naf.connection.setNetworkAdapter(new MockNetworkAdapter());
     initScene(function() {
       entity = document.querySelector('#test-entity');
       networked = entity.components['networked'];
