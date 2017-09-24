@@ -144,7 +144,7 @@ suite('NetworkConnection', function() {
 
       connection.occupantsReceived('room1', occupants, false);
 
-      assert.equal(connection.connectList, occupants);
+      assert.equal(connection.connectedClients, occupants);
     });
 
     test('newer client joins and starts call', function() {
@@ -322,7 +322,7 @@ suite('NetworkConnection', function() {
       var data = {things:true};
       var clients = { 'c1': {}, 'c2': {}, 'c3': {} };
       sinon.stub(connection, 'sendData');
-      connection.connectList = clients;
+      connection.connectedClients = clients;
 
       connection.broadcastData('s', data);
 

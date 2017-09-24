@@ -1,18 +1,16 @@
 var naf = require('../NafIndex');
-
-var EasyRtcInterface = require('../network_interfaces/EasyRtcInterface');
-var WebSocketEasyRtcInterface = require('../network_interfaces/WebSocketEasyRtcInterface');
+var adapterFactory = require('../adapters/AdapterFactory');
 
 AFRAME.registerComponent('networked-scene', {
   schema: {
+    serverURL: {default: '/'},
     app: {default: 'default'},
     room: {default: 'default'},
     connectOnLoad: {default: true},
-    signalURL: {default: '/'},
     onConnect: {default: 'onConnect'},
-    webrtc: {default: false},
-    webrtcAudio: {default: false},
-    debug: {default: false}
+    adapter: {default: 'wsEasyRtc'}, // See src/adapters/AdapterFactory.js for list of adapters
+    audio: {default: false}, // Only if adapter supports audio
+    debug: {default: false},
   },
 
   init: function() {
@@ -31,33 +29,22 @@ AFRAME.registerComponent('networked-scene', {
     NAF.log.write('Networked-Aframe Connecting...');
 
     this.checkDeprecatedProperties();
-    this.setupNetworkInterface();
+    this.setupNetworkAdapter();
 
     if (this.hasOnConnectFunction()) {
       this.callOnConnect();
     }
-    NAF.connection.connect(this.data.app, this.data.room, this.data.webrtcAudio);
+    NAF.connection.connect(this.data.serverUrl, this.data.app, this.data.room, this.data.audio);
   },
 
   checkDeprecatedProperties: function() {
     // No current
   },
 
-  setupNetworkInterface: function() {
-    var networkInterface;
-    if (this.data.webrtc) {
-      var easyRtcInterface = new EasyRtcInterface(easyrtc);
-      easyRtcInterface.setSignalUrl(this.data.signalURL);
-      networkInterface = easyRtcInterface;
-    } else {
-      var websocketInterface = new WebSocketEasyRtcInterface(easyrtc);
-      websocketInterface.setSignalUrl(this.data.signalURL);
-      networkInterface = websocketInterface;
-      if (this.data.webrtcAudio) {
-        NAF.log.error('networked-scene: webrtcAudio option will only be used if webrtc is set to true. webrtc is currently false');
-      }
-    }
-    NAF.connection.setNetworkInterface(networkInterface);
+  setupNetworkAdapter: function() {
+    var adapterName = this.data.adapter;
+    var adapter = adapterFactory.make(adapterName);
+    NAF.connection.setNetworkAdapter(adapter);
   },
 
   hasOnConnectFunction: function() {

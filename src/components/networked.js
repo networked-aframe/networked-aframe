@@ -16,13 +16,14 @@ AFRAME.registerComponent('networked', {
     var data = this.data;
     var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
-    this.onLoggedIn = bind(this.onLoggedIn, this);
+    this.onConnected = bind(this.onConnected, this);
     this.syncAll = bind(this.syncAll, this);
     this.syncDirty = bind(this.syncDirty, this);
     this.networkUpdateHandler = bind(this.networkUpdateHandler, this);
 
     this.cachedData = {};
     this.initNetworkParent();
+
     this.initPhysics();
     this.hasSentFirstSync = false;
 
@@ -43,7 +44,7 @@ AFRAME.registerComponent('networked', {
     }
 
     if (this.data.owner === '') {
-      this.checkLoggedIn();
+      this.checkConnected();
     }
   },
 
@@ -81,7 +82,7 @@ AFRAME.registerComponent('networked', {
 
   registerEntity: function(networkId) {
     NAF.entities.registerEntity(networkId, this.el);
-  },
+  }
 
   initTemplate: function() {
     var data = this.data;
@@ -158,20 +159,19 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  checkLoggedIn: function() {
+  checkConnected: function() {
     if (NAF.clientId) {
-      this.onLoggedIn();
+      this.onConnected();
     } else {
-      this.listenForLoggedIn();
+      this.listenForConnected();
     }
   },
 
-  listenForLoggedIn: function() {
-    document.body.addEventListener('loggedIn', this.onLoggedIn, false);
+  listenForConnected: function() {
+    document.body.addEventListener('connected', this.onConnected.bind(this), false);
   },
 
-  onLoggedIn: function() {
-    // console.error('setting el', this.data.networkId, 'to owner', NAF.clientId);
+  onConnected: function() {
     this.data.owner = NAF.clientId;
     this.syncAll();
   },
@@ -322,9 +322,11 @@ AFRAME.registerComponent('networked', {
       }
       this.initPhysics();
     }
+
     if (this.hasPhysics()) {
       this.physics.networkUpdate(entityData);
     }
+    
     this.updateComponents(entityData.components);
   },
 

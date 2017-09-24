@@ -1,81 +1,91 @@
-var NetworkInterface = require('./network_interfaces/NetworkInterface');
+var INetworkAdapter = require('./adapters/INetworkAdapter');
+
+var ReservedMessage = { Update: 'u', Remove: 'r' };
 
 class NetworkConnection {
 
   constructor(networkEntities) {
     this.entities = networkEntities;
-    this.setupDefaultDCSubs();
+    this.setupDefaultMessageSubs();
 
-    this.connectList = {};
-    this.dcIsActive = {};
+    this.connectedClients = {};
+    this.activeMessageChannels = {};
 
-    this.loggedIn = false;
-    this.onLoggedInEvent = new Event('loggedIn');
+    this.connected = false;
+    this.onConnectedEvent = new Event('connected');
     this.onPeerConnectedEvent = new Event('clientConnected');
     this.onPeerDisconnectedEvent = new Event('clientDisconnected');
     this.onDCOpenEvent = new Event('dataChannelOpened');
     this.onDCCloseEvent = new Event('dataChannelClosed');
   }
 
-  setNetworkInterface(network) {
-    this.network = network;
+  setNetworkAdapter(adapter) {
+    this.adapter = adapter;
   }
 
-  setupDefaultDCSubs() {
-    this.dcSubscribers = {
-      'u': this.entities.updateEntity.bind(this.entities),
-      'r': this.entities.removeRemoteEntity.bind(this.entities)
-    };
+  setupDefaultMessageSubs() {
+    this.messageSubs = {};
+
+    this.messageSubs[ReservedMessage.Update]
+        = this.entities.updateEntity.bind(this.entities);
+
+    this.messageSubs[ReservedMessage.Remove]
+        = this.entities.removeRemoteEntity.bind(this.entities);
   }
 
-  connect(appId, roomId, enableAudio = false) {
-    NAF.app = appId;
-    NAF.room = roomId;
+  connect(serverUrl, appName, roomName, enableAudio = false) {
+    NAF.app = appName;
+    NAF.room = roomName;
 
-    var streamOptions = {
+    this.adapter.setServerUrl(serverUrl);
+    this.adapter.setApp(appName);
+    this.adapter.setRoom(roomName);
+
+    var webrtcOptions = {
       audio: enableAudio,
       video: false,
       datachannel: true
     };
-    this.network.setStreamOptions(streamOptions);
-    this.network.setDatachannelListeners(
-        this.dcOpenListener.bind(this),
-        this.dcCloseListener.bind(this),
-        this.receiveDataChannelMessage.bind(this)
+    this.adapter.setWebRtcOptions(webrtcOptions);
+
+    this.adapter.setServerConnectListeners(
+      this.connectSuccess.bind(this),
+      this.connectFailure.bind(this)
     );
-    this.network.setLoginListeners(
-        this.loginSuccess.bind(this),
-        this.loginFailure.bind(this)
+    this.adapter.setMessageChannelListeners(
+      this.messageChannelOpen.bind(this),
+      this.messageChannelClosed.bind(this),
+      this.receivedMessage.bind(this)
     );
-    this.network.setRoomOccupantListener(this.occupantsReceived.bind(this));
-    this.network.joinRoom(roomId);
-    this.network.connect(appId);
+    this.adapter.setRoomOccupantListener(this.occupantsReceived.bind(this));
+
+    this.adapter.connect();
   }
 
   onLogin(callback) {
-    if (this.loggedIn) {
+    if (this.connected) {
       callback();
     } else {
-      document.body.addEventListener('loggedIn', callback, false);
+      document.body.addEventListener('connected', callback, false);
     }
   }
 
-  loginSuccess(clientId) {
+  connectSuccess(clientId) {
     NAF.log.write('Networked-Aframe Client ID:', clientId);
     NAF.clientId = clientId;
-    this.loggedIn = true;
+    this.connected = true;
 
-    document.body.dispatchEvent(this.onLoggedInEvent);
+    document.body.dispatchEvent(this.onConnectedEvent);
   }
 
-  loginFailure(errorCode, message) {
+  connectFailure(errorCode, message) {
     NAF.log.error(errorCode, "failure to login");
-    this.loggedIn = false;
+    this.connected = false;
   }
 
-  occupantsReceived(roomName, occupantList, isPrimary) {
-    this.checkForDisconnectingClients(this.connectList, occupantList);
-    this.connectList = occupantList;
+  occupantsReceived(occupantList) {
+    this.checkForDisconnectingClients(this.connectedClients, occupantList);
+    this.connectedClients = occupantList;
     this.checkForConnectingClients(occupantList);
   }
 
@@ -84,7 +94,7 @@ class NetworkConnection {
       var clientFound = newOccupantList.hasOwnProperty(id);
       if (!clientFound) {
         NAF.log.write('Closing stream to ', id);
-        this.network.closeStreamConnection(id);
+        this.adapter.closeStreamConnection(id);
         document.body.dispatchEvent(this.onPeerDisconnectedEvent);
       }
     }
@@ -92,21 +102,25 @@ class NetworkConnection {
 
   checkForConnectingClients(occupantList) {
     for (var id in occupantList) {
-      var startConnection = this.isNewClient(id) && this.network.shouldStartConnectionTo(occupantList[id]);
+      var startConnection = this.isNewClient(id) && this.adapter.shouldStartConnectionTo(occupantList[id]);
       if (startConnection) {
         NAF.log.write('Opening stream to ', id);
-        this.network.startStreamConnection(id);
+        this.adapter.startStreamConnection(id);
         document.body.dispatchEvent(this.onPeerConnectedEvent);
       }
     }
   }
 
-  isConnected() {
-    return this.loggedIn;
+  getConnectedClients() {
+    return this.connectedClients;
   }
 
-  isMineAndConnected(id) {
-    return NAF.clientId == id;
+  isConnected() {
+    return this.connected;
+  }
+
+  isMineAndConnected(client) {
+    return NAF.clientId == client;
   }
 
   isNewClient(client) {
@@ -114,74 +128,77 @@ class NetworkConnection {
   }
 
   isConnectedTo(client) {
-    return this.network.getConnectStatus(client) === NetworkInterface.IS_CONNECTED;
+    return this.adapter.getConnectStatus(client) === INetworkAdapter.IS_CONNECTED;
   }
 
-  dcOpenListener(id) {
-    NAF.log.write('Opened data channel from ' + id);
-    this.dcIsActive[id] = true;
+  messageChannelOpen(client) {
+    NAF.log.write('Opened message channel from ' + client);
+    this.activeMessageChannels[client] = true;
     this.entities.completeSync();
     document.body.dispatchEvent(this.onDCOpenEvent);
   }
 
-  dcCloseListener(id) {
-    NAF.log.write('Closed data channel from ' + id);
-    this.dcIsActive[id] = false;
-    this.entities.removeEntitiesFromUser(id);
+  messageChannelClosed(client) {
+    NAF.log.write('Closed message channel from ' + client);
+    this.activeMessageChannels[client] = false;
+    this.entities.removeEntitiesFromUser(client);
     document.body.dispatchEvent(this.onDCCloseEvent);
   }
 
-  dcIsConnectedTo(user) {
-    return this.dcIsActive.hasOwnProperty(user) && this.dcIsActive[user];
+  hasActiveMessageChannel(client) {
+    return this.activeMessageChannels.hasOwnProperty(client) && this.activeMessageChannels[client];
   }
 
-  broadcastData(dataType, data, guaranteed) {
-    for (var id in this.connectList) {
-      this.sendData(id, dataType, data, guaranteed);
-    }
+  broadcastData(msgType, msg) {
+    this.adapter.broadcastData(msgType, msg);
   }
 
-  broadcastDataGuaranteed(dataType, data) {
-    this.broadcastData(dataType, data, true);
+  broadcastDataGuaranteed(msgType, msg) {
+    this.adapter.broadcastDataGuaranteed(msgType, msg);
   }
 
-  sendData(toClient, dataType, data, guaranteed) {
-    if (this.dcIsConnectedTo(toClient)) {
+  sendData(toClient, msgType, msg, guaranteed) {
+    if (this.hasActiveMessageChannel(toClient)) {
       if (guaranteed) {
-        this.network.sendDataGuaranteed(toClient, dataType, data);
+        this.adapter.sendDataGuaranteed(toClient, msgType, msg);
       } else {
-        this.network.sendData(toClient, dataType, data);
+        this.adapter.sendData(toClient, msgType, msg);
       }
     } else {
       // console.error("NOT-CONNECTED", "not connected to " + toClient);
     }
   }
 
-  sendDataGuaranteed(toClient, dataType, data) {
-    this.sendData(toClient, dataType, data, true);
+  sendDataGuaranteed(toClient, msgType, msg) {
+    this.sendData(toClient, msgType, msg, true);
   }
 
-  subscribeToDataChannel(dataType, callback) {
-    if (dataType == 'u' || dataType == 'r') {
-      NAF.log.error('NetworkConnection@subscribeToDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
+  subscribeToMessage(msgType, callback) {
+    if (this.isReservedMessage(msgType)) {
+      NAF.log.error('NetworkConnection@subscribeToMessage: ' + msgType + ' is a reserved msgType. Choose another');
       return;
     }
-    this.dcSubscribers[dataType] = callback;
+    this.messageSubs[msgType] = callback;
   }
 
-  unsubscribeFromDataChannel(dataType) {
-    if (dataType == 'u' || dataType == 'r') {
-      NAF.log.error('NetworkConnection@unsubscribeFromDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
+  unsubscribeFromMessage(msgType) {
+    if (this.isReservedMessage(msgType)) {
+      NAF.log.error('NetworkConnection@unsubscribeFromMessage: ' + msgType + ' is a reserved msgType. Choose another');
       return;
     }
-    delete this.dcSubscribers[dataType];
+    delete this.messageSubs[msgType];
   }
 
-  receiveDataChannelMessage(fromClient, dataType, data) {
-    if (this.dcSubscribers.hasOwnProperty(dataType)) {
-      this.dcSubscribers[dataType](fromClient, dataType, data);
+  isReservedMessage(msgType) {
+    return msgType == ReservedMessage.Update
+        || msgType == ReservedMessage.Remove;
+  }
+
+  receivedMessage(fromClient, msgType, msg) {
+    if (this.messageSubs.hasOwnProperty(msgType)) {
+      this.messageSubs[msgType](fromClient, msgType, msg);
     } else {
-      NAF.log.error('NetworkConnection@receiveDataChannelMessage: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
+      NAF.log.error('NetworkConnection@receivedMessage: ' + msgType + ' has not been subscribed to yet. Call subscribeToMessage()');
     }
   }
 }
