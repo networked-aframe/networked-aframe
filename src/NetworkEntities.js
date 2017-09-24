@@ -112,9 +112,15 @@ class NetworkEntities {
 
     if (this.hasEntity(networkId)) {
       this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
-    } else if (!isCompressed) {
+    } else if (!isCompressed && this.isFullSync(entityData)) {
       this.receiveFirstUpdateFromEntity(entityData);
     }
+  }
+
+  isFullSync(entityData) {
+    var numSentComps = Object.keys(entityData.components).length;
+    var numTemplateComps = NAF.schemas.getComponents(entityData.template).length;
+    return numSentComps === numTemplateComps;
   }
 
   receiveFirstUpdateFromEntity(entityData) {

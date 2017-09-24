@@ -23,9 +23,7 @@ AFRAME.registerComponent('networked', {
 
     this.cachedData = {};
     this.initNetworkParent();
-
     this.initPhysics();
-    this.hasSentFirstSync = false;
 
     if (data.networkId === '') {
       data.networkId = NAF.utils.createNetworkId();
@@ -222,13 +220,9 @@ AFRAME.registerComponent('networked', {
     NAF.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData, NAF.clientId);
     this.updateCache(components);
-    this.hasSentFirstSync = true;
   },
 
   syncDirty: function() {
-    if (!this.hasSentFirstSync) {
-      return;
-    }
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
     var dirtyComps = componentHelper.findDirtyComponents(this.el, syncedComps, this.cachedData);
