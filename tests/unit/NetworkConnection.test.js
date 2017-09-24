@@ -50,11 +50,11 @@ suite('NetworkConnection', function() {
     NAF.clientId = '';
   });
 
-  suite('setupDefaultMessageSubs', function() {
+  suite('setupDefaultDataSubscriptions', function() {
 
     test('subscribes to NetworkEntities DC callbacks', function() {
-      var actualSync = connection.messageSubs['u'];
-      var actualRemove = connection.messageSubs['r'];
+      var actualSync = connection.dataChannelSubs['u'];
+      var actualRemove = connection.dataChannelSubs['r'];
       assert.isOk(actualSync);
       assert.isOk(actualRemove);
     });
@@ -241,7 +241,7 @@ suite('NetworkConnection', function() {
 
       connection.dataChannelOpen(clientId);
 
-      var hasMessageChannel = connection.hasActiveMessageChannel(clientId);
+      var hasMessageChannel = connection.hasActiveDataChannel(clientId);
       assert.isTrue(hasMessageChannel);
       assert.isTrue(entities.completeSync.called);
     });
@@ -252,7 +252,7 @@ suite('NetworkConnection', function() {
 
       connection.dataChannelOpen(clientId);
 
-      var hasMessageChannel = connection.hasActiveMessageChannel(wrongClientId);
+      var hasMessageChannel = connection.hasActiveDataChannel(wrongClientId);
       assert.isFalse(hasMessageChannel);
       assert.isTrue(entities.completeSync.called);
     });
@@ -265,7 +265,7 @@ suite('NetworkConnection', function() {
 
       connection.dataChannelClosed(clientId);
 
-      var hasMessageChannel = connection.hasActiveMessageChannel(clientId);
+      var hasMessageChannel = connection.hasActiveDataChannel(clientId);
       assert.isFalse(hasMessageChannel);
       assert.isTrue(entities.removeEntitiesFromClient.called);
     });
@@ -277,7 +277,7 @@ suite('NetworkConnection', function() {
       connection.dataChannelOpen(otherClientId);
       connection.dataChannelClosed(clientId);
 
-      var hasMessageChannel = connection.hasActiveMessageChannel(otherClientId);
+      var hasMessageChannel = connection.hasActiveDataChannel(otherClientId);
       assert.isTrue(hasMessageChannel);
       assert.isTrue(entities.removeEntitiesFromClient.called);
     });
@@ -311,7 +311,7 @@ suite('NetworkConnection', function() {
       var clientId = 'client1';
       var dataType = 's';
       var data = {};
-      sinon.stub(connection, 'hasActiveMessageChannel').returns(true);
+      sinon.stub(connection, 'hasActiveDataChannel').returns(true);
 
       connection.sendData(clientId, dataType, data, false);
 
@@ -323,7 +323,7 @@ suite('NetworkConnection', function() {
       var clientId = 'client1';
       var dataType = 's';
       var data = {};
-      sinon.stub(connection, 'hasActiveMessageChannel').returns(true);
+      sinon.stub(connection, 'hasActiveDataChannel').returns(true);
 
       connection.sendData(clientId, dataType, data, true);
 
@@ -335,7 +335,7 @@ suite('NetworkConnection', function() {
       var clientId = 'client1';
       var dataType = 's';
       var data = {};
-      sinon.stub(connection, 'hasActiveMessageChannel').returns(false);
+      sinon.stub(connection, 'hasActiveDataChannel').returns(false);
 
       connection.sendData(clientId, dataType, data);
 
@@ -350,7 +350,7 @@ suite('NetworkConnection', function() {
       var clientId = 'client1';
       var dataType = 's';
       var data = {};
-      sinon.stub(connection, 'hasActiveMessageChannel').returns(true);
+      sinon.stub(connection, 'hasActiveDataChannel').returns(true);
       sinon.spy(connection, 'sendData');
 
       connection.sendDataGuaranteed(clientId, dataType, data);
@@ -367,7 +367,7 @@ suite('NetworkConnection', function() {
 
       connection.subscribeToDataChannel(dataType, callback);
 
-      var actual = connection.messageSubs[dataType];
+      var actual = connection.dataChannelSubs[dataType];
       assert.deepEqual(actual, callback);
     });
   });
@@ -377,32 +377,32 @@ suite('NetworkConnection', function() {
     test('is removed from datachannel subscribers', function() {
       var dataType = 'method1';
       var callback = function() { return 'callback' };
-      connection.messageSubs[dataType] = callback;
+      connection.dataChannelSubs[dataType] = callback;
 
       connection.unsubscribeFromDataChannel(dataType);
 
-      assert.isFalse(connection.messageSubs.hasOwnProperty(dataType));
+      assert.isFalse(connection.dataChannelSubs.hasOwnProperty(dataType));
     });
   });
 
-  suite('receivedMessage', function() {
+  suite('receivedData', function() {
 
     test('sync entity', function() {
-      connection.receivedMessage('client', 'u', {testData:true});
+      connection.receivedData('client', 'u', {testData:true});
 
       assert.isTrue(entities.updateEntity.called);
       assert.isFalse(entities.removeEntity.called);
     });
 
     test('remove entity', function() {
-      connection.receivedMessage('client', 'r', {testData:true});
+      connection.receivedData('client', 'r', {testData:true});
 
       assert.isFalse(entities.updateEntity.called);
       assert.isTrue(entities.removeRemoteEntity.called);
     });
 
     test('unknown msg type', function() {
-      connection.receivedMessage('client', 'unknown', {testData:true});
+      connection.receivedData('client', 'unknown', {testData:true});
 
       assert.isFalse(entities.updateEntity.called);
       assert.isFalse(entities.removeEntity.called);
@@ -414,7 +414,7 @@ suite('NetworkConnection', function() {
       var data = { test: true };
       connection.subscribeToDataChannel(dataType, stub);
 
-      connection.receivedMessage('client1', dataType, data);
+      connection.receivedData('client1', dataType, data);
 
       assert.isTrue(stub.calledWith('client1', dataType, data));
     });
