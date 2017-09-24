@@ -12,11 +12,6 @@ class NetworkConnection {
     this.activeDataChannels = {};
 
     this.connected = false;
-    this.onConnectedEvent = new Event('connected');
-    this.onPeerConnectedEvent = new Event('clientConnected');
-    this.onPeerDisconnectedEvent = new Event('clientDisconnected');
-    this.onDCOpenEvent = new Event('dataChannelOpened');
-    this.onDCCloseEvent = new Event('dataChannelClosed');
   }
 
   setNetworkAdapter(adapter) {
@@ -75,11 +70,12 @@ class NetworkConnection {
     NAF.clientId = clientId;
     this.connected = true;
 
-    document.body.dispatchEvent(this.onConnectedEvent);
+    var evt = new CustomEvent('connected', {'detail': { clientId: clientId }});
+    document.body.dispatchEvent(evt);
   }
 
   connectFailure(errorCode, message) {
-    NAF.log.error(errorCode, "failure to login");
+    NAF.log.error(errorCode, "failure to connect");
     this.connected = false;
   }
 
@@ -95,18 +91,17 @@ class NetworkConnection {
       if (!clientFound) {
         NAF.log.write('Closing stream to ', id);
         this.adapter.closeStreamConnection(id);
-        document.body.dispatchEvent(this.onPeerDisconnectedEvent);
       }
     }
   }
 
+  // Some adapters will handle this internally
   checkForConnectingClients(occupantList) {
     for (var id in occupantList) {
       var startConnection = this.isNewClient(id) && this.adapter.shouldStartConnectionTo(occupantList[id]);
       if (startConnection) {
-        NAF.log.write('Opening stream to ', id);
+        NAF.log.write('Opening datachannel to ', id);
         this.adapter.startStreamConnection(id);
-        document.body.dispatchEvent(this.onPeerConnectedEvent);
       }
     }
   }
@@ -135,14 +130,18 @@ class NetworkConnection {
     NAF.log.write('Opened data channel from ' + clientId);
     this.activeDataChannels[clientId] = true;
     this.entities.completeSync();
-    document.body.dispatchEvent(this.onDCOpenEvent);
+
+    var evt = new CustomEvent('clientConnected', {detail: {clientId: clientId}});
+    document.body.dispatchEvent(evt);
   }
 
   dataChannelClosed(clientId) {
     NAF.log.write('Closed data channel from ' + clientId);
     this.activeDataChannels[clientId] = false;
-    this.entities.removeEntitiesFromClient(clientId);
-    document.body.dispatchEvent(this.onDCCloseEvent);
+    this.entities.removeEntitiesOfClient(clientId);
+
+    var evt = new CustomEvent('clientDisconnected', {detail: {clientId: clientId}});
+    document.body.dispatchEvent(evt);
   }
 
   hasActiveDataChannel(clientId) {

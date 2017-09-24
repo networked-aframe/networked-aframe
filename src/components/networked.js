@@ -44,6 +44,8 @@ AFRAME.registerComponent('networked', {
     if (this.data.owner === '') {
       this.checkConnected();
     }
+
+    document.body.dispatchEvent(this.entityCreatedEvent());
   },
 
   wasCreatedByNetwork: function() {
@@ -391,5 +393,14 @@ AFRAME.registerComponent('networked', {
       var syncData = { networkId: this.data.networkId };
       NAF.connection.broadcastDataGuaranteed('r', syncData);
     }
+    document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
+  },
+
+  entityCreatedEvent() {
+    return new CustomEvent('entityCreated', {detail: {el: this.el}});
+  },
+
+  entityRemovedEvent(networkId) {
+    return new CustomEvent('entityRemoved', {detail: {networkId: networkId}});
   },
 });

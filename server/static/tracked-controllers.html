@@ -15,7 +15,7 @@
 
     <script>
       // Define custom schema for syncing avatar color, set by random-color
-      var headSchema = {
+      NAF.schemas.add({
         template: '#head-template',
         components: [
           'position',
@@ -25,8 +25,7 @@
             component: 'material'
           }
         ]
-      };
-      NAF.schemas.add(headSchema);
+      });
 
       // Called by Networked-Aframe when connected to server
       function onConnect () {

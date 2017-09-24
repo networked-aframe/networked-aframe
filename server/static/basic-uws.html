@@ -13,7 +13,7 @@
 
     <script>
       // Define custom schema for syncing avatar color, set by random-color
-      var avatarSchema = {
+      NAF.schemas.add({
         template: '#avatar-template',
         components: [
           'position',
@@ -23,8 +23,7 @@
             component: 'material'
           }
         ]
-      };
-      NAF.schemas.add(avatarSchema);
+      });
     </script>
   </head>
   <body>
@@ -33,7 +32,7 @@
       room: basic;
       debug: true;
       adapter: uws;
-      serverUrl: ws://localhost:8080;
+      serverURL: ws://localhost:8080;
     ">
       <a-assets>
 

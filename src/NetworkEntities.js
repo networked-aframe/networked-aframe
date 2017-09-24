@@ -164,11 +164,6 @@ class NetworkEntities {
   addEntityToSceneRoot(el) {
     var scene = document.querySelector('a-scene');
     scene.appendChild(el);
-    document.body.dispatchEvent(this.newRemoteEntityCreatedEvent(el));
-  }
-
-  newRemoteEntityCreatedEvent(el) {
-    return new CustomEvent('remoteEntityCreated', { detail: {el : el} });
   }
 
   completeSync() {
@@ -184,7 +179,7 @@ class NetworkEntities {
     return this.removeEntity(id);
   }
 
-  removeEntitiesFromClient(clientId) {
+  removeEntitiesOfClient(clientId) {
     var entityList = [];
     for (var id in this.entities) {
       var entityOwner = NAF.utils.getNetworkOwner(this.entities[id]);

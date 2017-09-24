@@ -13,7 +13,7 @@
 
     <script>
       // Define custom schema for syncing avatar color, set by random-color
-      var avatarSchema = {
+      NAF.schemas.add({
         template: '#avatar-template',
         components: [
           'position',
@@ -24,8 +24,7 @@
             property: 'color'
           }
         ]
-      };
-      NAF.schemas.add(avatarSchema);
+      });
 
       // Called by Networked-Aframe when connected to server
       function onConnect () {
@@ -39,15 +38,8 @@
     <a-scene networked-scene="
       room: dev;
       debug: true;
-      compressSyncPackets: false;
       adapter: wseasyrtc;
     ">
-    <!-- <a-scene networked-scene="
-      room: dev;
-      debug: true;
-      adapter: uws;
-      serverURL: ws://localhost:8080;
-    "> -->
       <a-assets>
 
         <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">

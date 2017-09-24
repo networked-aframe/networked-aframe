@@ -1,22 +1,15 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Basic AR Example — Networked-Aframe</title>
-    <meta name="description" content="Basic AR Example — Networked-Aframe">
+    <title>Dev Example — Networked-Aframe</title>
+    <meta name="description" content="Dev Example — Networked-Aframe">
 
-    <script src="https://aframe.io/releases/0.6.0/aframe.min.js"></script>
-
-    <!-- AR -->
-    <script src="https://rawgit.com/jeromeetienne/ar.js/master/aframe/build/aframe-ar.js"></script>
-    <script>THREEx.ArToolkitContext.baseURL = 'https://rawgit.com/jeromeetienne/ar.js/master/three.js/'</script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
-    <script src="easyrtc/easyrtc.js"></script>
-    <script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js"></script>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="/build.js"></script>
 
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
-    <script src="js/spawn-in-circle.component.js"></script>
+    <script src="/js/spawn-in-circle.component.js"></script>
 
     <script>
       // Define custom schema for syncing avatar color, set by random-color
@@ -27,25 +20,52 @@
           'rotation',
           {
             selector: '.head',
-            component: 'material'
+            component: 'material',
+            property: 'color'
           }
         ]
       });
-    </script>
-    <script>
-      function onARConnect () {
-        console.log('AR Client Connected');
+
+      // Called by Networked-Aframe when connected to server
+      function onConnect () {
+        console.error('On connected to NAF -', new Date());
+
+        // Examples of listening to NAF events
+        document.body.addEventListener('connected', function (evt) {
+          console.error('connected event. clientId =', evt.detail.clientId);
+        });
+        
+        document.body.addEventListener('clientConnected', function (evt) {
+          console.error('clientConnected event. clientId =', evt.detail.clientId);
+        });
+
+        document.body.addEventListener('clientDisconnected', function (evt) {
+          console.error('clientDisconnected event. clientId =', evt.detail.clientId);
+        });
+
+        document.body.addEventListener('entityCreated', function (evt) {
+          console.error('entityCreated event', evt.detail.el);
+        });
+
+        document.body.addEventListener('entityRemoved', function(evt) {
+          console.error('entityRemoved event. Entity networkId =', evt.detail.networkId);
+        });
       }
     </script>
   </head>
   <body>
-
-    <a-scene artoolkit='sourceType: webcam;' network-scene="
-      room: basic;
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
+    <a-scene networked-scene="
+      room: dev;
       debug: true;
-      onConnect: onARConnect;
+      adapter: wseasyrtc;
     ">
       <a-assets>
+
+        <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
+        <img id="sky" src="http://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+
         <!-- Templates -->
 
         <!-- Avatar -->
@@ -85,13 +105,25 @@
           </a-entity>
         </script>
 
+        <script id="simple" type="text/html">
+          <a-sphere></a-sphere>
+        </script>
+
         <!-- /Templates -->
       </a-assets>
+
+      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
+      </a-entity>
+
+      <a-entity position="0 0 0"
+        geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
+        material="src: #grid; repeat: 10000 10000; transparent: true; metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;"></a-entity>
 
       <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>
       <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity>
 
-      <a-marker-camera preset='hiro'></a-marker-camera>
+      <a-sky src="#sky" rotation="0 -90 0"></a-sky>
+      <a-entity id="particles" particle-system="preset: snow"></a-entity>
     </a-scene>
 
     <!-- GitHub Corner. -->
@@ -102,5 +134,15 @@
     </a>
     <style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}
     </style>
+
+    <script>
+      // On mobile remove elements that are resource heavy
+      var isMobile = AFRAME.utils.device.isMobile();
+
+      if (isMobile) {
+        var particles = document.getElementById('particles');
+        particles.parentNode.removeChild(particles);
+      }
+    </script>
   </body>
 </html>

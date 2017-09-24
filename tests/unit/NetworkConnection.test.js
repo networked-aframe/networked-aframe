@@ -11,7 +11,7 @@ suite('NetworkConnection', function() {
 
   function NetworkEntitiesStub() {
     this.completeSync = sinon.stub();
-    this.removeEntitiesFromClient = sinon.stub();
+    this.removeEntitiesOfClient = sinon.stub();
     this.updateEntity = sinon.stub();
     this.removeRemoteEntity = sinon.stub();
     this.removeEntity = sinon.stub();
@@ -267,7 +267,7 @@ suite('NetworkConnection', function() {
 
       var hasMessageChannel = connection.hasActiveDataChannel(clientId);
       assert.isFalse(hasMessageChannel);
-      assert.isTrue(entities.removeEntitiesFromClient.called);
+      assert.isTrue(entities.removeEntitiesOfClient.called);
     });
 
     test('is still connected to other', function() {
@@ -279,7 +279,7 @@ suite('NetworkConnection', function() {
 
       var hasMessageChannel = connection.hasActiveDataChannel(otherClientId);
       assert.isTrue(hasMessageChannel);
-      assert.isTrue(entities.removeEntitiesFromClient.called);
+      assert.isTrue(entities.removeEntitiesOfClient.called);
     });
   });
 

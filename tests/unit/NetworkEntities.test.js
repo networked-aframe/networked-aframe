@@ -316,7 +316,7 @@ suite('NetworkEntities', function() {
     });
   });
 
-  suite('removeEntitiesFromClient', function() {
+  suite('removeEntitiesOfClient', function() {
 
     test('removing many entities', sinon.test(function() {
       var entityList = [];
@@ -328,7 +328,7 @@ suite('NetworkEntities', function() {
       }
       this.stub(naf.utils, 'getNetworkOwner').returns(entityData.owner);
 
-      var removedEntities = entities.removeEntitiesFromClient(entityData.owner);
+      var removedEntities = entities.removeEntitiesOfClient(entityData.owner);
 
       assert.equal(removedEntities.length, 3);
     }));
@@ -338,13 +338,13 @@ suite('NetworkEntities', function() {
       entities.registerEntity(entityData.networkId, el);
       this.stub(naf.utils, 'getNetworkOwner').returns('a');
 
-      var removedEntities = entities.removeEntitiesFromClient('b');
+      var removedEntities = entities.removeEntitiesOfClient('b');
 
       assert.equal(removedEntities.length, 0);
     }));
 
     test('no entities', function() {
-      var removedEntities = entities.removeEntitiesFromClient(entityData.owner);
+      var removedEntities = entities.removeEntitiesOfClient(entityData.owner);
 
       assert.equal(removedEntities.length, 0);
     });
