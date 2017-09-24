@@ -269,18 +269,25 @@ suite('NafPhysics', function() {
     });
 
     test('A is stronger than B', function() {
+      elDynamic.body.velocity = new CANNON.Vec3(1, -2, 3);
+      elDynamic.body.angularVelocity = new CANNON.Vec3();
       var result = physics.isStrongerThan(elDynamic, elStatic.body);
 
       assert.isTrue(result);
     });
 
     test('B is stronger than A', function() {
+      elDynamic.body.velocity = new CANNON.Vec3(1, -2, 3);
+      elDynamic.body.angularVelocity = new CANNON.Vec3();
       var result = physics.isStrongerThan(elStatic, elDynamic.body);
 
       assert.isFalse(result);
     });
 
     test('A equals B', function() {
+      elDynamic.body.velocity = new CANNON.Vec3(1, -2, 3);
+      elDynamic.body.angularVelocity = new CANNON.Vec3();
+
       var result = physics.isStrongerThan(elDynamic, elDynamic.body);
 
       assert.isFalse(result);

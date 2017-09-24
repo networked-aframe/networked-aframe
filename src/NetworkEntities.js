@@ -5,9 +5,11 @@ class NetworkEntities {
   constructor() {
     this.entities = {};
     this.childCache = new ChildEntityCache();
+
+    this.onRemoteEntityCreatedEvent = new Event('remoteEntityCreated');
   }
 
-  registerLocalEntity(networkId, entity) {
+  registerEntity(networkId, entity) {
     this.entities[networkId] = entity;
   }
 
@@ -16,66 +18,66 @@ class NetworkEntities {
 
     var networkId = entityData.networkId;
 
-    var entity = document.createElement('a-entity');
-    entity.setAttribute('id', 'naf-' + networkId);
+    var el = document.createElement('a-entity');
+    el.setAttribute('id', 'naf-' + networkId);
 
     var template = entityData.template;
-    if (this.isDynamicTemplate(template)) {      
-      var templateData = this.parseDynamicTemplate(template);
-      this.addTemplateToAssets(networkId, templateData);
-      entityData.template = template = '#' + id;
-    }
+    // if (this.isDynamicTemplate(template)) {
+    //   var templateData = this.parseDynamicTemplate(template);
+    //   this.addTemplateToAssets(networkId, templateData);
+    //   entityData.template = template = '#' + id;
+    // }
 
     if (template && entityData.physics) {
-      entity.addEventListener('loaded', function () {
-        var templateChild = entity.firstChild;
-        NAF.utils.monkeyPatchEntityFromTemplateChild(entity, templateChild);
+      el.addEventListener('loaded', function () {
+        var templateChild = el.firstChild;
+        NAF.utils.monkeyPatchEntityFromTemplateChild(el, templateChild);
       });
     }
 
-    var components = NAF.schemas.getComponents(template);
-    this.initPosition(entity, entityData.components);
-    this.initRotation(entity, entityData.components);
-    this.addNetworkComponent(entity, entityData, components);
-    this.entities[networkId] = entity;
+    this.initPosition(el, entityData.components);
+    this.initRotation(el, entityData.components);
+    this.addNetworkComponent(el, entityData);
 
-    return entity;
+    this.registerEntity(networkId, el);
+
+    return el;
   }
 
-  isDynamicTemplate(template) {
-    return template.substring(0,5) === 'data:'
-  }
+  // isDynamicTemplate(template) {
+  //   return template.substring(0,5) === 'data:'
+  // }
 
-  parseDynamicTemplate(template) {
-    var split = template.split(',', 2);
-    var inlineData = split[1];
-    var uriType = split[0].substring(5);
-    var isBase64 = uriType.endsWith(';base64');
-    if (isBase64) {
-      uriType = uriType.substring(0, uriType.length - 7);
-    }
-    inlineData = isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData);
+  // parseDynamicTemplate(template) {
+  //   var split = template.split(',', 2);
+  //   var inlineData = split[1];
+  //   var uriType = split[0].substring(5);
+  //   var isBase64 = uriType.endsWith(';base64');
+  //   if (isBase64) {
+  //     uriType = uriType.substring(0, uriType.length - 7);
+  //   }
+  //   inlineData = isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData);
 
-    var templateData = {
-      inlineData: inlineData,
-      uriType: uriType,
-    };
-    return templateData;
-  }
+  //   var templateData = {
+  //     inlineData: inlineData,
+  //     uriType: uriType,
+  //   };
+  //   return templateData;
+  // }
 
-  addTemplateToAssets(networkId, templateData) {
-    var uriType = templateData.uriType;
-    var inlineData = templateData.inlineData;
+  // addTemplateToAssets(networkId, templateData) {
+  //   var uriType = templateData.uriType;
+  //   var inlineData = templateData.inlineData;
 
-    // blob URLs do not survive template load, so make script element.
-    var script = document.createElement('script');
-    var id = 'naf-tpl-' + entityData.networkId;
-    script.setAttribute('id', id);
-    script.setAttribute('type', uriType);
-    script.innerHTML = inlineData;
-    var assets = document.querySelector('a-assets');
-    assets.appendChild(script);
-  }
+  //   // blob URLs do not survive template load, so make script element.
+  //   var script = document.createElement('script');
+  //   var id = 'naf-tpl-' + entityData.networkId;
+  //   script.setAttribute('id', id);
+  //   script.setAttribute('type', uriType);
+  //   script.innerHTML = inlineData;
+  //   var assets = document.querySelector('a-assets');
+  //   assets.appendChild(script);
+  // }
 
   initPosition(entity, componentData) {
     var hasPosition = componentData.hasOwnProperty('position');
@@ -93,19 +95,15 @@ class NetworkEntities {
     }
   }
 
-  addNetworkComponent(entity, entityData, components) {
+  addNetworkComponent(entity, entityData) {
     var networkData = {
       template: entityData.template,
       owner: entityData.owner,
-      networkId: entityData.networkId,
-      components: components
+      networkId: entityData.networkId
     };
-    if (NAF.options.useShare) {
-      networkData.showLocalTemplate = true;
-      entity.setAttribute('networked-share', networkData);
-    } else {
-      entity.setAttribute('networked-remote', networkData);
-    }
+    // console.error('setting owner to ', entityData.owner);
+    
+    entity.setAttribute('networked', networkData);
     entity.firstUpdateData = entityData;
   }
 
@@ -121,8 +119,6 @@ class NetworkEntities {
   }
 
   receiveFirstUpdateFromEntity(entityData) {
-    console.log(entityData);
-
     var parent = entityData.parent;
     var networkId = entityData.networkId;
 
@@ -160,9 +156,14 @@ class NetworkEntities {
     parentEl.appendChild(entity);
   }
 
-  addEntityToSceneRoot(entity) {
+  addEntityToSceneRoot(el) {
     var scene = document.querySelector('a-scene');
-    scene.appendChild(entity);
+    scene.appendChild(el);
+    document.body.dispatchEvent(this.newRemoteEntityCreatedEvent(el));
+  }
+
+  newRemoteEntityCreatedEvent(el) {
+    return new CustomEvent('remoteEntityCreated', { detail: {el : el} });
   }
 
   completeSync() {

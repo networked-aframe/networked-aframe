@@ -16,10 +16,8 @@ module.exports.getNetworkOwner = function(entity) {
   var components = entity.components;
   if (components.hasOwnProperty('networked-remote')) {
     return entity.components['networked-remote'].data.owner;
-  } else if (components.hasOwnProperty('networked-share')) {
-    return entity.components['networked-share'].data.owner;
   } else if (components.hasOwnProperty('networked')) {
-    return entity.components['networked'].owner;
+    return entity.components['networked'].data.owner;
   }
   return null;
 }
@@ -28,8 +26,6 @@ module.exports.getNetworkId = function(entity) {
   var components = entity.components;
   if (components.hasOwnProperty('networked-remote')) {
     return entity.components['networked-remote'].data.networkId;
-  } else if (components.hasOwnProperty('networked-share')) {
-    return entity.components['networked'].data.networkId;
   } else if (components.hasOwnProperty('networked')) {
     return entity.components['networked'].networkId;
   }
@@ -40,8 +36,6 @@ module.exports.getNetworkType = function(entity) {
   var components = entity.components;
   if (components.hasOwnProperty('networked-remote')) {
     return "networked-remote";
-  } else if (components.hasOwnProperty('networked-share')) {
-    return "networked-share";
   } else if (components.hasOwnProperty('networked')) {
     return "networked";
   }
@@ -59,10 +53,11 @@ module.exports.createNetworkId = function() {
 module.exports.delimiter = '---';
 
 module.exports.childSchemaToKey = function(schema) {
-  var key = schema.selector + module.exports.delimiter + schema.component;
-  if (schema.property) {
-    key += module.exports.delimiter + schema.property
-  }
+  var key = (schema.selector || '')
+            + module.exports.delimiter
+            + (schema.component || '')
+            + module.exports.delimiter
+            + (schema.property || '');
   return key;
 };
 
@@ -80,7 +75,6 @@ module.exports.childSchemaEqual = function(a, b) {
 };
 
 module.exports.monkeyPatchEntityFromTemplateChild = function(entity, templateChild, callback) {
-  // console.log('monkeyPatchEntityFromTemplateChild');
   templateChild.addEventListener('templaterendered', function() {
     var cloned = templateChild.firstChild;
     // mirror the attributes

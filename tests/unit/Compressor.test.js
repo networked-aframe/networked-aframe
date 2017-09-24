@@ -114,7 +114,7 @@ suite('Compressor',function () {
         position: { x: 1, y: 2, z: 3 },
         scale: { x: 10, y: 11, z: 12 }
       };
-      var childKey = '.head' + utils.delimiter + 'visible';
+      var childKey = '.head' + utils.delimiter + 'visible' + utils.delimiter;
       components[childKey] = false;
       var entityData = createExampleEntityData(components);
 

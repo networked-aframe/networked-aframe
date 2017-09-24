@@ -4,15 +4,17 @@ var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
 var Compressor = require('../../src/Compressor');
 
-require('../../src/components/networked-remote');
+require('../../src/components/networked');
 
-suite('networked-remote', function() {
+suite('networked_remote', function() {
   var scene;
+  var entity;
+  var component;
 
   function initScene(done) {
     var opts = {};
     opts.entities = [
-      '<a-entity id="test-entity" networked-remote="template:t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>',
+      '<a-entity id="test-entity" networked="template:t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>',
     ];
     scene = helpers.sceneFactory(opts);
     naf.utils.whenEntityLoaded(scene, done);
@@ -20,8 +22,8 @@ suite('networked-remote', function() {
 
   setup(function(done) {
     initScene(function() {
-      this.entity = document.querySelector('#test-entity');
-      this.component = entity.components['networked-remote'];
+      el = document.querySelector('#test-entity');
+      component = el.components.networked;
       done();
     });
   });
@@ -33,7 +35,7 @@ suite('networked-remote', function() {
   suite('Setup', function() {
 
     test('creates entity', function() {
-      assert.isOk(entity);
+      assert.isOk(el);
     });
 
     test('creates component', function() {
@@ -44,24 +46,33 @@ suite('networked-remote', function() {
   suite('init', function() {
 
     test('attaches template', function() {
-      var templateChild = entity.querySelector('[template]');
+      var templateChild = el.querySelector('[template]');
       var result = templateChild.getAttribute('template');
 
       assert.equal(result, 'src:t1');
     });
 
-    test('adds lerp', function() {
-      var result = entity.hasAttribute('lerp');
+    test('does not add lerp when created by network', function() {
+      var result = el.hasAttribute('lerp');
+
+      assert.isFalse(result);
+    });
+
+    test('adds lerp when created by network', function() {
+      el.firstUpdateData = {test: true};
+      component.init();
+
+      var result = el.hasAttribute('lerp');
 
       assert.isTrue(result);
     });
 
     test('does not add lerp if lerp option off', function() {
       naf.options.useLerp = false;
-      entity.removeAttribute('lerp');
+      el.removeAttribute('lerp');
 
       component.init();
-      var result = entity.hasAttribute('lerp');
+      var result = el.hasAttribute('lerp');
 
       assert.isFalse(result);
     });
@@ -70,35 +81,11 @@ suite('networked-remote', function() {
       this.stub(component, 'networkUpdate');
       this.stub(component, 'waitForTemplateAndUpdateChildren');
       var testData = {test: "testing"};
-      entity.firstUpdateData = testData;
+      el.firstUpdateData = testData;
 
       component.init();
 
       assert.isTrue(component.networkUpdate.calledWith(testData));
-    }));
-  });
-
-  suite('bindEvents', function() {
-
-    test('binds networkUpdate', sinon.test(function() {
-      this.spy(entity, 'addEventListener');
-
-      component.bindEvents();
-
-      assert.isTrue(entity.addEventListener.calledWith('networkUpdate'), 'networkUpdate');
-      assert.isTrue(entity.addEventListener.calledOnce, 'called once');
-    }));
-  });
-
-  suite('unbindEvents', function() {
-
-    test('unbinds networkUpdate', sinon.test(function() {
-      this.spy(entity, 'removeEventListener');
-
-      component.unbindEvents();
-
-      assert.isTrue(entity.removeEventListener.calledWith('networkUpdate'), 'networkUpdate');
-      assert.isTrue(entity.removeEventListener.calledOnce, 'called once');
     }));
   });
 
@@ -133,7 +120,7 @@ suite('networked-remote', function() {
 
       component.networkUpdate(entityData);
 
-      var components = entity.components;
+      var components = el.components;
       assert.equal(components['position'].data.x, 10, 'Position');
       assert.equal(components['position'].data.y, 20, 'Position');
       assert.equal(components['position'].data.z, 30, 'Position');
@@ -168,7 +155,7 @@ suite('networked-remote', function() {
         selector: '.head',
         component: 'visible'
       };
-      component.data.components.push(childComponent);
+      // component.data.components.push(childComponent);
       var childKey = '.head'+naf.utils.delimiter+'visible';
       entityData.components[childKey] = true;
 
@@ -176,7 +163,7 @@ suite('networked-remote', function() {
       component.networkUpdate(entityData);
 
       // Assert
-      var visible = entity.querySelector('.head').components.visible.getData();
+      var visible = el.querySelector('.head').getAttribute('visible');
       assert.equal(visible, true);
     }));
 
@@ -199,11 +186,11 @@ suite('networked-remote', function() {
         selector: '.head',
         component: 'visible'
       };
-      component.data.components.push(childComponent);
+      // component.data.components.push(childComponent);
       var childKey = '.head'+naf.utils.delimiter+'visible';
       entityData.components[childKey] = true;
-      while (entity.firstChild) { // Remove children
-        entity.removeChild(entity.firstChild);
+      while (el.firstChild) { // Remove children
+        el.removeChild(el.firstChild);
       }
 
       // SUT
@@ -230,7 +217,7 @@ suite('networked-remote', function() {
 
       component.networkUpdate(compressed);
 
-      var components = entity.components;
+      var components = el.components;
       assert.equal(components['position'].data.x, 10, 'Position');
       assert.equal(components['position'].data.y, 20, 'Position');
       assert.equal(components['position'].data.z, 30, 'Position');

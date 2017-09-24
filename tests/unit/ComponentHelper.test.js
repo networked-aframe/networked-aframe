@@ -86,7 +86,7 @@ suite('ComponentHelper', function () {
 
         var expected = {
           position: { x: 1, y: 2, z: 3 },
-          ".child---position": { x: 5, y: 5, z: 1 }
+          ".child---position---": { x: 5, y: 5, z: 1 }
         };
         assert.deepEqual(result, expected);
         done();
@@ -108,6 +108,24 @@ suite('ComponentHelper', function () {
 
         var expected = {
           ".child---light---color": '#FFF'
+        };
+        assert.deepEqual(result, expected);
+        done();
+      });
+    });
+
+    test('get single property of multi-property component on root', function(done) {
+      var el = addEntityWithComponents({
+        'light': ''
+      });
+
+      var componentsToCheck = [{ component: 'light', property: 'color' }];
+
+      utils.whenEntityLoaded(el, function() {
+        var result = componentHelper.gatherComponentsData(el, componentsToCheck);
+
+        var expected = {
+          "---light---color": '#FFF'
         };
         assert.deepEqual(result, expected);
         done();
@@ -291,6 +309,27 @@ suite('ComponentHelper', function () {
         var result = componentHelper.findDirtyComponents(el, componentsToCheck, cached);
 
         var expected = [{ selector: '.child', component: 'light', property: 'color' }];
+        assert.deepEqual(result, expected);
+        done();
+      });
+    });
+
+    test('dirty multi-property root', function(done) {
+      var el = addEntityWithComponents({
+        'light': '',
+      });
+
+      var componentsToCheck = [{ component: 'light', property: 'color' }];
+      var cached = {
+        '---light---color': '#FFF'
+      };
+
+      utils.whenEntityLoaded(el, function() {
+
+        el.setAttribute('light', 'color', '#111');
+        var result = componentHelper.findDirtyComponents(el, componentsToCheck, cached);
+
+        var expected = [{ component: 'light', property: 'color' }];
         assert.deepEqual(result, expected);
         done();
       });
