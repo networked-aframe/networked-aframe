@@ -1,8 +1,17 @@
 var naf = require('../NafIndex');
-var NetworkInterface = require('./NetworkInterface');
+var INetworkAdapter = require('./INetworkAdapter');
+var firebaseKeyEncode = require('firebase-key-encode');
 
-class FirebaseWebRtcInterface extends NetworkInterface {
-  constructor(firebase, params) {
+class FirebaseWebRtcAdapter extends INetworkAdapter {
+
+  /**
+    Config structure:
+    config.authType: none;
+    config.apiKey: your-api;
+    config.authDomain: your-project.firebaseapp.com;
+    config.databaseURL: https://your-project.firebaseio.com;
+  */
+  constructor(firebase, config) {
     if (firebase === undefined) {
       throw new Error('Import https://www.gstatic.com/firebasejs/x.x.x/firebase.js');
     }
@@ -11,7 +20,7 @@ class FirebaseWebRtcInterface extends NetworkInterface {
 
     this.rootPath = 'networked-aframe';
 
-    this.id = null;
+    this.localId = null;
     this.appId = null;
     this.roomId = null;
 
@@ -20,55 +29,60 @@ class FirebaseWebRtcInterface extends NetworkInterface {
 
     this.firebase = firebase;
 
-    this.authType = params.authType;
-    this.apiKey = params.apiKey;
-    this.authDomain = params.authDomain;
-    this.databaseURL = params.databaseURL;
+    this.authType = config.authType;
+    this.apiKey = config.apiKey;
+    this.authDomain = config.authDomain;
+    this.databaseURL = config.databaseURL;
   }
 
   /*
    * Call before `connect`
    */
 
-  joinRoom(roomId) {
+  setServerUrl(url) {
+    // handled in config
+  }
+
+  setApp(appId) {
+    this.appId = appId;
+  }
+
+  setRoom(roomId) {
     this.roomId = roomId;
+  }
+
+  // options: { datachannel: bool, audio: bool }
+  setWebRtcOptions(options) {
+    // TODO: support audio and video
+    if (options.datachannel === false) console.warn('FirebaseWebRtcAdapter.setWebRtcOptions: datachannel must be true.');
+    if (options.audio === true) console.warn('FirebaseWebRtcAdapter does not support audio yet.');
+    if (options.video === true) console.warn('FirebaseWebRtcAdapter does not support video yet.');
+  }
+
+  setServerConnectListeners(successListener, failureListener) {
+    this.connectSuccess = successListener;
+    this.connectFailure = failureListener;
   }
 
   setRoomOccupantListener(occupantListener) {
     this.occupantListener = occupantListener;
   }
 
-  // options: { datachannel: bool, audio: bool }
-  setStreamOptions(options) {
-    // TODO: support audio and video
-    if (options.datachannel === false) console.warn('FirebaseWebRtcInterface.setStreamOptions: datachannel must be true.');
-    if (options.audio === true) console.warn('FirebaseWebRtcInterface does not support audio yet.');
-    if (options.video === true) console.warn('FirebaseWebRtcInterface does not support video yet.');
-  }
-
-  setDatachannelListeners(openListener, closedListener, messageListener) {
+  setDataChannelListeners(openListener, closedListener, messageListener) {
     this.openListener = openListener;
     this.closedListener = closedListener;
-    this.messageListener = messageListener;
+    this.messageListener = function(remoteId, dataType, data) {
+      var decodedData = firebaseKeyEncode.deepDecode(data);
+      messageListener(remoteId, dataType, decodedData);
+    }
   }
 
-  setLoginListeners(successListener, failureListener) {
-    this.loginSuccess = successListener;
-    this.loginFailure = failureListener;
-  }
-
-  /*
-   * Network actions
-   */
-
-  connect(appId) {
+  connect() {
     var self = this;
     var firebase = this.firebase;
 
-    this.appId = appId;
-
     this.initFirebase(function(id) {
-      self.id = id;
+      self.localId = id;
 
       // Note: assuming that data transfer via firebase realtime database
       //       is reliable and in order
@@ -77,7 +91,7 @@ class FirebaseWebRtcInterface extends NetworkInterface {
       self.getTimestamp(function(timestamp) {
         self.myRoomJoinTime = timestamp;
 
-        var userRef = firebase.database().ref(self.getUserPath(self.id));
+        var userRef = firebase.database().ref(self.getUserPath(self.localId));
         userRef.set({timestamp: timestamp, signal: '', data: ''});
         userRef.onDisconnect().remove();
 
@@ -86,14 +100,14 @@ class FirebaseWebRtcInterface extends NetworkInterface {
         roomRef.on('child_added', function (data) {
           var remoteId = data.key;
 
-          if (remoteId === self.id || remoteId === 'timestamp' || self.peers[remoteId] !== undefined) return;
+          if (remoteId === self.localId || remoteId === 'timestamp' || self.peers[remoteId] !== undefined) return;
 
           var remoteTimestamp = data.val().timestamp;
 
-          var peer = new WebRtcPeer(self.id, remoteId,
+          var peer = new WebRtcPeer(self.localId, remoteId,
             // send signal function
             function (data) {
-              firebase.database().ref(self.getSignalPath(self.id)).set(data);
+              firebase.database().ref(self.getSignalPath(self.localId)).set(data);
             }
           );
           peer.setDatachannelListeners(self.openListener, self.closedListener, self.messageListener);
@@ -111,7 +125,7 @@ class FirebaseWebRtcInterface extends NetworkInterface {
           // received data
           firebase.database().ref(self.getDataPath(remoteId)).on('value', function (data) {
             var value = data.val();
-            if (value === null || value === '' || value.to !== self.id) return;
+            if (value === null || value === '' || value.to !== self.localId) return;
             self.messageListener(remoteId, value.type, value.data);
           });
 
@@ -119,23 +133,23 @@ class FirebaseWebRtcInterface extends NetworkInterface {
           //   - later joined the room, or
           //   - has larger id if two peers joined the room at same time
           if (timestamp > remoteTimestamp ||
-              (timestamp === remoteTimestamp && self.id > remoteId)) peer.offer();
+              (timestamp === remoteTimestamp && self.localId > remoteId)) peer.offer();
 
-          self.occupantListener(self.roomId, self.occupants, false);
+          self.occupantListener(self.occupants);
         });
 
         roomRef.on('child_removed', function (data) {
           var remoteId = data.key;
 
-          if (remoteId === self.id || remoteId === 'timestamp' || self.peers[remoteId] === undefined) return;
+          if (remoteId === self.localId || remoteId === 'timestamp' || self.peers[remoteId] === undefined) return;
 
           delete self.peers[remoteId];
           delete self.occupants[remoteId];
 
-          self.occupantListener(self.roomId, self.occupants, false);
+          self.occupantListener(self.occupants);
         });
 
-        self.loginSuccess(self.id);
+        self.connectSuccess(self.localId);
       });
     });
   }
@@ -144,52 +158,60 @@ class FirebaseWebRtcInterface extends NetworkInterface {
     return (this.myRoomJoinTime || 0) <= (client ? client.roomJoinTime : 0);
   }
 
-  startStreamConnection(networkId) {
-    // TODO: implement
-    console.warn('FirebaseWebRtcInterface does not imlement startStreamConnectionMethod yet.');
+  startStreamConnection(clientId) {
+    // Handled by WebRtcPeer
   }
 
-  closeStreamConnection(networkId) {
-    // TODO: implement
-    console.warn('FirebaseWebRtcInterface does not imlement closeStreamConnectionMethod yet.');
+  closeStreamConnection(clientId) {
+    // Handled by WebRtcPeer
   }
 
-  sendData(networkId, dataType, data) {
-    this.peers[networkId].send(dataType, data);
+  sendData(clientId, dataType, data) {
+    this.peers[clientId].send(dataType, data);
   }
 
-  sendDataGuaranteed(networkId, dataType, data) {
-    if (data.takeover === undefined) { data.takeover = null; }
-    this.firebase.database().ref(this.getDataPath(this.id)).set({
-      to: networkId,
+  sendDataGuaranteed(clientId, dataType, data) {
+    var clonedData = JSON.parse(JSON.stringify(data));
+    var encodedData = firebaseKeyEncode.deepEncode(clonedData);
+    this.firebase.database().ref(this.getDataPath(this.localId)).set({
+      to: clientId,
       type: dataType,
-      data: data
+      data: encodedData
     });
   }
 
-  /*
-   * Getters
-   */
-
-  getRoomJoinTime(clientId) {
-    return this.occupants[clientId];
+  broadcastData(dataType, data) {
+    for (var clientId in this.peers) {
+      if (this.peers.hasOwnProperty(clientId)) {
+        this.sendData(clientId, dataType, data);
+      }
+    }
   }
 
-  getConnectStatus(networkId) {
-    var peer = this.peers[networkId];
+  broadcastDataGuaranteed(dataType, data) {
+    for (var clientId in this.peers) {
+      if (this.peers.hasOwnProperty(clientId)) {
+        this.sendDataGuaranteed(clientId, dataType, data);
+      }
+    }
+  }
 
-    if (peer === undefined) return NetworkInterface.NOT_CONNECTED;
+  getConnectStatus(clientId) {
+    var peer = this.peers[clientId];
+
+    if (peer === undefined)
+      return INetworkAdapter.NOT_CONNECTED;
 
     switch (peer.getStatus()) {
       case WebRtcPeer.IS_CONNECTED:
-        return NetworkInterface.IS_CONNECTED;
+        return INetworkAdapter.IS_CONNECTED;
 
       case WebRtcPeer.CONNECTING:
-        return NetworkInterface.CONNECTING;
+        return INetworkAdapter.CONNECTING;
 
       case WebRtcPeer.NOT_CONNECTED:
       default:
-        return NetworkInterface.NOT_CONNECTED;
+        return INetworkAdapter.NOT_CONNECTED;
     }
   }
 
@@ -240,7 +262,7 @@ class FirebaseWebRtcInterface extends NetworkInterface {
 
     firebase.auth().signInAnonymously().catch(function (error) {
       console.error('FirebaseWebRtcInterface.authAnonymous: ' + error);
-      self.loginFailure(null, error);
+      self.connectFailure(null, error);
     });
 
     firebase.auth().onAuthStateChanged(function (user) {
@@ -305,7 +327,7 @@ class FirebaseWebRtcInterface extends NetworkInterface {
 
   getTimestamp(callback) {
     var firebase = this.firebase;
-    var ref = firebase.database().ref(this.getTimestampGenerationPath(this.id));
+    var ref = firebase.database().ref(this.getTimestampGenerationPath(this.localId));
     ref.set(firebase.database.ServerValue.TIMESTAMP);
     ref.once('value', function (data) {
       var timestamp = data.val();
@@ -316,9 +338,10 @@ class FirebaseWebRtcInterface extends NetworkInterface {
   }
 }
 
-module.exports = FirebaseWebRtcInterface;
+module.exports = FirebaseWebRtcAdapter;
 
 class WebRtcPeer {
+
   constructor(localId, remoteId, sendSignalFunc) {
     this.localId = localId;
     this.remoteId = remoteId;

@@ -39,7 +39,7 @@ class WsEasyRtcInterface extends INetworkAdapter {
     });
   }
 
-  setMessageChannelListeners(openListener, closedListener, messageListener) {
+  setDataChannelListeners(openListener, closedListener, messageListener) {
     this.openListener = openListener;
     this.closedListener = closedListener;
     this.easyrtc.setPeerListener(messageListener);

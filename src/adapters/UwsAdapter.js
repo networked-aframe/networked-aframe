@@ -37,7 +37,7 @@ class UwsAdapter extends INetworkAdapter {
     this.roomOccupantListener = occupantListener;
   }
 
-  setMessageChannelListeners(openListener, closedListener, messageListener) {
+  setDataChannelListeners(openListener, closedListener, messageListener) {
     this.openListener = openListener;
     this.closedListener = closedListener;
     this.messageListener = messageListener;

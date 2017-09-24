@@ -25,7 +25,7 @@ suite('NetworkConnection', function() {
 
     this.setServerConnectListeners = sinon.stub();
     this.setRoomOccupantListener = sinon.stub();
-    this.setMessageChannelListeners = sinon.stub();
+    this.setDataChannelListeners = sinon.stub();
 
     this.connect = sinon.stub();
     this.shouldStartConnectionTo = sinon.stub();

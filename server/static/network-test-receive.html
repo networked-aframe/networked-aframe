@@ -28,25 +28,25 @@
     </style>
 
     <script>
-      NAF.connection.subscribeToMessage('reliableBroadcast', function() {
+      NAF.connection.subscribeToDataChannel('reliableBroadcast', function() {
         var label = document.getElementById('reliable-broadcast');
         label.innerHTML = 'success';
         label.className = 'success';
       });
 
-      NAF.connection.subscribeToMessage('unreliableBroadcast', function() {
+      NAF.connection.subscribeToDataChannel('unreliableBroadcast', function() {
         var label = document.getElementById('unreliable-broadcast');
         label.innerHTML = 'success';
         label.className = 'success';
       });
 
-      NAF.connection.subscribeToMessage('reliableSend', function() {
+      NAF.connection.subscribeToDataChannel('reliableSend', function() {
         var label = document.getElementById('reliable-send');
         label.innerHTML = 'success';
         label.className = 'success';
       });
 
-      NAF.connection.subscribeToMessage('unreliableSend', function() {
+      NAF.connection.subscribeToDataChannel('unreliableSend', function() {
         var label = document.getElementById('unreliable-send');
         label.innerHTML = 'success';
         label.className = 'success';
@@ -62,19 +62,38 @@
       <p>Send unreliable test result: <span id="unreliable-send" class="fail">waiting</span></p>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <!-- Uncomment the block corresponding to the network adapter you want to test -->
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <a-scene embedded networked-scene="
       room: dev;
       debug: true;
       adapter: easyrtc;
-    ">
+    "> -->
+
     <!-- <a-scene networked-scene="
       room: dev;
       debug: true;
       adapter: uws;
       serverURL: ws://localhost:8080;
     "> -->
+
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+    <script>
+      // Setup Firebase
+      window.firebaseConfig = {
+        authType: 'none',
+        apiKey: 'AIzaSyCoUs0zrSUHYdxrMhTYlDg3KJj6xeQD_cw',
+        authDomain: 'networked-aframe-example.firebaseapp.com',
+        databaseURL: 'https://networked-aframe-example.firebaseio.com'
+      };
+    </script>
+    <a-scene networked-scene="
+      room: dev;
+      debug: true;
+      adapter: firebase;
+    ">
     </a-scene>
 
   </body>

@@ -1,6 +1,6 @@
 class NafInterface {
-  notImplemented() {
-    console.error('Interface method not implemented.');
+  notImplemented(name) {
+    console.error('Interface method not implemented:', name);
   }
 }
 module.exports = NafInterface;

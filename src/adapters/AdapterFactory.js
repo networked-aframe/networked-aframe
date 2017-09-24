@@ -1,6 +1,7 @@
 var WsEasyRtcAdapter = require('../adapters/WsEasyRtcAdapter');
 var EasyRtcAdapter = require('../adapters/EasyRtcAdapter');
 var UwsAdapter = require('../adapters/UwsAdapter');
+var FirebaseWebRtcAdapter = require('../adapters/FirebaseWebRtcAdapter');
 
 class AdapterFactory {
 
@@ -9,6 +10,9 @@ class AdapterFactory {
     switch(adapterName.toLowerCase()) {
       case 'uws':
         adapter = new UwsAdapter();
+        break;
+      case 'firebase':
+        adapter = new FirebaseWebRtcAdapter(window.firebase, window.firebaseConfig);
         break;
       case 'easyrtc':
         adapter = new EasyRtcAdapter(window.easyrtc);

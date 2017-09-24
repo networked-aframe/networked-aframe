@@ -52,7 +52,7 @@ class NetworkConnection {
       this.connectSuccess.bind(this),
       this.connectFailure.bind(this)
     );
-    this.adapter.setMessageChannelListeners(
+    this.adapter.setDataChannelListeners(
       this.messageChannelOpen.bind(this),
       this.messageChannelClosed.bind(this),
       this.receivedMessage.bind(this)

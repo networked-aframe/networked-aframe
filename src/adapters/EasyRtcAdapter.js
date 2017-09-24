@@ -46,7 +46,7 @@ class EasyRtcAdapter extends INetworkAdapter {
     });
   }
 
-  setMessageChannelListeners(openListener, closedListener, messageListener) {
+  setDataChannelListeners(openListener, closedListener, messageListener) {
     this.easyrtc.setDataChannelOpenListener(openListener);
     this.easyrtc.setDataChannelCloseListener(closedListener);
     this.easyrtc.setPeerListener(messageListener);
@@ -60,35 +60,10 @@ class EasyRtcAdapter extends INetworkAdapter {
     };
 
     if (this.easyrtc.audioEnabled) {
-      this.connectWithAudio(connectedCallback, this.connectFailure);
+      this._connectWithAudio(connectedCallback, this.connectFailure);
     } else {
       this.easyrtc.connect(this.app, connectedCallback, this.connectFailure);
     }
-  }
-
-  connectWithAudio(connectSuccess, connectFailure) {
-    var that = this;
-
-    this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
-      var audioEl = document.createElement("audio");
-      audioEl.setAttribute('id', 'audio-' + easyrtcid);
-      document.body.appendChild(audioEl);
-      that.easyrtc.setVideoObjectSrc(audioEl,stream);
-    });
-
-    this.easyrtc.setOnStreamClosed(function (easyrtcid) {
-      var audioEl = document.getElementById('audio-' + easyrtcid);
-      audioEl.parentNode.removeChild(audioEl);
-    });
-
-    this.easyrtc.initMediaSource(
-      function(){
-        that.easyrtc.connect(that.app, connectSuccess, connectFailure);
-      },
-      function(errorCode, errmesg){
-        console.error(errorCode, errmesg);
-      }
-    );
   }
 
   shouldStartConnectionTo(client) {
@@ -143,6 +118,36 @@ class EasyRtcAdapter extends INetworkAdapter {
     } else {
       return INetworkAdapter.CONNECTING;
     }
+  }
+
+
+  /**
+   * Privates
+   */
+
+  _connectWithAudio(connectSuccess, connectFailure) {
+    var that = this;
+
+    this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
+      var audioEl = document.createElement("audio");
+      audioEl.setAttribute('id', 'audio-' + easyrtcid);
+      document.body.appendChild(audioEl);
+      that.easyrtc.setVideoObjectSrc(audioEl,stream);
+    });
+
+    this.easyrtc.setOnStreamClosed(function (easyrtcid) {
+      var audioEl = document.getElementById('audio-' + easyrtcid);
+      audioEl.parentNode.removeChild(audioEl);
+    });
+
+    this.easyrtc.initMediaSource(
+      function(){
+        that.easyrtc.connect(that.app, connectSuccess, connectFailure);
+      },
+      function(errorCode, errmesg){
+        console.error(errorCode, errmesg);
+      }
+    );
   }
 
   _getRoomJoinTime(clientId) {

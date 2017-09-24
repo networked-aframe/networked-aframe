@@ -4,25 +4,25 @@ class INetworkAdapter extends NafInterface {
 
   /* Pre-Connect setup methods - Call before `connect` */
 
-  setServerUrl(url) {this.notImplemented()}
-  setApp(app) {this.notImplemented()}
-  setRoom(roomName) {this.notImplemented()}
-  setWebRtcOptions(options) {this.notImplemented()}
+  setServerUrl(url) {this.notImplemented('setServerUrl')}
+  setApp(app) {this.notImplemented('setApp')}
+  setRoom(roomName) {this.notImplemented('setRoom')}
+  setWebRtcOptions(options) {this.notImplemented('setWebRtcOptions')}
 
-  setServerConnectListeners(successListener, failureListener) {this.notImplemented()}
-  setRoomOccupantListener(occupantListener){this.notImplemented()}
-  setMessageChannelListeners(openListener, closedListener, messageListener) {this.notImplemented()}
+  setServerConnectListeners(successListener, failureListener) {this.notImplemented('setServerConnectListeners')}
+  setRoomOccupantListener(occupantListener){this.notImplemented('setRoomOccupantListener')}
+  setDataChannelListeners(openListener, closedListener, messageListener) {this.notImplemented('setDataChannelListeners')}
 
-  connect() {this.notImplemented()}
-  shouldStartConnectionTo(clientId) {this.notImplemented()}
-  startStreamConnection(clientId) {this.notImplemented()}
-  closeStreamConnection(clientId) {this.notImplemented()}
-  getConnectStatus(clientId) {this.notImplemented()}
+  connect() {this.notImplemented('connect')}
+  shouldStartConnectionTo(clientId) {this.notImplemented('shouldStartConnectionTo')}
+  startStreamConnection(clientId) {this.notImplemented('startStreamConnection')}
+  closeStreamConnection(clientId) {this.notImplemented('closeStreamConnection')}
+  getConnectStatus(clientId) {this.notImplemented('getConnectStatus')}
 
-  sendData(clientId, dataType, data) {this.notImplemented()}
-  sendDataGuaranteed(clientId, dataType, data) {this.notImplemented()}
-  broadcastData(dataType, data) {this.notImplemented()}
-  broadcastDataGuaranteed(dataType, data) {this.notImplemented()}
+  sendData(clientId, dataType, data) {this.notImplemented('sendData')}
+  sendDataGuaranteed(clientId, dataType, data) {this.notImplemented('sendDataGuaranteed')}
+  broadcastData(dataType, data) {this.notImplemented('broadcastData')}
+  broadcastDataGuaranteed(dataType, data) {this.notImplemented('broadcastDataGuaranteed')}
 }
 
 INetworkAdapter.IS_CONNECTED = 'IS_CONNECTED';
