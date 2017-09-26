@@ -30,9 +30,10 @@ Features
 * Includes everything you need to create multi-user WebVR apps and games.
 * Support for WebRTC and/or WebSocket connections.
 * Voice chat. Audio streaming to let your users talk in-app (WebRTC only).
-* Bandwidth sensitive. Only send network updates when things change. Option to furhter compress network packets.
+* Bandwidth sensitive. Only send network updates when things change. Option to further compress network packets.
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
 * Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard+Daydream supported.
+* Firebase WebRTC signalling supported
 
 
 Getting Started
@@ -42,7 +43,7 @@ Follow [this tutorial](https://github.com/haydenjameslee/networked-aframe/blob/m
 
 Edit online example with [glitch.com/~networked-aframe/](https://glitch.com/~networked-aframe/)
 
-To get the examples running on your own PC run:
+To run the examples on your own PC:
 
  ```sh
 git clone https://github.com/haydenjameslee/networked-aframe.git  # Clone the repository.
