@@ -40,7 +40,7 @@ Getting Started
 
 Follow [this tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/getting-started-local.md) to build your own example.
 
-Edit online example with [glitch.com/~networked-aframe/](https://glitch.com/~networked-aframe/).
+Edit online example with [glitch.com/~networked-aframe/](https://glitch.com/~networked-aframe/)
 
 To get the examples running on your own PC run:
 
@@ -218,28 +218,28 @@ If using WebRTC `broadcastData` messages are sent P2P using UDP and are not guar
 
 ### Events
 
-Events are fired when certain events happen in NAF. To subscribe to these events follow this pattern:
+Events are fired when certain things happen in NAF. To subscribe to these events follow this pattern:
 
 ```javascript
 document.body.addEventListener('clientConnected', function (evt) {
   console.error('clientConnected event. clientId =', evt.detail.clientId);
 });
 ```
-These events need to be subscribed after the document.body element has been created. This could be achieved by waiting for the document.body `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/haydenjameslee/networked-aframe/blob/toward-0.3.0/server/static/basic-events.html#L30) as an example.
+Events need to be subscribed after the document.body element has been created. This could be achieved by waiting for the document.body `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/haydenjameslee/networked-aframe/blob/toward-0.3.0/server/static/basic-events.html#L30) as an example.
 
-Here's the list of events:
+List of events:
 
 | Event | Description | Values |
 | -------- | ----------- | ------------- |
-| clientConnected | Fired when another user connects to you | evt.detail.clientId - NAF ID of connecting client |
-| clientDisconnected | Fired when another user disconnects from you | evt.detail.clientId - NAF ID of disconnecting client |
-| entityCreated | Fired when a networked entity is created | evt.detail.el - new entity |
-| entityDeleted | Fired when a networked entity is deleted | evt.detail.networkId - networkId of old entity |
+| clientConnected | Fired when another client connects to you | `evt.detail.clientId` - NAF ID of connecting client |
+| clientDisconnected | Fired when another client disconnects from you | `evt.detail.clientId` - NAF ID of disconnecting client |
+| entityCreated | Fired when a networked entity is created | `evt.detail.el` - new entity |
+| entityDeleted | Fired when a networked entity is deleted | `evt.detail.networkId` - networkId of deleted entity |
 
 
 ### Adapters
 
-NAF can be used with multiple network libraries and services. If you're just hacking on a small project or proof of concept you'll probably be fine with the default configuration and you can skip this section. Considerations you should make when evaluating different adapters are:
+NAF can be used with multiple network libraries and services. An adapter is a class which adds support for a library to NAF. If you're just hacking on a small project or proof of concept you'll probably be fine with the default configuration and you can skip this section. Considerations you should make when evaluating different adapters are:
 
 - How many concurrent users do you need to support in one room?
 - Do you want to host your own server? Or would a "serverless" solution like Firebase do the job?
@@ -249,24 +249,24 @@ NAF can be used with multiple network libraries and services. If you're just hac
 
 I'll write up a post on the answers to these questions soon (please [bug me](https://twitter.com/haydenlee37) about it if you're interested).
 
-An adapter is a class which adds support for a library to NAF. By default the `wsEasyRtc` adapter is used, which is an implementation of the open source [EasyRTC](https://github.com/priologic/easyrtc) library, that only uses the WebSocket connection. To easily change to WebRTC instead of WebSockets, change the adapter to `easyrtc`, which also supports audio. If you're interested in contributing to NAF a great opportunity is to add support for more adapters and send a pull request.
+By default the `wsEasyRtc` adapter is used, which is an implementation of the open source [EasyRTC](https://github.com/priologic/easyrtc) library that only uses the WebSocket connection. To quickly try WebRTC instead of WebSockets, change the adapter to `easyrtc`, which also supports audio. If you're interested in contributing to NAF a great opportunity is to add support for more adapters and send a pull request.
 
 List of the supported adapters:
 
 | Adapter | Description | Supports Audio | WebSockets vs WebRTC | How to start |
 | -------- | ----------- | ------------- | ----------- | ---------- |
-| wsEasyRTC | DEFAULT - An implementation of [EasyRTC](https://github.com/priologic/easyrtc) that only uses the WebSocket connection | No | WebSockets | `npm run start` |
+| wsEasyRTC | DEFAULT - [EasyRTC](https://github.com/priologic/easyrtc) that only uses the WebSocket connection | No | WebSockets | `npm run start` |
 | EasyRTC | [EasyRTC](https://github.com/priologic/easyrtc) | Yes | WebRTC with WebSocket signalling | `npm run start` |
-| uWS | A custom implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | `npm run start:uws` |
+| uWS | Custom implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | `npm run start:uws` |
 | Firebase | Uses [Firebase](https://firebase.google.com/) for WebRTC signalling | Yes | WebRTC with Firebase signalling | See [Firebase Config](#firebase) |
 
 #### Firebase
 
 Firebase is a "serverless" network solution provided by Google. In NAF's case it can be used to establish connections between clients in a peer-to-peer fashion, without having to host a signalling (connection) server.
 
-Steps to add setup Firebase:
+Steps to setup Firebase:
 
-1. Sign up for Firebase account: https://firebase.google.com/
+1. [Sign up for a Firebase account](https://firebase.google.com/)
 2. Create a new Firebase project
 3. Go to Database -> Rules and change them to the following (warning: not safe for production, just developing)
 ```javascript
@@ -280,10 +280,10 @@ Steps to add setup Firebase:
 4. Click publish
 5. Go back to the project overview
 6. Click "Add Firebase to your web app"
-7. Copy the credentials into your HTML page, for example see the [Firebase NAF demo](https://github.com/haydenjameslee/networked-aframe/blob/toward-0.3.0/server/static/firebase-basic.html)
+7. Copy the credentials into your HTML page, for example see the [Firebase NAF Demo](https://github.com/haydenjameslee/networked-aframe/blob/toward-0.3.0/server/static/firebase-basic.html)
 8. Open two tabs of this page and you should see the other tab's avatar
 
-Thanks to @takahirox for adding Firebase signalling support to NAF!
+Thanks to [@takahirox](https://github.com/takahirox) for adding Firebase signalling support to NAF!
 
 
 ### Misc
@@ -293,6 +293,12 @@ NAF.connection.isConnected()
 ```
 
 Returns true if a connection has been established to the signalling server.
+
+```javascript
+NAF.connection.getConnectedClients()
+```
+
+Returns the list of currently connected clients.
 
 
 ### Options

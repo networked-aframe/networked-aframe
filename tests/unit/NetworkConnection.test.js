@@ -372,14 +372,14 @@ suite('NetworkConnection', function() {
     });
   });
 
-  suite('unsubscribeFromDataChannel', function() {
+  suite('unsubscribeToDataChannel', function() {
 
     test('is removed from datachannel subscribers', function() {
       var dataType = 'method1';
       var callback = function() { return 'callback' };
       connection.dataChannelSubs[dataType] = callback;
 
-      connection.unsubscribeFromDataChannel(dataType);
+      connection.unsubscribeToDataChannel(dataType);
 
       assert.isFalse(connection.dataChannelSubs.hasOwnProperty(dataType));
     });

@@ -180,9 +180,9 @@ class NetworkConnection {
     this.dataChannelSubs[dataType] = callback;
   }
 
-  unsubscribeFromDataChannel(dataType) {
+  unsubscribeToDataChannel(dataType) {
     if (this.isReservedDataType(dataType)) {
-      NAF.log.error('NetworkConnection@unsubscribeFromDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
+      NAF.log.error('NetworkConnection@unsubscribeToDataChannel: ' + dataType + ' is a reserved dataType. Choose another');
       return;
     }
     delete this.dataChannelSubs[dataType];
