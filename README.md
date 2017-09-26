@@ -103,13 +103,13 @@ Required on the A-Frame `<a-scene>` component.
 
 ```html
 <a-scene networked-scene="
+  serverURL: /;
   app: <appId>;
   room: <roomName>;
   connectOnLoad: true;
-  signalURL: /;
   onConnect: onConnect;
-  webrtc: false;
-  webrtcAudio: false;
+  adapter: wseasyrtc;
+  audio: false;
   debug: false;
 ">
   ...
@@ -118,14 +118,14 @@ Required on the A-Frame `<a-scene>` component.
 
 | Property | Description | Default Value |
 | -------- | ----------- | ------------- |
+| serverURL  | Choose where the WebSocket / signalling server is located. | / |
 | app  | Unique app name. Spaces are not allowed. | default |
-| room  | Unique room name. Can be multiple per app. Spaces are not allowed. | default |
-| connectOnLoad  | Connect to the server as soon as the webpage loads  | true |
-| signalURL  | Choose where the WebSocket / signalling server is located | / |
-| onConnect  | Function to be called when client has successfully connected to the server | onConnect |
-| webrtc | When false use WebSockets for all network messages. When true use a combination of WebSockets and WebRTC connections | false |
-| webrtcAudio  | Turn on / off microphone audio streaming for your app. Only works if `webrtc` is set to `true` | false |
-| debug  | Turn on / off Networked-Aframe debug logs | false |
+| room  | Unique room name. Can be multiple per app. Spaces are not allowed. There can be multiple rooms per app and clients can only connect to clients in the same app & room. | default |
+| connectOnLoad  | Connect to the server as soon as the webpage loads. | true |
+| onConnect  | Function to be called when client has successfully connected to the server. | onConnect |
+| adapter | The network service that you wish to use, see [adapters](#adapters). | wseasyrtc |
+| audio  | Turn on / off microphone audio streaming for your app. Only works if the chosen adapter supports it. | false |
+| debug  | Turn on / off Networked-Aframe debug logs. | false |
 
 
 ### Creating Networked Entities
@@ -235,6 +235,53 @@ Here's the list of events:
 | clientDisconnected | Fired when another user disconnects from you | evt.detail.clientId - NAF ID of disconnecting client |
 | entityCreated | Fired when a networked entity is created | evt.detail.el - new entity |
 | entityDeleted | Fired when a networked entity is deleted | evt.detail.networkId - networkId of old entity |
+
+
+### Adapters
+
+NAF can be used with multiple network libraries and services. If you're just hacking on a small project or proof of concept you'll probably be fine with the default configuration and you can skip this section. Considerations you should make when evaluating different adapters are:
+
+- How many concurrent users do you need to support in one room?
+- Do you want to host your own server? Or would a "serverless" solution like Firebase do the job?
+- Do you need audio 
+- Do you need custom server-side logic?
+- Do you want a WebSocket (client-server) network architecture or WebRTC (peer-to-peer)?
+
+I'll write up a post on the answers to these questions soon (please [bug me](https://twitter.com/haydenlee37) about it if you're interested).
+
+An adapter is a class which adds support for a library to NAF. By default the `wsEasyRtc` adapter is used, which is an implementation of the open source [EasyRTC](https://github.com/priologic/easyrtc) library, that only uses the WebSocket connection. To easily change to WebRTC instead of WebSockets, change the adapter to `easyrtc`, which also supports audio. If you're interested in contributing to NAF a great opportunity is to add support for more adapters and send a pull request.
+
+List of the supported adapters:
+
+| Adapter | Description | Supports Audio | WebSockets vs WebRTC | How to start |
+| -------- | ----------- | ------------- | ----------- | ---------- |
+| wsEasyRTC | DEFAULT - An implementation of [EasyRTC](https://github.com/priologic/easyrtc) that only uses the WebSocket connection | No | WebSockets | `npm run start` |
+| EasyRTC | [EasyRTC](https://github.com/priologic/easyrtc) | Yes | WebRTC with WebSocket signalling | `npm run start` |
+| uWS | A custom implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | `npm run start:uws` |
+| Firebase | Uses [Firebase](https://firebase.google.com/) for WebRTC signalling | Yes | WebRTC with Firebase signalling | See [Firebase Config](#firebase) |
+
+#### Firebase
+
+Firebase is a "serverless" network solution provided by Google. In NAF's case it can be used to establish connections between clients in a peer-to-peer fashion, without having to host a signalling (connection) server.
+
+Steps to add setup Firebase:
+
+1. Sign up for Firebase account: https://firebase.google.com/
+2. Create a new Firebase project
+3. Go to Database -> Rules and change them to the following (warning: not safe for production, just developing)
+```javascript
+    {
+      "rules": {
+        ".read": true,
+        ".write": true
+      }
+    }
+```
+4. Click publish
+5. Go back to the project overview
+6. Click "Add Firebase to your web app"
+7. Copy the credentials into your HTML page, for example see the [Firebase NAF demo](https://github.com/haydenjameslee/networked-aframe/blob/toward-0.3.0/server/static/firebase-basic.html)
+8. Open two tabs of this page and you should see the other tab's avatar
 
 
 ### Misc
