@@ -216,6 +216,27 @@ If using WebRTC `broadcastData` messages are sent P2P using UDP and are not guar
 | data | Object to be sent to all other clients
 
 
+### Events
+
+Events are fired when certain events happen in NAF. To subscribe to these events follow this pattern:
+
+```javascript
+document.body.addEventListener('clientConnected', function (evt) {
+  console.error('clientConnected event. clientId =', evt.detail.clientId);
+});
+```
+These events need to be subscribed after the document.body element has been created. This could be achieved by waiting for the document.body `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/haydenjameslee/networked-aframe/blob/toward-0.3.0/server/static/basic-events.html#L30) as an example.
+
+Here's the list of events:
+
+| Event | Description | Values |
+| -------- | ----------- | ------------- |
+| clientConnected | Fired when another user connects to you | evt.detail.clientId - NAF ID of connecting client |
+| clientDisconnected | Fired when another user disconnects from you | evt.detail.clientId - NAF ID of disconnecting client |
+| entityCreated | Fired when a networked entity is created | evt.detail.el - new entity |
+| entityDeleted | Fired when a networked entity is deleted | evt.detail.networkId - networkId of old entity |
+
+
 ### Misc
 
 ```javascript
