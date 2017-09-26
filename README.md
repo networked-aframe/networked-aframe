@@ -243,7 +243,7 @@ NAF can be used with multiple network libraries and services. If you're just hac
 
 - How many concurrent users do you need to support in one room?
 - Do you want to host your own server? Or would a "serverless" solution like Firebase do the job?
-- Do you need audio 
+- Do you need audio (microphone) streaming?
 - Do you need custom server-side logic?
 - Do you want a WebSocket (client-server) network architecture or WebRTC (peer-to-peer)?
 
@@ -282,6 +282,8 @@ Steps to add setup Firebase:
 6. Click "Add Firebase to your web app"
 7. Copy the credentials into your HTML page, for example see the [Firebase NAF demo](https://github.com/haydenjameslee/networked-aframe/blob/toward-0.3.0/server/static/firebase-basic.html)
 8. Open two tabs of this page and you should see the other tab's avatar
+
+Thanks to @takahirox for adding Firebase signalling support to NAF!
 
 
 ### Misc
