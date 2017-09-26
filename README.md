@@ -87,9 +87,14 @@ More Examples
 Open in two tabs if nobody else is online.
 
 * [Basic](http://haydenlee.io/networked-aframe/basic.html)
+* [Basic with 4 clients](http://haydenlee.io/networked-aframe/basic-4.html)
 * [Dance Club](http://haydenlee.io/networked-aframe/a-saturday-night/index.html)
-* [360 Image](http://haydenlee.io/networked-aframe/360.html)
-* Made something awesome with Networked-Aframe? [Let me know](https://twitter.com/haydenlee37) and I'll include it here!
+* [Google Blocks](http://haydenlee.io/networked-aframe/google-blocks.html)
+* [Tracked Controllers](http://haydenlee.io/networked-aframe/tracked-controllers.html)
+* [Minecraft Clone](https://uxvirtual.com/demo/blocks/)
+* [More...](http://haydenlee.io/networked-aframe/)
+
+Made something awesome with Networked-Aframe? [Let me know](https://twitter.com/haydenlee37) and I'll include it here!
 
 
 Documentation
