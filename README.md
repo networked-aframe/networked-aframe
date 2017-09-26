@@ -53,6 +53,8 @@ npm run dev  # Start the local development server.
 ```
 With the server running, browse the examples at `http://localhost:8080`. Open another browser tab and point it to the same URL to see the other client.
 
+For info on how to host your experience on the internet, see the [NAF Hosting Guide](https://github.com/haydenjameslee/networked-aframe/blob/toward-0.3.0/docs/hosting-networked-aframe-on-a-server.md).
+
 
 Basic Example
 -------------
