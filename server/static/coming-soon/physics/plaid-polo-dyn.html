@@ -1,0 +1,197 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Basic Example - Networked-Aframe</title>
+    <meta name="description" content="Basic Example - Networked-Aframe">
+    <script src="//rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script>
+    <script src="//rawgit.com/chenzlabs/aframe-environment-component/master/dist/aframe-environment-component.min.js"></script>
+    <script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v1.4.2/dist/aframe-physics-system.min.js"></script>
+<!--
+    <script src="//rawgit.com/chenzlabs/networked-aframe/toward-0.3.0/dist/networked-aframe.js"></script>
+-->
+    <script src="/dev/build.js"></script>
+<!-- 
+    Currently, networked-aframe uses EasyRTC, which uses socket.io.
+    This stack appears to impose some early scaling constraints (~700 users max?)
+-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
+<!-- 
+    Firebase 
+
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+-->    
+    <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+    <script src="/js/spawn-in-circle.component.js"></script>
+
+  </head>
+  <body>
+
+    <script>          
+      // Define custom schema for syncing avatar color, set by random-color
+      NAF.schemas.add({
+        template: '#avatar-template',
+        components: [
+          'position',
+          'rotation',
+          {selector: 'a-sphere', component: 'material', property: 'color'},
+        ]
+      });
+      
+      // Define custom schema for syncing ball pose and color, set by random-color
+      var ballSchema = {
+        template: '#ball-template',
+        components: [
+          'position',
+          'rotation',
+          {component: 'material', property: 'color'},
+        ]
+      };
+      NAF.schemas.add(ballSchema);
+
+    </script>
+   <a-scene networked-scene="
+      room: basic;
+      useLerp: false; compressSyncPackets: false; useShare: true;
+      updateRate: 30;
+      collisionOwnership: false;
+      webrtc: true;
+   ">
+<!--
+      firebase: true;
+      firebaseAuthType: none;
+      firebaseApiKey: redacted;
+      firebaseAuthDomain: plaid-polo.firebaseapp.com;
+      firebaseDatabaseURL: https://plaid-polo.firebaseio.com;      
+    ">
+-->
+      <a-assets>
+        <!-- Templates -->
+
+        <!-- Avatar -->
+        <script id="avatar-template" type="text/html">
+          <a-entity class="avatar">
+            <a-sphere class="head"
+              static-body
+              color="#5985ff"
+              scale="0.45 0.5 0.4"
+              random-color
+            ></a-sphere>
+            <a-entity class="face"
+              position="0 0.05 0"
+            >
+              <a-sphere class="eye"
+                color="#efefef"
+                position="0.16 0.1 -0.35"
+                scale="0.12 0.12 0.12"
+              >
+                <a-sphere class="pupil"
+                  color="#000"
+                  position="0 0 -1"
+                  scale="0.2 0.2 0.2"
+                ></a-sphere>
+              </a-sphere>
+              <a-sphere class="eye"
+                color="#efefef"
+                position="-0.16 0.1 -0.35"
+                scale="0.12 0.12 0.12"
+              >
+                <a-sphere class="pupil"
+                  color="#000"
+                  position="0 0 -1"
+                  scale="0.2 0.2 0.2"
+                ></a-sphere>
+              </a-sphere>
+            </a-entity>
+          </a-entity>
+        </script>
+
+        <!-- with these templates, local and remote objects interact
+         ... remote objects need to be static-body to avoid fighting -->
+
+        <script id="ball-template" type="text/html">
+            <a-entity
+	            geometry="primitive: sphere; radius: 0.2"
+              dynamic-body
+              material="color:#5985ff" random-color>
+            </a-entity>
+        </script>        
+
+        <!-- /Templates -->
+      </a-assets>
+
+      <a-entity id="player" 
+                networked="template:#avatar-template;showLocalTemplate:false;" 
+                camera 
+                position="0 1.3 0" spawn-in-circle="radius:3"
+                wasd-controls look-controls>
+      </a-entity>
+
+      <a-entity environment="preset:forest"></a-entity>
+
+      <!-- solid ground - need to be thicker than plane for edge cases where it may pass through -->
+      <a-box id="ground" static-body visible="false"
+        width="1000" height="1000" rotation="90 0 0"
+        depth="10" position="0 -5 0"></a-box>
+
+    </a-scene>
+
+    <script>
+      function createNetEntityFromSchema(schema, position, rotation, networkId) { 
+        var en = document.createElement('a-entity');
+      	if (position) { en.setAttribute('position', position); }
+      	if (rotation) { en.setAttribute('rotation', rotation); }
+      	if (!networkId) { networkId = NAF.utils.createNetworkId(); }
+        en.setAttribute('id', 'naf-' + networkId);
+        en.setAttribute('networked-share', {
+          physics: true,
+          template: schema.template,
+          components: schema.components,
+          networkId: networkId,
+          // this is default now... owner: NAF.clientId // we own it to start
+        });
+
+        return en;
+      }
+
+      function addNetEntityFromSchema(schema, position, rotation, networkId, el) {
+        var en = createNetEntityFromSchema(schema, position, rotation, networkId);
+      	if (!el) { el = document.querySelector('a-scene'); }
+      	el.appendChild(en);
+      	return en;
+      }
+
+      document.body.addEventListener('click', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+        // make a ball that we own
+	      addNetEntityFromSchema(ballSchema, '0 2 0');
+      });
+
+      // add handlers for loggedIn, client connected / disconnected, etc.
+      
+      document.body.addEventListener('loggedIn', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+      });
+      document.body.addEventListener('clientConnected', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+        // TODO: find a reliable way to count connections (NOT entities)
+      });
+      document.body.addEventListener('clientDisconnected', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+        // TODO: find a reliable way to count connections (NOT entities)
+      });      
+      document.body.addEventListener('dataChannelOpened', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+      });
+      document.body.addEventListener('dataChannelClosed', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+      });      
+    </script>
+  </body>
+</html>

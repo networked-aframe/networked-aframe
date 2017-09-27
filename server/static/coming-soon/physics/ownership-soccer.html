@@ -1,0 +1,243 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Basic Example - Networked-Aframe</title>
+    <meta name="description" content="Basic Example - Networked-Aframe">
+    <script src="//rawgit.com/chenzlabs/aframe/master/dist/aframe-master.js"></script>
+    <script src="//rawgit.com/chenzlabs/aframe-environment-component/master/dist/aframe-environment-component.js"></script>
+    <script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v1.4.2/dist/aframe-physics-system.min.js"></script>
+<!--
+    <script src="//rawgit.com/chenzlabs/networked-aframe/toward-0.3.0/dist/networked-aframe.js"></script>
+-->
+    <script src="/dev/build.js"></script>
+<!-- 
+    Currently, networked-aframe uses EasyRTC, which uses socket.io.
+    This stack appears to impose some early scaling constraints (~700 users max?)
+-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
+<!-- 
+    Firebase 
+
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+-->    
+    <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+    <script src="/js/spawn-in-circle.component.js"></script>
+
+  </head>
+  <body>
+
+    <script>   
+      // Define custom schema for syncing avatar color, set by random-color
+      NAF.schemas.add({
+        template: '#avatar-template',
+        components: [
+          'position',
+          'rotation',
+          {selector: 'a-sphere', component: 'material', property: 'color'},
+        ]
+      });
+      
+      // Define custom schema for syncing ball pose and color, set by random-color
+      var ballSchema = {
+        template: '#ball-template',
+        components: [
+          'position',
+          'rotation',
+          {component: 'material', property: 'color'},
+        ]
+      };
+      NAF.schemas.add(ballSchema);
+    </script>
+    <a-scene networked-scene="
+      room: ownership;
+      useLerp: false;
+      compressSyncPackets: false;
+      collisionOwnership: true;
+      updateRate: 20;
+      webrtc: true;
+      debug: true;
+      signalURL: https://haydenlee.io;
+    ">
+<!--
+      firebase: true;
+      firebaseAuthType: none;
+      firebaseApiKey: redacted;
+      firebaseAuthDomain: plaid-polo.firebaseapp.com;
+      firebaseDatabaseURL: https://plaid-polo.firebaseio.com;      
+    ">
+-->
+      <a-assets>
+        <!-- Templates -->
+
+        <!-- Avatar -->
+        <script id="avatar-template" type="text/html">
+          <a-entity class="avatar">
+            <a-sphere class="head"
+              color="#ff3af1"
+              scale="0.45 0.5 0.4"
+            ></a-sphere>
+            <a-entity class="face"
+              position="0 0.05 0"
+            >
+              <a-sphere class="eye"
+                color="#efefef"
+                position="0.16 0.1 -0.35"
+                scale="0.12 0.12 0.12"
+              >
+                <a-sphere class="pupil"
+                  color="#000"
+                  position="0 0 -1"
+                  scale="0.2 0.2 0.2"
+                ></a-sphere>
+              </a-sphere>
+              <a-sphere class="eye"
+                color="#efefef"
+                position="-0.16 0.1 -0.35"
+                scale="0.12 0.12 0.12"
+              >
+                <a-sphere class="pupil"
+                  color="#000"
+                  position="0 0 -1"
+                  scale="0.2 0.2 0.2"
+                ></a-sphere>
+              </a-sphere>
+            </a-entity>
+          </a-entity>
+        </script>
+
+        <!-- with these templates, local and remote objects interact
+         ... remote objects need to be static-body to avoid fighting -->
+
+        <script id="ball-template" type="text/html">
+            <a-entity
+              class="ball"
+	            geometry="primitive: sphere; radius: 0.2"
+              material="color:#ff3af1"
+              static-body
+            ></a-entity>
+        </script>
+
+        <!-- /Templates -->
+      </a-assets>
+
+      <a-entity id="player"
+                networked="template:#avatar-template;showLocalTemplate:false;"
+                networked-physics="canLoseOwnership:false;"
+                camera="userHeight: 0.5"
+                spawn-in-circle="radius:3"
+                wasd-controls look-controls
+                static-body
+      ></a-entity>
+
+      <a-entity environment="preset:forest"></a-entity>
+
+      <!-- solid ground - need to be thicker than plane for edge cases where it may pass through -->
+      <a-box id="ground" static-body visible="false"
+        width="1000" height="1000" rotation="90 0 0"
+        depth="10" position="0 -5 0"></a-box>
+
+    </a-scene>
+
+    <script>
+      function createNetEntityFromSchema(schema, position, rotation, networkId) { 
+        var el = document.createElement('a-entity');
+      	if (position) { el.setAttribute('position', position); }
+      	if (rotation) { el.setAttribute('rotation', rotation); }
+      	if (!networkId) { networkId = NAF.utils.createNetworkId(); }
+        el.setAttribute('id', 'naf-' + networkId);
+        el.setAttribute('networked', {networkId: networkId, template: schema.template});
+        el.setAttribute('networked-physics', '');
+        return el;
+      }
+
+      function addNetEntityFromSchema(schema, position, rotation, networkId, parent) {
+        var el = createNetEntityFromSchema(schema, position, rotation, networkId);
+      	if (!parent) { parent = document.querySelector('a-scene'); }
+      	parent.appendChild(el);
+        handleOwnershipChange(el);
+
+        // NECESSARY EVIL HACK: we need to cheat and make ours dynamic-body not static-body
+        // FIXME: how do we know when the template has been instantiated?
+        // OK with this trickery, local template works!
+        setTimeout(function () {
+          el.removeAttribute('static-body');
+          el.setAttribute('dynamic-body', '');
+          el.body.type = 1; // dynamic
+          el.body.updateMassProperties();
+          el.setAttribute('material', 'color', localColor);
+        });
+
+	      return el;
+      }
+
+      var localColor = '#' + getRandomColor();
+      // console.error('local color', localColor);
+      setTimeout(function() {
+        var head = document.querySelector('#player .head');
+        head.setAttribute('material', 'color', localColor);
+      }, 1000);
+
+      document.body.onkeyup = function(e) {
+        if(e.keyCode == 32){
+          // make a ball that we own
+          addNetEntityFromSchema(ballSchema, '0 2 0');
+        }
+      };
+
+      // add handlers for loggedIn, client connected / disconnected, etc.
+      
+      document.body.addEventListener('connected', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+      });
+      document.body.addEventListener('clientConnected', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+        // TODO: find a reliable way to count connections (NOT entities)
+      });
+      document.body.addEventListener('clientDisconnected', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+        // TODO: find a reliable way to count connections (NOT entities)
+      });      
+      document.body.addEventListener('dataChannelOpened', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+      });
+      document.body.addEventListener('dataChannelClosed', function (evt) {
+        console.log(evt);
+        console.log(NAF.connection);
+      });
+
+      function handleRemoteOwnershipChange(evt) {
+        var el = evt.detail.el;
+        handleOwnershipChange(el);
+      }
+        
+      function handleOwnershipChange(el) {
+        // console.error('entityCreated', el);
+        el.addEventListener('networked-ownership-taken', function (evt) {
+          console.log('this is mine now!', el);
+          el.setAttribute('material', 'color', localColor);
+        });
+        el.addEventListener('networked-ownership-lost', function (evt) {
+          console.log('good bye, sweet prince', el);
+        });
+      }
+      document.body.addEventListener('remoteEntityCreated', handleRemoteOwnershipChange);
+
+      function getRandomColor() {
+        var min = new THREE.Color(0,0,0);
+        var max = new THREE.Color(1,1,1);
+        var color = new THREE.Color(
+          Math.random() * max.r + min.r,
+          Math.random() * max.g + min.g,
+          Math.random() * max.b + min.b
+        );
+        var hex = color.getHexString();
+        return hex;
+      }
+    </script>
+  </body>
+</html>

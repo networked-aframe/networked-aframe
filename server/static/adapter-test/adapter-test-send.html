@@ -1,0 +1,78 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Dev Example — Networked-Aframe</title>
+    <meta name="description" content="Dev Example — Networked-Aframe">
+
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="/build.js"></script>
+
+    <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+    <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
+    <script src="/js/spawn-in-circle.component.js"></script>
+
+    <script>
+      function onConnect() {
+        setTimeout(sendEvents, 3000);
+      }
+
+      function sendEvents() {
+        NAF.connection.broadcastDataGuaranteed('reliableBroadcast', '');
+        NAF.connection.broadcastData('unreliableBroadcast', '');
+
+        var clients = NAF.connection.getConnectedClients();
+
+        var firstClient;
+        for (firstClient in clients)
+          break;
+
+        console.error(clients);
+        console.error(firstClient);
+
+        NAF.connection.sendDataGuaranteed(firstClient, 'reliableSend', '');
+        NAF.connection.sendData(firstClient, 'unreliableSend', '');
+      }
+    </script>
+  </head>
+  <body>
+
+    <div>
+      <p>Sender. Open first receiver to test.</p>
+    </div>
+
+    <!-- Uncomment the block corresponding to the network adapter you want to test -->
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
+    <a-scene embedded networked-scene="
+      room: dev;
+      debug: true;
+      adapter: easyrtc;
+    "> -->
+
+    <!-- <a-scene networked-scene="
+      room: dev;
+      debug: true;
+      adapter: uws;
+      serverURL: ws://localhost:8080;
+    "> -->
+
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+    <script>
+      // Setup Firebase
+      window.firebaseConfig = {
+        authType: 'none',
+        apiKey: 'AIzaSyCoUs0zrSUHYdxrMhTYlDg3KJj6xeQD_cw',
+        authDomain: 'networked-aframe-example.firebaseapp.com',
+        databaseURL: 'https://networked-aframe-example.firebaseio.com'
+      };
+    </script>
+    <a-scene networked-scene="
+      room: dev;
+      debug: true;
+      adapter: firebase;
+    ">
+
+    </a-scene>
+  </body>
+</html>

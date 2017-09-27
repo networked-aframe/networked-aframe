@@ -2,6 +2,7 @@
 var aframe = require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
+var componentHelper = require('../../src/ComponentHelper');
 
 require('../../src/components/networked');
 
@@ -12,16 +13,40 @@ suite('networked', function() {
 
   function initScene(done) {
     var opts = {};
-    opts.entity = '<a-entity id="test-entity" networked="template:t1;showLocalTemplate:false;components:position,rotation" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity>';
+    opts.entity = '<a-entity id="test-entity" networked="template:t1;showLocalTemplate:false;" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity>';
     scene = helpers.sceneFactory(opts);
     naf.utils.whenEntityLoaded(scene, done);
   }
 
+  function MockNetworkAdapter() {
+    this.setServerUrl = sinon.stub();
+    this.setApp = sinon.stub();
+    this.setRoom = sinon.stub();
+    this.setWebRtcOptions = sinon.stub();
+
+    this.setServerConnectListeners = sinon.stub();
+    this.setRoomOccupantListener = sinon.stub();
+    this.setDataChannelListeners = sinon.stub();
+
+    this.connect = sinon.stub();
+    this.shouldStartConnectionTo = sinon.stub();
+    this.startStreamConnection = sinon.stub();
+    this.closeStreamConnection = sinon.stub();
+    this.getConnectStatus = sinon.stub();
+
+    this.sendData = sinon.stub();
+    this.sendDataGuaranteed = sinon.stub();
+    this.broadcastData = sinon.stub();
+    this.broadcastDataGuaranteed = sinon.stub();
+  }
+
   setup(function(done) {
     naf.options.compressSyncPackets = false;
+    naf.connection.setNetworkAdapter(new MockNetworkAdapter());
     initScene(function() {
       entity = document.querySelector('#test-entity');
       networked = entity.components['networked'];
+      networked.data.networkId = '';
       done();
     });
   });
@@ -44,11 +69,11 @@ suite('networked', function() {
   suite('init', function() {
 
     test('sets networkId', sinon.test(function() {
-      this.stub(networked, 'createNetworkId').returns('nid1');
+      this.stub(naf.utils, 'createNetworkId').returns('nid1');
 
       networked.init();
 
-      var result = networked.networkId;
+      var result = networked.data.networkId;
       assert.equal(result, 'nid1');
     }));
 
@@ -58,7 +83,7 @@ suite('networked', function() {
       networked.init();
       document.body.dispatchEvent(new Event('loggedIn'));
 
-      var result = networked.owner;
+      var result = networked.data.owner;
       assert.equal(result, 'owner1');
     }));
 
@@ -74,8 +99,8 @@ suite('networked', function() {
 
     test('registers entity', sinon.test(function() {
       var networkId = 'nid2';
-      this.stub(networked, 'createNetworkId').returns(networkId);
-      var stub = this.stub(naf.entities, 'registerLocalEntity');
+      this.stub(naf.utils, 'createNetworkId').returns(networkId);
+      var stub = this.stub(naf.entities, 'registerEntity');
 
       networked.init();
 
@@ -99,7 +124,8 @@ suite('networked', function() {
 
       assert.isTrue(entity.addEventListener.calledWith('sync'), 'sync');
       assert.isTrue(entity.addEventListener.calledWith('syncAll'), 'syncAll');
-      assert.isTrue(entity.addEventListener.calledTwice, 'called twice');
+      assert.isTrue(entity.addEventListener.calledWith('networkUpdate'), 'networkUpdate');
+      assert.equal(entity.addEventListener.callCount, 3, 'called thrice');
     }));
   });
 
@@ -112,29 +138,9 @@ suite('networked', function() {
 
       assert.isTrue(entity.removeEventListener.calledWith('sync'), 'sync');
       assert.isTrue(entity.removeEventListener.calledWith('syncAll'), 'syncAll');
-      assert.isTrue(entity.removeEventListener.calledTwice, 'called twice');
+      assert.isTrue(entity.removeEventListener.calledWith('networkUpdate'), 'networkUpdate');
+      assert.equal(entity.removeEventListener.callCount, 3, 'called thrice');
     }));
-  });
-
-  suite('createNetworkId', function() {
-
-    test('length', function() {
-      var id = networked.createNetworkId();
-      assert.equal(id.length, 7);
-    });
-
-    test('object type', function() {
-      var id = networked.createNetworkId();
-      assert.isString(id)
-    });
-
-    test('alphanumeric', function () {
-      var regex = /^[a-z0-9]+$/i;
-
-      var id = networked.createNetworkId();
-
-      assert.match(id, regex);
-    });
   });
 
   suite('attachAndShowTemplate', function() {
@@ -161,7 +167,7 @@ suite('networked', function() {
   suite('tick', function() {
 
     test('syncs if need to', sinon.test(function() {
-      this.stub(naf.utils, 'now').returns(4);
+      this.stub(NAF.utils, 'now').returns(4);
       this.stub(networked, 'syncDirty');
       networked.nextSyncTime = 4;
 
@@ -171,7 +177,7 @@ suite('networked', function() {
     }));
 
     test('does not sync if does not need to', sinon.test(function() {
-      this.stub(naf.utils, 'now').returns(3.9);
+      this.stub(NAF.utils, 'now').returns(3.9);
       this.stub(networked, 'syncDirty');
       networked.nextSyncTime = 4;
 
@@ -184,7 +190,7 @@ suite('networked', function() {
   suite('syncAll', function() {
 
     test('broadcasts uncompressed data', sinon.test(function() {
-      this.stub(networked, 'createNetworkId').returns('network1');
+      this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastDataGuaranteed');
       var expected = {
         0: 0,
@@ -192,6 +198,8 @@ suite('networked', function() {
         owner: 'owner1',
         parent: null,
         template: 't1',
+        physics: null,
+        takeover: false,
         components: {
           position: { x: 1, y: 2, z: 3 },
           rotation: { x: 4, y: 3, z: 2 }
@@ -228,12 +236,37 @@ suite('networked', function() {
 
       assert.isTrue(networked.updateNextSyncTime.calledOnce);
     }));
+
+    test('broadcasts uncompressed data with takeover flag', sinon.test(function() {
+      this.stub(naf.utils, 'createNetworkId').returns('network1');
+      this.stub(naf.connection, 'broadcastDataGuaranteed');
+      var expected = {
+        0: 0,
+        networkId: 'network1',
+        owner: 'owner1',
+        parent: null,
+        template: 't1',
+        physics: null,
+        takeover: true,
+        components: {
+          position: { x: 1, y: 2, z: 3 },
+          rotation: { x: 4, y: 3, z: 2 }
+        }
+      };
+
+      networked.init();
+      document.body.dispatchEvent(new Event('loggedIn'));
+      networked.syncAll(true);
+
+      var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('u', expected);
+      assert.isTrue(called);
+    }));
   });
 
   suite('syncDirty', function() {
 
     test('syncs uncompressed data that has changed', sinon.test(function() {
-      this.stub(networked, 'createNetworkId').returns('network1');
+      this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastData');
       var oldData = {
         position: { x: 1, y: 2, z: 3 },
@@ -245,6 +278,8 @@ suite('networked', function() {
         owner: 'owner1',
         parent: null,
         template: 't1',
+        physics: null,
+        takeover: false,
         components: {
           rotation: { x: 4, y: 3, z: 2 }
         }
@@ -253,6 +288,7 @@ suite('networked', function() {
       networked.init();
       networked.updateCache(oldData);
       document.body.dispatchEvent(new Event('loggedIn'));
+      networked.hasSentFirstSync = true;
       networked.syncDirty();
 
       var called = naf.connection.broadcastData.calledWithExactly('u', expected);
@@ -260,37 +296,39 @@ suite('networked', function() {
     }));
 
     test('syncs compressed data that has changed (all components changed)', sinon.test(function() {
-      this.stub(networked, 'createNetworkId').returns('network1');
-      this.stub(naf.connection, 'broadcastData');
-      naf.options.compressSyncPackets = true;
+      this.stub(naf.utils, 'createNetworkId').returns('network1');
+      this.stub(NAF.connection, 'broadcastData');
+      NAF.options.compressSyncPackets = true;
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
-      var expected = [1, 'network1', 'owner1', null, 't1', { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, 't1', null, false, { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
 
       networked.init();
       networked.updateCache(oldData);
       document.body.dispatchEvent(new Event('loggedIn'));
+      networked.hasSentFirstSync = true;
       networked.syncDirty();
 
-      var called = naf.connection.broadcastData.calledWithExactly('u', expected);
+      var called = NAF.connection.broadcastData.calledWithExactly('u', expected);
       assert.isTrue(called);
     }));
 
     test('syncs compressed data that has changed (some components changed)', sinon.test(function() {
-      this.stub(networked, 'createNetworkId').returns('network1');
+      this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastData');
       naf.options.compressSyncPackets = true;
       var oldData = {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
-      var expected = [1, 'network1', 'owner1', null, 't1', { 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, 't1', null, false, { 1: { x: 4, y: 3, z: 2 } }];
 
       networked.init();
       networked.updateCache(oldData);
       document.body.dispatchEvent(new Event('loggedIn'));
+      networked.hasSentFirstSync = true;
       networked.syncDirty();
 
       var called = naf.connection.broadcastData.calledWithExactly('u', expected);

@@ -66,7 +66,8 @@ under the [MIT License](LICENSE).
 ## On Slack
 
 1. [Invite yourself](https://aframevr-slack.herokuapp.com/) to the A-Frame Slack channel.
-2. Help answer questions that people might have and welcome new people.
+2. Join the #networked-aframe channel
+3. Help answer questions that people might have and welcome new people.
 
 ## On GitHub
 

@@ -20,7 +20,7 @@
 
     <script>
       // Define custom schema for syncing avatar components
-      var avatarSchema = {
+      NAF.schemas.add({
         template: '#avatar-template',
         components: [
           'position',
@@ -30,8 +30,7 @@
             component: 'material'
           }
         ]
-      };
-      NAF.schemas.add(avatarSchema);
+      });
     </script>
     <script>
       function onARConnect () {

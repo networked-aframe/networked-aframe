@@ -1,4 +1,0 @@
-- start selenium
-- start localhost server
-- start easyrtc server
-- npm run system-tests
