@@ -1,6 +1,11 @@
 var naf = require('../NafIndex');
 var INetworkAdapter = require('./INetworkAdapter');
 
+/**
+ * uWebSockets Adapter
+ * For use with uws-server.js
+ * networked-scene: serverURL needs to be ws://localhost:8080 when running locally
+ */
 class UwsAdapter extends INetworkAdapter {
 
   constructor() {
