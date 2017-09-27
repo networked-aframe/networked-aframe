@@ -32,7 +32,7 @@ Now let's setup the required dependencies. Create a file called `package.json` a
   },
   "author": "YOUR_NAME",
   "dependencies": {
-    "networked-aframe": "^0.2.0"
+    "networked-aframe": "^0.3.0"
   }
 }
 ```
@@ -262,7 +262,7 @@ Now you have a basic networked WebVR scene up and running. But there's a lot mor
 
 ### Hand Controllers
 
-To add hand controllers follow this example: [INSERT CONTORLLER EXAMPLE]
+To add hand controllers follow the [tracked controllers example](https://github.com/haydenjameslee/networked-aframe/blob/master/server/static/tracked-controllers.html).
 
 ### WebRTC
 
@@ -284,18 +284,18 @@ To define synced components we introduce the concept of a NAF `schema`. These sc
 Here's an example schema that syncs the position and rotation of the root entity, while syncing the color of the avatar's head:
 
 ```Javascript
-var avatarSchema = {
+NAF.schemas.add({
   template: '#avatar-template',
   components: [
     'position',
     'rotation',
     {
       selector: '.head',
-      component: 'material'
+      component: 'material',
+      property: 'color'
     }
   ]
-};
-NAF.schemas.add(avatarSchema);
+});
 ```
 
 In the `basic.html` example this is used in combination with [ngokevin's Randomizer component](https://github.com/ngokevin/kframe/tree/master/components/randomizer) to give each avatar's head a synced randomized color.
