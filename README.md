@@ -91,6 +91,7 @@ Open in two tabs if nobody else is online.
 * [Dance Club](http://haydenlee.io/networked-aframe/a-saturday-night/index.html)
 * [Google Blocks](http://haydenlee.io/networked-aframe/google-blocks.html)
 * [Tracked Controllers](http://haydenlee.io/networked-aframe/tracked-controllers.html)
+* [Nametags](https://glitch.com/edit/#!/naf-nametags)
 * [Minecraft Clone](https://uxvirtual.com/demo/blocks/)
 * [More...](http://haydenlee.io/networked-aframe/)
 
