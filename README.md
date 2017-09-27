@@ -32,8 +32,8 @@ Features
 * Voice chat. Audio streaming to let your users talk in-app (WebRTC only).
 * Bandwidth sensitive. Only send network updates when things change. Option to further compress network packets.
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
-* Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard+Daydream supported.
-* Firebase WebRTC signalling supported
+* Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard + Daydream support.
+* Firebase WebRTC signalling support
 
 
 Getting Started
@@ -102,7 +102,7 @@ Documentation
 
 ### Overview
 
-Networked-Aframe works by syncing entities and their components to connected users. To connect to a room you need to add the [`networked-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, add the `networked` component to it. By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the network messages see the sections on [Broadcasting Custom Messages](#broadcasting-custom-messages) and [Options](#options).
+Networked-Aframe works by syncing entities and their components to connected users. To connect to a room you need to add the [`networked-scene`](#scene-component) component to the `a-scene` element. For an entity to be synced, add the `networked` component to it. By default the `position` and `rotation` components are synced, but if you want to sync other components or child components you need to define a [schema](#syncing-custom-components). For more advanced control over the network messages see the sections on [Broadcasting Custom Messages](#sending-custom-messages) and [Options](#options).
 
 
 ### Scene component
@@ -203,7 +203,7 @@ To sync nested templates setup your HTML nodes like so:
 
 In this example the head/camera, left and right hands will spawn their own templates which will be networked independently of the root player. Note: this parent-child relationship only works between one level, ie. a child entity's direct parent must have the `networked` component.
 
-### Broadcasting Custom Messages
+### Sending Custom Messages
 
 ```javascript
 NAF.connection.subscribeToDataChannel(dataType, callback)
@@ -211,16 +211,18 @@ NAF.connection.unsubscribeToDataChannel(dataType)
 
 NAF.connection.broadcastData(dataType, data)
 NAF.connection.broadcastDataGuaranteed(dataType, data)
+
+NAF.connection.sendData(clientId, dataType, data)
+NAF.connection.sendDataGuaranteed(clientId, dataType, data)
 ```
 
-Subscribe and unsubscribe callbacks to network messages specified by `dataType`. Send messages to other clients with the `broadcastData` functions.
-
-If using WebRTC `broadcastData` messages are sent P2P using UDP and are not guaranteed to make it to other clients (although they will most of the time, [see why](https://en.wikipedia.org/wiki/User_Datagram_Protocol)). `broadcastDataGuaranteed` messages are always sent via the WebSocket connection to the server using TCP, and hence not using WebRTC at all. These messages are guaranteed to be delivered to all connected clients. In the future a reliable protocol may be added on top of UDP instead of relying on the TCP websocket connection.
+Subscribe and unsubscribe callbacks to network messages specified by `dataType`. Broadcast data to all clients in your room with the `broadcastData` functions. To send only to a specific client, use the `sendData` functions instead.
 
 | Parameter | Description
 | -------- | -----------
+| clientId | ClientId to send this data to
 | dataType  | String to identify a network message. `u` is a reserved data type, don't use it pls
-| callback  | Function to be called when message of type `dataType` is received. Parameters: function(senderRtcId, dataType, data, targetRtcId)
+| callback  | Function to be called when message of type `dataType` is received. Parameters: function(senderId, dataType, data, targetId)
 | data | Object to be sent to all other clients
 
 
@@ -239,8 +241,8 @@ List of events:
 
 | Event | Description | Values |
 | -------- | ----------- | ------------- |
-| clientConnected | Fired when another client connects to you | `evt.detail.clientId` - NAF ID of connecting client |
-| clientDisconnected | Fired when another client disconnects from you | `evt.detail.clientId` - NAF ID of disconnecting client |
+| clientConnected | Fired when another client connects to you | `evt.detail.clientId` - ClientId of connecting client |
+| clientDisconnected | Fired when another client disconnects from you | `evt.detail.clientId` - ClientId of disconnecting client |
 | entityCreated | Fired when a networked entity is created | `evt.detail.el` - new entity |
 | entityDeleted | Fired when a networked entity is deleted | `evt.detail.networkId` - networkId of deleted entity |
 
