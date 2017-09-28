@@ -269,7 +269,7 @@ List of the supported adapters:
 | wsEasyRTC | DEFAULT - [EasyRTC](https://github.com/priologic/easyrtc) that only uses the WebSocket connection | No | WebSockets | `npm run start` |
 | EasyRTC | [EasyRTC](https://github.com/priologic/easyrtc) | Yes | WebRTC with WebSocket signalling | `npm run start` |
 | uWS | Custom implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | `npm run start:uws` |
-| Firebase | Uses [Firebase](https://firebase.google.com/) for WebRTC signalling | Yes | WebRTC with Firebase signalling | See [Firebase Config](#firebase) |
+| Firebase | Uses [Firebase](https://firebase.google.com/) for WebRTC signalling | No | WebRTC with Firebase signalling | See [Firebase Config](#firebase) |
 
 #### Firebase
 
