@@ -15,7 +15,7 @@ naf.utils = utils;
 naf.physics = physics;
 naf.log = new NafLogger();
 naf.schemas = new Schemas();
-naf.version = "0.3.0";
+naf.version = "0.3.1";
 
 var entities = new NetworkEntities();
 var connection = new NetworkConnection(entities);
