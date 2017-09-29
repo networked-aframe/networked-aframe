@@ -2,6 +2,7 @@ var WsEasyRtcAdapter = require('../adapters/WsEasyRtcAdapter');
 var EasyRtcAdapter = require('../adapters/EasyRtcAdapter');
 var UwsAdapter = require('../adapters/UwsAdapter');
 var FirebaseWebRtcAdapter = require('../adapters/FirebaseWebRtcAdapter');
+var DeepstreamWebRtcAdapter = require('../adapters/DeepstreamWebRtcAdapter');
 
 class AdapterFactory {
 
@@ -13,6 +14,9 @@ class AdapterFactory {
         break;
       case 'firebase':
         adapter = new FirebaseWebRtcAdapter(window.firebase, window.firebaseConfig);
+        break;
+      case 'deepstream':
+        adapter = new DeepstreamWebRtcAdapter(window.deepstream, window.deepstreamConfig);
         break;
       case 'easyrtc':
         adapter = new EasyRtcAdapter(window.easyrtc);
