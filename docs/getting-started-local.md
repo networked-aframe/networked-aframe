@@ -1,4 +1,4 @@
-# Build your first multi-user virtual reality experience (on the web)
+# Getting started with Networked-Aframe
 
 Hello friends! This tutorial will show you how to write your very first multi-user virtual reality experience on the web.
 
@@ -60,12 +60,12 @@ cp -r ./node_modules/networked-aframe/server/ ./server/
 robocopy .\node_modules\networked-aframe\server\ .\server\ /e
 ```
 
-You'll now see another new folder: `server/`. Inside it you'll see the `static` folder which contains the networked-aframe examples. You'll also see `server.js` which is the the server for managing the network connections and hosting the static files.
+You'll now see another new folder: `server/`. Inside it you'll see the `static` folder which contains the networked-aframe examples. You'll also see a couple of  `x-server.js` files which are the various servers for managing the network connections and hosting the static files.
 
-Let's run the server and start playing with the examples. From your project's root run:
+Let's run the default server and start playing with the examples. From your project's root run:
 
 ```sh
-node ./server/server.js
+node ./server/easyrtc-server.js
 ```
 
 You'll notice the `package.json` also has a shortcut to start the server that you can use by running:
@@ -266,11 +266,11 @@ To add hand controllers follow the [tracked controllers example](https://github.
 
 ### WebRTC
 
-By default NAF uses WebSockets to send packets to other users. This follows a classic client-server architecture and uses the TCP network protocol. If you'd prefer to use a peer-to-peer architecture and would like to use the UDP network protocol you should use WebRTC. In order to enable it in NAF set the `webrtc` property of the `networked-scene` component to `true`. This also allows for voice chat (see below).
+By default NAF uses WebSockets to send packets to other users. This follows a classic client-server architecture and uses the TCP network protocol. If you'd prefer to use a peer-to-peer architecture and would like to use the UDP network protocol you should use WebRTC. In order to enable it in NAF set the `adapter` property of the `networked-scene` component to `easyrtc`. This also allows for voice chat (see below).
 
 ### Voice Chat / Audio Streaming
 
-NAF has built in voice chat when you're using WebRTC. Change `webrtc` and `webrtcAudio` properties of the `networked-scene` component to `true` and your users will be able to speak to each other. This is a little hard to test locally because the audio feedback will destroy your ears, so try it with headphones and you'll hear your voice being echoed back to you without the feedback. Note: in order for audio streaming to work on a hosted server you'll need to be using HTTPS. I'm planning on writing a follow-up tutorial to this one that will explain how to deploy NAF to a live server, including how to setup HTTPS really easily using [Certbot](https://certbot.eff.org/).
+NAF has built in voice chat when you're using WebRTC. Change `adapter` and `audio` properties of the `networked-scene` component to `easyrtc` and `true` respectively and your users will be able to speak to each other. This is a little hard to test locally because the audio feedback will destroy your ears, so try it with headphones and you'll hear your voice being echoed back to you without the feedback. Note: in order for audio streaming to work on a hosted server you'll need to be using HTTPS. I'm planning on writing a follow-up tutorial to this one that will explain how to deploy NAF to a live server, including how to setup HTTPS really easily using [Certbot](https://certbot.eff.org/).
 
 
 ### Syncing Custom Components
@@ -318,9 +318,6 @@ and change the avatar template's head tag to use the `random-color` component:
 ### Deleting entities
 
 In order to delete a network entity the user that created the entity can simply delete the HTML element from the scene using regular DOM APIs. NAF then handles syncing the deletion under the hood. Currently only the user who created the entity can delete it, but this will be relaxed in the future when support for non-owner deletion is added to NAF.
-
-The [`shooter.html` example shows an example](https://github.com/haydenjameslee/networked-aframe/blob/master/server/static/shooter.html#L79) where the bullets are deleted after 5 seconds of being spawned.
-
 
 ## That's all folks!
 
