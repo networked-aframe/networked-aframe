@@ -328,7 +328,7 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
   getTimestamp(callback) {
     var firebase = this.app/*firebase*/;
     var ref = firebase.database().ref(this.getTimestampGenerationPath(this.localId));
-    ref.set(firebase.database.ServerValue.TIMESTAMP);
+    ref.set(this.firebase.database.ServerValue.TIMESTAMP);
     ref.once('value', function (data) {
       var timestamp = data.val();
       ref.remove();
