@@ -17,7 +17,7 @@ AFRAME.registerComponent('networked', {
     var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
     this.onConnected = bind(this.onConnected, this);
-    this.syncAll = bind(this.syncAll, this);
+    this.onSyncAll = bind(this.onSyncAll, this);
     this.syncDirty = bind(this.syncDirty, this);
     this.networkUpdateHandler = bind(this.networkUpdateHandler, this);
 
@@ -41,8 +41,12 @@ AFRAME.registerComponent('networked', {
       this.registerEntity(data.networkId);
     }
 
-    if (this.data.owner === '') {
-      this.checkConnected();
+    if (this.data.owner === "") {
+      this.setNetworkIdWhenConnected();
+      // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer. Note that this only works because the reliable messages are sent over a single websocket connection. If they are sent over a different transport this check may need to change
+      if (NAF.isConnected()) {
+        this.syncAll();
+      }
     }
 
     document.body.dispatchEvent(this.entityCreatedEvent());
@@ -159,7 +163,7 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  checkConnected: function() {
+  setNetworkIdWhenConnected: function() {
     if (NAF.clientId) {
       this.onConnected();
     } else {
@@ -173,7 +177,6 @@ AFRAME.registerComponent('networked', {
 
   onConnected: function() {
     this.data.owner = NAF.clientId;
-    this.syncAll();
   },
 
   isMine: function() {
@@ -186,9 +189,9 @@ AFRAME.registerComponent('networked', {
 
   bindEvents: function() {
     var el = this.el;
-    el.addEventListener('sync', this.syncDirty);
-    el.addEventListener('syncAll', this.syncAll);
-    el.addEventListener('networkUpdate', this.networkUpdateHandler);
+    el.addEventListener("sync", this.syncDirty);
+    el.addEventListener("syncAll", this.onSyncAll);
+    el.addEventListener("networkUpdate", this.networkUpdateHandler);
   },
 
   pause: function() {
@@ -197,9 +200,9 @@ AFRAME.registerComponent('networked', {
 
   unbindEvents: function() {
     var el = this.el;
-    el.removeEventListener('sync', this.syncDirty);
-    el.removeEventListener('syncAll', this.syncAll);
-    el.removeEventListener('networkUpdate', this.networkUpdateHandler);
+    el.removeEventListener("sync", this.syncDirty);
+    el.removeEventListener("syncAll", this.onSyncAll);
+    el.removeEventListener("networkUpdate", this.networkUpdateHandler);
   },
 
   tick: function() {
@@ -208,10 +211,14 @@ AFRAME.registerComponent('networked', {
     }
   },
 
+  onSyncAll: function(e) {
+    const { takeover, targetClientId } = e.detail;
+    this.syncAll(takeover, targetClientId);
+  },
 
   /* Sending updates */
 
-  syncAll: function(takeover) {
+  syncAll: function(takeover, targetClientId) {
     if (!this.canSync()) {
       return;
     }
@@ -219,8 +226,12 @@ AFRAME.registerComponent('networked', {
     var syncedComps = this.getAllSyncedComponents();
     var components = componentHelper.gatherComponentsData(this.el, syncedComps);
     var syncData = this.createSyncData(components, takeover);
-    NAF.connection.broadcastDataGuaranteed('u', syncData);
     // console.error('syncAll', syncData, NAF.clientId);
+    if (targetClientId) {
+      NAF.connection.sendDataGuaranteed(targetClientId, "u", syncData);
+    } else {
+      NAF.connection.broadcastDataGuaranteed("u", syncData);
+    }
     this.updateCache(components);
   },
 
