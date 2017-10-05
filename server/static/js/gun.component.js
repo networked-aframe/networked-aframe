@@ -44,10 +44,7 @@ AFRAME.registerComponent('gun', {
     var worldDirection = new THREE.Vector3();
 
     spawnerEl.object3D.getWorldDirection(worldDirection);
-
     worldDirection.multiplyScalar(-1);
-
-
     this.vec3RadToDeg(worldDirection);
 
     return worldDirection;
@@ -56,6 +53,5 @@ AFRAME.registerComponent('gun', {
   vec3RadToDeg: function(rad) {
     console.log(rad.y);
     rad.set(rad.y * 90, -90 + (-THREE.Math.radToDeg(Math.atan2(rad.z, rad.x))), 0);
-
   }
 });
