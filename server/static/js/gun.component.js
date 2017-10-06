@@ -51,7 +51,6 @@ AFRAME.registerComponent('gun', {
   },
 
   vec3RadToDeg: function(rad) {
-    console.log(rad.y);
     rad.set(rad.y * 90, -90 + (-THREE.Math.radToDeg(Math.atan2(rad.z, rad.x))), 0);
   }
 });
