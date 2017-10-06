@@ -46,7 +46,7 @@ AFRAME.registerComponent('networked', {
       // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer.
       // Note that this only works because the reliable messages are sent over a single websocket connection.
       // If they are sent over a different transport this check may need to change
-      if (NAF.isConnected()) {
+      if (NAF.connection.isConnected()) {
         this.syncAll();
       }
     }
