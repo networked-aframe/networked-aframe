@@ -41,9 +41,11 @@ AFRAME.registerComponent('networked', {
       this.registerEntity(data.networkId);
     }
 
-    if (this.data.owner === "") {
+    if (this.data.owner === '') {
       this.setNetworkIdWhenConnected();
-      // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer. Note that this only works because the reliable messages are sent over a single websocket connection. If they are sent over a different transport this check may need to change
+      // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer.
+      // Note that this only works because the reliable messages are sent over a single websocket connection.
+      // If they are sent over a different transport this check may need to change
       if (NAF.isConnected()) {
         this.syncAll();
       }
@@ -189,9 +191,9 @@ AFRAME.registerComponent('networked', {
 
   bindEvents: function() {
     var el = this.el;
-    el.addEventListener("sync", this.syncDirty);
-    el.addEventListener("syncAll", this.onSyncAll);
-    el.addEventListener("networkUpdate", this.networkUpdateHandler);
+    el.addEventListener('sync', this.syncDirty);
+    el.addEventListener('syncAll', this.onSyncAll);
+    el.addEventListener('networkUpdate', this.networkUpdateHandler);
   },
 
   pause: function() {
@@ -200,9 +202,9 @@ AFRAME.registerComponent('networked', {
 
   unbindEvents: function() {
     var el = this.el;
-    el.removeEventListener("sync", this.syncDirty);
-    el.removeEventListener("syncAll", this.onSyncAll);
-    el.removeEventListener("networkUpdate", this.networkUpdateHandler);
+    el.removeEventListener('sync', this.syncDirty);
+    el.removeEventListener('syncAll', this.onSyncAll);
+    el.removeEventListener('networkUpdate', this.networkUpdateHandler);
   },
 
   tick: function() {
@@ -228,9 +230,9 @@ AFRAME.registerComponent('networked', {
     var syncData = this.createSyncData(components, takeover);
     // console.error('syncAll', syncData, NAF.clientId);
     if (targetClientId) {
-      NAF.connection.sendDataGuaranteed(targetClientId, "u", syncData);
+      NAF.connection.sendDataGuaranteed(targetClientId, 'u', syncData);
     } else {
-      NAF.connection.broadcastDataGuaranteed("u", syncData);
+      NAF.connection.broadcastDataGuaranteed('u', syncData);
     }
     this.updateCache(components);
   },

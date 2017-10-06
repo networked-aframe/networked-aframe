@@ -144,10 +144,10 @@ class NetworkEntities {
       var childId = childEntityData.networkId;
       if (this.hasEntity(childId)) {
         console.warn(
-          "Tried to instantiate entity multiple times",
+          'Tried to instantiate entity multiple times',
           childId,
           childEntityData,
-          "Existing entity:",
+          'Existing entity:',
           this.getEntity(childId)
         );
         continue;
@@ -180,7 +180,7 @@ class NetworkEntities {
     for (var id in this.entities) {
       if (this.entities.hasOwnProperty(id)) {
         this.entities[id].emit(
-          "syncAll",
+          'syncAll',
           { targetClientId, takeover: false },
           false
         );
