@@ -52,16 +52,8 @@ module.exports.createNetworkId = function() {
 
 module.exports.delimiter = '---';
 
-function sanitizeKey(key) {
-  return key.replace(/\./g, '!').replace(/\#/g, '@').replace(/\[/g, '{').replace(/\]/g, '}'); 
-}
-
-function desanitizeKey(key) {
-  return key.replace(/\!/g, '.').replace(/\@/g, '#').replace(/\{/g, '[').replace(/\}/g, ']'); 
-}
-
 module.exports.childSchemaToKey = function(schema) {
-  var key = sanitizeKey(schema.selector || '')
+  var key = (schema.selector || '')
             + module.exports.delimiter
             + (schema.component || '')
             + module.exports.delimiter
@@ -71,7 +63,7 @@ module.exports.childSchemaToKey = function(schema) {
 
 module.exports.keyToChildSchema = function(key) {
   var splitKey = key.split(module.exports.delimiter, 3);
-  return { selector: desanitizeKey(splitKey[0]) || undefined, component: splitKey[1], property: splitKey[2] || undefined};
+  return { selector: splitKey[0] || undefined, component: splitKey[1], property: splitKey[2] || undefined};
 };
 
 module.exports.isChildSchemaKey = function(key) {
