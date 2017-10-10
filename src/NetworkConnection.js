@@ -10,8 +10,6 @@ class NetworkConnection {
 
     this.connectedClients = {};
     this.activeDataChannels = {};
-
-    this.connected = false;
   }
 
   setNetworkAdapter(adapter) {
@@ -58,7 +56,7 @@ class NetworkConnection {
   }
 
   onConnect(callback) {
-    if (this.connected) {
+    if (this.isConnected()) {
       callback();
     } else {
       document.body.addEventListener('connected', callback, false);
@@ -68,7 +66,6 @@ class NetworkConnection {
   connectSuccess(clientId) {
     NAF.log.write('Networked-Aframe Client ID:', clientId);
     NAF.clientId = clientId;
-    this.connected = true;
 
     var evt = new CustomEvent('connected', {'detail': { clientId: clientId }});
     document.body.dispatchEvent(evt);
@@ -76,7 +73,6 @@ class NetworkConnection {
 
   connectFailure(errorCode, message) {
     NAF.log.error(errorCode, "failure to connect");
-    this.connected = false;
   }
 
   occupantsReceived(occupantList) {
@@ -111,11 +107,11 @@ class NetworkConnection {
   }
 
   isConnected() {
-    return this.connected;
+    return !!NAF.clientId;
   }
 
   isMineAndConnected(clientId) {
-    return NAF.clientId == clientId;
+    return this.isConnected() && NAF.clientId === clientId;
   }
 
   isNewClient(clientId) {
@@ -129,7 +125,7 @@ class NetworkConnection {
   dataChannelOpen(clientId) {
     NAF.log.write('Opened data channel from ' + clientId);
     this.activeDataChannels[clientId] = true;
-    this.entities.completeSync();
+    this.entities.completeSync(clientId);
 
     var evt = new CustomEvent('clientConnected', {detail: {clientId: clientId}});
     document.body.dispatchEvent(evt);

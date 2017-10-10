@@ -205,10 +205,7 @@ suite('NetworkEntities', function() {
       stub.onCall(2).returns(child2);
 
       entities.updateEntity('client', 'u', entityDataChild1);
-      entities.registerEntity('test-child-1', child1);
-
       entities.updateEntity('client', 'u', entityDataChild2);
-      entities.registerEntity('test-child-2', child2);
 
       assert.isFalse(entities.createRemoteEntity.calledWith(entityDataChild1), 'does not create child 1');
       assert.isFalse(entities.createRemoteEntity.calledWith(entityDataChild2), 'does not create child 2');
@@ -216,6 +213,7 @@ suite('NetworkEntities', function() {
       entities.updateEntity('client', 'u', entityDataParent);
       entities.registerEntity('test1', parent);
 
+      assert.equal(entities.createRemoteEntity.callCount, 3);
       assert.isTrue(entities.createRemoteEntity.calledWith(entityDataParent), 'creates parent');
       assert.isTrue(entities.createRemoteEntity.calledWith(entityDataChild1), 'creates child 1 after parent');
       assert.isTrue(entities.createRemoteEntity.calledWith(entityDataChild2), 'creates child 2 after parent');
