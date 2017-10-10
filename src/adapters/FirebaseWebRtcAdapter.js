@@ -82,7 +82,7 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
 
     this.initFirebase(function(id) {
       self.localId = id;
-      var firebase = self.app; //this.firebase;
+      var firebaseApp = self.firebaseApp;
 
       // Note: assuming that data transfer via firebase realtime database
       //       is reliable and in order
@@ -91,11 +91,11 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
       self.getTimestamp(function(timestamp) {
         self.myRoomJoinTime = timestamp;
 
-        var userRef = firebase.database().ref(self.getUserPath(self.localId));
+        var userRef = firebaseApp.database().ref(self.getUserPath(self.localId));
         userRef.set({timestamp: timestamp, signal: '', data: ''});
         userRef.onDisconnect().remove();
 
-        var roomRef = firebase.database().ref(self.getRoomPath());
+        var roomRef = firebaseApp.database().ref(self.getRoomPath());
 
         roomRef.on('child_added', function (data) {
           var remoteId = data.key;
@@ -107,7 +107,7 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
           var peer = new WebRtcPeer(self.localId, remoteId,
             // send signal function
             function (data) {
-              firebase.database().ref(self.getSignalPath(self.localId)).set(data);
+              firebaseApp.database().ref(self.getSignalPath(self.localId)).set(data);
             }
           );
           peer.setDatachannelListeners(self.openListener, self.closedListener, self.messageListener);
@@ -116,14 +116,14 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
           self.occupants[remoteId] = remoteTimestamp;
 
           // received signal
-          firebase.database().ref(self.getSignalPath(remoteId)).on('value', function (data) {
+          firebaseApp.database().ref(self.getSignalPath(remoteId)).on('value', function (data) {
             var value = data.val();
             if (value === null || value === '') return;
             peer.handleSignal(value);
           });
 
           // received data
-          firebase.database().ref(self.getDataPath(remoteId)).on('value', function (data) {
+          firebaseApp.database().ref(self.getDataPath(remoteId)).on('value', function (data) {
             var value = data.val();
             if (value === null || value === '' || value.to !== self.localId) return;
             self.messageListener(remoteId, value.type, value.data);
@@ -173,7 +173,7 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
   sendDataGuaranteed(clientId, dataType, data) {
     var clonedData = JSON.parse(JSON.stringify(data));
     var encodedData = firebaseKeyEncode.deepEncode(clonedData);
-    this.app.database().ref(this.getDataPath(this.localId)).set({
+    this.firebaseApp.database().ref(this.getDataPath(this.localId)).set({
       to: clientId,
       type: dataType,
       data: encodedData
@@ -220,7 +220,7 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
    */
 
   initFirebase(callback) {
-    this.app = this.firebase.initializeApp({
+    this.firebaseApp = this.firebase.initializeApp({
       apiKey: this.apiKey,
       authDomain: this.authDomain,
       databaseURL: this.databaseURL
@@ -258,14 +258,14 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
 
   authAnonymous(callback) {
     var self = this;
-    var firebase = this.app; //firebase;
+    var firebaseApp = this.firebaseApp;
 
-    firebase.auth().signInAnonymously().catch(function (error) {
+    firebaseApp.auth().signInAnonymously().catch(function (error) {
       console.error('FirebaseWebRtcInterface.authAnonymous: ' + error);
       self.connectFailure(null, error);
     });
 
-    firebase.auth().onAuthStateChanged(function (user) {
+    firebaseApp.auth().onAuthStateChanged(function (user) {
       if (user !== null) {
         callback(user.uid);
       }
@@ -326,8 +326,8 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
   }
 
   getTimestamp(callback) {
-    var firebase = this.app/*firebase*/;
-    var ref = firebase.database().ref(this.getTimestampGenerationPath(this.localId));
+    var firebaseApp = this.firebaseApp;
+    var ref = firebaseApp.database().ref(this.getTimestampGenerationPath(this.localId));
     ref.set(this.firebase.database.ServerValue.TIMESTAMP);
     ref.once('value', function (data) {
       var timestamp = data.val();
