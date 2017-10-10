@@ -77,9 +77,10 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
     var self = this;
     var ds = this.ds;
 
-    this.dsClient = this.ds('wss://013.deepstreamhub.com?apiKey=c2dc1ad5-9393-443f-902d-8d6d07b138a4');
+    var dsClient = this.ds('wss://013.deepstreamhub.com?apiKey=c2dc1ad5-9393-443f-902d-8d6d07b138a4');
+    this.dsClient = dsClient;
 
-    this.dsClient.login({}, function(success, data) {
+    dsClient.login({}, function(success, data) {
       console.log("logged in to deepstream", success, data);
       if (success) {
         console.log('my id ', data.id);
@@ -90,73 +91,22 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
       }
     });
 
-    // var startApp = function(id) {
-    //   self.localId = id;
+    dsClient.presence.getAll(function(ids) {
+      // ids.forEach(subscribeToAvatarChanges)
+      console.log('existing clients', ids);
+      for (var i = 0; i < ids.length; i++) {
+        self.clientConnected(ids[i]);
+      }
+    });
 
-    //   self.getTimestamp(function(timestamp) {
-    //     self.myRoomJoinTime = timestamp;
-
-    //     var userRef = firebase.database().ref(self.getUserPath(self.localId));
-    //     userRef.set({timestamp: timestamp, signal: '', data: ''});
-    //     userRef.onDisconnect().remove();
-
-    //     var roomRef = firebase.database().ref(self.getRoomPath());
-
-    //     roomRef.on('child_added', function (data) {
-    //       var remoteId = data.key;
-
-    //       if (remoteId === self.localId || remoteId === 'timestamp' || self.peers[remoteId] !== undefined) return;
-
-    //       var remoteTimestamp = data.val().timestamp;
-
-    //       var peer = new WebRtcPeer(self.localId, remoteId,
-    //         // send signal function
-    //         function (data) {
-    //           firebase.database().ref(self.getSignalPath(self.localId)).set(data);
-    //         }
-    //       );
-    //       peer.setDatachannelListeners(self.openListener, self.closedListener, self.messageListener);
-
-    //       self.peers[remoteId] = peer;
-    //       self.occupants[remoteId] = remoteTimestamp;
-
-    //       // received signal
-    //       firebase.database().ref(self.getSignalPath(remoteId)).on('value', function (data) {
-    //         var value = data.val();
-    //         if (value === null || value === '') return;
-    //         peer.handleSignal(value);
-    //       });
-
-    //       // received data
-    //       firebase.database().ref(self.getDataPath(remoteId)).on('value', function (data) {
-    //         var value = data.val();
-    //         if (value === null || value === '' || value.to !== self.localId) return;
-    //         self.messageListener(remoteId, value.type, value.data);
-    //       });
-
-    //       // send offer from a peer who
-    //       //   - later joined the room, or
-    //       //   - has larger id if two peers joined the room at same time
-    //       if (timestamp > remoteTimestamp ||
-    //           (timestamp === remoteTimestamp && self.localId > remoteId)) peer.offer();
-
-    //       self.occupantListener(self.occupants);
-    //     });
-
-    //     roomRef.on('child_removed', function (data) {
-    //       var remoteId = data.key;
-
-    //       if (remoteId === self.localId || remoteId === 'timestamp' || self.peers[remoteId] === undefined) return;
-
-    //       delete self.peers[remoteId];
-    //       delete self.occupants[remoteId];
-
-    //       self.occupantListener(self.occupants);
-    //     });
-
-    //     self.connectSuccess(self.localId);
-    //   });
-    // });
+    dsClient.presence.subscribe((clientId, isOnline) => {
+      console.log('client presence id', clientId, 'online?', isOnline);
+      if (isOnline) {
+        self.clientConnected(clientId);
+      } else{
+        self.clientDisconnected(clientId);
+      }
+    });
   }
 
   shouldStartConnectionTo(client) {
@@ -172,17 +122,16 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
   }
 
   sendData(clientId, dataType, data) {
-    // this.peers[clientId].send(dataType, data);
+    this.peers[clientId].send(dataType, data);
   }
 
   sendDataGuaranteed(clientId, dataType, data) {
-    // var clonedData = JSON.parse(JSON.stringify(data));
-    // var encodedData = firebaseKeyEncode.deepEncode(clonedData);
-    // this.firebase.database().ref(this.getDataPath(this.localId)).set({
-    //   to: clientId,
-    //   type: dataType,
-    //   data: encodedData
-    // });
+    var clonedData = JSON.parse(JSON.stringify(data));
+    this.dsClient.record.getRecord(this.getDataPath(this.localId)).set({
+      to: clientId,
+      type: dataType,
+      data: clonedData
+    });
   }
 
   broadcastData(dataType, data) {
@@ -194,11 +143,11 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
   }
 
   broadcastDataGuaranteed(dataType, data) {
-    // for (var clientId in this.peers) {
-    //   if (this.peers.hasOwnProperty(clientId)) {
-    //     this.sendDataGuaranteed(clientId, dataType, data);
-    //   }
-    // }
+    for (var clientId in this.peers) {
+      if (this.peers.hasOwnProperty(clientId)) {
+        this.sendDataGuaranteed(clientId, dataType, data);
+      }
+    }
   }
 
   getConnectStatus(clientId) {
@@ -227,134 +176,84 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
   startApp(clientId) {
     var self = this;
     var dsClient = this.dsClient;
-
     this.localId = clientId;
+    this.localTimestamp = NAF.utils.now();
 
-    // var currentUser = dsClient.record.getRecord(this.getUserPath(clientId));
-    // currentUser.whenReady(function(record) {
-    //   console.error('current user ready');
-    //   record.set({
-    //     timestamp: new Date(), // TODO get this from server
-    //     signal: '',
-    //     data: ''
-    //   });
-    //   self.connectSuccess(clientId);
-    // });
+    var myUserRecord = dsClient.record.getRecord(this.getUserPath(clientId));
+    myUserRecord.set({
+      timestamp: this.localTimestamp, // TODO get this from server
+      signal: '',
+      data: ''
+    });
+    self.connectSuccess(clientId);
+  }
 
-    // dsClient.presence.getAll(function(ids) {
-    //   // ids.forEach(subscribeToAvatarChanges)
-    //   console.error('existing clients', ids);
-    // });
+  clientConnected(clientId) {
+    console.log('new client', clientId);
+    var self = this;
+    var dsClient = this.dsClient;
 
-    dsClient.presence.subscribe((clientId, isOnline) => {
-      console.error('client presence id', clientId, 'online?', isOnline);
-      if (isOnline) {
-        // user connected
-        // this.clientConnected(clientId);
-      } else{
-        // user disconnected
+    if (!NAF.connection.isConnected()) {
+      console.warn('Trying to make a connection to another client before my client has connected');
+    }
+
+    dsClient.record.getRecord(this.getUserPath(clientId)).whenReady(function(clientRecord) {
+
+      var onClientSetup = function(timestamp) {
+        // if (remoteId === self.localId || remoteId === 'timestamp' || self.peers[remoteId] !== undefined) return;
+
+        var remoteTimestamp = clientRecord.get('timestamp');
+        console.log('remote timestamp', remoteTimestamp);
+
+        var peer = new WebRtcPeer(self.localId, clientId,
+          // send signal function
+          function (data) {
+            dsClient.record.getRecord(self.getSignalPath(self.localId)).set(data);
+          }
+        );
+        peer.setDatachannelListeners(self.openListener, self.closedListener, self.messageListener);
+
+        self.peers[clientId] = peer;
+        self.occupants[clientId] = remoteTimestamp;
+
+        // received signal
+        dsClient.record.getRecord(self.getSignalPath(clientId)).on('value', function (data) {
+          var value = data.val();
+          if (value === null || value === '') return;
+          peer.handleSignal(value);
+        });
+
+        // received data
+        dsClient.record.getRecord(self.getDataPath(clientId)).on('value', function (data) {
+          var value = data.val();
+          if (value === null || value === '' || value.to !== self.localId) return;
+          self.messageListener(clientId, value.type, value.data);
+        });
+
+        // send offer from a peer who
+        //   - later joined the room, or
+        //   - has larger id if two peers joined the room at same time
+        console.log('checking to see who should send offer', self.localTimestamp > remoteTimestamp, self.localTimestamp === remoteTimestamp && self.localId > clientId);
+        if (self.localTimestamp > remoteTimestamp ||
+            (self.localTimestamp === remoteTimestamp && self.localId > clientId)) {
+          console.log('this client is sending offer');
+          peer.offer();
+        }
+
+        self.occupantListener(self.occupants);
+      };
+
+      if (clientRecord.get('timestamp') === undefined) {
+        clientRecord.subscribe('timestamp', onClientSetup);
+      } else {
+        onClientSetup(clientRecord.get('timestamp'));
       }
     });
   }
 
-  clientConnected(clientId) {
-    console.error('new client', clientId);
-    var self = this;
-    var dsClient = this.dsClient;
-
-    dsClient.getRecord(this.getUserPath(clientId)).whenReady(function(clientRec) {
-
-      // if (remoteId === self.localId || remoteId === 'timestamp' || self.peers[remoteId] !== undefined) return;
-
-      var remoteTimestamp = clientRec.val().timestamp;
-
-      var peer = new WebRtcPeer(self.localId, remoteId,
-        // send signal function
-        function (data) {
-          dsClient.getRecord(self.getSignalPath(self.localId)).set(data);
-        }
-      );
-      peer.setDatachannelListeners(self.openListener, self.closedListener, self.messageListener);
-
-      self.peers[remoteId] = peer;
-      self.occupants[remoteId] = remoteTimestamp;
-
-      // received signal
-      dsClient.getRecord(self.getSignalPath(remoteId)).on('value', function (data) {
-        var value = data.val();
-        if (value === null || value === '') return;
-        peer.handleSignal(value);
-      });
-
-      // received data
-      dsClient.getRecord(self.getDataPath(remoteId)).on('value', function (data) {
-        var value = data.val();
-        if (value === null || value === '' || value.to !== self.localId) return;
-        self.messageListener(remoteId, value.type, value.data);
-      });
-
-      // send offer from a peer who
-      //   - later joined the room, or
-      //   - has larger id if two peers joined the room at same time
-      if (timestamp > remoteTimestamp ||
-          (timestamp === remoteTimestamp && self.localId > remoteId)) peer.offer();
-
-      self.occupantListener(self.occupants);
-    });
+  clientDisconnected() {
+    // TODO
   }
-
-  // initFirebase(callback) {
-  //   this.firebase.initializeApp({
-  //     apiKey: this.apiKey,
-  //     authDomain: this.authDomain,
-  //     databaseURL: this.databaseURL
-  //   });
-
-  //   this.auth(this.authType, callback);
-  // }
-
-  // auth(type, callback) {
-  //   switch (type) {
-  //     case 'none':
-  //       this.authNone(callback);
-  //       break;
-
-  //     case 'anonymous':
-  //       this.authAnonymous(callback);
-  //       break;
-
-  //     // TODO: support other auth type
-  //     default:
-  //       console.log('FirebaseWebRtcInterface.auth: Unknown authType ' + type);
-  //       break;
-  //   }
-  // }
-
-  // authNone(callback) {
-  //   var self = this;
-
-  //   // asynchronously invokes open listeners for the compatibility with other auth types.
-  //   // TODO: generate not just random but also unique id
-  //   requestAnimationFrame(function () {
-  //     callback(self.randomString());
-  //   });
-  // }
-
-  // authAnonymous(callback) {
-  //   var self = this;
-  //   var firebase = this.firebase;
-
-  //   firebase.auth().signInAnonymously().catch(function (error) {
-  //     console.error('FirebaseWebRtcInterface.authAnonymous: ' + error);
-  //     self.connectFailure(null, error);
-  //   });
-
-  //   firebase.auth().onAuthStateChanged(function (user) {
-  //     if (user !== null) {
-  //       callback(user.uid);
-  //     }
-  //   });
-  // }
 
   /*
    * realtime database layout
@@ -407,18 +306,6 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
     }
 
     return string;
-  }
-
-  getTimestamp(callback) {
-    var firebase = this.firebase;
-    var ref = firebase.database().ref(this.getTimestampGenerationPath(this.localId));
-    ref.set(firebase.database.ServerValue.TIMESTAMP);
-    ref.once('value', function (data) {
-      var timestamp = data.val();
-      ref.remove();
-      callback(timestamp);
-    });
-    ref.onDisconnect().remove();
   }
 }
 
