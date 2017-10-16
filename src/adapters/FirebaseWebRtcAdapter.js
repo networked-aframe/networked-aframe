@@ -79,10 +79,10 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
 
   connect() {
     var self = this;
-    var firebase = this.firebase;
 
     this.initFirebase(function(id) {
       self.localId = id;
+      var firebase = self.app;
 
       // Note: assuming that data transfer via firebase realtime database
       //       is reliable and in order
@@ -173,7 +173,7 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
   sendDataGuaranteed(clientId, dataType, data) {
     var clonedData = JSON.parse(JSON.stringify(data));
     var encodedData = firebaseKeyEncode.deepEncode(clonedData);
-    this.firebase.database().ref(this.getDataPath(this.localId)).set({
+    this.app.database().ref(this.getDataPath(this.localId)).set({
       to: clientId,
       type: dataType,
       data: encodedData
@@ -220,11 +220,11 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
    */
 
   initFirebase(callback) {
-    this.firebase.initializeApp({
+    this.app = this.firebase.initializeApp({
       apiKey: this.apiKey,
       authDomain: this.authDomain,
       databaseURL: this.databaseURL
-    });
+    }, this.appId);
 
     this.auth(this.authType, callback);
   }
@@ -258,7 +258,7 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
 
   authAnonymous(callback) {
     var self = this;
-    var firebase = this.firebase;
+    var firebase = this.app;
 
     firebase.auth().signInAnonymously().catch(function (error) {
       console.error('FirebaseWebRtcInterface.authAnonymous: ' + error);
@@ -326,9 +326,9 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
   }
 
   getTimestamp(callback) {
-    var firebase = this.firebase;
+    var firebase = this.app;
     var ref = firebase.database().ref(this.getTimestampGenerationPath(this.localId));
-    ref.set(firebase.database.ServerValue.TIMESTAMP);
+    ref.set(this.firebase.database.ServerValue.TIMESTAMP);
     ref.once('value', function (data) {
       var timestamp = data.val();
       ref.remove();
