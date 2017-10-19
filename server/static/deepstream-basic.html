@@ -17,26 +17,16 @@
 
       /**
         Steps to setup:
-        1. Sign up for Firebase account: https://firebase.google.com/
-        2. Create a new project
-        3. Go to Database -> Rules and change them to the following (warning: not safe for production, just developing)
-            {
-              "rules": {
-                ".read": true,
-                ".write": true
-              }
-            }
-        4. Click publish
-        5. Go back to the project overview
-        6. Click "Add Firebase to your web app"
-        7. Copy the credentials below
-        8. Remove the console.error
+        1. Sign up for a DeepstreamHub account: https://deepstreamhub.com/
+        2. On the left navbar, click "Apps"
+        3. Add application
+        4. Name your application and choose a region close to you
+        5. Copy the URL at the bottom of your new project, it'll start with wss://xxx.deepstreamhub
+        6. Replace `YOUR_URL_HERE` below with your project's URL
+        7. Remove the console.error
        */
       window.deepstreamConfig = {
-        authType: 'none',
-        apiKey: 'your-api-key',
-        authDomain: 'xxx.firebaseapp.com',
-        databaseURL: 'https://xxx.firebaseio.com'
+        'url': 'YOUR_URL_HERE'
       };
       console.error('You need to enter your own deepstream credentials. Remove this error when you have.');
 

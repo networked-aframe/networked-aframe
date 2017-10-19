@@ -27,11 +27,7 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
     this.occupants = {}; // id -> joinTimestamp
 
     this.ds = ds;
-
-    this.authType = config.authType;
-    this.apiKey = config.apiKey;
-    this.authDomain = config.authDomain;
-    this.databaseURL = config.databaseURL;
+    this.dsUrl = config.url;
   }
 
   /*
@@ -77,13 +73,11 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
     var self = this;
     var ds = this.ds;
 
-    var dsClient = this.ds('wss://013.deepstreamhub.com?apiKey=c2dc1ad5-9393-443f-902d-8d6d07b138a4');
+    var dsClient = this.ds(this.dsUrl);
     this.dsClient = dsClient;
 
     dsClient.login({}, function(success, data) {
-      console.log("logged in to deepstream", success, data);
       if (success) {
-        console.log('my id ', data.id);
         self.startApp(data.id);
       } else {
         // TODO failure messages
@@ -127,7 +121,7 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
 
   sendDataGuaranteed(clientId, dataType, data) {
     var clonedData = JSON.parse(JSON.stringify(data));
-    this.dsClient.record.getRecord(this.getDataPath(this.localId)).set({
+    this.dsClient.record.getRecord(this.getUserPath(this.localId)).set('data', {
       to: clientId,
       type: dataType,
       data: clonedData
@@ -179,8 +173,7 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
     this.localId = clientId;
     this.localTimestamp = NAF.utils.now();
 
-    var myUserRecord = dsClient.record.getRecord(this.getUserPath(clientId));
-    myUserRecord.set({
+    dsClient.record.getRecord(this.getUserPath(clientId)).set({
       timestamp: this.localTimestamp, // TODO get this from server
       signal: '',
       data: ''
@@ -208,7 +201,8 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
         var peer = new WebRtcPeer(self.localId, clientId,
           // send signal function
           function (data) {
-            dsClient.record.getRecord(self.getSignalPath(self.localId)).set(data);
+            console.log('setting signal', data);
+            dsClient.record.getRecord(self.getUserPath(self.localId)).set('signal', data);
           }
         );
         peer.setDatachannelListeners(self.openListener, self.closedListener, self.messageListener);
@@ -217,15 +211,17 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
         self.occupants[clientId] = remoteTimestamp;
 
         // received signal
-        dsClient.record.getRecord(self.getSignalPath(clientId)).on('value', function (data) {
-          var value = data.val();
+        clientRecord.subscribe('signal', function (data) {
+          console.log('received signal', data);
+          var value = data;
           if (value === null || value === '') return;
           peer.handleSignal(value);
         });
 
         // received data
-        dsClient.record.getRecord(self.getDataPath(clientId)).on('value', function (data) {
-          var value = data.val();
+        clientRecord.subscribe('data', function (data) {
+          console.log('received data', data);
+          var value = data;
           if (value === null || value === '' || value.to !== self.localId) return;
           self.messageListener(clientId, value.type, value.data);
         });
@@ -264,7 +260,7 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
    *     - signal: used to send signal
    *     - data: used to send guaranteed data
    *   - /timestamp/: working path to get timestamp
-   *     - userId: 
+   *     - userId:
    */
 
   getRootPath() {
@@ -294,19 +290,6 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
   getTimestampGenerationPath(id) {
     return this.getRoomPath() + '/timestamp/' + id;
   }
-
-  randomString() {
-    var stringLength = 16;
-    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz0123456789';
-    var string = '';
-
-    for (var i = 0; i < stringLength; i++) {
-        var randomNumber = Math.floor(Math.random() * chars.length);
-        string += chars.substring(randomNumber, randomNumber + 1);
-    }
-
-    return string;
-  }
 }
 
 module.exports = DeepstreamWebRtcAdapter;
@@ -334,8 +317,10 @@ class WebRtcPeer {
     var self = this;
     // reliable: false - UDP
     this.setupChannel(this.pc.createDataChannel(this.channelLabel, {reliable: false}));
+    console.log('creating offer');
     this.pc.createOffer(
       function (sdp) {
+        console.log('created offer');
         self.handleSessionDescription(sdp);
       },
       function (error) {
@@ -345,6 +330,7 @@ class WebRtcPeer {
   }
 
   handleSignal(signal) {
+    console.log('handleSignal', signal);
     // ignores signal if it isn't for me
     if (this.localId !== signal.to || this.remoteId !== signal.from) return;
 
@@ -409,6 +395,7 @@ class WebRtcPeer {
     var pc = new RTCPeerConnection({'iceServers': WebRtcPeer.ICE_SERVERS});
 
     pc.onicecandidate = function (event) {
+      console.log('onicecandidate');
       if (event.candidate) {
         self.sendSignalFunc({
           from: self.localId,
@@ -423,6 +410,7 @@ class WebRtcPeer {
     // Note: seems like channel.onclose hander is unreliable on some platforms,
     //       so also tries to detect disconnection here.
     pc.oniceconnectionstatechange = function() {
+      console.log('oniceconnectionstatechange');
       if (self.open && pc.iceConnectionState === 'disconnected') {
         self.open = false;
         self.closedListener(self.remoteId);
@@ -439,18 +427,21 @@ class WebRtcPeer {
 
     // received data from a remote peer
     this.channel.onmessage = function (event) {
+      console.log('received data from remote peer');
       var data = JSON.parse(event.data);
       self.messageListener(self.remoteId, data.type, data.data);
     };
 
     // connected with a remote peer
     this.channel.onopen = function (event) {
+      console.log('connected to a remote peer');
       self.open = true;
       self.openListener(self.remoteId);
     };
 
     // disconnected with a remote peer
     this.channel.onclose = function (event) {
+      console.log('discnnected to a remote peer');
       if (!self.open) return;
       self.open = false;
       self.closedListener(self.remoteId);
@@ -463,6 +454,7 @@ class WebRtcPeer {
   }
 
   handleOffer(message) {
+    console.log('handleOffer');
     var self = this;
 
     this.pc.ondatachannel = function (event) {
@@ -501,6 +493,7 @@ class WebRtcPeer {
   }
 
   handleSessionDescription(sdp) {
+    console.log('handleSessionDescription', sdp);
     var self = this;
 
     this.pc.setLocalDescription(sdp,
@@ -518,7 +511,7 @@ class WebRtcPeer {
     });
   }
 
-  setRemoteDescription( message ) {
+  setRemoteDescription(message) {
     var self = this;
     var RTCSessionDescription = window.RTCSessionDescription ||
                                 window.webkitRTCSessionDescription ||
