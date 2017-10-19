@@ -141,8 +141,18 @@ class NetworkEntities {
     var children = this.childCache.getChildren(parentId);
     for (var i = 0; i < children.length; i++) {
       var childEntityData = children[i];
-      var childEntity = this.createRemoteEntity(childEntityData);
       var childId = childEntityData.networkId;
+      if (this.hasEntity(childId)) {
+        console.warn(
+          'Tried to instantiate entity multiple times',
+          childId,
+          childEntityData,
+          'Existing entity:',
+          this.getEntity(childId)
+        );
+        continue;
+      }
+      var childEntity = this.createRemoteEntity(childEntityData);
       this.createAndAppendChildren(childId, childEntity);
       parentEntity.appendChild(childEntity);
     }
@@ -166,10 +176,14 @@ class NetworkEntities {
     scene.appendChild(el);
   }
 
-  completeSync() {
+  completeSync(targetClientId) {
     for (var id in this.entities) {
       if (this.entities.hasOwnProperty(id)) {
-        this.entities[id].emit('syncAll', null, false);
+        this.entities[id].emit(
+          'syncAll',
+          { targetClientId, takeover: false },
+          false
+        );
       }
     }
   }

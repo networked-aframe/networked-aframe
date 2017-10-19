@@ -1,24 +1,18 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Shooter Example — Networked-Aframe</title>
-    <meta name="description" content="Shooter Example — Networked-Aframe">
+    <title>Dev Example — Networked-Aframe</title>
+    <meta name="description" content="Dev Example — Networked-Aframe">
 
-    <script src="https://aframe.io/releases/0.6.0/aframe.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
-    <script src="easyrtc/easyrtc.js"></script>
-    <!-- <script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js"></script> -->
-    <script src="build.js"></script>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
+    <script src="/build.js"></script>
 
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
-    <script src="js/spawn-in-circle.component.js"></script>
-    <script src="js/gun.component.js"></script>
-    <script src="js/forward.component.js"></script>
-    <script src="js/remove-in-seconds.component.js"></script>
+    <script src="/js/spawn-in-circle.component.js"></script>
 
     <script>
-      // Define custom schema for syncing avatar components
+      // Define custom schema for syncing avatar color, set by random-color
       NAF.schemas.add({
         template: '#avatar-template',
         components: [
@@ -26,23 +20,30 @@
           'rotation',
           {
             selector: '.head',
-            component: 'material'
+            component: 'material',
+            property: 'color'
           }
         ]
       });
-    </script>
 
+      // Called by Networked-Aframe when connected to server
+      function onConnect () {
+        console.log("onConnect", new Date());
+      }
+    </script>
   </head>
   <body>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
     <a-scene networked-scene="
-      room: shooter;
+      room: dev;
       debug: true;
+      adapter: easyrtc;
     ">
       <a-assets>
 
         <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
-        <img id="sky" src="https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+        <img id="sky" src="http://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
 
         <!-- Templates -->
 
@@ -54,57 +55,47 @@
               scale="0.45 0.5 0.4"
               random-color
             ></a-sphere>
-            <a-entity class="face"
-              position="0 0.05 0"
-            >
-              <a-sphere class="eye"
-                color="#efefef"
-                position="0.16 0.1 -0.35"
-                scale="0.12 0.12 0.12"
-              >
-                <a-sphere class="pupil"
-                  color="#000"
-                  position="0 0 -1"
-                  scale="0.2 0.2 0.2"
-                ></a-sphere>
-              </a-sphere>
-              <a-sphere class="eye"
-                color="#efefef"
-                position="-0.16 0.1 -0.35"
-                scale="0.12 0.12 0.12"
-              >
-                <a-sphere class="pupil"
-                  color="#000"
-                  position="0 0 -1"
-                  scale="0.2 0.2 0.2"
-                ></a-sphere>
-              </a-sphere>
-            </a-entity>
-            <a-entity class="gun">
-              <a-box
-                position="0.51 -0.13 -0.29"
-                scale="0.19 0.23 0.67"
-                color="#000"
-              ></a-box>
-              <a-entity class="gun-tip"
-                position="0.51 -0.10 -0.64"
-              ></a-entity>
-            </a-entity>
           </a-entity>
         </script>
 
-        <!-- Bullet -->
-        <script id="bullet-template" type="text/html">
-          <a-sphere class="bullet"
-            scale="0.1 0.1 0.1"
-            color="#fff"
-          ></a-sphere>
+        <script id="face-template" type="text/html">
+          <a-entity class="face"
+              position="0 0.05 0"
+            >
+            <a-sphere class="eye"
+              color="#efefef"
+              position="0.16 0.1 -0.35"
+              scale="0.12 0.12 0.12"
+            >
+              <a-sphere class="pupil"
+                color="#000"
+                position="0 0 -1"
+                scale="0.2 0.2 0.2"
+              ></a-sphere>
+            </a-sphere>
+            <a-sphere class="eye"
+              color="#efefef"
+              position="-0.16 0.1 -0.35"
+              scale="0.12 0.12 0.12"
+            >
+              <a-sphere class="pupil"
+                color="#000"
+                position="0 0 -1"
+                scale="0.2 0.2 0.2"
+              ></a-sphere>
+            </a-sphere>
+          </a-entity>
+        </script>
+
+        <script id="simple" type="text/html">
+          <a-sphere></a-sphere>
         </script>
 
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" gun="bulletTemplate:#bullet-template" camera="userHeight: 1.6" spawn-in-circle="radius:3;" wasd-controls look-controls>
+      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
+        <a-entity id="face" networked="template:#face-template;showLocalTemplate:false;"></a-entity>
       </a-entity>
 
       <a-entity position="0 0 0"

@@ -23,7 +23,7 @@ AFRAME.registerComponent('gun', {
     el.setAttribute('remove-in-seconds', 3);
     el.setAttribute('forward', 'speed:0.3');
 
-    var tip = document.querySelector('#player .gun-tip');
+    var tip = document.querySelector('#player');
     el.setAttribute('position', this.getInitialBulletPosition(tip));
     el.setAttribute('rotation', this.getInitialBulletRotation(tip));
 
@@ -51,6 +51,6 @@ AFRAME.registerComponent('gun', {
   },
 
   vec3RadToDeg: function(rad) {
-    rad.set(THREE.Math.radToDeg(rad.x), THREE.Math.radToDeg(rad.y), THREE.Math.radToDeg(rad.z));
+    rad.set(rad.y * 90, -90 + (-THREE.Math.radToDeg(Math.atan2(rad.z, rad.x))), 0);
   }
 });
