@@ -1,10 +1,6 @@
-var naf = require('../NafIndex');
-var INetworkAdapter = require('./INetworkAdapter');
+class EasyRtcAdapter {
 
-class EasyRtcAdapter extends INetworkAdapter {
-
-  constructor(easyrtc) {
-    super();
+  constructor(easyrtc = window.easyrtc) {
     this.app = 'default';
     this.room = 'default';
     this.easyrtc = easyrtc;
@@ -74,7 +70,7 @@ class EasyRtcAdapter extends INetworkAdapter {
     this.easyrtc.call(clientId,
       function(caller, media) {
         if (media === 'datachannel') {
-          naf.log.write('Successfully started datachannel to ', caller);
+          NAF.log.write('Successfully started datachannel to ', caller);
         }
       },
       function(errorCode, errorText) {
@@ -121,11 +117,11 @@ class EasyRtcAdapter extends INetworkAdapter {
     var status = this.easyrtc.getConnectStatus(clientId);
 
     if (status == this.easyrtc.IS_CONNECTED) {
-      return INetworkAdapter.IS_CONNECTED;
+      return NAF.adapters.IS_CONNECTED;
     } else if (status == this.easyrtc.NOT_CONNECTED) {
-      return INetworkAdapter.NOT_CONNECTED;
+      return NAF.adapters.NOT_CONNECTED;
     } else {
-      return INetworkAdapter.CONNECTING;
+      return NAF.adapters.CONNECTING;
     }
   }
 
@@ -160,7 +156,7 @@ class EasyRtcAdapter extends INetworkAdapter {
   }
 
   _getRoomJoinTime(clientId) {
-    var myRoomId = naf.room;
+    var myRoomId = NAF.room;
     var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
     return joinTime;
   }

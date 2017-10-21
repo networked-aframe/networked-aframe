@@ -1,15 +1,11 @@
-var naf = require('../NafIndex');
-var INetworkAdapter = require('./INetworkAdapter');
-
 /**
  * uWebSockets Adapter
  * For use with uws-server.js
  * networked-scene: serverURL needs to be ws://localhost:8080 when running locally
  */
-class UwsAdapter extends INetworkAdapter {
+class UwsAdapter {
 
   constructor() {
-    super();
     this.wsUrl = '/';
     this.app = 'default';
     this.room = 'default';
@@ -96,7 +92,7 @@ class UwsAdapter extends INetworkAdapter {
   receivedOccupants(occupants) {
     var occupantMap = {};
     for (var i = 0; i < occupants.length; i++) {
-      if (occupants[i] != naf.clientId) {
+      if (occupants[i] != NAF.clientId) {
         occupantMap[occupants[i]] = true;
       }
     }
@@ -124,9 +120,9 @@ class UwsAdapter extends INetworkAdapter {
     var connected = this.connectedClients.indexOf(clientId) != -1;
 
     if (connected) {
-      return INetworkAdapter.IS_CONNECTED;
+      return NAF.adapters.IS_CONNECTED;
     } else {
-      return INetworkAdapter.NOT_CONNECTED;
+      return NAF.adapters.NOT_CONNECTED;
     }
   }
 
@@ -158,7 +154,7 @@ class UwsAdapter extends INetworkAdapter {
 
   _send(dataType, data) {
     var packet = {
-      from: naf.clientId,
+      from: NAF.clientId,
       type: dataType,
       data: data
     };

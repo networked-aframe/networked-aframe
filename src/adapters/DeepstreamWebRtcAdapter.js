@@ -1,7 +1,4 @@
-var naf = require('../NafIndex');
-var INetworkAdapter = require('./INetworkAdapter');
-
-class DeepstreamWebRtcAdapter extends INetworkAdapter {
+class DeepstreamWebRtcAdapter {
 
   /**
     Config structure:
@@ -11,11 +8,12 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
     config.databaseURL: https://your-project.firebaseio.com;
   */
   constructor(ds, config) {
+    ds = ds || window.deepstream;
+    config = config || window.deepstreamConfig;
+
     if (ds === undefined) {
       throw new Error('Import https://cdnjs.cloudflare.com/ajax/libs/deepstream.io-client-js/x.x.x/deepstream.js');
     }
-
-    super();
 
     this.rootPath = 'networked-aframe';
 
@@ -148,18 +146,18 @@ class DeepstreamWebRtcAdapter extends INetworkAdapter {
     var peer = this.peers[clientId];
 
     if (peer === undefined)
-      return INetworkAdapter.NOT_CONNECTED;
+      return NAF.adapters.NOT_CONNECTED;
 
     switch (peer.getStatus()) {
       case WebRtcPeer.IS_CONNECTED:
-        return INetworkAdapter.IS_CONNECTED;
+        return NAF.adapters.IS_CONNECTED;
 
       case WebRtcPeer.CONNECTING:
-        return INetworkAdapter.CONNECTING;
+        return NAF.adapters.CONNECTING;
 
       case WebRtcPeer.NOT_CONNECTED:
       default:
-        return INetworkAdapter.NOT_CONNECTED;
+        return NAF.adapters.NOT_CONNECTED;
     }
   }
 

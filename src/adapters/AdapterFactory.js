@@ -1,35 +1,42 @@
-var WsEasyRtcAdapter = require('../adapters/WsEasyRtcAdapter');
-var EasyRtcAdapter = require('../adapters/EasyRtcAdapter');
-var UwsAdapter = require('../adapters/UwsAdapter');
-var FirebaseWebRtcAdapter = require('../adapters/FirebaseWebRtcAdapter');
-var DeepstreamWebRtcAdapter = require('../adapters/DeepstreamWebRtcAdapter');
+var WsEasyRtcAdapter = require('./WsEasyRtcAdapter');
+var EasyRtcAdapter = require('./EasyRtcAdapter');
+var UwsAdapter = require('./UwsAdapter');
+var FirebaseWebRtcAdapter = require('./FirebaseWebRtcAdapter');
+var DeepstreamWebRtcAdapter = require('./DeepstreamWebRtcAdapter');
 
 class AdapterFactory {
 
+  constructor() {
+    this.adapters = {
+      deepstream: DeepstreamWebRtcAdapter,
+      wseasyrtc: WsEasyRtcAdapter,
+      easyrtc: EasyRtcAdapter,
+      firebase: FirebaseWebRtcAdapter,
+      uws: UwsAdapter
+    };
+
+    this.IS_CONNECTED = AdapterFactory.IS_CONNECTED;
+    this.CONNECTING = AdapterFactory.CONNECTING;
+    this.NOT_CONNECTED = AdapterFactory.NOT_CONNECTED;
+  }
+
+  register(adapterName, AdapterClass) {
+    this.adapters[adapterName] = AdapterClass;
+  }
+
   make(adapterName) {
-    var adapter;
-    switch(adapterName.toLowerCase()) {
-      case 'uws':
-        adapter = new UwsAdapter();
-        break;
-      case 'firebase':
-        adapter = new FirebaseWebRtcAdapter(window.firebase, window.firebaseConfig);
-        break;
-      case 'deepstream':
-        adapter = new DeepstreamWebRtcAdapter(window.deepstream, window.deepstreamConfig);
-        break;
-      case 'easyrtc':
-        adapter = new EasyRtcAdapter(window.easyrtc);
-        break;
-      case 'wseasyrtc':
-      default:
-        adapter = new WsEasyRtcAdapter(window.easyrtc);
-        break;
+    var name = adapterName.toLowerCase();
+    if (this.adapters[name]) {
+      var AdapterClass = this.adapters[name];
+      return new AdapterClass();
     }
-    return adapter;
+
+    return new WsEasyRtcAdapter();
   }
 }
 
-var adapterFactory = new AdapterFactory();
+AdapterFactory.IS_CONNECTED = 'IS_CONNECTED';
+AdapterFactory.CONNECTING = 'CONNECTING';
+AdapterFactory.NOT_CONNECTED = 'NOT_CONNECTED';
 
-module.exports = adapterFactory;
+module.exports = AdapterFactory;

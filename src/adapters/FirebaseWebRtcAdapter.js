@@ -1,8 +1,6 @@
-var naf = require('../NafIndex');
-var INetworkAdapter = require('./INetworkAdapter');
 var firebaseKeyEncode = require('firebase-key-encode');
 
-class FirebaseWebRtcAdapter extends INetworkAdapter {
+class FirebaseWebRtcAdapter {
 
   /**
     Config structure:
@@ -12,11 +10,12 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
     config.databaseURL: https://your-project.firebaseio.com;
   */
   constructor(firebase, config) {
+    firebase = firebase || window.firebase;
+    config = config || firebaseConfig;
+
     if (firebase === undefined) {
       throw new Error('Import https://www.gstatic.com/firebasejs/x.x.x/firebase.js');
     }
-
-    super();
 
     this.rootPath = 'networked-aframe';
 
@@ -200,18 +199,18 @@ class FirebaseWebRtcAdapter extends INetworkAdapter {
     var peer = this.peers[clientId];
 
     if (peer === undefined)
-      return INetworkAdapter.NOT_CONNECTED;
+      return NAF.adapters.NOT_CONNECTED;
 
     switch (peer.getStatus()) {
       case WebRtcPeer.IS_CONNECTED:
-        return INetworkAdapter.IS_CONNECTED;
+        return NAF.adapters.IS_CONNECTED;
 
       case WebRtcPeer.CONNECTING:
-        return INetworkAdapter.CONNECTING;
+        return NAF.adapters.CONNECTING;
 
       case WebRtcPeer.NOT_CONNECTED:
       default:
-        return INetworkAdapter.NOT_CONNECTED;
+        return NAF.adapters.NOT_CONNECTED;
     }
   }
 

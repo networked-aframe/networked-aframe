@@ -1,6 +1,6 @@
 /* global assert, process, setup, suite, test */
 var NetworkConnection = require('../../src/NetworkConnection');
-var NetworkAdapter = require('../../src/adapters/INetworkAdapter');
+var AdapterFactory = require('../../src/adapters/AdapterFactory');
 var NetworkEntities = require('../../src/NetworkEntities');
 var naf = require('../../src/NafIndex');
 
@@ -147,7 +147,7 @@ suite('NetworkConnection', function() {
       var newClient = { roomJoinTime: 10 };
       var occupants = { 'user1': newClient };
       adapter.getConnectStatus
-          = sinon.stub().returns(NetworkAdapter.NOT_CONNECTED);
+          = sinon.stub().returns(AdapterFactory.NOT_CONNECTED);
       adapter.shouldStartConnectionTo
           = sinon.stub().returns(true);
 
@@ -161,7 +161,7 @@ suite('NetworkConnection', function() {
       var olderClient = { roomJoinTime: 1 };
       var occupants = { 'user1': olderClient };
       adapter.getConnectStatus
-          = sinon.stub().returns(NetworkAdapter.NOT_CONNECTED);
+          = sinon.stub().returns(AdapterFactory.NOT_CONNECTED);
 
       connection.occupantsReceived(occupants);
 
@@ -193,7 +193,7 @@ suite('NetworkConnection', function() {
     test('not connected', function() {
       var testId = 'test1';
       adapter.getConnectStatus
-          = sinon.stub().returns(NetworkAdapter.NOT_CONNECTED);
+          = sinon.stub().returns(AdapterFactory.NOT_CONNECTED);
 
       var result = connection.isNewClient(testId);
 
@@ -203,7 +203,7 @@ suite('NetworkConnection', function() {
     test('is connected', function() {
       var testId = 'test1';
       adapter.getConnectStatus
-          = sinon.stub().returns(NetworkAdapter.IS_CONNECTED);
+          = sinon.stub().returns(AdapterFactory.IS_CONNECTED);
 
       var result = connection.isNewClient(testId);
 
@@ -215,7 +215,7 @@ suite('NetworkConnection', function() {
 
     test('is connected', function() {
       var otherClientId = 'other';
-      var connected = NetworkAdapter.IS_CONNECTED;
+      var connected = AdapterFactory.IS_CONNECTED;
       adapter.getConnectStatus = sinon.stub().returns(connected);
 
       var result = connection.isConnectedTo(otherClientId);
@@ -225,7 +225,7 @@ suite('NetworkConnection', function() {
 
     test('is not connected', function() {
       var otherClientId = 'other';
-      var notConnected = NetworkAdapter.NOT_CONNECTED;
+      var notConnected = AdapterFactory.NOT_CONNECTED;
       adapter.getConnectStatus = sinon.stub().returns(notConnected);
 
       var result = connection.isConnectedTo(otherClientId);
