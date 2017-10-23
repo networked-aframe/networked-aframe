@@ -136,10 +136,10 @@ class EasyRtcAdapter extends INetworkAdapter {
   getMediaStream(clientId) {
     var that = this;
     if(this.audioStreams[clientId]) {
-      naf.log.write("Already had audio for " + clientId);
+      naf.log.write('Already had audio for ' + clientId);
       return Promise.resolve(this.audioStreams[clientId]);
     } else {
-      naf.log.write("Wating on audio for " + clientId);
+      naf.log.write('Wating on audio for ' + clientId);
       return new Promise(function(resolve) {
         that.pendingAudioRequest[clientId] = resolve;
       });
@@ -154,7 +154,7 @@ class EasyRtcAdapter extends INetworkAdapter {
   _storeAudioStream(easyrtcid, stream) {
     this.audioStreams[easyrtcid] = stream;
     if(this.pendingAudioRequest[easyrtcid]) {
-      naf.log.write("got pending audio for " + easyrtcid);
+      naf.log.write('got pending audio for ' + easyrtcid);
       this.pendingAudioRequest[easyrtcid](stream);
       delete this.pendingAudioRequest[easyrtcid](stream);
     }

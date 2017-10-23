@@ -75,7 +75,7 @@ module.exports.childSchemaEqual = function(a, b) {
 };
 
 /**
- * Find the closest ancestor (including the passed in entity) that has a `netorked` component
+ * Find the closest ancestor (including the passed in entity) that has a `networked` component
  * @param {ANode} entity - Entity to begin the search on
  * @returns {ANode} An entity with a `networked` component or null
  */

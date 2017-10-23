@@ -350,7 +350,7 @@ To measure bandwidth usage, run two clients on Chrome and visit chrome://webrtc-
 
 ### Audio
 
-After enabling audio streaming on the `networked-scene` component (and using an adapter that supports it) you will still not hear anything by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of the entity will be emitted in 3d space from the position of the entity with then `networked-audio-source` attached. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
+After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3d space from that entities position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
 
 Stay in Touch
 -------------

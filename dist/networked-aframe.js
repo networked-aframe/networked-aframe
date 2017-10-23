@@ -55,9 +55,9 @@
 
 	// Network components
 	__webpack_require__(58);
-	__webpack_require__(68);
-	__webpack_require__(74);
+	__webpack_require__(69);
 	__webpack_require__(75);
+	__webpack_require__(76);
 
 /***/ }),
 /* 1 */
@@ -1796,7 +1796,7 @@
 	naf.physics = physics;
 	naf.log = new NafLogger();
 	naf.schemas = new Schemas();
-	naf.version = "0.3.0";
+	naf.version = "0.3.2";
 
 	var entities = new NetworkEntities();
 	var connection = new NetworkConnection(entities);
@@ -1898,6 +1898,18 @@
 
 	module.exports.childSchemaEqual = function (a, b) {
 	  return a.selector == b.selector && a.component == b.component && a.property == b.property;
+	};
+
+	/**
+	 * Find the closest ancestor (including the passed in entity) that has a `networked` component
+	 * @param {ANode} entity - Entity to begin the search on
+	 * @returns {ANode} An entity with a `networked` component or null
+	 */
+	module.exports.getNetworkedEntity = function (entity) {
+	  while (entity && !(entity.components && entity.components.networked)) {
+	    entity = entity.parentNode;
+	  }
+	  return entity;
 	};
 
 	module.exports.monkeyPatchEntityFromTemplateChild = function (entity, templateChild, callback) {
@@ -2338,8 +2350,12 @@
 	      var children = this.childCache.getChildren(parentId);
 	      for (var i = 0; i < children.length; i++) {
 	        var childEntityData = children[i];
-	        var childEntity = this.createRemoteEntity(childEntityData);
 	        var childId = childEntityData.networkId;
+	        if (this.hasEntity(childId)) {
+	          console.warn('Tried to instantiate entity multiple times', childId, childEntityData, 'Existing entity:', this.getEntity(childId));
+	          continue;
+	        }
+	        var childEntity = this.createRemoteEntity(childEntityData);
 	        this.createAndAppendChildren(childId, childEntity);
 	        parentEntity.appendChild(childEntity);
 	      }
@@ -2367,10 +2383,10 @@
 	    }
 	  }, {
 	    key: 'completeSync',
-	    value: function completeSync() {
+	    value: function completeSync(targetClientId) {
 	      for (var id in this.entities) {
 	        if (this.entities.hasOwnProperty(id)) {
-	          this.entities[id].emit('syncAll', null, false);
+	          this.entities[id].emit('syncAll', { targetClientId: targetClientId, takeover: false }, false);
 	        }
 	      }
 	    }
@@ -2498,8 +2514,6 @@
 
 	    this.connectedClients = {};
 	    this.activeDataChannels = {};
-
-	    this.connected = false;
 	  }
 
 	  _createClass(NetworkConnection, [{
@@ -2544,7 +2558,7 @@
 	  }, {
 	    key: 'onConnect',
 	    value: function onConnect(callback) {
-	      if (this.connected) {
+	      if (this.isConnected()) {
 	        callback();
 	      } else {
 	        document.body.addEventListener('connected', callback, false);
@@ -2555,7 +2569,6 @@
 	    value: function connectSuccess(clientId) {
 	      NAF.log.write('Networked-Aframe Client ID:', clientId);
 	      NAF.clientId = clientId;
-	      this.connected = true;
 
 	      var evt = new CustomEvent('connected', { 'detail': { clientId: clientId } });
 	      document.body.dispatchEvent(evt);
@@ -2564,7 +2577,6 @@
 	    key: 'connectFailure',
 	    value: function connectFailure(errorCode, message) {
 	      NAF.log.error(errorCode, "failure to connect");
-	      this.connected = false;
 	    }
 	  }, {
 	    key: 'occupantsReceived',
@@ -2606,12 +2618,12 @@
 	  }, {
 	    key: 'isConnected',
 	    value: function isConnected() {
-	      return this.connected;
+	      return !!NAF.clientId;
 	    }
 	  }, {
 	    key: 'isMineAndConnected',
 	    value: function isMineAndConnected(clientId) {
-	      return NAF.clientId == clientId;
+	      return this.isConnected() && NAF.clientId === clientId;
 	    }
 	  }, {
 	    key: 'isNewClient',
@@ -2628,7 +2640,7 @@
 	    value: function dataChannelOpen(clientId) {
 	      NAF.log.write('Opened data channel from ' + clientId);
 	      this.activeDataChannels[clientId] = true;
-	      this.entities.completeSync();
+	      this.entities.completeSync(clientId);
 
 	      var evt = new CustomEvent('clientConnected', { detail: { clientId: clientId } });
 	      document.body.dispatchEvent(evt);
@@ -2805,6 +2817,11 @@
 	      this.notImplemented('getConnectStatus');
 	    }
 	  }, {
+	    key: 'getMediaStream',
+	    value: function getMediaStream(clientId) {
+	      return Promise.reject("Interface method not implemented: getMediaStream");
+	    }
+	  }, {
 	    key: 'sendData',
 	    value: function sendData(clientId, dataType, data) {
 	      this.notImplemented('sendData');
@@ -2940,6 +2957,7 @@
 	var EasyRtcAdapter = __webpack_require__(61);
 	var UwsAdapter = __webpack_require__(62);
 	var FirebaseWebRtcAdapter = __webpack_require__(63);
+	var DeepstreamWebRtcAdapter = __webpack_require__(68);
 
 	var AdapterFactory = function () {
 	  function AdapterFactory() {
@@ -2956,6 +2974,9 @@
 	          break;
 	        case 'firebase':
 	          adapter = new FirebaseWebRtcAdapter(window.firebase, window.firebaseConfig);
+	          break;
+	        case 'deepstream':
+	          adapter = new DeepstreamWebRtcAdapter(window.deepstream, window.deepstreamConfig);
 	          break;
 	        case 'easyrtc':
 	          adapter = new EasyRtcAdapter(window.easyrtc);
@@ -3143,6 +3164,7 @@
 	    _this.easyrtc = easyrtc;
 
 	    _this.audioStreams = {};
+	    _this.pendingAudioRequest = {};
 	    return _this;
 	  }
 
@@ -3202,6 +3224,7 @@
 	    value: function connect() {
 	      var that = this;
 	      var connectedCallback = function connectedCallback(id) {
+	        that._storeAudioStream(that.easyrtc.myEasyrtcid, that.easyrtc.getLocalStream());
 	        that._myRoomJoinTime = that._getRoomJoinTime(id);
 	        that.connectSuccess(id);
 	      };
@@ -3238,7 +3261,8 @@
 	  }, {
 	    key: 'sendData',
 	    value: function sendData(clientId, dataType, data) {
-	      this.easyrtc.sendPeerMessage(clientId, dataType, data);
+	      // send via webrtc otherwise fallback to websockets
+	      this.easyrtc.sendData(clientId, dataType, data);
 	    }
 	  }, {
 	    key: 'sendDataGuaranteed',
@@ -3248,8 +3272,16 @@
 	  }, {
 	    key: 'broadcastData',
 	    value: function broadcastData(dataType, data) {
-	      var destination = { targetRoom: this.room };
-	      this.easyrtc.sendPeerMessage(destination, dataType, data);
+	      var roomOccupants = this.easyrtc.getRoomOccupantsAsMap(this.room);
+
+	      // Iterate over the keys of the easyrtc room occupants map.
+	      // getRoomOccupantsAsArray uses Object.keys which allocates memory.
+	      for (var roomOccupant in roomOccupants) {
+	        if (roomOccupants.hasOwnProperty(roomOccupant) && roomOccupant !== this.easyrtc.myEasyrtcid) {
+	          // send via webrtc otherwise fallback to websockets
+	          this.easyrtc.sendData(roomOccupant, dataType, data);
+	        }
+	      }
 	    }
 	  }, {
 	    key: 'broadcastDataGuaranteed',
@@ -3270,19 +3302,41 @@
 	        return INetworkAdapter.CONNECTING;
 	      }
 	    }
+	  }, {
+	    key: 'getMediaStream',
+	    value: function getMediaStream(clientId) {
+	      var that = this;
+	      if (this.audioStreams[clientId]) {
+	        naf.log.write('Already had audio for ' + clientId);
+	        return Promise.resolve(this.audioStreams[clientId]);
+	      } else {
+	        naf.log.write('Wating on audio for ' + clientId);
+	        return new Promise(function (resolve) {
+	          that.pendingAudioRequest[clientId] = resolve;
+	        });
+	      }
+	    }
 
 	    /**
 	     * Privates
 	     */
 
 	  }, {
+	    key: '_storeAudioStream',
+	    value: function _storeAudioStream(easyrtcid, stream) {
+	      this.audioStreams[easyrtcid] = stream;
+	      if (this.pendingAudioRequest[easyrtcid]) {
+	        naf.log.write('got pending audio for ' + easyrtcid);
+	        this.pendingAudioRequest[easyrtcid](stream);
+	        delete this.pendingAudioRequest[easyrtcid](stream);
+	      }
+	    }
+	  }, {
 	    key: '_connectWithAudio',
 	    value: function _connectWithAudio(connectSuccess, connectFailure) {
 	      var that = this;
 
-	      this.easyrtc.setStreamAcceptor(function (easyrtcid, stream) {
-	        that.audioStreams[easyrtcid] = stream;
-	      });
+	      this.easyrtc.setStreamAcceptor(this._storeAudioStream.bind(this));
 
 	      this.easyrtc.setOnStreamClosed(function (easyrtcid) {
 	        delete that.audioStreams[easyrtcid];
@@ -3630,10 +3684,10 @@
 	    key: 'connect',
 	    value: function connect() {
 	      var self = this;
-	      var firebase = this.firebase;
 
 	      this.initFirebase(function (id) {
 	        self.localId = id;
+	        var firebaseApp = self.firebaseApp;
 
 	        // Note: assuming that data transfer via firebase realtime database
 	        //       is reliable and in order
@@ -3642,11 +3696,11 @@
 	        self.getTimestamp(function (timestamp) {
 	          self.myRoomJoinTime = timestamp;
 
-	          var userRef = firebase.database().ref(self.getUserPath(self.localId));
+	          var userRef = firebaseApp.database().ref(self.getUserPath(self.localId));
 	          userRef.set({ timestamp: timestamp, signal: '', data: '' });
 	          userRef.onDisconnect().remove();
 
-	          var roomRef = firebase.database().ref(self.getRoomPath());
+	          var roomRef = firebaseApp.database().ref(self.getRoomPath());
 
 	          roomRef.on('child_added', function (data) {
 	            var remoteId = data.key;
@@ -3658,7 +3712,7 @@
 	            var peer = new WebRtcPeer(self.localId, remoteId,
 	            // send signal function
 	            function (data) {
-	              firebase.database().ref(self.getSignalPath(self.localId)).set(data);
+	              firebaseApp.database().ref(self.getSignalPath(self.localId)).set(data);
 	            });
 	            peer.setDatachannelListeners(self.openListener, self.closedListener, self.messageListener);
 
@@ -3666,14 +3720,14 @@
 	            self.occupants[remoteId] = remoteTimestamp;
 
 	            // received signal
-	            firebase.database().ref(self.getSignalPath(remoteId)).on('value', function (data) {
+	            firebaseApp.database().ref(self.getSignalPath(remoteId)).on('value', function (data) {
 	              var value = data.val();
 	              if (value === null || value === '') return;
 	              peer.handleSignal(value);
 	            });
 
 	            // received data
-	            firebase.database().ref(self.getDataPath(remoteId)).on('value', function (data) {
+	            firebaseApp.database().ref(self.getDataPath(remoteId)).on('value', function (data) {
 	              var value = data.val();
 	              if (value === null || value === '' || value.to !== self.localId) return;
 	              self.messageListener(remoteId, value.type, value.data);
@@ -3727,7 +3781,7 @@
 	    value: function sendDataGuaranteed(clientId, dataType, data) {
 	      var clonedData = JSON.parse(JSON.stringify(data));
 	      var encodedData = firebaseKeyEncode.deepEncode(clonedData);
-	      this.firebase.database().ref(this.getDataPath(this.localId)).set({
+	      this.firebaseApp.database().ref(this.getDataPath(this.localId)).set({
 	        to: clientId,
 	        type: dataType,
 	        data: encodedData
@@ -3778,11 +3832,11 @@
 	  }, {
 	    key: 'initFirebase',
 	    value: function initFirebase(callback) {
-	      this.firebase.initializeApp({
+	      this.firebaseApp = this.firebase.initializeApp({
 	        apiKey: this.apiKey,
 	        authDomain: this.authDomain,
 	        databaseURL: this.databaseURL
-	      });
+	      }, this.appId);
 
 	      this.auth(this.authType, callback);
 	    }
@@ -3819,14 +3873,14 @@
 	    key: 'authAnonymous',
 	    value: function authAnonymous(callback) {
 	      var self = this;
-	      var firebase = this.firebase;
+	      var firebaseApp = this.firebaseApp;
 
-	      firebase.auth().signInAnonymously().catch(function (error) {
+	      firebaseApp.auth().signInAnonymously().catch(function (error) {
 	        console.error('FirebaseWebRtcInterface.authAnonymous: ' + error);
 	        self.connectFailure(null, error);
 	      });
 
-	      firebase.auth().onAuthStateChanged(function (user) {
+	      firebaseApp.auth().onAuthStateChanged(function (user) {
 	        if (user !== null) {
 	          callback(user.uid);
 	        }
@@ -3897,9 +3951,9 @@
 	  }, {
 	    key: 'getTimestamp',
 	    value: function getTimestamp(callback) {
-	      var firebase = this.firebase;
-	      var ref = firebase.database().ref(this.getTimestampGenerationPath(this.localId));
-	      ref.set(firebase.database.ServerValue.TIMESTAMP);
+	      var firebaseApp = this.firebaseApp;
+	      var ref = firebaseApp.database().ref(this.getTimestampGenerationPath(this.localId));
+	      ref.set(this.firebase.database.ServerValue.TIMESTAMP);
 	      ref.once('value', function (data) {
 	        var timestamp = data.val();
 	        ref.remove();
@@ -13665,9 +13719,587 @@
 
 	'use strict';
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 	var naf = __webpack_require__(47);
-	var componentHelper = __webpack_require__(69);
-	var Compressor = __webpack_require__(73);
+	var INetworkAdapter = __webpack_require__(56);
+
+	var DeepstreamWebRtcAdapter = function (_INetworkAdapter) {
+	  _inherits(DeepstreamWebRtcAdapter, _INetworkAdapter);
+
+	  /**
+	    Config structure:
+	    config.authType: none;
+	    config.apiKey: your-api;
+	    config.authDomain: your-project.firebaseapp.com;
+	    config.databaseURL: https://your-project.firebaseio.com;
+	  */
+	  function DeepstreamWebRtcAdapter(ds, config) {
+	    _classCallCheck(this, DeepstreamWebRtcAdapter);
+
+	    if (ds === undefined) {
+	      throw new Error('Import https://cdnjs.cloudflare.com/ajax/libs/deepstream.io-client-js/x.x.x/deepstream.js');
+	    }
+
+	    var _this = _possibleConstructorReturn(this, (DeepstreamWebRtcAdapter.__proto__ || Object.getPrototypeOf(DeepstreamWebRtcAdapter)).call(this));
+
+	    _this.rootPath = 'networked-aframe';
+
+	    _this.localId = null;
+	    _this.appId = null;
+	    _this.roomId = null;
+
+	    _this.peers = {}; // id -> WebRtcPeer
+	    _this.occupants = {}; // id -> joinTimestamp
+
+	    _this.ds = ds;
+	    _this.dsUrl = config.url;
+	    return _this;
+	  }
+
+	  /*
+	   * Call before `connect`
+	   */
+
+	  _createClass(DeepstreamWebRtcAdapter, [{
+	    key: 'setServerUrl',
+	    value: function setServerUrl(url) {
+	      // handled in config
+	    }
+	  }, {
+	    key: 'setApp',
+	    value: function setApp(appId) {
+	      this.appId = appId;
+	    }
+	  }, {
+	    key: 'setRoom',
+	    value: function setRoom(roomId) {
+	      this.roomId = roomId;
+	    }
+
+	    // options: { datachannel: bool, audio: bool }
+
+	  }, {
+	    key: 'setWebRtcOptions',
+	    value: function setWebRtcOptions(options) {
+	      // TODO: support audio and video
+	      if (options.datachannel === false) console.warn('DeepstreamWebRtcAdapter.setWebRtcOptions: datachannel must be true.');
+	      if (options.audio === true) console.warn('DeepstreamWebRtcAdapter does not support audio yet.');
+	      if (options.video === true) console.warn('DeepstreamWebRtcAdapter does not support video yet.');
+	    }
+	  }, {
+	    key: 'setServerConnectListeners',
+	    value: function setServerConnectListeners(successListener, failureListener) {
+	      this.connectSuccess = successListener;
+	      this.connectFailure = failureListener;
+	    }
+	  }, {
+	    key: 'setRoomOccupantListener',
+	    value: function setRoomOccupantListener(occupantListener) {
+	      this.occupantListener = occupantListener;
+	    }
+	  }, {
+	    key: 'setDataChannelListeners',
+	    value: function setDataChannelListeners(openListener, closedListener, messageListener) {
+	      this.openListener = openListener;
+	      this.closedListener = closedListener;
+	      this.messageListener = messageListener;
+	    }
+	  }, {
+	    key: 'connect',
+	    value: function connect() {
+	      var self = this;
+	      var ds = this.ds;
+
+	      var dsClient = this.ds(this.dsUrl);
+	      this.dsClient = dsClient;
+
+	      dsClient.login({}, function (success, data) {
+	        if (success) {
+	          self.startApp(data.id);
+	        } else {
+	          // TODO failure messages
+	          self.connectFailure();
+	        }
+	      });
+
+	      dsClient.presence.getAll(function (ids) {
+	        // ids.forEach(subscribeToAvatarChanges)
+	        console.log('existing clients', ids);
+	        for (var i = 0; i < ids.length; i++) {
+	          self.clientConnected(ids[i]);
+	        }
+	      });
+
+	      dsClient.presence.subscribe(function (clientId, isOnline) {
+	        console.log('client presence id', clientId, 'online?', isOnline);
+	        if (isOnline) {
+	          self.clientConnected(clientId);
+	        } else {
+	          self.clientDisconnected(clientId);
+	        }
+	      });
+	    }
+	  }, {
+	    key: 'shouldStartConnectionTo',
+	    value: function shouldStartConnectionTo(client) {
+	      return (this.myRoomJoinTime || 0) <= (client ? client.roomJoinTime : 0);
+	    }
+	  }, {
+	    key: 'startStreamConnection',
+	    value: function startStreamConnection(clientId) {
+	      // Handled by WebRtcPeer
+	    }
+	  }, {
+	    key: 'closeStreamConnection',
+	    value: function closeStreamConnection(clientId) {
+	      // Handled by WebRtcPeer
+	    }
+	  }, {
+	    key: 'sendData',
+	    value: function sendData(clientId, dataType, data) {
+	      this.peers[clientId].send(dataType, data);
+	    }
+	  }, {
+	    key: 'sendDataGuaranteed',
+	    value: function sendDataGuaranteed(clientId, dataType, data) {
+	      var clonedData = JSON.parse(JSON.stringify(data));
+	      this.dsClient.record.getRecord(this.getUserPath(this.localId)).set('data', {
+	        to: clientId,
+	        type: dataType,
+	        data: clonedData
+	      });
+	    }
+	  }, {
+	    key: 'broadcastData',
+	    value: function broadcastData(dataType, data) {
+	      for (var clientId in this.peers) {
+	        if (this.peers.hasOwnProperty(clientId)) {
+	          this.sendData(clientId, dataType, data);
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'broadcastDataGuaranteed',
+	    value: function broadcastDataGuaranteed(dataType, data) {
+	      for (var clientId in this.peers) {
+	        if (this.peers.hasOwnProperty(clientId)) {
+	          this.sendDataGuaranteed(clientId, dataType, data);
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'getConnectStatus',
+	    value: function getConnectStatus(clientId) {
+	      var peer = this.peers[clientId];
+
+	      if (peer === undefined) return INetworkAdapter.NOT_CONNECTED;
+
+	      switch (peer.getStatus()) {
+	        case WebRtcPeer.IS_CONNECTED:
+	          return INetworkAdapter.IS_CONNECTED;
+
+	        case WebRtcPeer.CONNECTING:
+	          return INetworkAdapter.CONNECTING;
+
+	        case WebRtcPeer.NOT_CONNECTED:
+	        default:
+	          return INetworkAdapter.NOT_CONNECTED;
+	      }
+	    }
+
+	    /*
+	     * Privates
+	     */
+
+	  }, {
+	    key: 'startApp',
+	    value: function startApp(clientId) {
+	      var self = this;
+	      var dsClient = this.dsClient;
+	      this.localId = clientId;
+	      this.localTimestamp = NAF.utils.now();
+
+	      dsClient.record.getRecord(this.getUserPath(clientId)).set({
+	        timestamp: this.localTimestamp, // TODO get this from server
+	        signal: '',
+	        data: ''
+	      });
+	      self.connectSuccess(clientId);
+	    }
+	  }, {
+	    key: 'clientConnected',
+	    value: function clientConnected(clientId) {
+	      console.log('new client', clientId);
+	      var self = this;
+	      var dsClient = this.dsClient;
+
+	      if (!NAF.connection.isConnected()) {
+	        console.warn('Trying to make a connection to another client before my client has connected');
+	      }
+
+	      dsClient.record.getRecord(this.getUserPath(clientId)).whenReady(function (clientRecord) {
+
+	        var onClientSetup = function onClientSetup(timestamp) {
+	          // if (remoteId === self.localId || remoteId === 'timestamp' || self.peers[remoteId] !== undefined) return;
+
+	          var remoteTimestamp = clientRecord.get('timestamp');
+	          console.log('remote timestamp', remoteTimestamp);
+
+	          var peer = new WebRtcPeer(self.localId, clientId,
+	          // send signal function
+	          function (data) {
+	            console.log('setting signal', data);
+	            dsClient.record.getRecord(self.getUserPath(self.localId)).set('signal', data);
+	          });
+	          peer.setDatachannelListeners(self.openListener, self.closedListener, self.messageListener);
+
+	          self.peers[clientId] = peer;
+	          self.occupants[clientId] = remoteTimestamp;
+
+	          // received signal
+	          clientRecord.subscribe('signal', function (data) {
+	            console.log('received signal', data);
+	            var value = data;
+	            if (value === null || value === '') return;
+	            peer.handleSignal(value);
+	          });
+
+	          // received data
+	          clientRecord.subscribe('data', function (data) {
+	            console.log('received data', data);
+	            var value = data;
+	            if (value === null || value === '' || value.to !== self.localId) return;
+	            self.messageListener(clientId, value.type, value.data);
+	          });
+
+	          // send offer from a peer who
+	          //   - later joined the room, or
+	          //   - has larger id if two peers joined the room at same time
+	          console.log('checking to see who should send offer', self.localTimestamp > remoteTimestamp, self.localTimestamp === remoteTimestamp && self.localId > clientId);
+	          if (self.localTimestamp > remoteTimestamp || self.localTimestamp === remoteTimestamp && self.localId > clientId) {
+	            console.log('this client is sending offer');
+	            peer.offer();
+	          }
+
+	          self.occupantListener(self.occupants);
+	        };
+
+	        if (clientRecord.get('timestamp') === undefined) {
+	          clientRecord.subscribe('timestamp', onClientSetup);
+	        } else {
+	          onClientSetup(clientRecord.get('timestamp'));
+	        }
+	      });
+	    }
+	  }, {
+	    key: 'clientDisconnected',
+	    value: function clientDisconnected() {}
+	    // TODO
+
+
+	    /*
+	     * realtime database layout
+	     *
+	     * /rootPath/appId/roomId/
+	     *   - /userId/
+	     *     - timestamp: joining the room timestamp
+	     *     - signal: used to send signal
+	     *     - data: used to send guaranteed data
+	     *   - /timestamp/: working path to get timestamp
+	     *     - userId:
+	     */
+
+	  }, {
+	    key: 'getRootPath',
+	    value: function getRootPath() {
+	      return this.rootPath;
+	    }
+	  }, {
+	    key: 'getAppPath',
+	    value: function getAppPath() {
+	      return this.getRootPath() + '/' + this.appId;
+	    }
+	  }, {
+	    key: 'getRoomPath',
+	    value: function getRoomPath() {
+	      return this.getAppPath() + '/' + this.roomId;
+	    }
+	  }, {
+	    key: 'getUserPath',
+	    value: function getUserPath(id) {
+	      return this.getRoomPath() + '/' + id;
+	    }
+	  }, {
+	    key: 'getSignalPath',
+	    value: function getSignalPath(id) {
+	      return this.getUserPath(id) + '/signal';
+	    }
+	  }, {
+	    key: 'getDataPath',
+	    value: function getDataPath(id) {
+	      return this.getUserPath(id) + '/data';
+	    }
+	  }, {
+	    key: 'getTimestampGenerationPath',
+	    value: function getTimestampGenerationPath(id) {
+	      return this.getRoomPath() + '/timestamp/' + id;
+	    }
+	  }]);
+
+	  return DeepstreamWebRtcAdapter;
+	}(INetworkAdapter);
+
+	module.exports = DeepstreamWebRtcAdapter;
+
+	var WebRtcPeer = function () {
+	  function WebRtcPeer(localId, remoteId, sendSignalFunc) {
+	    _classCallCheck(this, WebRtcPeer);
+
+	    this.localId = localId;
+	    this.remoteId = remoteId;
+	    this.sendSignalFunc = sendSignalFunc;
+	    this.open = false;
+	    this.channelLabel = 'networked-aframe-channel';
+
+	    this.pc = this.createPeerConnection();
+	    this.channel = null;
+	  }
+
+	  _createClass(WebRtcPeer, [{
+	    key: 'setDatachannelListeners',
+	    value: function setDatachannelListeners(openListener, closedListener, messageListener) {
+	      this.openListener = openListener;
+	      this.closedListener = closedListener;
+	      this.messageListener = messageListener;
+	    }
+	  }, {
+	    key: 'offer',
+	    value: function offer() {
+	      var self = this;
+	      // reliable: false - UDP
+	      this.setupChannel(this.pc.createDataChannel(this.channelLabel, { reliable: false }));
+	      console.log('creating offer');
+	      this.pc.createOffer(function (sdp) {
+	        console.log('created offer');
+	        self.handleSessionDescription(sdp);
+	      }, function (error) {
+	        console.error('WebRtcPeer.offer: ' + error);
+	      });
+	    }
+	  }, {
+	    key: 'handleSignal',
+	    value: function handleSignal(signal) {
+	      console.log('handleSignal', signal);
+	      // ignores signal if it isn't for me
+	      if (this.localId !== signal.to || this.remoteId !== signal.from) return;
+
+	      switch (signal.type) {
+	        case 'offer':
+	          this.handleOffer(signal);
+	          break;
+
+	        case 'answer':
+	          this.handleAnswer(signal);
+	          break;
+
+	        case 'candidate':
+	          this.handleCandidate(signal);
+	          break;
+
+	        default:
+	          console.error('WebRtcPeer.handleSignal: Unknown signal type ' + signal.type);
+	          break;
+	      }
+	    }
+	  }, {
+	    key: 'send',
+	    value: function send(type, data) {
+	      // TODO: throw error?
+	      if (this.channel === null || this.channel.readyState !== 'open') return;
+
+	      this.channel.send(JSON.stringify({ type: type, data: data }));
+	    }
+	  }, {
+	    key: 'getStatus',
+	    value: function getStatus() {
+	      if (this.channel === null) return WebRtcPeer.NOT_CONNECTED;
+
+	      switch (this.channel.readyState) {
+	        case 'open':
+	          return WebRtcPeer.IS_CONNECTED;
+
+	        case 'connecting':
+	          return WebRtcPeer.CONNECTING;
+
+	        case 'closing':
+	        case 'closed':
+	        default:
+	          return WebRtcPeer.NOT_CONNECTED;
+	      }
+	    }
+
+	    /*
+	     * Privates
+	     */
+
+	  }, {
+	    key: 'createPeerConnection',
+	    value: function createPeerConnection() {
+	      var self = this;
+	      var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.msRTCPeerConnection;
+
+	      if (RTCPeerConnection === undefined) {
+	        throw new Error('WebRtcPeer.createPeerConnection: This browser does not seem to support WebRTC.');
+	      }
+
+	      var pc = new RTCPeerConnection({ 'iceServers': WebRtcPeer.ICE_SERVERS });
+
+	      pc.onicecandidate = function (event) {
+	        console.log('onicecandidate');
+	        if (event.candidate) {
+	          self.sendSignalFunc({
+	            from: self.localId,
+	            to: self.remoteId,
+	            type: 'candidate',
+	            sdpMLineIndex: event.candidate.sdpMLineIndex,
+	            candidate: event.candidate.candidate
+	          });
+	        }
+	      };
+
+	      // Note: seems like channel.onclose hander is unreliable on some platforms,
+	      //       so also tries to detect disconnection here.
+	      pc.oniceconnectionstatechange = function () {
+	        console.log('oniceconnectionstatechange');
+	        if (self.open && pc.iceConnectionState === 'disconnected') {
+	          self.open = false;
+	          self.closedListener(self.remoteId);
+	        }
+	      };
+
+	      return pc;
+	    }
+	  }, {
+	    key: 'setupChannel',
+	    value: function setupChannel(channel) {
+	      var self = this;
+
+	      this.channel = channel;
+
+	      // received data from a remote peer
+	      this.channel.onmessage = function (event) {
+	        console.log('received data from remote peer');
+	        var data = JSON.parse(event.data);
+	        self.messageListener(self.remoteId, data.type, data.data);
+	      };
+
+	      // connected with a remote peer
+	      this.channel.onopen = function (event) {
+	        console.log('connected to a remote peer');
+	        self.open = true;
+	        self.openListener(self.remoteId);
+	      };
+
+	      // disconnected with a remote peer
+	      this.channel.onclose = function (event) {
+	        console.log('discnnected to a remote peer');
+	        if (!self.open) return;
+	        self.open = false;
+	        self.closedListener(self.remoteId);
+	      };
+
+	      // error occurred with a remote peer
+	      this.channel.onerror = function (error) {
+	        console.error('WebRtcPeer.channel.onerror: ' + error);
+	      };
+	    }
+	  }, {
+	    key: 'handleOffer',
+	    value: function handleOffer(message) {
+	      console.log('handleOffer');
+	      var self = this;
+
+	      this.pc.ondatachannel = function (event) {
+	        self.setupChannel(event.channel);
+	      };
+
+	      this.setRemoteDescription(message);
+
+	      this.pc.createAnswer(function (sdp) {
+	        self.handleSessionDescription(sdp);
+	      }, function (error) {
+	        console.error('WebRtcPeer.handleOffer: ' + error);
+	      });
+	    }
+	  }, {
+	    key: 'handleAnswer',
+	    value: function handleAnswer(message) {
+	      this.setRemoteDescription(message);
+	    }
+	  }, {
+	    key: 'handleCandidate',
+	    value: function handleCandidate(message) {
+	      var self = this;
+	      var RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate;
+
+	      this.pc.addIceCandidate(new RTCIceCandidate(message), function () {}, function (error) {
+	        console.error('WebRtcPeer.handleCandidate: ' + error);
+	      });
+	    }
+	  }, {
+	    key: 'handleSessionDescription',
+	    value: function handleSessionDescription(sdp) {
+	      console.log('handleSessionDescription', sdp);
+	      var self = this;
+
+	      this.pc.setLocalDescription(sdp, function () {}, function (error) {
+	        console.error('WebRtcPeer.handleSessionDescription: ' + error);
+	      });
+
+	      this.sendSignalFunc({
+	        from: this.localId,
+	        to: this.remoteId,
+	        type: sdp.type,
+	        sdp: sdp.sdp
+	      });
+	    }
+	  }, {
+	    key: 'setRemoteDescription',
+	    value: function setRemoteDescription(message) {
+	      var self = this;
+	      var RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription || window.msRTCSessionDescription;
+
+	      this.pc.setRemoteDescription(new RTCSessionDescription(message), function () {}, function (error) {
+	        console.error('WebRtcPeer.setRemoteDescription: ' + error);
+	      });
+	    }
+	  }]);
+
+	  return WebRtcPeer;
+	}();
+
+	WebRtcPeer.IS_CONNECTED = 'IS_CONNECTED';
+	WebRtcPeer.CONNECTING = 'CONNECTING';
+	WebRtcPeer.NOT_CONNECTED = 'NOT_CONNECTED';
+
+	WebRtcPeer.ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun2.l.google.com:19302' }, { urls: 'stun:stun3.l.google.com:19302' }, { urls: 'stun:stun4.l.google.com:19302' }];
+
+/***/ }),
+/* 69 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var naf = __webpack_require__(47);
+	var componentHelper = __webpack_require__(70);
+	var Compressor = __webpack_require__(74);
 	var bind = AFRAME.utils.bind;
 
 	AFRAME.registerComponent('networked', {
@@ -13684,7 +14316,7 @@
 	    var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
 	    this.onConnected = bind(this.onConnected, this);
-	    this.syncAll = bind(this.syncAll, this);
+	    this.onSyncAll = bind(this.onSyncAll, this);
 	    this.syncDirty = bind(this.syncDirty, this);
 	    this.networkUpdateHandler = bind(this.networkUpdateHandler, this);
 
@@ -13708,7 +14340,13 @@
 	    }
 
 	    if (this.data.owner === '') {
-	      this.checkConnected();
+	      this.setNetworkIdWhenConnected();
+	      // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer.
+	      // Note that this only works because the reliable messages are sent over a single websocket connection.
+	      // If they are sent over a different transport this check may need to change
+	      if (NAF.connection.isConnected()) {
+	        this.syncAll();
+	      }
 	    }
 
 	    document.body.dispatchEvent(this.entityCreatedEvent());
@@ -13743,17 +14381,6 @@
 	  attachLerp: function attachLerp() {
 	    if (NAF.options.useLerp) {
 	      this.el.setAttribute('lerp', '');
-	    }
-	  },
-
-	  connectAudioSource: function connectAudioSource() {
-	    var allRemoteStreams = NAF.connection.adapter.audioStreams;
-	    var remoteStream = allRemoteStreams && allRemoteStreams[this.data.owner];
-	    var audioSource = this.el.querySelector("[networked-audio-source]");
-
-	    if (remoteStream && audioSource) {
-	      console.log("Connecting remote audio", remoteStream, audioSource);
-	      audioSource.components['networked-audio-source'].setMediaStream(remoteStream);
 	    }
 	  },
 
@@ -13830,7 +14457,6 @@
 	    var callback = function callback() {
 	      var entityData = self.el.firstUpdateData;
 	      self.networkUpdate(entityData);
-	      self.connectAudioSource(); // @TODO this is probably a better place to be doing this
 	    };
 
 	    // wait for template to render (and monkey-patching to finish, so next tick), then callback
@@ -13843,7 +14469,7 @@
 	    }
 	  },
 
-	  checkConnected: function checkConnected() {
+	  setNetworkIdWhenConnected: function setNetworkIdWhenConnected() {
 	    if (NAF.clientId) {
 	      this.onConnected();
 	    } else {
@@ -13857,7 +14483,6 @@
 
 	  onConnected: function onConnected() {
 	    this.data.owner = NAF.clientId;
-	    this.syncAll();
 	  },
 
 	  isMine: function isMine() {
@@ -13871,7 +14496,7 @@
 	  bindEvents: function bindEvents() {
 	    var el = this.el;
 	    el.addEventListener('sync', this.syncDirty);
-	    el.addEventListener('syncAll', this.syncAll);
+	    el.addEventListener('syncAll', this.onSyncAll);
 	    el.addEventListener('networkUpdate', this.networkUpdateHandler);
 	  },
 
@@ -13882,7 +14507,7 @@
 	  unbindEvents: function unbindEvents() {
 	    var el = this.el;
 	    el.removeEventListener('sync', this.syncDirty);
-	    el.removeEventListener('syncAll', this.syncAll);
+	    el.removeEventListener('syncAll', this.onSyncAll);
 	    el.removeEventListener('networkUpdate', this.networkUpdateHandler);
 	  },
 
@@ -13892,9 +14517,17 @@
 	    }
 	  },
 
+	  onSyncAll: function onSyncAll(e) {
+	    var _e$detail = e.detail,
+	        takeover = _e$detail.takeover,
+	        targetClientId = _e$detail.targetClientId;
+
+	    this.syncAll(takeover, targetClientId);
+	  },
+
 	  /* Sending updates */
 
-	  syncAll: function syncAll(takeover) {
+	  syncAll: function syncAll(takeover, targetClientId) {
 	    if (!this.canSync()) {
 	      return;
 	    }
@@ -13902,8 +14535,12 @@
 	    var syncedComps = this.getAllSyncedComponents();
 	    var components = componentHelper.gatherComponentsData(this.el, syncedComps);
 	    var syncData = this.createSyncData(components, takeover);
-	    NAF.connection.broadcastDataGuaranteed('u', syncData);
 	    // console.error('syncAll', syncData, NAF.clientId);
+	    if (targetClientId) {
+	      NAF.connection.sendDataGuaranteed(targetClientId, 'u', syncData);
+	    } else {
+	      NAF.connection.broadcastDataGuaranteed('u', syncData);
+	    }
 	    this.updateCache(components);
 	  },
 
@@ -14087,12 +14724,12 @@
 	});
 
 /***/ }),
-/* 69 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var deepEqual = __webpack_require__(70);
+	var deepEqual = __webpack_require__(71);
 
 	module.exports.gatherComponentsData = function (el, schemaComponents) {
 	  var elComponents = el.components;
@@ -14174,7 +14811,7 @@
 	};
 
 /***/ }),
-/* 70 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -14182,8 +14819,8 @@
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	var pSlice = Array.prototype.slice;
-	var objectKeys = __webpack_require__(71);
-	var isArguments = __webpack_require__(72);
+	var objectKeys = __webpack_require__(72);
+	var isArguments = __webpack_require__(73);
 
 	var deepEqual = module.exports = function (actual, expected, opts) {
 	  if (!opts) opts = {};
@@ -14274,7 +14911,7 @@
 	}
 
 /***/ }),
-/* 71 */
+/* 72 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -14290,7 +14927,7 @@
 	}
 
 /***/ }),
-/* 72 */
+/* 73 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -14314,7 +14951,7 @@
 	};
 
 /***/ }),
-/* 73 */
+/* 74 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -14418,16 +15055,16 @@
 	};
 
 /***/ }),
-/* 74 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var naf = __webpack_require__(47);
-	var deepEqual = __webpack_require__(70);
+	var deepEqual = __webpack_require__(71);
 	var bind = AFRAME.utils.bind;
-	var componentHelper = __webpack_require__(69);
-	var Compressor = __webpack_require__(73);
+	var componentHelper = __webpack_require__(70);
+	var Compressor = __webpack_require__(74);
 
 	function UserException(message) {
 	  this.message = message;
@@ -14677,13 +15314,14 @@
 	});
 
 /***/ }),
-/* 75 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var naf = __webpack_require__(47);
 
+	// @TODO if aframevr/aframe#3042 gets merged, this should just delegate to the aframe sound component
 	AFRAME.registerComponent('networked-audio-source', {
 	  schema: {
 	    positional: { default: true }
@@ -14692,9 +15330,23 @@
 	  init: function init() {
 	    this.listener = null;
 	    this.stream = null;
+
+	    this._setMediaStream = this._setMediaStream.bind(this);
+
+	    var networkedEl = NAF.utils.getNetworkedEntity(this.el);
+	    var ownerId = networkedEl && networkedEl.components.networked.data.owner;
+	    if (ownerId) {
+	      NAF.connection.adapter.getMediaStream(ownerId).then(this._setMediaStream).catch(function (e) {
+	        return naf.log.error('Error getting media stream for ' + ownerId, e);
+	      });
+	    } else if (ownerId === '') {
+	      // Correctly configured local entity, perhaps do something here for enabling debug audio loopback
+	    } else {
+	      naf.log.error('[networked-audio-source] must be added on an entity, or a child of an entity, with the [networked] component.');
+	    }
 	  },
 
-	  setMediaStream: function setMediaStream(newStream) {
+	  _setMediaStream: function _setMediaStream(newStream) {
 	    if (!this.sound) {
 	      this.setupSound();
 	    }
@@ -14726,7 +15378,7 @@
 	    var sceneEl = el.sceneEl;
 
 	    if (this.sound) {
-	      el.removeObject3D('sound');
+	      el.removeObject3D(this.attrName);
 	    }
 
 	    if (!sceneEl.audioListener) {
@@ -14741,7 +15393,6 @@
 	    this.sound = this.data.positional ? new THREE.PositionalAudio(this.listener) : new THREE.Audio(this.listener);
 	    el.setObject3D(this.attrName, this.sound);
 	  }
-
 	});
 
 /***/ })
