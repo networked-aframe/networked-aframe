@@ -1,19 +1,6 @@
-var WsEasyRtcAdapter = require('./WsEasyRtcAdapter');
-var EasyRtcAdapter = require('./EasyRtcAdapter');
-var UwsAdapter = require('./UwsAdapter');
-var FirebaseWebRtcAdapter = require('./FirebaseWebRtcAdapter');
-var DeepstreamWebRtcAdapter = require('./DeepstreamWebRtcAdapter');
-
 class AdapterFactory {
-
   constructor() {
-    this.adapters = {
-      deepstream: DeepstreamWebRtcAdapter,
-      wseasyrtc: WsEasyRtcAdapter,
-      easyrtc: EasyRtcAdapter,
-      firebase: FirebaseWebRtcAdapter,
-      uws: UwsAdapter
-    };
+    this.adapters = {};
 
     this.IS_CONNECTED = AdapterFactory.IS_CONNECTED;
     this.CONNECTING = AdapterFactory.CONNECTING;
@@ -29,14 +16,18 @@ class AdapterFactory {
     if (this.adapters[name]) {
       var AdapterClass = this.adapters[name];
       return new AdapterClass();
+    } else {
+      throw new Error(
+        "Adapter: " +
+          adapterName +
+          " not registered. Please use NAF.adapters.register() to register this adapter."
+      );
     }
-
-    return new WsEasyRtcAdapter();
   }
 }
 
-AdapterFactory.IS_CONNECTED = 'IS_CONNECTED';
-AdapterFactory.CONNECTING = 'CONNECTING';
-AdapterFactory.NOT_CONNECTED = 'NOT_CONNECTED';
+AdapterFactory.IS_CONNECTED = "IS_CONNECTED";
+AdapterFactory.CONNECTING = "CONNECTING";
+AdapterFactory.NOT_CONNECTED = "NOT_CONNECTED";
 
 module.exports = AdapterFactory;
