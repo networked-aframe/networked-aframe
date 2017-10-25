@@ -66,46 +66,17 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
+    
     <a-scene embedded networked-scene="
       room: dev;
       debug: true;
-      adapter: easyrtc;
+      adapter: wseasyrtc;
     ">
 
-    <!-- <a-scene networked-scene="
+    <!-- <a-scene embedded networked-scene="
       room: dev;
       debug: true;
-      adapter: uws;
-      serverURL: ws://localhost:8080;
+      adapter: easyrtc;
     "> -->
-
-    <!-- <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
-    <script>
-      // Setup Firebase
-      window.firebaseConfig = {
-        authType: 'none',
-        apiKey: 'API_KEY',
-        authDomain: 'AUTH_DOMAIN',
-        databaseURL: 'DB_URL'
-      };
-    </script> <a-scene networked-scene="
-      room: dev;
-      debug: true;
-      adapter: firebase;
-    "> -->
-
-    <!-- <script src="//code.deepstreamhub.com/js/2.x/deepstream.min.js"></script>
-    <script>
-      // Setup Deepstream
-      window.deepstreamConfig = {
-        url: ''
-      };
-    </script>
-    <a-scene networked-scene="
-      room: dev;
-      debug: true;
-      adapter: deepstream;
-    ">-->
-    </a-scene>
   </body>
 </html>

@@ -54,9 +54,9 @@
 	__webpack_require__(47);
 
 	// Network components
-	__webpack_require__(57);
-	__webpack_require__(58);
-	__webpack_require__(64);
+	__webpack_require__(59);
+	__webpack_require__(60);
+	__webpack_require__(66);
 
 /***/ }),
 /* 1 */
@@ -2716,7 +2716,7 @@
 
 /***/ }),
 /* 56 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 
@@ -2724,11 +2724,17 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	var WsEasyRtcAdapter = __webpack_require__(57);
+	var EasyRtcAdapter = __webpack_require__(58);
+
 	var AdapterFactory = function () {
 	  function AdapterFactory() {
 	    _classCallCheck(this, AdapterFactory);
 
-	    this.adapters = {};
+	    this.adapters = {
+	      "wseasyrtc": WsEasyRtcAdapter,
+	      "easyrtc": EasyRtcAdapter
+	    };
 
 	    this.IS_CONNECTED = AdapterFactory.IS_CONNECTED;
 	    this.CONNECTING = AdapterFactory.CONNECTING;
@@ -2764,6 +2770,327 @@
 
 /***/ }),
 /* 57 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var naf = __webpack_require__(47);
+
+	var WsEasyRtcInterface = function () {
+	  function WsEasyRtcInterface(easyrtc) {
+	    _classCallCheck(this, WsEasyRtcInterface);
+
+	    this.easyrtc = easyrtc || window.easyrtc;
+	    this.app = 'default';
+	    this.room = 'default';
+	    this.connectedClients = [];
+	  }
+
+	  _createClass(WsEasyRtcInterface, [{
+	    key: 'setServerUrl',
+	    value: function setServerUrl(url) {
+	      this.easyrtc.setSocketUrl(url);
+	    }
+	  }, {
+	    key: 'setApp',
+	    value: function setApp(appName) {
+	      this.app = appName;
+	    }
+	  }, {
+	    key: 'setRoom',
+	    value: function setRoom(roomName) {
+	      this.room = roomName;
+	      this.easyrtc.joinRoom(roomName, null);
+	    }
+	  }, {
+	    key: 'setWebRtcOptions',
+	    value: function setWebRtcOptions(options) {
+	      // No webrtc support
+	    }
+	  }, {
+	    key: 'setServerConnectListeners',
+	    value: function setServerConnectListeners(successListener, failureListener) {
+	      this.connectSuccess = successListener;
+	      this.connectFailure = failureListener;
+	    }
+	  }, {
+	    key: 'setRoomOccupantListener',
+	    value: function setRoomOccupantListener(occupantListener) {
+	      this.easyrtc.setRoomOccupantListener(function (roomName, occupants, primary) {
+	        occupantListener(occupants);
+	      });
+	    }
+	  }, {
+	    key: 'setDataChannelListeners',
+	    value: function setDataChannelListeners(openListener, closedListener, messageListener) {
+	      this.openListener = openListener;
+	      this.closedListener = closedListener;
+	      this.easyrtc.setPeerListener(messageListener);
+	    }
+	  }, {
+	    key: 'connect',
+	    value: function connect() {
+	      this.easyrtc.connect(this.app, this.connectSuccess, this.connectFailure);
+	    }
+	  }, {
+	    key: 'shouldStartConnectionTo',
+	    value: function shouldStartConnectionTo(clientId) {
+	      return true;
+	    }
+	  }, {
+	    key: 'startStreamConnection',
+	    value: function startStreamConnection(clientId) {
+	      this.connectedClients.push(clientId);
+	      this.openListener(clientId);
+	    }
+	  }, {
+	    key: 'closeStreamConnection',
+	    value: function closeStreamConnection(clientId) {
+	      var index = this.connectedClients.indexOf(clientId);
+	      if (index > -1) {
+	        this.connectedClients.splice(index, 1);
+	      }
+	      this.closedListener(clientId);
+	    }
+	  }, {
+	    key: 'sendData',
+	    value: function sendData(clientId, dataType, data) {
+	      this.easyrtc.sendDataWS(clientId, dataType, data);
+	    }
+	  }, {
+	    key: 'sendDataGuaranteed',
+	    value: function sendDataGuaranteed(clientId, dataType, data) {
+	      this.sendData(clientId, dataType, data);
+	    }
+	  }, {
+	    key: 'broadcastData',
+	    value: function broadcastData(dataType, data) {
+	      var destination = { targetRoom: this.room };
+	      this.easyrtc.sendDataWS(destination, dataType, data);
+	    }
+	  }, {
+	    key: 'broadcastDataGuaranteed',
+	    value: function broadcastDataGuaranteed(dataType, data) {
+	      this.broadcastData(dataType, data);
+	    }
+	  }, {
+	    key: 'getConnectStatus',
+	    value: function getConnectStatus(clientId) {
+	      var connected = this.connectedClients.indexOf(clientId) != -1;
+
+	      if (connected) {
+	        return NAF.adapters.IS_CONNECTED;
+	      } else {
+	        return NAF.adapters.NOT_CONNECTED;
+	      }
+	    }
+	  }]);
+
+	  return WsEasyRtcInterface;
+	}();
+
+	module.exports = WsEasyRtcInterface;
+
+/***/ }),
+/* 58 */
+/***/ (function(module, exports) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var EasyRtcAdapter = function () {
+	  function EasyRtcAdapter(easyrtc) {
+	    _classCallCheck(this, EasyRtcAdapter);
+
+	    this.app = 'default';
+	    this.room = 'default';
+	    this.easyrtc = easyrtc || window.easyrtc;
+	  }
+
+	  _createClass(EasyRtcAdapter, [{
+	    key: 'setServerUrl',
+	    value: function setServerUrl(url) {
+	      this.easyrtc.setSocketUrl(url);
+	    }
+	  }, {
+	    key: 'setApp',
+	    value: function setApp(appName) {
+	      this.app = appName;
+	    }
+	  }, {
+	    key: 'setRoom',
+	    value: function setRoom(roomName) {
+	      this.room = roomName;
+	      this.easyrtc.joinRoom(roomName, null);
+	    }
+
+	    // options: { datachannel: bool, audio: bool }
+
+	  }, {
+	    key: 'setWebRtcOptions',
+	    value: function setWebRtcOptions(options) {
+	      // this.easyrtc.enableDebug(true);
+	      this.easyrtc.enableDataChannels(options.datachannel);
+
+	      this.easyrtc.enableVideo(false);
+	      this.easyrtc.enableAudio(options.audio);
+
+	      this.easyrtc.enableVideoReceive(false);
+	      this.easyrtc.enableAudioReceive(options.audio);
+	    }
+	  }, {
+	    key: 'setServerConnectListeners',
+	    value: function setServerConnectListeners(successListener, failureListener) {
+	      this.connectSuccess = successListener;
+	      this.connectFailure = failureListener;
+	    }
+	  }, {
+	    key: 'setRoomOccupantListener',
+	    value: function setRoomOccupantListener(occupantListener) {
+	      this.easyrtc.setRoomOccupantListener(function (roomName, occupants, primary) {
+	        occupantListener(occupants);
+	      });
+	    }
+	  }, {
+	    key: 'setDataChannelListeners',
+	    value: function setDataChannelListeners(openListener, closedListener, messageListener) {
+	      this.easyrtc.setDataChannelOpenListener(openListener);
+	      this.easyrtc.setDataChannelCloseListener(closedListener);
+	      this.easyrtc.setPeerListener(messageListener);
+	    }
+	  }, {
+	    key: 'connect',
+	    value: function connect() {
+	      var that = this;
+	      var connectedCallback = function connectedCallback(id) {
+	        that._myRoomJoinTime = that._getRoomJoinTime(id);
+	        that.connectSuccess(id);
+	      };
+
+	      if (this.easyrtc.audioEnabled) {
+	        this._connectWithAudio(connectedCallback, this.connectFailure);
+	      } else {
+	        this.easyrtc.connect(this.app, connectedCallback, this.connectFailure);
+	      }
+	    }
+	  }, {
+	    key: 'shouldStartConnectionTo',
+	    value: function shouldStartConnectionTo(client) {
+	      return this._myRoomJoinTime <= client.roomJoinTime;
+	    }
+	  }, {
+	    key: 'startStreamConnection',
+	    value: function startStreamConnection(clientId) {
+	      this.easyrtc.call(clientId, function (caller, media) {
+	        if (media === 'datachannel') {
+	          NAF.log.write('Successfully started datachannel to ', caller);
+	        }
+	      }, function (errorCode, errorText) {
+	        console.error(errorCode, errorText);
+	      }, function (wasAccepted) {
+	        // console.log("was accepted=" + wasAccepted);
+	      });
+	    }
+	  }, {
+	    key: 'closeStreamConnection',
+	    value: function closeStreamConnection(clientId) {
+	      // Handled by easyrtc
+	    }
+	  }, {
+	    key: 'sendData',
+	    value: function sendData(clientId, dataType, data) {
+	      // send via webrtc otherwise fallback to websockets
+	      this.easyrtc.sendData(clientId, dataType, data);
+	    }
+	  }, {
+	    key: 'sendDataGuaranteed',
+	    value: function sendDataGuaranteed(clientId, dataType, data) {
+	      this.easyrtc.sendDataWS(clientId, dataType, data);
+	    }
+	  }, {
+	    key: 'broadcastData',
+	    value: function broadcastData(dataType, data) {
+	      var roomOccupants = this.easyrtc.getRoomOccupantsAsMap(this.room);
+
+	      // Iterate over the keys of the easyrtc room occupants map.
+	      // getRoomOccupantsAsArray uses Object.keys which allocates memory.
+	      for (var roomOccupant in roomOccupants) {
+	        if (roomOccupants.hasOwnProperty(roomOccupant) && roomOccupant !== this.easyrtc.myEasyrtcid) {
+	          // send via webrtc otherwise fallback to websockets
+	          this.easyrtc.sendData(roomOccupant, dataType, data);
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'broadcastDataGuaranteed',
+	    value: function broadcastDataGuaranteed(dataType, data) {
+	      var destination = { targetRoom: this.room };
+	      this.easyrtc.sendDataWS(destination, dataType, data);
+	    }
+	  }, {
+	    key: 'getConnectStatus',
+	    value: function getConnectStatus(clientId) {
+	      var status = this.easyrtc.getConnectStatus(clientId);
+
+	      if (status == this.easyrtc.IS_CONNECTED) {
+	        return NAF.adapters.IS_CONNECTED;
+	      } else if (status == this.easyrtc.NOT_CONNECTED) {
+	        return NAF.adapters.NOT_CONNECTED;
+	      } else {
+	        return NAF.adapters.CONNECTING;
+	      }
+	    }
+
+	    /**
+	     * Privates
+	     */
+
+	  }, {
+	    key: '_connectWithAudio',
+	    value: function _connectWithAudio(connectSuccess, connectFailure) {
+	      var that = this;
+
+	      this.easyrtc.setStreamAcceptor(function (easyrtcid, stream) {
+	        var audioEl = document.createElement("audio");
+	        audioEl.setAttribute('id', 'audio-' + easyrtcid);
+	        document.body.appendChild(audioEl);
+	        that.easyrtc.setVideoObjectSrc(audioEl, stream);
+	      });
+
+	      this.easyrtc.setOnStreamClosed(function (easyrtcid) {
+	        var audioEl = document.getElementById('audio-' + easyrtcid);
+	        audioEl.parentNode.removeChild(audioEl);
+	      });
+
+	      this.easyrtc.initMediaSource(function () {
+	        that.easyrtc.connect(that.app, connectSuccess, connectFailure);
+	      }, function (errorCode, errmesg) {
+	        console.error(errorCode, errmesg);
+	      });
+	    }
+	  }, {
+	    key: '_getRoomJoinTime',
+	    value: function _getRoomJoinTime(clientId) {
+	      var myRoomId = NAF.room;
+	      var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
+	      return joinTime;
+	    }
+	  }]);
+
+	  return EasyRtcAdapter;
+	}();
+
+	module.exports = EasyRtcAdapter;
+
+/***/ }),
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2826,14 +3153,14 @@
 	});
 
 /***/ }),
-/* 58 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var naf = __webpack_require__(47);
-	var componentHelper = __webpack_require__(59);
-	var Compressor = __webpack_require__(63);
+	var componentHelper = __webpack_require__(61);
+	var Compressor = __webpack_require__(65);
 	var bind = AFRAME.utils.bind;
 
 	AFRAME.registerComponent('networked', {
@@ -3258,12 +3585,12 @@
 	});
 
 /***/ }),
-/* 59 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var deepEqual = __webpack_require__(60);
+	var deepEqual = __webpack_require__(62);
 
 	module.exports.gatherComponentsData = function (el, schemaComponents) {
 	  var elComponents = el.components;
@@ -3345,7 +3672,7 @@
 	};
 
 /***/ }),
-/* 60 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3353,8 +3680,8 @@
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	var pSlice = Array.prototype.slice;
-	var objectKeys = __webpack_require__(61);
-	var isArguments = __webpack_require__(62);
+	var objectKeys = __webpack_require__(63);
+	var isArguments = __webpack_require__(64);
 
 	var deepEqual = module.exports = function (actual, expected, opts) {
 	  if (!opts) opts = {};
@@ -3445,7 +3772,7 @@
 	}
 
 /***/ }),
-/* 61 */
+/* 63 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -3461,7 +3788,7 @@
 	}
 
 /***/ }),
-/* 62 */
+/* 64 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -3485,7 +3812,7 @@
 	};
 
 /***/ }),
-/* 63 */
+/* 65 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -3589,16 +3916,16 @@
 	};
 
 /***/ }),
-/* 64 */
+/* 66 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var naf = __webpack_require__(47);
-	var deepEqual = __webpack_require__(60);
+	var deepEqual = __webpack_require__(62);
 	var bind = AFRAME.utils.bind;
-	var componentHelper = __webpack_require__(59);
-	var Compressor = __webpack_require__(63);
+	var componentHelper = __webpack_require__(61);
+	var Compressor = __webpack_require__(65);
 
 	function UserException(message) {
 	  this.message = message;

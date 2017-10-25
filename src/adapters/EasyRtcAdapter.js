@@ -1,9 +1,9 @@
 class EasyRtcAdapter {
 
-  constructor(easyrtc = window.easyrtc) {
+  constructor(easyrtc) {
     this.app = 'default';
     this.room = 'default';
-    this.easyrtc = easyrtc;
+    this.easyrtc = easyrtc || window.easyrtc;
   }
 
   setServerUrl(url) {
