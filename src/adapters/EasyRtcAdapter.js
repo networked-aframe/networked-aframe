@@ -8,6 +8,9 @@ class EasyRtcAdapter extends INetworkAdapter {
     this.app = 'default';
     this.room = 'default';
     this.easyrtc = easyrtc;
+
+    this.audioStreams = {};
+    this.pendingAudioRequest = {};
   }
 
   setServerUrl(url) {
@@ -55,6 +58,7 @@ class EasyRtcAdapter extends INetworkAdapter {
   connect() {
     var that = this;
     var connectedCallback = function(id) {
+      that._storeAudioStream(that.easyrtc.myEasyrtcid, that.easyrtc.getLocalStream());
       that._myRoomJoinTime = that._getRoomJoinTime(id);
       that.connectSuccess(id);
     };
@@ -129,24 +133,40 @@ class EasyRtcAdapter extends INetworkAdapter {
     }
   }
 
+  getMediaStream(clientId) {
+    var that = this;
+    if(this.audioStreams[clientId]) {
+      naf.log.write('Already had audio for ' + clientId);
+      return Promise.resolve(this.audioStreams[clientId]);
+    } else {
+      naf.log.write('Wating on audio for ' + clientId);
+      return new Promise(function(resolve) {
+        that.pendingAudioRequest[clientId] = resolve;
+      });
+    }
+  }
+
 
   /**
    * Privates
    */
 
+  _storeAudioStream(easyrtcid, stream) {
+    this.audioStreams[easyrtcid] = stream;
+    if(this.pendingAudioRequest[easyrtcid]) {
+      naf.log.write('got pending audio for ' + easyrtcid);
+      this.pendingAudioRequest[easyrtcid](stream);
+      delete this.pendingAudioRequest[easyrtcid](stream);
+    }
+  }
+
   _connectWithAudio(connectSuccess, connectFailure) {
     var that = this;
 
-    this.easyrtc.setStreamAcceptor(function(easyrtcid, stream) {
-      var audioEl = document.createElement("audio");
-      audioEl.setAttribute('id', 'audio-' + easyrtcid);
-      document.body.appendChild(audioEl);
-      that.easyrtc.setVideoObjectSrc(audioEl,stream);
-    });
+    this.easyrtc.setStreamAcceptor(this._storeAudioStream.bind(this));
 
     this.easyrtc.setOnStreamClosed(function (easyrtcid) {
-      var audioEl = document.getElementById('audio-' + easyrtcid);
-      audioEl.parentNode.removeChild(audioEl);
+      delete that.audioStreams[easyrtcid];
     });
 
     this.easyrtc.initMediaSource(

@@ -348,6 +348,10 @@ Compress each sync packet into a minimized but harder to read JSON object for sa
 
 To measure bandwidth usage, run two clients on Chrome and visit chrome://webrtc-internals
 
+### Audio
+
+After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3d space from that entities position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
+
 Stay in Touch
 -------------
 
