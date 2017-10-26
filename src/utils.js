@@ -74,6 +74,18 @@ module.exports.childSchemaEqual = function(a, b) {
   return a.selector == b.selector && a.component == b.component && a.property == b.property;
 };
 
+/**
+ * Find the closest ancestor (including the passed in entity) that has a `networked` component
+ * @param {ANode} entity - Entity to begin the search on
+ * @returns {ANode} An entity with a `networked` component or null
+ */
+module.exports.getNetworkedEntity = function(entity) {
+  while(entity && !(entity.components && entity.components.networked)) {
+    entity = entity.parentNode;
+  }
+  return entity;
+};
+
 module.exports.monkeyPatchEntityFromTemplateChild = function(entity, templateChild, callback) {
   templateChild.addEventListener('templaterendered', function() {
     var cloned = templateChild.firstChild;

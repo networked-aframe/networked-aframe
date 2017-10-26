@@ -57,6 +57,7 @@
 	__webpack_require__(59);
 	__webpack_require__(60);
 	__webpack_require__(66);
+	__webpack_require__(67);
 
 /***/ }),
 /* 1 */
@@ -1901,6 +1902,18 @@
 	  return a.selector == b.selector && a.component == b.component && a.property == b.property;
 	};
 
+	/**
+	 * Find the closest ancestor (including the passed in entity) that has a `networked` component
+	 * @param {ANode} entity - Entity to begin the search on
+	 * @returns {ANode} An entity with a `networked` component or null
+	 */
+	module.exports.getNetworkedEntity = function (entity) {
+	  while (entity && !(entity.components && entity.components.networked)) {
+	    entity = entity.parentNode;
+	  }
+	  return entity;
+	};
+
 	module.exports.monkeyPatchEntityFromTemplateChild = function (entity, templateChild, callback) {
 	  templateChild.addEventListener('templaterendered', function () {
 	    var cloned = templateChild.firstChild;
@@ -2899,7 +2912,7 @@
 /* 58 */
 /***/ (function(module, exports) {
 
-	'use strict';
+	"use strict";
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -2909,23 +2922,26 @@
 	  function EasyRtcAdapter(easyrtc) {
 	    _classCallCheck(this, EasyRtcAdapter);
 
-	    this.app = 'default';
-	    this.room = 'default';
+	    this.app = "default";
+	    this.room = "default";
 	    this.easyrtc = easyrtc || window.easyrtc;
+
+	    this.audioStreams = {};
+	    this.pendingAudioRequest = {};
 	  }
 
 	  _createClass(EasyRtcAdapter, [{
-	    key: 'setServerUrl',
+	    key: "setServerUrl",
 	    value: function setServerUrl(url) {
 	      this.easyrtc.setSocketUrl(url);
 	    }
 	  }, {
-	    key: 'setApp',
+	    key: "setApp",
 	    value: function setApp(appName) {
 	      this.app = appName;
 	    }
 	  }, {
-	    key: 'setRoom',
+	    key: "setRoom",
 	    value: function setRoom(roomName) {
 	      this.room = roomName;
 	      this.easyrtc.joinRoom(roomName, null);
@@ -2934,7 +2950,7 @@
 	    // options: { datachannel: bool, audio: bool }
 
 	  }, {
-	    key: 'setWebRtcOptions',
+	    key: "setWebRtcOptions",
 	    value: function setWebRtcOptions(options) {
 	      // this.easyrtc.enableDebug(true);
 	      this.easyrtc.enableDataChannels(options.datachannel);
@@ -2946,30 +2962,31 @@
 	      this.easyrtc.enableAudioReceive(options.audio);
 	    }
 	  }, {
-	    key: 'setServerConnectListeners',
+	    key: "setServerConnectListeners",
 	    value: function setServerConnectListeners(successListener, failureListener) {
 	      this.connectSuccess = successListener;
 	      this.connectFailure = failureListener;
 	    }
 	  }, {
-	    key: 'setRoomOccupantListener',
+	    key: "setRoomOccupantListener",
 	    value: function setRoomOccupantListener(occupantListener) {
 	      this.easyrtc.setRoomOccupantListener(function (roomName, occupants, primary) {
 	        occupantListener(occupants);
 	      });
 	    }
 	  }, {
-	    key: 'setDataChannelListeners',
+	    key: "setDataChannelListeners",
 	    value: function setDataChannelListeners(openListener, closedListener, messageListener) {
 	      this.easyrtc.setDataChannelOpenListener(openListener);
 	      this.easyrtc.setDataChannelCloseListener(closedListener);
 	      this.easyrtc.setPeerListener(messageListener);
 	    }
 	  }, {
-	    key: 'connect',
+	    key: "connect",
 	    value: function connect() {
 	      var that = this;
 	      var connectedCallback = function connectedCallback(id) {
+	        that._storeAudioStream(that.easyrtc.myEasyrtcid, that.easyrtc.getLocalStream());
 	        that._myRoomJoinTime = that._getRoomJoinTime(id);
 	        that.connectSuccess(id);
 	      };
@@ -2981,16 +2998,16 @@
 	      }
 	    }
 	  }, {
-	    key: 'shouldStartConnectionTo',
+	    key: "shouldStartConnectionTo",
 	    value: function shouldStartConnectionTo(client) {
 	      return this._myRoomJoinTime <= client.roomJoinTime;
 	    }
 	  }, {
-	    key: 'startStreamConnection',
+	    key: "startStreamConnection",
 	    value: function startStreamConnection(clientId) {
 	      this.easyrtc.call(clientId, function (caller, media) {
-	        if (media === 'datachannel') {
-	          NAF.log.write('Successfully started datachannel to ', caller);
+	        if (media === "datachannel") {
+	          NAF.log.write("Successfully started datachannel to ", caller);
 	        }
 	      }, function (errorCode, errorText) {
 	        console.error(errorCode, errorText);
@@ -2999,23 +3016,23 @@
 	      });
 	    }
 	  }, {
-	    key: 'closeStreamConnection',
+	    key: "closeStreamConnection",
 	    value: function closeStreamConnection(clientId) {
 	      // Handled by easyrtc
 	    }
 	  }, {
-	    key: 'sendData',
+	    key: "sendData",
 	    value: function sendData(clientId, dataType, data) {
 	      // send via webrtc otherwise fallback to websockets
 	      this.easyrtc.sendData(clientId, dataType, data);
 	    }
 	  }, {
-	    key: 'sendDataGuaranteed',
+	    key: "sendDataGuaranteed",
 	    value: function sendDataGuaranteed(clientId, dataType, data) {
 	      this.easyrtc.sendDataWS(clientId, dataType, data);
 	    }
 	  }, {
-	    key: 'broadcastData',
+	    key: "broadcastData",
 	    value: function broadcastData(dataType, data) {
 	      var roomOccupants = this.easyrtc.getRoomOccupantsAsMap(this.room);
 
@@ -3029,13 +3046,13 @@
 	      }
 	    }
 	  }, {
-	    key: 'broadcastDataGuaranteed',
+	    key: "broadcastDataGuaranteed",
 	    value: function broadcastDataGuaranteed(dataType, data) {
 	      var destination = { targetRoom: this.room };
 	      this.easyrtc.sendDataWS(destination, dataType, data);
 	    }
 	  }, {
-	    key: 'getConnectStatus',
+	    key: "getConnectStatus",
 	    value: function getConnectStatus(clientId) {
 	      var status = this.easyrtc.getConnectStatus(clientId);
 
@@ -3047,26 +3064,44 @@
 	        return NAF.adapters.CONNECTING;
 	      }
 	    }
+	  }, {
+	    key: "getMediaStream",
+	    value: function getMediaStream(clientId) {
+	      var that = this;
+	      if (this.audioStreams[clientId]) {
+	        NAF.log.write("Already had audio for " + clientId);
+	        return Promise.resolve(this.audioStreams[clientId]);
+	      } else {
+	        NAF.log.write("Wating on audio for " + clientId);
+	        return new Promise(function (resolve) {
+	          that.pendingAudioRequest[clientId] = resolve;
+	        });
+	      }
+	    }
 
 	    /**
 	     * Privates
 	     */
 
 	  }, {
-	    key: '_connectWithAudio',
+	    key: "_storeAudioStream",
+	    value: function _storeAudioStream(easyrtcid, stream) {
+	      this.audioStreams[easyrtcid] = stream;
+	      if (this.pendingAudioRequest[easyrtcid]) {
+	        NAF.log.write("got pending audio for " + easyrtcid);
+	        this.pendingAudioRequest[easyrtcid](stream);
+	        delete this.pendingAudioRequest[easyrtcid](stream);
+	      }
+	    }
+	  }, {
+	    key: "_connectWithAudio",
 	    value: function _connectWithAudio(connectSuccess, connectFailure) {
 	      var that = this;
 
-	      this.easyrtc.setStreamAcceptor(function (easyrtcid, stream) {
-	        var audioEl = document.createElement("audio");
-	        audioEl.setAttribute('id', 'audio-' + easyrtcid);
-	        document.body.appendChild(audioEl);
-	        that.easyrtc.setVideoObjectSrc(audioEl, stream);
-	      });
+	      this.easyrtc.setStreamAcceptor(this._storeAudioStream.bind(this));
 
 	      this.easyrtc.setOnStreamClosed(function (easyrtcid) {
-	        var audioEl = document.getElementById('audio-' + easyrtcid);
-	        audioEl.parentNode.removeChild(audioEl);
+	        delete that.audioStreams[easyrtcid];
 	      });
 
 	      this.easyrtc.initMediaSource(function () {
@@ -3076,7 +3111,7 @@
 	      });
 	    }
 	  }, {
-	    key: '_getRoomJoinTime',
+	    key: "_getRoomJoinTime",
 	    value: function _getRoomJoinTime(clientId) {
 	      var myRoomId = NAF.room;
 	      var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
@@ -4171,6 +4206,88 @@
 	  remove: function remove() {
 	    this.removeOwnership();
 	    this.unbindOwnershipEvents();
+	  }
+	});
+
+/***/ }),
+/* 67 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var naf = __webpack_require__(47);
+
+	// @TODO if aframevr/aframe#3042 gets merged, this should just delegate to the aframe sound component
+	AFRAME.registerComponent('networked-audio-source', {
+	  schema: {
+	    positional: { default: true }
+	  },
+
+	  init: function init() {
+	    this.listener = null;
+	    this.stream = null;
+
+	    this._setMediaStream = this._setMediaStream.bind(this);
+
+	    var networkedEl = NAF.utils.getNetworkedEntity(this.el);
+	    var ownerId = networkedEl && networkedEl.components.networked.data.owner;
+	    if (ownerId) {
+	      NAF.connection.adapter.getMediaStream(ownerId).then(this._setMediaStream).catch(function (e) {
+	        return naf.log.error('Error getting media stream for ' + ownerId, e);
+	      });
+	    } else if (ownerId === '') {
+	      // Correctly configured local entity, perhaps do something here for enabling debug audio loopback
+	    } else {
+	      naf.log.error('[networked-audio-source] must be added on an entity, or a child of an entity, with the [networked] component.');
+	    }
+	  },
+
+	  _setMediaStream: function _setMediaStream(newStream) {
+	    if (!this.sound) {
+	      this.setupSound();
+	    }
+
+	    if (newStream != this.stream) {
+	      if (this.stream) {
+	        this.sound.disconnect();
+	      }
+	      if (newStream) {
+	        var source = this.listener.context.createMediaStreamSource(newStream);
+	        this.sound.setNodeSource(source);
+	      }
+	      this.stream = newStream;
+	    }
+	  },
+
+
+	  remove: function remove() {
+	    if (!this.sound) return;
+
+	    this.el.removeObject3D(this.attrName);
+	    if (this.stream) {
+	      this.sound.disconnect();
+	    }
+	  },
+
+	  setupSound: function setupSound() {
+	    var el = this.el;
+	    var sceneEl = el.sceneEl;
+
+	    if (this.sound) {
+	      el.removeObject3D(this.attrName);
+	    }
+
+	    if (!sceneEl.audioListener) {
+	      sceneEl.audioListener = new THREE.AudioListener();
+	      sceneEl.camera && sceneEl.camera.add(sceneEl.audioListener);
+	      sceneEl.addEventListener('camera-set-active', function (evt) {
+	        evt.detail.cameraEl.getObject3D('camera').add(sceneEl.audioListener);
+	      });
+	    }
+	    this.listener = sceneEl.audioListener;
+
+	    this.sound = this.data.positional ? new THREE.PositionalAudio(this.listener) : new THREE.Audio(this.listener);
+	    el.setObject3D(this.attrName, this.sound);
 	  }
 	});
 
