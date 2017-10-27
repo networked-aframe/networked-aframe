@@ -1,5 +1,3 @@
-var naf = require('../NafIndex');
-
 class WsEasyRtcInterface {
 
   constructor(easyrtc) {
