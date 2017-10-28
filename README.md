@@ -39,21 +39,21 @@ Features
 Getting Started
 ---------------
 
-Follow [this tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/getting-started-local.md) to build your own example.
+Follow [this tutorial](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md) to build your own example.
 
 Edit online example with [glitch.com/~networked-aframe/](https://glitch.com/~networked-aframe/)
 
 To run the examples on your own PC:
 
  ```sh
-git clone https://github.com/haydenjameslee/networked-aframe.git  # Clone the repository.
+git clone https://github.com/networked-aframe/networked-aframe.git  # Clone the repository.
 cd networked-aframe
 npm install && npm run easyrtc-install  # Install dependencies.
 npm run dev  # Start the local development server.
 ```
 With the server running, browse the examples at `http://localhost:8080`. Open another browser tab and point it to the same URL to see the other client.
 
-For info on how to host your experience on the internet, see the [NAF Hosting Guide](https://github.com/haydenjameslee/networked-aframe/blob/toward-0.3.0/docs/hosting-networked-aframe-on-a-server.md).
+For info on how to host your experience on the internet, see the [NAF Hosting Guide](https://github.com/networked-aframe/networked-aframe/blob/master/docs/hosting-networked-aframe-on-a-server.md).
 
 
 Basic Example
@@ -236,7 +236,7 @@ document.body.addEventListener('clientConnected', function (evt) {
   console.error('clientConnected event. clientId =', evt.detail.clientId);
 });
 ```
-Events need to be subscribed after the document.body element has been created. This could be achieved by waiting for the document.body `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/haydenjameslee/networked-aframe/blob/toward-0.3.0/server/static/basic-events.html#L30) as an example.
+Events need to be subscribed after the document.body element has been created. This could be achieved by waiting for the document.body `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/networked-aframe/networked-aframe/blob/master/server/static/basic-events.html#L30) as an example.
 
 List of events:
 
@@ -317,7 +317,7 @@ Stay in Touch
 -------------
 
 - Follow Hayden on [Twitter](https://twitter.com/haydenlee37)
-- Follow changes on [GitHub](https://github.com/haydenjameslee/networked-aframe/subscription)
+- Follow changes on [GitHub](https://github.com/networked-aframe/networked-aframe/subscription)
 - Join the [A-Frame Slack](https://aframevr-slack.herokuapp.com) and add the #networked-aframe channel
 - Let us know if you've made something with Networked-Aframe. We'd love to see it!
 
@@ -325,13 +325,13 @@ Stay in Touch
 Help and More Information
 ------------------------------
 
-* [Getting started tutorial](https://github.com/haydenjameslee/networked-aframe/blob/master/docs/getting-started-local.md)
+* [Getting started tutorial](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md)
 * [Edit live example on glitch.com](https://glitch.com/~networked-aframe)
 * [Live demo site](http://haydenlee.io/networked-aframe)
 * [A-Frame](https://aframe.io/)
 * [WebVR](https://webvr.info/)
 * [EasyRTC WebRTC library](http://www.easyrtc.com/)
-* Bugs and requests can be filed on [GitHub Issues](https://github.com/haydenjameslee/networked-aframe/issues)
+* Bugs and requests can be filed on [GitHub Issues](https://github.com/networked-aframe/networked-aframe/issues)
 
 
 Folder Structure
@@ -355,8 +355,8 @@ Roadmap
 -------
 
 * More examples!
-* [Roadmap](https://github.com/haydenjameslee/networked-aframe/projects/1)
-* [Add your suggestions](https://github.com/haydenjameslee/networked-aframe/issues)
+* [Roadmap](https://github.com/networked-aframe/networked-aframe/projects/1)
+* [Add your suggestions](https://github.com/networked-aframe/networked-aframe/issues)
 
 Interested in contributing? [Shoot me a message](https://twitter.com/haydenlee37) or send a pull request.
 
