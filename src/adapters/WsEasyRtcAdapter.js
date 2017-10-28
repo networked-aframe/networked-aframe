@@ -1,11 +1,7 @@
-var naf = require('../NafIndex');
-var INetworkAdapter = require('./INetworkAdapter');
-
-class WsEasyRtcInterface extends INetworkAdapter {
+class WsEasyRtcInterface {
 
   constructor(easyrtc) {
-    super();
-    this.easyrtc = easyrtc;
+    this.easyrtc = easyrtc || window.easyrtc;
     this.app = 'default';
     this.room = 'default';
     this.connectedClients = [];
@@ -85,11 +81,11 @@ class WsEasyRtcInterface extends INetworkAdapter {
 
   getConnectStatus(clientId) {
     var connected = this.connectedClients.indexOf(clientId) != -1;
-
+    
     if (connected) {
-      return INetworkAdapter.IS_CONNECTED;
+      return NAF.adapters.IS_CONNECTED;
     } else {
-      return INetworkAdapter.NOT_CONNECTED;
+      return NAF.adapters.NOT_CONNECTED;
     }
   }
 }

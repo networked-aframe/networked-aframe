@@ -1,13 +1,8 @@
-var naf = require('../NafIndex');
-var INetworkAdapter = require('./INetworkAdapter');
-
-class EasyRtcAdapter extends INetworkAdapter {
-
+class EasyRtcAdapter {
   constructor(easyrtc) {
-    super();
-    this.app = 'default';
-    this.room = 'default';
-    this.easyrtc = easyrtc;
+    this.app = "default";
+    this.room = "default";
+    this.easyrtc = easyrtc || window.easyrtc;
 
     this.audioStreams = {};
     this.pendingAudioRequest = {};
@@ -43,8 +38,12 @@ class EasyRtcAdapter extends INetworkAdapter {
     this.connectFailure = failureListener;
   }
 
-  setRoomOccupantListener(occupantListener){
-    this.easyrtc.setRoomOccupantListener(function(roomName, occupants, primary) {
+  setRoomOccupantListener(occupantListener) {
+    this.easyrtc.setRoomOccupantListener(function(
+      roomName,
+      occupants,
+      primary
+    ) {
       occupantListener(occupants);
     });
   }
@@ -58,7 +57,10 @@ class EasyRtcAdapter extends INetworkAdapter {
   connect() {
     var that = this;
     var connectedCallback = function(id) {
-      that._storeAudioStream(that.easyrtc.myEasyrtcid, that.easyrtc.getLocalStream());
+      that._storeAudioStream(
+        that.easyrtc.myEasyrtcid,
+        that.easyrtc.getLocalStream()
+      );
       that._myRoomJoinTime = that._getRoomJoinTime(id);
       that.connectSuccess(id);
     };
@@ -75,10 +77,11 @@ class EasyRtcAdapter extends INetworkAdapter {
   }
 
   startStreamConnection(clientId) {
-    this.easyrtc.call(clientId,
+    this.easyrtc.call(
+      clientId,
       function(caller, media) {
-        if (media === 'datachannel') {
-          naf.log.write('Successfully started datachannel to ', caller);
+        if (media === "datachannel") {
+          NAF.log.write("Successfully started datachannel to ", caller);
         }
       },
       function(errorCode, errorText) {
@@ -105,11 +108,14 @@ class EasyRtcAdapter extends INetworkAdapter {
 
   broadcastData(dataType, data) {
     var roomOccupants = this.easyrtc.getRoomOccupantsAsMap(this.room);
-    
+
     // Iterate over the keys of the easyrtc room occupants map.
     // getRoomOccupantsAsArray uses Object.keys which allocates memory.
     for (var roomOccupant in roomOccupants) {
-      if (roomOccupants.hasOwnProperty(roomOccupant) && roomOccupant !== this.easyrtc.myEasyrtcid) {
+      if (
+        roomOccupants.hasOwnProperty(roomOccupant) &&
+        roomOccupant !== this.easyrtc.myEasyrtcid
+      ) {
         // send via webrtc otherwise fallback to websockets
         this.easyrtc.sendData(roomOccupant, dataType, data);
       }
@@ -117,7 +123,7 @@ class EasyRtcAdapter extends INetworkAdapter {
   }
 
   broadcastDataGuaranteed(dataType, data) {
-    var destination = {targetRoom: this.room};
+    var destination = { targetRoom: this.room };
     this.easyrtc.sendDataWS(destination, dataType, data);
   }
 
@@ -125,27 +131,26 @@ class EasyRtcAdapter extends INetworkAdapter {
     var status = this.easyrtc.getConnectStatus(clientId);
 
     if (status == this.easyrtc.IS_CONNECTED) {
-      return INetworkAdapter.IS_CONNECTED;
+      return NAF.adapters.IS_CONNECTED;
     } else if (status == this.easyrtc.NOT_CONNECTED) {
-      return INetworkAdapter.NOT_CONNECTED;
+      return NAF.adapters.NOT_CONNECTED;
     } else {
-      return INetworkAdapter.CONNECTING;
+      return NAF.adapters.CONNECTING;
     }
   }
 
   getMediaStream(clientId) {
     var that = this;
-    if(this.audioStreams[clientId]) {
-      naf.log.write('Already had audio for ' + clientId);
+    if (this.audioStreams[clientId]) {
+      NAF.log.write("Already had audio for " + clientId);
       return Promise.resolve(this.audioStreams[clientId]);
     } else {
-      naf.log.write('Wating on audio for ' + clientId);
+      NAF.log.write("Wating on audio for " + clientId);
       return new Promise(function(resolve) {
         that.pendingAudioRequest[clientId] = resolve;
       });
     }
   }
-
 
   /**
    * Privates
@@ -153,8 +158,8 @@ class EasyRtcAdapter extends INetworkAdapter {
 
   _storeAudioStream(easyrtcid, stream) {
     this.audioStreams[easyrtcid] = stream;
-    if(this.pendingAudioRequest[easyrtcid]) {
-      naf.log.write('got pending audio for ' + easyrtcid);
+    if (this.pendingAudioRequest[easyrtcid]) {
+      NAF.log.write("got pending audio for " + easyrtcid);
       this.pendingAudioRequest[easyrtcid](stream);
       delete this.pendingAudioRequest[easyrtcid](stream);
     }
@@ -165,23 +170,24 @@ class EasyRtcAdapter extends INetworkAdapter {
 
     this.easyrtc.setStreamAcceptor(this._storeAudioStream.bind(this));
 
-    this.easyrtc.setOnStreamClosed(function (easyrtcid) {
+    this.easyrtc.setOnStreamClosed(function(easyrtcid) {
       delete that.audioStreams[easyrtcid];
     });
 
     this.easyrtc.initMediaSource(
-      function(){
+      function() {
         that.easyrtc.connect(that.app, connectSuccess, connectFailure);
       },
-      function(errorCode, errmesg){
+      function(errorCode, errmesg) {
         console.error(errorCode, errmesg);
       }
     );
   }
 
   _getRoomJoinTime(clientId) {
-    var myRoomId = naf.room;
-    var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
+    var myRoomId = NAF.room;
+    var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId]
+      .roomJoinTime;
     return joinTime;
   }
 }

@@ -1,6 +1,6 @@
 var NafInterface = require('../NafInterface');
 
-class INetworkAdapter extends NafInterface {
+class NoOpNetworkAdapter extends NafInterface {
 
   /* Pre-Connect setup methods - Call before `connect` */
 
@@ -27,8 +27,4 @@ class INetworkAdapter extends NafInterface {
   broadcastDataGuaranteed(dataType, data) {this.notImplemented('broadcastDataGuaranteed')}
 }
 
-INetworkAdapter.IS_CONNECTED = 'IS_CONNECTED';
-INetworkAdapter.CONNECTING = 'CONNECTING';
-INetworkAdapter.NOT_CONNECTED = 'NOT_CONNECTED';
-
-module.exports = INetworkAdapter;
+module.exports = NoOpAdapter;

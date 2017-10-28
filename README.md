@@ -268,48 +268,9 @@ List of the supported adapters:
 | -------- | ----------- | ------------- | ----------- | ---------- |
 | wsEasyRTC | DEFAULT - [EasyRTC](https://github.com/priologic/easyrtc) that only uses the WebSocket connection | No | WebSockets | `npm run start` |
 | EasyRTC | [EasyRTC](https://github.com/priologic/easyrtc) | Yes | WebRTC | `npm run start` |
-| uWS | Custom implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | `npm run start:uws` |
-| Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling | No | WebRTC | See [Firebase Config](#firebase) |
-| Deepstream | [DeepstreamHub](https://deepstreamhub.com/) for WebRTC signalling | No | WebRTC | See [Deepstream Config](#deepstream) |
-
-#### Firebase
-
-Firebase is a "serverless" network solution provided by Google. In NAF's case it can be used to establish connections between clients in a peer-to-peer fashion, without having to host a signalling (connection) server.
-
-Steps to setup Firebase:
-
-1. [Sign up for a Firebase account](https://firebase.google.com/)
-2. Create a new Firebase project
-3. Go to Database -> Rules and change them to the following (warning: not safe for production, just developing)
-```javascript
-    {
-      "rules": {
-        ".read": true,
-        ".write": true
-      }
-    }
-```
-4. Click publish
-5. Go back to the project overview
-6. Click "Add Firebase to your web app"
-7. Copy the credentials into your HTML page, for example see the [Firebase Demo](https://github.com/haydenjameslee/networked-aframe/blob/master/server/static/firebase-basic.html)
-8. Open two tabs of the demo and you should see the other tab's avatar
-
-Thanks to [@takahirox](https://github.com/takahirox) for adding Firebase signalling support to NAF!
-
-#### Deepstream
-
-Deepstream is an open-source "serverless" network solution. In NAF's case it can be used to establish connections between clients in a peer-to-peer fashion, without having to host a signalling (connection) server.
-
-Steps to setup Deepstream:
-
-1. Sign up for a DeepstreamHub account: https://deepstreamhub.com/
-2. On the left navbar, click "Apps"
-3. Add application
-4. Name your application and choose a region close to you
-5. Copy the URL at the bottom of your new project, it'll start with wss://xxx.deepstreamhub
-6. Replace `YOUR_URL_HERE` in the [Deepstream Demo](https://github.com/haydenjameslee/networked-aframe/blob/master/server/static/deepstream-basic.html)
-7. Open two tabs of the demo and you should see the other tab's avatar
+| uWS | Custom implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
+| Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
+| Deepstream | [DeepstreamHub](https://deepstreamhub.com/) for WebRTC signalling | No | WebRTC | See [naf-deepstream-adapter](https://github.com/networked-aframe/naf-deepstream-adapter) |
 
 ### Misc
 

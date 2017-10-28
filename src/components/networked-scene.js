@@ -1,5 +1,4 @@
 var naf = require('../NafIndex');
-var adapterFactory = require('../adapters/AdapterFactory');
 
 AFRAME.registerComponent('networked-scene', {
   schema: {
@@ -43,7 +42,7 @@ AFRAME.registerComponent('networked-scene', {
 
   setupNetworkAdapter: function() {
     var adapterName = this.data.adapter;
-    var adapter = adapterFactory.make(adapterName);
+    var adapter = NAF.adapters.make(adapterName);
     NAF.connection.setNetworkAdapter(adapter);
   },
 

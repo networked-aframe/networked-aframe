@@ -1,5 +1,3 @@
-var INetworkAdapter = require('./adapters/INetworkAdapter');
-
 var ReservedDataType = { Update: 'u', Remove: 'r' };
 
 class NetworkConnection {
@@ -119,7 +117,7 @@ class NetworkConnection {
   }
 
   isConnectedTo(clientId) {
-    return this.adapter.getConnectStatus(clientId) === INetworkAdapter.IS_CONNECTED;
+    return this.adapter.getConnectStatus(clientId) === NAF.adapters.IS_CONNECTED;
   }
 
   dataChannelOpen(clientId) {
