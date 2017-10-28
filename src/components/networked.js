@@ -23,7 +23,6 @@ AFRAME.registerComponent('networked', {
 
     this.cachedData = {};
     this.initNetworkParent();
-    this.initPhysics();
 
     if (data.networkId === '') {
       data.networkId = NAF.utils.createNetworkId();
@@ -67,19 +66,6 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  initPhysics: function() {
-    var el = this.el;
-    if (el.hasAttribute('networked-physics')) {
-      this.physics = el.components['networked-physics'];
-    } else {
-      this.physics = null;
-    }
-  },
-
-  hasPhysics: function() {
-    return !!this.physics;
-  },
-
   attachLerp: function() {
     if (NAF.options.useLerp) {
       this.el.setAttribute('lerp', '');
@@ -110,38 +96,6 @@ AFRAME.registerComponent('networked', {
 
     el.appendChild(templateChild);
     this.templateEl = templateChild;
-
-    if (this.hasPhysics()) {
-      this.setupPhysicsTemplate(templateChild);
-    }
-  },
-
-  setupPhysicsTemplate: function(templateChild) {
-    var self = this;
-    var el = this.el;
-
-    templateChild.addEventListener('templaterendered', function () {
-      var cloned = templateChild.firstChild;
-
-      // mirror the attributes
-      Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
-        el.setAttribute(attr.nodeName, attr.nodeValue);
-      });
-
-      // take the children
-      for (var child = cloned.firstChild; child; child = cloned.firstChild) {
-        cloned.removeChild(child);
-        el.appendChild(child);
-      }
-
-      cloned.pause();
-      templateChild.pause();
-      setTimeout(function() {
-        try { templateChild.removeChild(cloned); } catch (e) {}
-        try { el.removeChild(self.templateEl); } catch (e) {}
-        delete self.templateEl;
-      });
-    });
   },
 
   firstUpdate: function() {
@@ -279,24 +233,9 @@ AFRAME.registerComponent('networked', {
       owner: data.owner,
       template: data.template,
       parent: this.getParentId(),
-      physics: this.getPhysicsData(),
-      takeover: takeover,
       components: components
     };
     return sync;
-  },
-
-  getPhysicsData: function() {
-    if (this.hasPhysics()) {
-      var physicsData = NAF.physics.getPhysicsData(this.el);
-      if (physicsData) {
-        physicsData.canLoseOwnership = this.physics.data.canLoseOwnership;
-        return physicsData;
-      } else {
-        NAF.log.error('networked.getPhysicsData: Has networked-physics component but no aframe-physics-system component detected. el=', this.el, this.el.components);
-      }
-    }
-    return null;
   },
 
   getParentId: function() {
@@ -330,31 +269,7 @@ AFRAME.registerComponent('networked', {
     if (entityData[0] == 1) {
       entityData = Compressor.decompressSyncData(entityData, this.getAllSyncedComponents());
     }
-
-    if (!this.hasPhysics() && entityData.physics) {
-      if (!this.el.hasAttribute('networked-physics')) {
-        var canLoseOwnership = entityData.physics.canLoseOwnership;
-        this.el.setAttribute('networked-physics', { canLoseOwnership: canLoseOwnership} );
-      }
-      this.initPhysics();
-    }
-
-    if (this.hasPhysics()) {
-      this.physics.networkUpdate(entityData);
-    }
-
     this.updateComponents(entityData.components);
-  },
-
-  updatePhysics: function(physics) {
-    if (physics) {
-      if (NAF.options.useLerp) {
-        NAF.physics.attachPhysicsLerp(this.el, physics);
-      } else {
-        NAF.physics.detachPhysicsLerp(this.el);
-        NAF.physics.updatePhysics(this.el, physics);
-      }
-    }
   },
 
   updateComponents: function(components) {
@@ -415,5 +330,5 @@ AFRAME.registerComponent('networked', {
 
   entityRemovedEvent(networkId) {
     return new CustomEvent('entityRemoved', {detail: {networkId: networkId}});
-  },
+  }
 });
