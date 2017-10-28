@@ -5,8 +5,6 @@
     networkId,
     ownerId,
     parent,
-    template,
-    physics,
     {
       0: data, // key maps to index of synced components in network component schema
       3: data,
@@ -21,11 +19,9 @@ module.exports.compressSyncData = function(syncData, allComponents) {
   compressed.push(syncData.owner); // 2
   compressed.push(syncData.parent); // 3
   compressed.push(syncData.template); // 4
-  compressed.push(syncData.physics); // 5
-  compressed.push(syncData.takeover); // 6
 
   var compressedComps = this.compressComponents(syncData.components, allComponents);
-  compressed.push(compressedComps); // 7
+  compressed.push(compressedComps); // 5
 
   return compressed;
 };
@@ -54,8 +50,6 @@ module.exports.compressComponents = function(syncComponents, allComponents) {
     owner: clientId,
     parent: parentNetworkId or null,
     template: template,
-    physics: physicsData or null,
-    takeover: data,
     components: {
       position: data,
       scale: data,
@@ -70,10 +64,8 @@ module.exports.decompressSyncData = function(compressed, components) {
   entityData.owner = compressed[2];
   entityData.parent = compressed[3];
   entityData.template = compressed[4];
-  entityData.physics = compressed[5];
-  entityData.takeover = compressed[6];
 
-  var compressedComps = compressed[7];
+  var compressedComps = compressed[5];
   var components = this.decompressComponents(compressedComps, components);
   entityData.components = components;
 

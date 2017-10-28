@@ -207,8 +207,6 @@ suite('networked_remote', function() {
         'owner1',
         null,
         '',
-        null,
-        false,
         {
           0: { x: 10, y: 20, z: 30 },
           1: { x: 40, y: 30, z: 20 }

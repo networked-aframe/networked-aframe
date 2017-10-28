@@ -8,8 +8,6 @@ function createExampleEntityData(components) {
     owner: 'owner1',
     parent: null,
     template: 't1',
-    physics: null,
-    takeover: false,
     components: components
   };
 }
@@ -28,7 +26,7 @@ suite('Compressor',function () {
 
       var result = Compressor.compressSyncData(entityData, syncedComponents);
 
-      var expected = [1, 'network1', 'owner1', null, 't1', null, false, { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, 't1', { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
       assert.deepEqual(result, expected);
     });
 
@@ -44,7 +42,7 @@ suite('Compressor',function () {
 
       var result = Compressor.compressSyncData(entityData, syncedComponents);
 
-      var expected = [1, 'network1', 'owner1', null, 't1', null, false, { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 }, 2: { example: true} }];
+      var expected = [1, 'network1', 'owner1', null, 't1', { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 }, 2: { example: true} }];
       assert.deepEqual(result, expected);
     });
   });
@@ -63,8 +61,6 @@ suite('Compressor',function () {
         entityData.owner,
         entityData.parent,
         entityData.template,
-        entityData.physics,
-        entityData.takeover,
         {
           0: components.position,
           1: components.rotation
@@ -89,8 +85,6 @@ suite('Compressor',function () {
         entityData.owner,
         entityData.parent,
         entityData.template,
-        entityData.physics,
-        entityData.takeover,
         {
           0: components.position,
           2: components.scale
@@ -124,8 +118,6 @@ suite('Compressor',function () {
         entityData.owner,
         entityData.parent,
         entityData.template,
-        entityData.physics,
-        entityData.takeover,
         {
           0: components.position,
           2: components.scale,
@@ -148,8 +140,6 @@ suite('Compressor',function () {
         entityData.owner,
         entityData.parent,
         entityData.template,
-        entityData.physics,
-        entityData.takeover,
         {}
       ];
       var defaultComps = ['position', 'rotation'];

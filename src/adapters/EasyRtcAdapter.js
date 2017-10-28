@@ -140,12 +140,13 @@ class EasyRtcAdapter {
   }
 
   getMediaStream(clientId) {
+    console.log('getMediaStream', clientId);
     var that = this;
     if (this.audioStreams[clientId]) {
       NAF.log.write("Already had audio for " + clientId);
       return Promise.resolve(this.audioStreams[clientId]);
     } else {
-      NAF.log.write("Wating on audio for " + clientId);
+      NAF.log.write("Waiting on audio for " + clientId);
       return new Promise(function(resolve) {
         that.pendingAudioRequest[clientId] = resolve;
       });

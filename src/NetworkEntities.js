@@ -21,20 +21,6 @@ class NetworkEntities {
     var el = document.createElement('a-entity');
     el.setAttribute('id', 'naf-' + networkId);
 
-    var template = entityData.template;
-    // if (this.isDynamicTemplate(template)) {
-    //   var templateData = this.parseDynamicTemplate(template);
-    //   this.addTemplateToAssets(networkId, templateData);
-    //   entityData.template = template = '#' + id;
-    // }
-
-    if (template && entityData.physics) {
-      el.addEventListener('loaded', function () {
-        var templateChild = el.firstChild;
-        NAF.utils.monkeyPatchEntityFromTemplateChild(el, templateChild);
-      });
-    }
-
     this.initPosition(el, entityData.components);
     this.initRotation(el, entityData.components);
     this.addNetworkComponent(el, entityData);
@@ -43,41 +29,6 @@ class NetworkEntities {
 
     return el;
   }
-
-  // isDynamicTemplate(template) {
-  //   return template.substring(0,5) === 'data:'
-  // }
-
-  // parseDynamicTemplate(template) {
-  //   var split = template.split(',', 2);
-  //   var inlineData = split[1];
-  //   var uriType = split[0].substring(5);
-  //   var isBase64 = uriType.endsWith(';base64');
-  //   if (isBase64) {
-  //     uriType = uriType.substring(0, uriType.length - 7);
-  //   }
-  //   inlineData = isBase64 ? window.atob(inlineData) : decodeURIComponent(inlineData);
-
-  //   var templateData = {
-  //     inlineData: inlineData,
-  //     uriType: uriType,
-  //   };
-  //   return templateData;
-  // }
-
-  // addTemplateToAssets(networkId, templateData) {
-  //   var uriType = templateData.uriType;
-  //   var inlineData = templateData.inlineData;
-
-  //   // blob URLs do not survive template load, so make script element.
-  //   var script = document.createElement('script');
-  //   var id = 'naf-tpl-' + entityData.networkId;
-  //   script.setAttribute('id', id);
-  //   script.setAttribute('type', uriType);
-  //   script.innerHTML = inlineData;
-  //   var assets = document.querySelector('a-assets');
-  //   assets.appendChild(script);
-  // }
 
   initPosition(entity, componentData) {
     var hasPosition = componentData.hasOwnProperty('position');
