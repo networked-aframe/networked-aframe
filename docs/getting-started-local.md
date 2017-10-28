@@ -4,7 +4,11 @@ Hello friends! This tutorial will show you how to write your very first multi-us
 
 You might be thinking: wait you can do VR on the web? And the answer is yes! Using the [WebVR standard](https://webvr.info/) and an awesome library called [A-Frame](https://aframe.io), VR on the web is actually really easy and evolving rapidly. Your second question is then: wait to do multi-user won't I have to know all about servers and complicated networking protocols? Answer: not anymore! The recently released [Networked-Aframe](https://github.com/haydenjameslee/networked-aframe) (NAF for short) has you covered. NAF hides away a lot of the networking complexity, allowing you to write multi-user VR apps entirely in HTML.
 
-Let's dive in:
+This tutorial goes through how to setup a Networked-Aframe experience from scratch, however if you'd like to get started writing your app with no fuss, remix this project on Glitch and get right to it:
+
+[![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/networked-aframe)
+
+If you'd like to setup your own local server and really understand how NAF works, continue on.
 
 ## Required Tools
 
