@@ -39,9 +39,9 @@ Features
 Getting Started
 ---------------
 
-Follow [this tutorial](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md) to build your own example.
+[![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/networked-aframe)
 
-Edit online example with [glitch.com/~networked-aframe/](https://glitch.com/~networked-aframe/)
+Follow [the NAF Getting Started tutorial](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md) to build your own example from scratch, including setting up a local server.
 
 To run the examples on your own PC:
 
