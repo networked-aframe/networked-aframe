@@ -35,8 +35,11 @@ AFRAME.registerComponent('networked-audio-source', {
         this.sound.disconnect();
       }
       if(newStream) {
-        var source = this.listener.context.createMediaStreamSource(newStream);
-        this.sound.setNodeSource(source);
+        // Chrome seems to require a MediaStream be attached to an AudioElement before AudioNodes work correctly
+        this.audioEl = new Audio();
+        this.audioEl.srcObject = newStream;
+
+        this.sound.setNodeSource(this.sound.context.createMediaStreamSource(newStream));
       }
       this.stream = newStream;
     }
