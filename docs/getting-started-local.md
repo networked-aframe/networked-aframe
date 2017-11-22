@@ -32,7 +32,7 @@ Now let's setup the required dependencies. Create a file called `package.json` a
   "version": "1.0.0",
   "description": "My first multi-user virtual reality",
   "scripts": {
-    "start": "node ./server/server.js"
+    "start": "node ./server/easyrtc-server.js"
   },
   "author": "YOUR_NAME",
   "dependencies": {
