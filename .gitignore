@@ -54,7 +54,10 @@ jspm_packages
 errorShots
 
 # Temp build file
-server/static/build.js
+server/static/build.js*
 
 # Webstorm
 /.idea/*
+
+# VS Code
+.vscode/
