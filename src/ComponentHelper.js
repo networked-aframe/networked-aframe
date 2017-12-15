@@ -53,20 +53,19 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
       var selector = schema.selector;
       var compName = schema.component;
       var propName = schema.property;
-
       var childEl = selector ? el.querySelector(selector) : el;
       var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
       if (!hasComponent) {
         continue;
       }
       compKey = NAF.utils.childSchemaToKey(schema);
-      newCompData = childEl.components[compName].data;
+      newCompData = childEl.getAttribute(compName);
       if (propName) {
         newCompData = newCompData[propName];
       }
     }
     
-    var compIsCached = cachedData.hasOwnProperty(compKey)
+    var compIsCached = cachedData.hasOwnProperty(compKey);
     if (!compIsCached) {
       dirtyComps.push(schema);
       continue;

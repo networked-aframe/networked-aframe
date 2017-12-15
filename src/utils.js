@@ -79,11 +79,22 @@ module.exports.childSchemaEqual = function(a, b) {
  * @param {ANode} entity - Entity to begin the search on
  * @returns {ANode} An entity with a `networked` component or null
  */
-module.exports.getNetworkedEntity = function(entity) {
+function getNetworkedEntity(entity) {
   while(entity && !(entity.components && entity.components.networked)) {
     entity = entity.parentNode;
   }
   return entity;
+};
+
+module.exports.getNetworkedEntity = getNetworkedEntity;
+
+module.exports.takeOwnership = function(entity) {
+  const networkedEntity = getNetworkedEntity(entity);
+  networkedEntity.setAttribute("networked", { owner: NAF.clientId });
+};
+
+module.exports.isMine = function(entity) {
+  return getNetworkedEntity(entity).components['networked'].data.owner === NAF.clientId;
 };
 
 module.exports.monkeyPatchEntityFromTemplateChild = function(entity, templateChild, callback) {

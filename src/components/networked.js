@@ -40,7 +40,12 @@ AFRAME.registerComponent('networked', {
       this.registerEntity(data.networkId);
     }
 
+    this.lastOwnerTime = -1;
+
     if (this.data.owner === '') {
+      this.lastOwnerTime = NAF.utils.now();
+      this.myLastOwnerTime = NAF.utils.now();
+
       this.setNetworkIdWhenConnected();
       // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer.
       // Note that this only works because the reliable messages are sent over a single websocket connection.
@@ -53,6 +58,14 @@ AFRAME.registerComponent('networked', {
     }
 
     document.body.dispatchEvent(this.entityCreatedEvent());
+  },
+
+  update: function(oldData) {
+    if (oldData.owner && oldData.owner !== NAF.clientId && this.data.owner === NAF.clientId) {
+      this.lastOwnerTime = NAF.utils.now();
+      this.myLastOwnerTime = NAF.utils.now();
+      this.syncAll();
+    }
   },
 
   wasCreatedByNetwork: function() {
@@ -135,7 +148,7 @@ AFRAME.registerComponent('networked', {
   },
 
   isMine: function() {
-    return NAF.connection.isMineAndConnected(this.data.owner);
+    return this.lastOwnerTime && this.lastOwnerTime === this.myLastOwnerTime;
   },
 
   play: function() {
@@ -230,6 +243,7 @@ AFRAME.registerComponent('networked', {
       0: 0, // 0 for not compressed
       networkId: data.networkId,
       owner: data.owner,
+      lastOwnerTime: this.lastOwnerTime,
       template: data.template,
       parent: this.getParentId(),
       components: components
@@ -268,6 +282,20 @@ AFRAME.registerComponent('networked', {
     if (entityData[0] == 1) {
       entityData = Compressor.decompressSyncData(entityData, this.getAllSyncedComponents());
     }
+
+    if (entityData.lastOwnerTime < this.lastOwnerTime) {
+      return;
+    }
+
+    if (this.data.owner !== entityData.owner) {
+      // TODO: File issue for partial set attribute.
+      // this.el.setAttribute("networked", { owner: entityData.owner });
+
+      this.el.setAttribute("networked", { owner: entityData.owner, networkId: entityData.networkId });
+    }
+
+    this.lastOwnerTime = entityData.lastOwnerTime;
+
     this.updateComponents(entityData.components);
   },
 
