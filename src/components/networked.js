@@ -46,7 +46,9 @@ AFRAME.registerComponent('networked', {
       // Note that this only works because the reliable messages are sent over a single websocket connection.
       // If they are sent over a different transport this check may need to change
       if (NAF.connection.isConnected()) {
-        this.syncAll();
+        this.waitForTemplate(() => {
+          this.syncAll();
+        });
       }
     }
 
@@ -101,16 +103,13 @@ AFRAME.registerComponent('networked', {
   firstUpdate: function() {
     var entityData = this.el.firstUpdateData;
     this.networkUpdate(entityData); // updates root element only
-    this.waitForTemplateAndUpdateChildren();
+
+    this.waitForTemplate(() => {
+      this.networkUpdate(entityData);
+    });
   },
 
-  waitForTemplateAndUpdateChildren: function() {
-    var self = this;
-    var callback = function() {
-      var entityData = self.el.firstUpdateData;
-      self.networkUpdate(entityData);
-    };
-
+  waitForTemplate: function(callback) {
     // wait for template to render (and monkey-patching to finish, so next tick), then callback
     if (this.templateEl) {
       this.templateEl.addEventListener('templaterendered', function() { setTimeout(callback); });
