@@ -227,6 +227,23 @@ Subscribe and unsubscribe callbacks to network messages specified by `dataType`.
 | data | Object to be sent to all other clients
 
 
+### Transfer Entity Ownership
+
+The owner of an entity is responsible for syncing its component data. When a user wants to modify another user's entity they must first take ownership of that entity. The [ownership transfer example](./server/static/ownership-transfer.html) and the [toggle-ownership component](./server/static/js/toggle-ownership.component.js) show how to take ownership of an entity and update it.
+
+```javascript
+NAF.utils.takeOwnership(entityEl)
+```
+
+Take ownership of an entity.
+
+```javascript
+NAF.utils.isMine(entityEl)
+```
+
+Check if you own the specified entity.
+
+
 ### Events
 
 Events are fired when certain things happen in NAF. To subscribe to these events follow this pattern:
