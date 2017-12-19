@@ -14,8 +14,7 @@ AFRAME.registerComponent('toggle-ownership', {
     document.addEventListener("keyup", this.onKeyUp);
 
     if (NAF.utils.isMine(this.el)) {
-      var color = document.querySelector("#player .head").getAttribute("material").color;
-      this.el.setAttribute('material', 'color', color);
+      this.updateColor();
     }
   },
 
@@ -26,10 +25,15 @@ AFRAME.registerComponent('toggle-ownership', {
 
     NAF.utils.takeOwnership(this.el);
 
-    var color = document.querySelector("#player .head").getAttribute("material").color;
-    this.el.setAttribute('material', 'color', color);
+    this.updateColor();
+    
     this.data.direction *= -1;
 
+  },
+
+  updateColor() {
+    const headColor = document.querySelector("#player .head").getAttribute("material").color;
+    this.el.setAttribute('material', 'color', headColor);
   },
 
   tick() {

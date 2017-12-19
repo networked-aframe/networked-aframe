@@ -14,7 +14,7 @@ AFRAME.registerComponent('spawner', {
       var el = document.createElement('a-entity');
       el.setAttribute('networked', 'template:' + this.data.template);
       el.setAttribute('position', this.el.getAttribute('position'));
-      var scene = document.querySelector('a-scene');
+      var scene = this.el.sceneEl;
       scene.appendChild(el);
     }
   }
