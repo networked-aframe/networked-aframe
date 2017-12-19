@@ -12,6 +12,11 @@ AFRAME.registerComponent('toggle-ownership', {
   init() {
     this.onKeyUp = this.onKeyUp.bind(this);
     document.addEventListener("keyup", this.onKeyUp);
+
+    if (NAF.utils.isMine(this.el)) {
+      var color = document.querySelector("#player .head").getAttribute("material").color;
+      this.el.setAttribute('material', 'color', color);
+    }
   },
 
   onKeyUp(e) {
@@ -21,8 +26,10 @@ AFRAME.registerComponent('toggle-ownership', {
 
     NAF.utils.takeOwnership(this.el);
 
-    this.el.setAttribute('color', "#fff");
+    var color = document.querySelector("#player .head").getAttribute("material").color;
+    this.el.setAttribute('material', 'color', color);
     this.data.direction *= -1;
+
   },
 
   tick() {

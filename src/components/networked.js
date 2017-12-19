@@ -44,7 +44,6 @@ AFRAME.registerComponent('networked', {
 
     if (this.data.owner === '') {
       this.lastOwnerTime = NAF.utils.now();
-      this.myLastOwnerTime = NAF.utils.now();
 
       this.setNetworkIdWhenConnected();
       // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer.
@@ -63,7 +62,6 @@ AFRAME.registerComponent('networked', {
   update: function(oldData) {
     if (oldData.owner && oldData.owner !== NAF.clientId && this.data.owner === NAF.clientId) {
       this.lastOwnerTime = NAF.utils.now();
-      this.myLastOwnerTime = NAF.utils.now();
       this.syncAll();
     }
   },
@@ -148,7 +146,7 @@ AFRAME.registerComponent('networked', {
   },
 
   isMine: function() {
-    return this.lastOwnerTime && this.lastOwnerTime === this.myLastOwnerTime;
+    return this.data.owner === NAF.clientId;
   },
 
   play: function() {
