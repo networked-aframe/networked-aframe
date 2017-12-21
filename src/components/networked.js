@@ -281,7 +281,9 @@ AFRAME.registerComponent('networked', {
       return;
     }
 
-    if (this.data.owner !== entityData.owner && this.data.lastOwnerTime < entityData.lastOwnerTime) {
+    if (this.data.owner !== entityData.owner && 
+        (this.data.lastOwnerTime < entityData.lastOwnerTime || 
+          (this.data.lastOwnerTime === entityData.lastOwnerTime && this.data.owner < entityData.owner))) {
       // TODO: File issue for partial set attribute.
       // this.el.setAttribute("networked", { owner: entityData.owner });
 
