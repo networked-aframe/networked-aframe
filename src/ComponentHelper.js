@@ -59,7 +59,7 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
         continue;
       }
       compKey = NAF.utils.childSchemaToKey(schema);
-      newCompData = childEl.getAttribute(compName);
+      newCompData = childEl.components[compName].data;
       if (propName) {
         newCompData = newCompData[propName];
       }

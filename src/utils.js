@@ -109,7 +109,7 @@ module.exports.takeOwnership = function(entity) {
 };
 
 module.exports.isMine = function(entity) {
-  return getNetworkedEntity(entity).components['networked'].data.owner === NAF.clientId;
+  return getNetworkedEntity(entity).components['networked'].isMine();
 };
 
 module.exports.monkeyPatchEntityFromTemplateChild = function(entity, templateChild, callback) {

@@ -14,8 +14,7 @@ AFRAME.registerComponent('toggle-ownership', {
     document.addEventListener("keyup", this.onKeyUp);
 
     if (NAF.utils.isMine(this.el)) {
-      var color = document.querySelector("#player .head").getAttribute("material").color;
-      this.el.setAttribute('material', 'color', color);
+      this.updateColor();
     }
   },
 
@@ -26,26 +25,29 @@ AFRAME.registerComponent('toggle-ownership', {
 
     if(NAF.utils.takeOwnership(this.el))
     {
-      var color = document.querySelector("#player .head").getAttribute("material").color;
-      this.el.setAttribute('material', 'color', color);
       this.data.direction *= -1;
+      this.updateColor();
     }
+  },
 
-
-
+  updateColor() {
+    const headColor = document.querySelector("#player .head").getAttribute("material").color;
+    this.el.setAttribute('material', 'color', headColor);
   },
 
   tick() {
     // Only update the component if you are the owner.
-    if (NAF.utils.isMine(this.el)) {
-      this.el.object3D.rotateY(this.data.speed * this.data.direction);
-
-      const rotation = this.el.object3D.rotation;
-      this.el.setAttribute("rotation", {
-        x: THREE.Math.radToDeg(rotation.x),
-        y: THREE.Math.radToDeg(rotation.y),
-        z: THREE.Math.radToDeg(rotation.z),
-      });
+    if (!NAF.utils.isMine(this.el)) {
+      return;
     }
+
+    this.el.object3D.rotateY(this.data.speed * this.data.direction);
+
+    const rotation = this.el.object3D.rotation;
+    this.el.setAttribute("rotation", {
+      x: THREE.Math.radToDeg(rotation.x),
+      y: THREE.Math.radToDeg(rotation.y),
+      z: THREE.Math.radToDeg(rotation.z),
+    });
   }
 });
