@@ -9,7 +9,8 @@ AFRAME.registerComponent('networked', {
     showLocalTemplate: {default: true},
 
     networkId: {default: ''},
-    owner: {default: ''}
+    owner: {default: ''},
+    lastOwnerTime: {default: -1}
   },
 
   init: function() {
@@ -40,10 +41,8 @@ AFRAME.registerComponent('networked', {
       this.registerEntity(data.networkId);
     }
 
-    this.lastOwnerTime = -1;
-
     if (this.data.owner === '') {
-      this.lastOwnerTime = NAF.utils.now();
+      this.data.lastOwnerTime = NAF.utils.now();
 
       this.setNetworkIdWhenConnected();
       // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer.
@@ -60,10 +59,7 @@ AFRAME.registerComponent('networked', {
   },
 
   update: function(oldData) {
-    if (oldData.owner && oldData.owner !== NAF.clientId && this.data.owner === NAF.clientId) {
-      this.lastOwnerTime = NAF.utils.now();
-      this.syncAll();
-    }
+    this.syncAll();
   },
 
   wasCreatedByNetwork: function() {
@@ -241,7 +237,7 @@ AFRAME.registerComponent('networked', {
       0: 0, // 0 for not compressed
       networkId: data.networkId,
       owner: data.owner,
-      lastOwnerTime: this.lastOwnerTime,
+      lastOwnerTime: this.data.lastOwnerTime,
       template: data.template,
       parent: this.getParentId(),
       components: components
@@ -281,18 +277,16 @@ AFRAME.registerComponent('networked', {
       entityData = Compressor.decompressSyncData(entityData, this.getAllSyncedComponents());
     }
 
-    if (entityData.lastOwnerTime < this.lastOwnerTime) {
+    if (entityData.lastOwnerTime < this.data.lastOwnerTime) {
       return;
     }
 
-    if (this.data.owner !== entityData.owner) {
+    if (this.data.owner !== entityData.owner && this.data.lastOwnerTime < entityData.lastOwnerTime) {
       // TODO: File issue for partial set attribute.
       // this.el.setAttribute("networked", { owner: entityData.owner });
 
-      this.el.setAttribute("networked", { owner: entityData.owner, networkId: entityData.networkId });
+      this.el.setAttribute("networked", { owner: entityData.owner, lastOwnerTime: entityData.lastOwnerTime, networkId: entityData.networkId });
     }
-
-    this.lastOwnerTime = entityData.lastOwnerTime;
 
     this.updateComponents(entityData.components);
   },

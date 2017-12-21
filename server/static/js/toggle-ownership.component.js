@@ -24,11 +24,14 @@ AFRAME.registerComponent('toggle-ownership', {
       return;
     }
 
-    NAF.utils.takeOwnership(this.el);
+    if(NAF.utils.takeOwnership(this.el))
+    {
+      var color = document.querySelector("#player .head").getAttribute("material").color;
+      this.el.setAttribute('material', 'color', color);
+      this.data.direction *= -1;
+    }
 
-    var color = document.querySelector("#player .head").getAttribute("material").color;
-    this.el.setAttribute('material', 'color', color);
-    this.data.direction *= -1;
+
 
   },
 

@@ -90,9 +90,22 @@ module.exports.getNetworkedEntity = getNetworkedEntity;
 
 module.exports.takeOwnership = function(entity) {
   const networkedEntity = getNetworkedEntity(entity);
-  const networkId = networkedEntity.getAttribute("networked").networkId;
-  // TODO: File issue for partial set attribute.
-  networkedEntity.setAttribute("networked", { owner: NAF.clientId, networkId: networkId });
+  if(!networkedEntity) //bug? sometimes this is null
+  {
+    return false;
+  }
+
+  const owner = networkedEntity.getAttribute("networked").owner;
+  const lastOwnerTime = networkedEntity.getAttribute("networked").lastOwnerTime;
+  const now = this.now();
+  if(owner && owner !== NAF.clientId && lastOwnerTime < now) {
+    const networkId = networkedEntity.getAttribute("networked").networkId;
+    // TODO: File issue for partial set attribute.
+    networkedEntity.setAttribute("networked", { owner: NAF.clientId, lastOwnerTime: now, networkId: networkId });
+    return true;
+  }
+
+  return false;
 };
 
 module.exports.isMine = function(entity) {
