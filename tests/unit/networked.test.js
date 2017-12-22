@@ -77,6 +77,16 @@ suite('networked', function() {
       assert.equal(result, 'nid1');
     }));
 
+    test.only('retains networkId after component update', sinon.test(function() {
+      this.stub(naf.utils, 'createNetworkId').returns('nid-after-load');
+
+      networked.init();
+
+      // A-Frame can call updateComponents for mulitple reasons. This can result in component data being rebuilt.
+      entity.updateComponents();
+      assert.equal(networked.data.networkId, 'nid-after-load');
+    }));
+
     test('sets owner', sinon.test(function() {
       naf.clientId = 'owner1';
 
@@ -159,7 +169,7 @@ suite('networked', function() {
 
       var templateChild = entity.querySelector('[template]');
       var result = templateChild.components.visible.attrValue;
-      
+
       assert.isFalse(result);
     }));
   });
