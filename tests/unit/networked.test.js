@@ -77,7 +77,7 @@ suite('networked', function() {
       assert.equal(result, 'nid1');
     }));
 
-    test.only('retains networkId after component update', sinon.test(function() {
+    test('retains networkId after component update', sinon.test(function() {
       this.stub(naf.utils, 'createNetworkId').returns('nid-after-load');
 
       networked.init();
