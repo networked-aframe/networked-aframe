@@ -1,0 +1,19 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es6": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+      "no-undef": "off",
+      "no-unused-vars": "off",
+      "no-mixed-spaces-and-tabs": "off",
+      "no-extra-semi": "off",
+      "no-unused-vars": "off",
+      "no-empty": "off",
+      "no-redeclare": "off",
+      "no-console": "off"
+    }
+}
