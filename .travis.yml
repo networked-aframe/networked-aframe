@@ -24,8 +24,8 @@ script:
 
 env:
   matrix:
-    - CI_ACTION="npm run test:firefox"
-    - CI_ACTION="npm run test:chrome"
+    - CI_ACTION="npm test -- --browsers Firefox --single-run"
+    - CI_ACTION="npm test -- --browsers Chrome --single-run"
     - CI_ACTION="npm run lint"
     - CI_ACTION="npm run dist"
 
