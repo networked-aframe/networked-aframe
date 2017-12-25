@@ -7,13 +7,12 @@
     },
     "extends": "eslint:recommended",
     "rules": {
-      "no-undef": "off",
+      "no-redeclare": "off",
       "no-unused-vars": "off",
+      "no-undef": "off",
       "no-mixed-spaces-and-tabs": "off",
       "no-extra-semi": "off",
-      "no-unused-vars": "off",
       "no-empty": "off",
-      "no-redeclare": "off",
       "no-console": "off"
     }
 }
