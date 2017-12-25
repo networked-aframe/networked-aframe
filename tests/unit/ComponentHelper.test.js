@@ -12,13 +12,18 @@ suite('ComponentHelper', function () {
     utils.whenEntityLoaded(scene, done);
   }
 
-  function addEntityWithComponents(comps) {
+  function createEntityWithComponents(comps) {
     var el = document.createElement('a-entity');
     for (var name in comps) {
       if (comps.hasOwnProperty(name)) {
         el.setAttribute(name, comps[name]);
       }
     }
+    return el
+  }
+
+  function addEntityWithComponents(comps) {
+    const el = createEntityWithComponents(comps);
     scene.appendChild(el);
     return el;
   }
@@ -71,14 +76,15 @@ suite('ComponentHelper', function () {
     });
 
     test('get position of root and child', function(done) {
-      var el = addEntityWithComponents({
+      var el = createEntityWithComponents({
         'position': { x: 1, y: 2, z: 3 },
       });
-      var child = addEntityWithComponents({
+      var child = createEntityWithComponents({
         'position': { x: 5, y: 5, z: 1 },
       });
       child.className = 'child';
       el.appendChild(child);
+      scene.appendChild(el);
       var componentsToCheck = ['position', { selector: '.child', component: 'position' }];
 
       utils.whenEntityLoaded(el, function() {
@@ -94,16 +100,17 @@ suite('ComponentHelper', function () {
     });
 
     test('get single property of multi-property component on child', function(done) {
-      var el = addEntityWithComponents({});
-      var child = addEntityWithComponents({
+      var el = createEntityWithComponents({});
+      var child = createEntityWithComponents({
         'light': ''
       });
       child.className = 'child';
       el.appendChild(child);
+      scene.appendChild(el);
 
       var componentsToCheck = [{ selector: '.child', component: 'light', property: 'color' }];
 
-      utils.whenEntityLoaded(child, function() {
+      utils.whenEntityLoaded(el, function() {
         var result = componentHelper.gatherComponentsData(el, componentsToCheck);
 
         var expected = {
@@ -234,23 +241,23 @@ suite('ComponentHelper', function () {
     });
 
     test('dirty position on root and child', function(done) {
-      var el = addEntityWithComponents({
+      var el = createEntityWithComponents({
         'position': { x: 1, y: 2, z: 3 },
       });
-      var child = addEntityWithComponents({
+      var child = createEntityWithComponents({
         'position': { x: 5, y: 5, z: 1 },
       });
 
       child.className = 'child';
       el.appendChild(child);
+      scene.appendChild(el);
       var componentsToCheck = ['position', { selector: '.child', component: 'position' }];
       var cached = {
         'position': { x: 1, y: 2, z: 3 },
         '.child---position': { x: 5, y: 5, z: 1 }
       };
 
-      utils.whenEntityLoaded(child, function() {
-
+      utils.whenEntityLoaded(el, function() {
         el.setAttribute('position', { x: 2 /* dirty */, y: 2, z: 3 });
         child.setAttribute('position', { x: 2 /* dirty */, y: 5, z: 1 });
         var result = componentHelper.findDirtyComponents(el, componentsToCheck, cached);
@@ -262,15 +269,16 @@ suite('ComponentHelper', function () {
     });
 
     test('checking non-existent child component is ok', function(done) {
-      var el = addEntityWithComponents({
+      var el = createEntityWithComponents({
         'position': { x: 1, y: 2, z: 3 },
       });
-      var child = addEntityWithComponents({
+      var child = createEntityWithComponents({
         'position': { x: 5, y: 5, z: 1 },
       });
 
       child.className = 'child';
       el.appendChild(child);
+      scene.appendChild(el);
       var componentsToCheck = ['position', { selector: '.child', component: 'light' }];
       var cached = {
         'position': { x: 1, y: 2, z: 3 },
@@ -288,15 +296,16 @@ suite('ComponentHelper', function () {
     });
 
     test('dirty multi-property child', function(done) {
-      var el = addEntityWithComponents({
+      var el = createEntityWithComponents({
         'position': { x: 1, y: 2, z: 3 },
       });
-      var child = addEntityWithComponents({
+      var child = createEntityWithComponents({
         'position': { x: 5, y: 5, z: 1 },
       });
 
       child.className = 'child';
       el.appendChild(child);
+      scene.appendChild(el);
       var componentsToCheck = ['position', { selector: '.child', component: 'light', property: 'color' }];
       var cached = {
         'position': { x: 1, y: 2, z: 3 },
