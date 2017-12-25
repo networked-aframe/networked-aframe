@@ -81,7 +81,7 @@ suite('ComponentHelper', function () {
       el.appendChild(child);
       var componentsToCheck = ['position', { selector: '.child', component: 'position' }];
 
-      utils.whenEntityLoaded(child, function() {
+      utils.whenEntityLoaded(el, function() {
         var result = componentHelper.gatherComponentsData(el, componentsToCheck);
 
         var expected = {
@@ -277,7 +277,7 @@ suite('ComponentHelper', function () {
         '.child---position': { x: 5, y: 5, z: 1 }
       };
 
-      utils.whenEntityLoaded(child, function() {
+      utils.whenEntityLoaded(el, function() {
 
         var result = componentHelper.findDirtyComponents(el, componentsToCheck, cached);
 
@@ -303,7 +303,7 @@ suite('ComponentHelper', function () {
         '.child---light---color': '#FFF'
       };
 
-      utils.whenEntityLoaded(child, function() {
+      utils.whenEntityLoaded(el, function() {
 
         child.setAttribute('light', 'color', '#111');
         var result = componentHelper.findDirtyComponents(el, componentsToCheck, cached);
