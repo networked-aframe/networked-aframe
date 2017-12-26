@@ -1,7 +1,7 @@
 <img src="http://i.imgur.com/7ddbE0q.gif" width="300">
 
 
-Networked-Aframe
+Networked-Aframe <a href="https://travis-ci.org/aframevr/aframe"><img src="https://img.shields.io/travis/aframevr/aframe.svg?style=flat-square" alt="Build Status"></a>
 =======
 
 **Multi-user VR on the Web**
@@ -23,6 +23,7 @@ Built on top of the wonderful [A-Frame](https://aframe.io/).
 </div>
 
 <br>
+
 
 Features
 --------
