@@ -1,7 +1,9 @@
 <img src="http://i.imgur.com/7ddbE0q.gif" width="300">
 
 
-Networked-Aframe <a href="https://travis-ci.org/networked-aframe/networked-aframe"><img src="https://img.shields.io/travis/networked-aframe/networked-aframe.svg?style=flat-square" alt="Build Status"></a>
+Networked-Aframe <a href="https://travis-ci.org/networked-aframe/networked-aframe"><img src="https://img.shields.io/travis/networked-aframe/networked-aframe.svg" alt="Build Status"></a>
+<span class="badge-npmversion"><a href="https://npmjs.org/package/networked-aframe" title="View this project on NPM"><img src="https://img.shields.io/npm/v/networked-aframe.svg" alt="NPM version" /></a></span>
+<span class="badge-npmdownloads"><a href="https://npmjs.org/package/networked-aframe" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/networked-aframe.svg" alt="NPM downloads" /></a></span>
 =======
 
 **Multi-user VR on the Web**
