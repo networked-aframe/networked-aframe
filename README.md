@@ -24,7 +24,6 @@ Built on top of the wonderful [A-Frame](https://aframe.io/).
 
 <br>
 
-
 Features
 --------
 * Includes everything you need to create multi-user WebVR apps and games.
