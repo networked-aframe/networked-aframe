@@ -33,6 +33,9 @@ branches:
   only:
     - master
 
+after_success:
+    - npm run codecov
+
 cache:
   directories:
     - node_modules
