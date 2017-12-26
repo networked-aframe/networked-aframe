@@ -79,7 +79,6 @@ suite('networked_remote', function() {
 
     test('updates root immediately', sinon.test(function() {
       this.stub(component, 'networkUpdate');
-      this.stub(component, 'waitForTemplateAndUpdateChildren');
       var testData = {test: "testing"};
       el.firstUpdateData = testData;
 
