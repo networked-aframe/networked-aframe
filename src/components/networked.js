@@ -25,7 +25,7 @@ AFRAME.registerComponent('networked', {
     this.initNetworkParent();
 
     if (data.networkId === '') {
-      data.networkId = NAF.utils.createNetworkId();
+      this.el.setAttribute(this.name, {networkId: NAF.utils.createNetworkId()});
     }
 
     if (data.template != '') {
@@ -131,7 +131,7 @@ AFRAME.registerComponent('networked', {
   },
 
   onConnected: function() {
-    this.data.owner = NAF.clientId;
+    this.el.setAttribute(this.name, {owner: NAF.clientId});
   },
 
   isMine: function() {
