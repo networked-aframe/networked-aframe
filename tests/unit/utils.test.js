@@ -66,7 +66,7 @@ suite('utils', function() {
       var owner = 'test';
       var entity = {
         components: {
-          'networked-remote' : { data: { owner: owner}}
+          'networked' : { data: { owner: owner}}
         }
       };
 
