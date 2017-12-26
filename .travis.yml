@@ -29,9 +29,9 @@ env:
     - CI_ACTION="npm run lint"
     - CI_ACTION="npm run dist"
 
-branches:
-  only:
-    - travis
+# branches:
+#   only:
+#     - master
 
 cache:
   directories:
