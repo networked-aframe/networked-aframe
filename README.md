@@ -94,6 +94,7 @@ Open in two tabs if nobody else is online.
 * [Google Blocks](http://haydenlee.io/networked-aframe/google-blocks.html)
 * [Tracked Controllers](http://haydenlee.io/networked-aframe/tracked-controllers.html)
 * [Nametags](https://glitch.com/edit/#!/naf-nametags)
+* [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
 * [Minecraft Clone](https://uxvirtual.com/demo/blocks/)
 * [More...](http://haydenlee.io/networked-aframe/)
 
