@@ -95,6 +95,7 @@ Open in two tabs if nobody else is online.
 * [Tracked Controllers](http://haydenlee.io/networked-aframe/tracked-controllers.html)
 * [Nametags](https://glitch.com/edit/#!/naf-nametags)
 * [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
+* [Form to set room and username](https://glitch.com/edit/#!/naf-form-example)
 * [Minecraft Clone](https://uxvirtual.com/demo/blocks/)
 * [More...](http://haydenlee.io/networked-aframe/)
 
