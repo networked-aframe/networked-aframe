@@ -81,12 +81,16 @@ class WsEasyRtcInterface {
 
   getConnectStatus(clientId) {
     var connected = this.connectedClients.indexOf(clientId) != -1;
-    
+
     if (connected) {
       return NAF.adapters.IS_CONNECTED;
     } else {
       return NAF.adapters.NOT_CONNECTED;
     }
+  }
+
+  disconnect() {
+    this.easyrtc.disconnect();
   }
 }
 

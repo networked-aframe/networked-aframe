@@ -54,6 +54,8 @@ class NetworkConnection {
   }
 
   onConnect(callback) {
+    this.onConnectCallback = callback;
+
     if (this.isConnected()) {
       callback();
     } else {
@@ -193,6 +195,21 @@ class NetworkConnection {
     } else {
       NAF.log.error('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
     }
+  }
+
+  disconnect() {
+    this.entities.removeRemoteEntities();
+    this.adapter.disconnect();
+
+    NAF.app = '';
+    NAF.room = '';
+    this.connectedClients = {};
+    this.activeDataChannels = {};
+    this.adapter = null;
+
+    this.setupDefaultDataSubscriptions();
+
+    document.body.removeEventListener('connected', this.onConnectCallback);
   }
 }
 

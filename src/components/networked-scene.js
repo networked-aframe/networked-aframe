@@ -7,14 +7,15 @@ AFRAME.registerComponent('networked-scene', {
     room: {default: 'default'},
     connectOnLoad: {default: true},
     onConnect: {default: 'onConnect'},
-    adapter: {default: 'wsEasyRtc'}, // See src/adapters/AdapterFactory.js for list of adapters
+    adapter: {default: 'wsEasyRtc'}, // See https://github.com/networked-aframe/networked-aframe#adapters for list of adapters
     audio: {default: false}, // Only if adapter supports audio
     debug: {default: false},
   },
 
   init: function() {
     var el = this.el;
-    el.addEventListener('connect', this.connect.bind(this));
+    this.connect = this.connect.bind(this);
+    el.addEventListener('connect', this.connect);
     if (this.data.connectOnLoad) {
       el.emit('connect', null, false);
     }
@@ -52,5 +53,11 @@ AFRAME.registerComponent('networked-scene', {
 
   callOnConnect: function() {
     NAF.connection.onConnect(window[this.data.onConnect]);
+  },
+
+  remove: function() {
+    NAF.log.write('networked-scene disconnected');
+    this.el.removeEventListener('connect', this.connect);
+    NAF.connection.disconnect();
   }
 });
