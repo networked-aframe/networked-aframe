@@ -37,6 +37,8 @@ AFRAME.registerComponent('networked-audio-source', {
       if(newStream) {
         // Chrome seems to require a MediaStream be attached to an AudioElement before AudioNodes work correctly
         this.audioEl = new Audio();
+        this.audioEl.setAttribute("autoplay", "autoplay");
+        this.audioEl.setAttribute("playsinline", "playsinline");
         this.audioEl.srcObject = newStream;
 
         this.sound.setNodeSource(this.sound.context.createMediaStreamSource(newStream));
