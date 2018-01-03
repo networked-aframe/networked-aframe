@@ -13,7 +13,6 @@ AFRAME.registerComponent('networked', {
   },
 
   init: function() {
-    var data = this.data;
     var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
     this.onConnected = bind(this.onConnected, this);
@@ -24,11 +23,11 @@ AFRAME.registerComponent('networked', {
     this.cachedData = {};
     this.initNetworkParent();
 
-    if (data.networkId === '') {
-      data.networkId = NAF.utils.createNetworkId();
+    if (this.data.networkId === '') {
+      this.el.setAttribute(this.name, {networkId: NAF.utils.createNetworkId()});
     }
 
-    if (data.template != '') {
+    if (this.data.template != '') {
       this.initTemplate();
     }
 
@@ -37,7 +36,7 @@ AFRAME.registerComponent('networked', {
       this.attachLerp();
     }
     else {
-      this.registerEntity(data.networkId);
+      this.registerEntity(this.data.networkId);
     }
 
     this.lastOwnerTime = -1;
@@ -142,7 +141,7 @@ AFRAME.registerComponent('networked', {
   },
 
   onConnected: function() {
-    this.data.owner = NAF.clientId;
+    this.el.setAttribute(this.name, {owner: NAF.clientId});
   },
 
   isMine: function() {
