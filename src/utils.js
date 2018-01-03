@@ -76,8 +76,7 @@ module.exports.getNetworkedEntity = getNetworkedEntity;
 
 module.exports.takeOwnership = function(entity) {
   const networkedEntity = getNetworkedEntity(entity);
-  if(!networkedEntity) //bug? sometimes this is null
-  {
+  if(!networkedEntity) {
     return false;
   }
 
@@ -85,7 +84,6 @@ module.exports.takeOwnership = function(entity) {
   const lastOwnerTime = networkedEntity.getAttribute("networked").lastOwnerTime;
   const now = this.now();
   if(owner && owner !== NAF.clientId && lastOwnerTime < now) {
-    // TODO: File issue for partial set attribute.
     networkedEntity.setAttribute("networked", { owner: NAF.clientId, lastOwnerTime: now });
     return true;
   }

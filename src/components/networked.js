@@ -10,7 +10,6 @@ AFRAME.registerComponent('networked', {
 
     networkId: {default: ''},
     owner: {default: ''},
-    lastOwnerTime: {default: -1}
   },
 
   init: function() {
@@ -40,8 +39,10 @@ AFRAME.registerComponent('networked', {
       this.registerEntity(this.data.networkId);
     }
 
+    this.lastOwnerTime = -1;
+
     if (this.data.owner === '') {
-      this.data.lastOwnerTime = NAF.utils.now();
+      this.lastOwnerTime = NAF.utils.now();
 
       this.setNetworkIdWhenConnected();
       // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer.
@@ -56,6 +57,19 @@ AFRAME.registerComponent('networked', {
 
     document.body.dispatchEvent(this.entityCreatedEvent());
   },
+
+  takeOwnership: function() {
+      const owner = this.data.owner;
+      const lastOwnerTime = this.lastOwnerTime;
+      const now = NAF.utils.now();
+      if(owner && owner !== NAF.clientId && lastOwnerTime < now) {
+        networkedEntity.setAttribute("networked", { owner: NAF.clientId });
+        this.lastOwnerTime = now;
+        return true;
+      }
+
+      return false;
+  }
 
   update: function(oldData) {
     this.syncAll();
@@ -236,7 +250,7 @@ AFRAME.registerComponent('networked', {
       0: 0, // 0 for not compressed
       networkId: data.networkId,
       owner: data.owner,
-      lastOwnerTime: this.data.lastOwnerTime,
+      lastOwnerTime: this.lastOwnerTime,
       template: data.template,
       parent: this.getParentId(),
       components: components
@@ -263,7 +277,6 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-
   /* Receiving updates */
 
   networkUpdateHandler: function(received) {
@@ -276,14 +289,15 @@ AFRAME.registerComponent('networked', {
       entityData = Compressor.decompressSyncData(entityData, this.getAllSyncedComponents());
     }
 
-    if (entityData.lastOwnerTime < this.data.lastOwnerTime) {
+    if (entityData.lastOwnerTime < this.lastOwnerTime) {
       return;
     }
 
     if (this.data.owner !== entityData.owner && 
-        (this.data.lastOwnerTime < entityData.lastOwnerTime || 
-          (this.data.lastOwnerTime === entityData.lastOwnerTime && this.data.owner < entityData.owner))) {
-      this.el.setAttribute("networked", { owner: entityData.owner, lastOwnerTime: entityData.lastOwnerTime });
+        (this.lastOwnerTime < entityData.lastOwnerTime || 
+          (this.lastOwnerTime === entityData.lastOwnerTime && this.data.owner < entityData.owner))) {
+      this.el.setAttribute("networked", { owner: entityData.owner });
+      this.lastOwnerTime = entityData.lastOwnerTime;
     }
 
     this.updateComponents(entityData.components);
