@@ -75,10 +75,7 @@ function getNetworkedEntity(entity) {
 module.exports.getNetworkedEntity = getNetworkedEntity;
 
 module.exports.takeOwnership = function(entity) {
-  const networkedEntity = getNetworkedEntity(entity);
-  const networkId = networkedEntity.getAttribute("networked").networkId;
-  // TODO: File issue for partial set attribute.
-  networkedEntity.setAttribute("networked", { owner: NAF.clientId, networkId: networkId });
+  getNetworkedEntity(entity).setAttribute("networked", { owner: NAF.clientId });
 };
 
 module.exports.isMine = function(entity) {
