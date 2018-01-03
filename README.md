@@ -4,6 +4,10 @@
 Networked-Aframe
 =======
 
+<a href="https://travis-ci.org/networked-aframe/networked-aframe"><img src="https://img.shields.io/travis/networked-aframe/networked-aframe.svg" alt="Build Status"></a>
+<span class="badge-npmversion"><a href="https://npmjs.org/package/networked-aframe" title="View this project on NPM"><img src="https://img.shields.io/npm/v/networked-aframe.svg" alt="NPM version" /></a></span>
+<span class="badge-npmdownloads"><a href="https://npmjs.org/package/networked-aframe" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/networked-aframe.svg" alt="NPM downloads" /></a></span>
+
 **Multi-user VR on the Web**
 
 Write full-featured multi-user VR experiences entirely in HTML.
@@ -92,6 +96,8 @@ Open in two tabs if nobody else is online.
 * [Google Blocks](http://haydenlee.io/networked-aframe/google-blocks.html)
 * [Tracked Controllers](http://haydenlee.io/networked-aframe/tracked-controllers.html)
 * [Nametags](https://glitch.com/edit/#!/naf-nametags)
+* [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
+* [Form to set room and username](https://glitch.com/edit/#!/naf-form-example)
 * [Minecraft Clone](https://uxvirtual.com/demo/blocks/)
 * [More...](http://haydenlee.io/networked-aframe/)
 

@@ -1,6 +1,5 @@
 var options = require('./options');
 var utils = require('./utils');
-var physics = require('./NafPhysics');
 var NafLogger = require('./NafLogger');
 var Schemas = require('./Schemas');
 var NetworkEntities = require('./NetworkEntities');
@@ -13,7 +12,6 @@ naf.room = '';
 naf.clientId = '';
 naf.options = options;
 naf.utils = utils;
-naf.physics = physics;
 naf.log = new NafLogger();
 naf.schemas = new Schemas();
 naf.version = "0.4.0";

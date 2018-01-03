@@ -14,7 +14,6 @@ AFRAME.registerComponent('networked', {
   },
 
   init: function() {
-    var data = this.data;
     var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
     this.onConnected = bind(this.onConnected, this);
@@ -25,11 +24,11 @@ AFRAME.registerComponent('networked', {
     this.cachedData = {};
     this.initNetworkParent();
 
-    if (data.networkId === '') {
-      data.networkId = NAF.utils.createNetworkId();
+    if (this.data.networkId === '') {
+      this.el.setAttribute(this.name, {networkId: NAF.utils.createNetworkId()});
     }
 
-    if (data.template != '') {
+    if (this.data.template != '') {
       this.initTemplate();
     }
 
@@ -38,7 +37,7 @@ AFRAME.registerComponent('networked', {
       this.attachLerp();
     }
     else {
-      this.registerEntity(data.networkId);
+      this.registerEntity(this.data.networkId);
     }
 
     if (this.data.owner === '') {
@@ -138,7 +137,7 @@ AFRAME.registerComponent('networked', {
   },
 
   onConnected: function() {
-    this.data.owner = NAF.clientId;
+    this.el.setAttribute(this.name, {owner: NAF.clientId});
   },
 
   isMine: function() {
@@ -284,10 +283,7 @@ AFRAME.registerComponent('networked', {
     if (this.data.owner !== entityData.owner && 
         (this.data.lastOwnerTime < entityData.lastOwnerTime || 
           (this.data.lastOwnerTime === entityData.lastOwnerTime && this.data.owner < entityData.owner))) {
-      // TODO: File issue for partial set attribute.
-      // this.el.setAttribute("networked", { owner: entityData.owner });
-
-      this.el.setAttribute("networked", { owner: entityData.owner, lastOwnerTime: entityData.lastOwnerTime, networkId: entityData.networkId });
+      this.el.setAttribute("networked", { owner: entityData.owner, lastOwnerTime: entityData.lastOwnerTime });
     }
 
     this.updateComponents(entityData.components);

@@ -7,14 +7,14 @@
   "author": "Hayden Lee <haydenjameslee@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/haydenjameslee/networked-aframe/issues"
+    "url": "https://github.com/networked-aframe/networked-aframe/issues"
   },
   "scripts": {
     "build": "browserify src/index.js -o server/static/build.js",
     "easyrtc-install": "cd ./node_modules/easyrtc; npm install; cd ../../;",
     "dev": "npm run build && node ./server/easyrtc-server.js",
     "dist": "webpack --config webpack.config.js && webpack -p --config webpack.prod.config.js",
-    "lint": "semistandard -v | snazzy",
+    "lint": "eslint src server tests *.js",
     "prepublish": "npm run dist",
     "preghpages": "npm run build && shx rm -rf gh-pages && shx mkdir gh-pages && shx cp -r examples/* gh-pages",
     "ghpages": "npm run preghpages && ghpages -p gh-pages",
@@ -24,7 +24,7 @@
     "test:chrome": "karma start ./tests/unit/karma.conf.js --browsers Chrome",
     "watch": "watchify src/index.js -o server/static/build.js -v"
   },
-  "repository": "haydenjameslee/networked-aframe",
+  "repository": "networked-aframe/networked-aframe",
   "dependencies": {
     "easyrtc": "1.1.0",
     "express": "^4.10.7",
@@ -35,8 +35,7 @@
     "socket.io-client": "^1.4.5"
   },
   "devDependencies": {
-    "aframe": "0.5.0",
-    "aframe-physics-system": "1.4.2",
+    "aframe": "0.7.0",
     "babel-core": "^6.22.1",
     "babel-loader": "^6.2.10",
     "babel-preset-es2015": "^6.22.0",
@@ -47,6 +46,7 @@
     "chai-shallow-deep-equal": "^1.4.0",
     "chalk": "^1.1.3",
     "deep-equal": "^1.0.1",
+    "eslint": "^4.14.0",
     "karma": "^1.4.1",
     "karma-browserify": "^5.1.1",
     "karma-chai-shallow-deep-equal": "0.0.4",
