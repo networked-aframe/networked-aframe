@@ -23,12 +23,10 @@ AFRAME.registerComponent('toggle-ownership', {
       return;
     }
 
-    NAF.utils.takeOwnership(this.el);
-
-    this.updateColor();
-    
-    this.data.direction *= -1;
-
+    if(NAF.utils.takeOwnership(this.el)) {
+      this.data.direction *= -1;
+      this.updateColor();
+    }
   },
 
   updateColor() {

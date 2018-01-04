@@ -9,7 +9,7 @@ AFRAME.registerComponent('networked', {
     showLocalTemplate: {default: true},
 
     networkId: {default: ''},
-    owner: {default: ''}
+    owner: {default: ''},
   },
 
   init: function() {
@@ -58,11 +58,20 @@ AFRAME.registerComponent('networked', {
     document.body.dispatchEvent(this.entityCreatedEvent());
   },
 
-  update: function(oldData) {
-    if (oldData.owner && oldData.owner !== NAF.clientId && this.data.owner === NAF.clientId) {
-      this.lastOwnerTime = NAF.utils.now();
-      this.syncAll();
+  takeOwnership: function() {
+    const owner = this.data.owner;
+    const lastOwnerTime = this.lastOwnerTime;
+    const now = NAF.utils.now();
+    if(owner && !this.isMine() && lastOwnerTime < now) {
+      networkedEntity.setAttribute("networked", { owner: NAF.clientId });
+      this.lastOwnerTime = now;
+      return true;
     }
+    return false;
+  }
+
+  update: function(oldData) {
+    this.syncAll();
   },
 
   wasCreatedByNetwork: function() {
@@ -267,7 +276,6 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-
   /* Receiving updates */
 
   networkUpdateHandler: function(received) {
@@ -284,11 +292,12 @@ AFRAME.registerComponent('networked', {
       return;
     }
 
-    if (this.data.owner !== entityData.owner) {
+    if (this.data.owner !== entityData.owner && 
+        (this.lastOwnerTime < entityData.lastOwnerTime || 
+          (this.lastOwnerTime === entityData.lastOwnerTime && this.data.owner < entityData.owner))) {
       this.el.setAttribute("networked", { owner: entityData.owner });
+      this.lastOwnerTime = entityData.lastOwnerTime;
     }
-
-    this.lastOwnerTime = entityData.lastOwnerTime;
 
     this.updateComponents(entityData.components);
   },

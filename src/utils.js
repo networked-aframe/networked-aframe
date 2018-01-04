@@ -75,7 +75,12 @@ function getNetworkedEntity(entity) {
 module.exports.getNetworkedEntity = getNetworkedEntity;
 
 module.exports.takeOwnership = function(entity) {
-  getNetworkedEntity(entity).setAttribute("networked", { owner: NAF.clientId });
+  const networkedEntity = getNetworkedEntity(entity);
+  if(!networkedEntity) {
+    return false;
+  }
+
+  return networkedEntity.takeOwnership();
 };
 
 module.exports.isMine = function(entity) {
