@@ -76,8 +76,9 @@ module.exports.getNetworkedEntity = getNetworkedEntity;
 
 module.exports.takeOwnership = function(entity) {
   const networkedEntity = getNetworkedEntity(entity);
+
   if(!networkedEntity) {
-    return false;
+    return NAF.log.error("takeOwnership() must be called on an entity or child of an entity with the [networked] component.")
   }
 
   return networkedEntity.components['networked'].takeOwnership();

@@ -41,18 +41,10 @@ AFRAME.registerComponent('networked', {
 
     this.lastOwnerTime = -1;
 
-    if (this.data.owner === '') {
-      this.lastOwnerTime = NAF.utils.now();
-
-      this.setNetworkIdWhenConnected();
-      // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer.
-      // Note that this only works because the reliable messages are sent over a single websocket connection.
-      // If they are sent over a different transport this check may need to change
-      if (NAF.connection.isConnected()) {
-        this.waitForTemplate(() => {
-          this.syncAll();
-        });
-      }
+    if (NAF.clientId) {
+      this.onConnected();
+    } else {
+      document.body.addEventListener('connected', this.onConnected, false);
     }
 
     document.body.dispatchEvent(this.entityCreatedEvent());
@@ -65,13 +57,10 @@ AFRAME.registerComponent('networked', {
     if(owner && !this.isMine() && lastOwnerTime < now) {
       this.el.setAttribute("networked", { owner: NAF.clientId });
       this.lastOwnerTime = now;
+      this.syncAll();
       return true;
     }
     return false;
-  },
-
-  update: function(oldData) {
-    this.syncAll();
   },
 
   wasCreatedByNetwork: function() {
@@ -137,20 +126,15 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  setNetworkIdWhenConnected: function() {
-    if (NAF.clientId) {
-      this.onConnected();
-    } else {
-      this.listenForConnected();
-    }
-  },
-
-  listenForConnected: function() {
-    document.body.addEventListener('connected', this.onConnected.bind(this), false);
-  },
-
   onConnected: function() {
+    this.lastOwnerTime = NAF.utils.now();
     this.el.setAttribute(this.name, {owner: NAF.clientId});
+
+    this.waitForTemplate(() => {
+      this.syncAll();
+    });
+
+    document.body.removeEventListener('connected', this.onConnected, false);
   },
 
   isMine: function() {
@@ -288,13 +272,13 @@ AFRAME.registerComponent('networked', {
       entityData = Compressor.decompressSyncData(entityData, this.getAllSyncedComponents());
     }
 
-    if (entityData.lastOwnerTime < this.lastOwnerTime) {
+    // Avoid updating components if the entity data received did not come from the current owner.
+    if (entityData.lastOwnerTime < this.lastOwnerTime || 
+          (this.lastOwnerTime === entityData.lastOwnerTime && this.data.owner > entityData.owner)) {
       return;
     }
 
-    if (this.data.owner !== entityData.owner && 
-        (this.lastOwnerTime < entityData.lastOwnerTime || 
-          (this.lastOwnerTime === entityData.lastOwnerTime && this.data.owner < entityData.owner))) {
+    if (this.data.owner !== entityData.owner) {
       this.el.setAttribute("networked", { owner: entityData.owner });
       this.lastOwnerTime = entityData.lastOwnerTime;
     }
