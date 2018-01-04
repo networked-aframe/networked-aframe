@@ -127,12 +127,15 @@ AFRAME.registerComponent('networked', {
   },
 
   onConnected: function() {
-    this.lastOwnerTime = NAF.utils.now();
-    this.el.setAttribute(this.name, {owner: NAF.clientId});
+    if (this.data.owner === '') {
+      this.el.setAttribute(this.name, {owner: NAF.clientId});
 
-    this.waitForTemplate(() => {
-      this.syncAll();
-    });
+      this.lastOwnerTime = NAF.utils.now();
+
+      this.waitForTemplate(() => {
+        this.syncAll();
+      });
+    }
 
     document.body.removeEventListener('connected', this.onConnected, false);
   },

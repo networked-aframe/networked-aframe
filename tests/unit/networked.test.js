@@ -201,11 +201,14 @@ suite('networked', function() {
 
     test('broadcasts uncompressed data', sinon.test(function() {
       this.stub(naf.utils, 'createNetworkId').returns('network1');
+      this.stub(NAF.utils, 'now').returns(11);
       this.stub(naf.connection, 'broadcastDataGuaranteed');
+
       var expected = {
         0: 0,
         networkId: 'network1',
         owner: 'owner1',
+        lastOwnerTime: 11,
         parent: null,
         template: 't1',
         components: {
@@ -248,10 +251,13 @@ suite('networked', function() {
     test('broadcasts uncompressed data with takeover flag', sinon.test(function() {
       this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastDataGuaranteed');
+      this.stub(NAF.utils, 'now').returns(11);
+
       var expected = {
         0: 0,
         networkId: 'network1',
         owner: 'owner1',
+        lastOwnerTime: 11,
         parent: null,
         template: 't1',
         components: {
@@ -274,6 +280,7 @@ suite('networked', function() {
     test('syncs uncompressed data that has changed', sinon.test(function() {
       this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastData');
+      this.stub(NAF.utils, 'now').returns(11);
       var oldData = {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
@@ -282,6 +289,7 @@ suite('networked', function() {
         0: 0,
         networkId: 'network1',
         owner: 'owner1',
+        lastOwnerTime: 11,
         parent: null,
         template: 't1',
         components: {
