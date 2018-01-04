@@ -59,16 +59,15 @@ AFRAME.registerComponent('networked', {
   },
 
   takeOwnership: function() {
-      const owner = this.data.owner;
-      const lastOwnerTime = this.lastOwnerTime;
-      const now = NAF.utils.now();
-      if(owner && owner !== NAF.clientId && lastOwnerTime < now) {
-        networkedEntity.setAttribute("networked", { owner: NAF.clientId });
-        this.lastOwnerTime = now;
-        return true;
-      }
-
-      return false;
+    const owner = this.data.owner;
+    const lastOwnerTime = this.lastOwnerTime;
+    const now = NAF.utils.now();
+    if(owner && owner !== NAF.clientId && lastOwnerTime < now) {
+      networkedEntity.setAttribute("networked", { owner: NAF.clientId });
+      this.lastOwnerTime = now;
+      return true;
+    }
+    return false;
   }
 
   update: function(oldData) {

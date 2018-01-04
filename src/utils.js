@@ -80,15 +80,7 @@ module.exports.takeOwnership = function(entity) {
     return false;
   }
 
-  const owner = networkedEntity.getAttribute("networked").owner;
-  const lastOwnerTime = networkedEntity.getAttribute("networked").lastOwnerTime;
-  const now = this.now();
-  if(owner && owner !== NAF.clientId && lastOwnerTime < now) {
-    networkedEntity.setAttribute("networked", { owner: NAF.clientId, lastOwnerTime: now });
-    return true;
-  }
-
-  return false;
+  return networkedEntity.takeOwnership();
 };
 
 module.exports.isMine = function(entity) {
