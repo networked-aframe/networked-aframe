@@ -63,12 +63,12 @@ AFRAME.registerComponent('networked', {
     const lastOwnerTime = this.lastOwnerTime;
     const now = NAF.utils.now();
     if(owner && !this.isMine() && lastOwnerTime < now) {
-      networkedEntity.setAttribute("networked", { owner: NAF.clientId });
+      this.el.setAttribute("networked", { owner: NAF.clientId });
       this.lastOwnerTime = now;
       return true;
     }
     return false;
-  }
+  },
 
   update: function(oldData) {
     this.syncAll();

@@ -80,7 +80,7 @@ module.exports.takeOwnership = function(entity) {
     return false;
   }
 
-  return networkedEntity.takeOwnership();
+  return networkedEntity.components['networked'].takeOwnership();
 };
 
 module.exports.isMine = function(entity) {
