@@ -6,6 +6,7 @@ class WsEasyRtcInterface {
     this.room = 'default';
     this.connectedClients = [];
 
+    this.serverTimeRequests = 0;
     this.timeOffsets = [];
     this.avgTimeOffset = 0;
   }
@@ -46,7 +47,7 @@ class WsEasyRtcInterface {
   }
 
   updateTimeOffset() {
-    const clientSentTime = Date.now();
+    const clientSentTime = Date.now() + this.avgTimeOffset;
 
     return fetch(document.location.href, { method: "HEAD", cache: "no-cache" })
       .then(res => {
@@ -55,10 +56,18 @@ class WsEasyRtcInterface {
         var clientReceivedTime = Date.now();
         var serverTime = serverReceivedTime + ((clientReceivedTime - clientSentTime) / 2);
         var timeOffset = serverTime - clientReceivedTime;
-        this.timeOffsets.push(timeOffset);
+
+        this.serverTimeRequests++;
+
+        if (this.serverTimeRequests <= 10) {
+          this.timeOffsets.push(timeOffset);
+        } else {
+          this.timeOffsets[this.serverTimeRequests % 10] = timeOffset;
+        }
+        
         this.avgTimeOffset = this.timeOffsets.reduce((acc, offset) => acc += offset, 0) / this.timeOffsets.length;
 
-        if (this.timeOffsets.length > 10) {
+        if (this.serverTimeRequests > 10) {
           setTimeout(() => this.updateTimeOffset(), 5 * 60 * 1000); // Sync clock every 5 minutes.
         } else {
           this.updateTimeOffset();
