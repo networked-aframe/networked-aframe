@@ -121,7 +121,7 @@ class WsEasyRtcInterface {
     }
   }
 
-  getTime() {
+  getServerTime() {
     return Date.now() + this.avgTimeOffset;
   }
 }

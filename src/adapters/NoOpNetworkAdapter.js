@@ -21,7 +21,7 @@ class NoOpNetworkAdapter extends NafInterface {
 
   getMediaStream(clientId) { return Promise.reject("Interface method not implemented: getMediaStream")}
 
-  getTime() { return Date.now(); }
+  getServerTime() { this.notImplemented('getServerTime') }
 
   sendData(clientId, dataType, data) {this.notImplemented('sendData')}
   sendDataGuaranteed(clientId, dataType, data) {this.notImplemented('sendDataGuaranteed')}

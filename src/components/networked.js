@@ -53,7 +53,7 @@ AFRAME.registerComponent('networked', {
   takeOwnership: function() {
     const owner = this.data.owner;
     const lastOwnerTime = this.lastOwnerTime;
-    const now = NAF.connection.getTime();
+    const now = NAF.connection.getServerTime();
     if(owner && !this.isMine() && lastOwnerTime < now) {
       this.lastOwnerTime = now;
       this.el.setAttribute("networked", { owner: NAF.clientId });
@@ -128,7 +128,7 @@ AFRAME.registerComponent('networked', {
 
   onConnected: function() {
     if (this.data.owner === '') {
-      this.lastOwnerTime = NAF.connection.getTime();
+      this.lastOwnerTime = NAF.connection.getServerTime();
       this.el.setAttribute(this.name, {owner: NAF.clientId});
 
       this.waitForTemplate(() => {

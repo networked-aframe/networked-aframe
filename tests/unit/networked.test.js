@@ -39,7 +39,7 @@ suite('networked', function() {
     this.broadcastData = sinon.stub();
     this.broadcastDataGuaranteed = sinon.stub();
 
-    this.getTime = sinon.stub();
+    this.getServerTime = sinon.stub();
   }
 
   setup(function(done) {

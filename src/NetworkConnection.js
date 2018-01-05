@@ -195,8 +195,8 @@ class NetworkConnection {
     }
   }
 
-  getTime() {
-    return this.adapter.getTime();
+  getServerTime() {
+    return this.adapter.getServerTime();
   }
 }
 

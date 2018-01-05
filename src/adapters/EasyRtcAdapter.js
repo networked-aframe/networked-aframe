@@ -219,7 +219,7 @@ class EasyRtcAdapter {
     return joinTime;
   }
 
-  getTime() {
+  getServerTime() {
     return Date.now() + this.avgTimeOffset;
   }
 }
