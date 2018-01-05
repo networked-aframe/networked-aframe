@@ -60,7 +60,7 @@ class EasyRtcAdapter {
   updateTimeOffset() {
     const clientSentTime = Date.now();
 
-    return fetch(document.location.href)
+    return fetch(document.location.href, { method: "HEAD", cache: "no-cache" })
       .then(res => {
         var precision = 1000;
         var serverReceivedTime = new Date(res.headers.get("Date")).getTime() + (precision / 2);
