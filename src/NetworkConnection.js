@@ -194,6 +194,10 @@ class NetworkConnection {
       NAF.log.error('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
     }
   }
+
+  getTime() {
+    return this.adapter.getTime();
+  }
 }
 
 module.exports = NetworkConnection;

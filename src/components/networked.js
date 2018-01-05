@@ -53,10 +53,10 @@ AFRAME.registerComponent('networked', {
   takeOwnership: function() {
     const owner = this.data.owner;
     const lastOwnerTime = this.lastOwnerTime;
-    const now = NAF.utils.now();
+    const now = NAF.connection.getTime();
     if(owner && !this.isMine() && lastOwnerTime < now) {
-      this.el.setAttribute("networked", { owner: NAF.clientId });
       this.lastOwnerTime = now;
+      this.el.setAttribute("networked", { owner: NAF.clientId });
       this.syncAll();
       return true;
     }
@@ -128,9 +128,8 @@ AFRAME.registerComponent('networked', {
 
   onConnected: function() {
     if (this.data.owner === '') {
+      this.lastOwnerTime = NAF.connection.getTime();
       this.el.setAttribute(this.name, {owner: NAF.clientId});
-
-      this.lastOwnerTime = NAF.utils.now();
 
       this.waitForTemplate(() => {
         this.syncAll();
@@ -282,8 +281,8 @@ AFRAME.registerComponent('networked', {
     }
 
     if (this.data.owner !== entityData.owner) {
-      this.el.setAttribute("networked", { owner: entityData.owner });
       this.lastOwnerTime = entityData.lastOwnerTime;
+      this.el.setAttribute("networked", { owner: entityData.owner });
     }
 
     this.updateComponents(entityData.components);

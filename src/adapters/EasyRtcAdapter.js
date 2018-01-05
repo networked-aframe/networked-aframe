@@ -6,6 +6,9 @@ class EasyRtcAdapter {
 
     this.audioStreams = {};
     this.pendingAudioRequest = {};
+
+    this.timeOffsets = [];
+    this.avgTimeOffset = 0;
   }
 
   setServerUrl(url) {
@@ -54,22 +57,46 @@ class EasyRtcAdapter {
     this.easyrtc.setPeerListener(messageListener);
   }
 
-  connect() {
-    var that = this;
-    var connectedCallback = function(id) {
-      that._storeAudioStream(
-        that.easyrtc.myEasyrtcid,
-        that.easyrtc.getLocalStream()
-      );
-      that._myRoomJoinTime = that._getRoomJoinTime(id);
-      that.connectSuccess(id);
-    };
+  updateTimeOffset() {
+    const clientSentTime = Date.now();
 
-    if (this.easyrtc.audioEnabled) {
-      this._connectWithAudio(connectedCallback, this.connectFailure);
-    } else {
-      this.easyrtc.connect(this.app, connectedCallback, this.connectFailure);
-    }
+    return fetch(document.location.href)
+      .then(res => {
+        var precision = 1000;
+        var serverReceivedTime = new Date(res.headers.get("Date")).getTime() + (precision / 2);
+        var clientReceivedTime = Date.now();
+        var serverTime = serverReceivedTime + ((clientReceivedTime - clientSentTime) / 2);
+        var timeOffset = serverTime - clientReceivedTime;
+        this.timeOffsets.push(timeOffset);
+        this.avgTimeOffset = this.timeOffsets.reduce((acc, offset) => acc += offset, 0) / this.timeOffsets.length;
+
+        if (this.timeOffsets.length > 10) {
+          setTimeout(() => this.updateTimeOffset(), 5 * 60 * 1000); // Sync clock every 5 minutes.
+        } else {
+          this.updateTimeOffset();
+        }
+      });
+  }
+
+  connect() {
+    Promise.all([
+      this.updateTimeOffset(),
+      new Promise((resolve, reject) => {
+        if (this.easyrtc.audioEnabled) {
+          this._connectWithAudio(resolve, reject);
+        } else {
+          this.easyrtc.connect(this.app, resolve, reject);
+        }
+      })
+    ]).then(([_, clientId]) => {
+      this._storeAudioStream(
+        this.easyrtc.myEasyrtcid,
+        this.easyrtc.getLocalStream()
+      );
+
+      this._myRoomJoinTime = this._getRoomJoinTime(clientId);
+      this.connectSuccess(clientId);
+    }).catch(this.connectFailure);
   }
 
   shouldStartConnectionTo(client) {
@@ -190,6 +217,10 @@ class EasyRtcAdapter {
     var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId]
       .roomJoinTime;
     return joinTime;
+  }
+
+  getTime() {
+    return Date.now() + this.avgTimeOffset;
   }
 }
 

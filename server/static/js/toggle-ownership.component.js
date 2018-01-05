@@ -24,7 +24,7 @@ AFRAME.registerComponent('toggle-ownership', {
     }
 
     if(NAF.utils.takeOwnership(this.el)) {
-      this.data.direction *= -1;
+      this.el.setAttribute("toggle-ownership", { direction: this.data.direction * -1 });
       this.updateColor();
     }
   },
