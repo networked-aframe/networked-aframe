@@ -16,7 +16,7 @@ var app = express();
 app.use(serveStatic('server/static', {'index': ['index.html']}));
 
 // Start Express http server
-var webServer = http.createServer(app).listen(port);
+var webServer = http.createServer(app);
 
 // Start Socket.io so it attaches itself to Express server
 var socketServer = socketIo.listen(webServer, {"log level":1});
