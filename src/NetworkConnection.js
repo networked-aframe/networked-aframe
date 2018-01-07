@@ -203,6 +203,7 @@ class NetworkConnection {
 
     NAF.app = '';
     NAF.room = '';
+    NAF.clientId = '';
     this.connectedClients = {};
     this.activeDataChannels = {};
     this.adapter = null;
