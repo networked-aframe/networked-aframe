@@ -54,9 +54,9 @@
 	__webpack_require__(47);
 
 	// Network components
+	__webpack_require__(58);
 	__webpack_require__(59);
-	__webpack_require__(60);
-	__webpack_require__(66);
+	__webpack_require__(65);
 
 /***/ }),
 /* 1 */
@@ -1780,12 +1780,11 @@
 
 	var options = __webpack_require__(48);
 	var utils = __webpack_require__(49);
-	var physics = __webpack_require__(50);
-	var NafLogger = __webpack_require__(51);
-	var Schemas = __webpack_require__(52);
-	var NetworkEntities = __webpack_require__(53);
-	var NetworkConnection = __webpack_require__(55);
-	var AdapterFactory = __webpack_require__(56);
+	var NafLogger = __webpack_require__(50);
+	var Schemas = __webpack_require__(51);
+	var NetworkEntities = __webpack_require__(52);
+	var NetworkConnection = __webpack_require__(54);
+	var AdapterFactory = __webpack_require__(55);
 
 	var naf = {};
 	naf.app = '';
@@ -1793,10 +1792,9 @@
 	naf.clientId = '';
 	naf.options = options;
 	naf.utils = utils;
-	naf.physics = physics;
 	naf.log = new NafLogger();
 	naf.schemas = new Schemas();
-	naf.version = "0.3.2";
+	naf.version = "0.4.0";
 
 	naf.adapters = new AdapterFactory();
 	var entities = new NetworkEntities();
@@ -1816,8 +1814,7 @@
 	  debug: false,
 	  updateRate: 15, // How often network components call `sync`
 	  compressSyncPackets: false, // compress network component sync packet json
-	  useLerp: true, // when networked entities are created the aframe-lerp-component is attached to the root
-	  collisionOwnership: true // whether for networked-physics, we take ownership when needed upon physics collision
+	  useLerp: true // when networked entities are created the aframe-lerp-component is attached to the root
 	};
 	module.exports = options;
 
@@ -1843,32 +1840,18 @@
 	  return child;
 	};
 
-	module.exports.getNetworkOwner = function (entity) {
-	  var components = entity.components;
-	  if (components.hasOwnProperty('networked-remote')) {
-	    return entity.components['networked-remote'].data.owner;
-	  } else if (components.hasOwnProperty('networked')) {
-	    return entity.components['networked'].data.owner;
+	module.exports.getNetworkOwner = function (el) {
+	  var components = el.components;
+	  if (components.hasOwnProperty('networked')) {
+	    return components['networked'].data.owner;
 	  }
 	  return null;
 	};
 
-	module.exports.getNetworkId = function (entity) {
-	  var components = entity.components;
-	  if (components.hasOwnProperty('networked-remote')) {
-	    return entity.components['networked-remote'].data.networkId;
-	  } else if (components.hasOwnProperty('networked')) {
-	    return entity.components['networked'].networkId;
-	  }
-	  return null;
-	};
-
-	module.exports.getNetworkType = function (entity) {
-	  var components = entity.components;
-	  if (components.hasOwnProperty('networked-remote')) {
-	    return "networked-remote";
-	  } else if (components.hasOwnProperty('networked')) {
-	    return "networked";
+	module.exports.getNetworkId = function (el) {
+	  var components = el.components;
+	  if (components.hasOwnProperty('networked')) {
+	    return components['networked'].networkId;
 	  }
 	  return null;
 	};
@@ -1949,145 +1932,6 @@
 
 	"use strict";
 
-	module.exports.getPhysicsData = function (entity) {
-	  var body = entity.body;
-	  if (body) {
-	    var constraints = NAF.physics.getConstraints(entity);
-
-	    var physicsData = {
-	      type: body.type,
-	      hasConstraint: constraints.length > 0,
-	      position: body.position,
-	      quaternion: body.quaternion,
-	      velocity: body.velocity,
-	      angularVelocity: body.angularVelocity,
-	      timestamp: NAF.utils.now()
-	    };
-	    return physicsData;
-	  } else {
-	    return null;
-	  }
-	};
-
-	module.exports.getConstraints = function (entity) {
-	  // Check if our Body is in a constraint
-	  // So that others can react to that special case
-
-	  if (!entity.sceneEl.systems.physics || !entity.body) {
-	    return [];
-	  }
-
-	  var constraints = entity.sceneEl.systems.physics.world.constraints;
-	  var myConstraints = [];
-
-	  if (constraints && constraints.length > 0) {
-	    for (var i = 0; i < constraints.length; i++) {
-	      if (constraints[i].bodyA.id == entity.body.id || constraints[i].bodyB.id == entity.body.id) {
-	        myConstraints.push(constraints[i]);
-	      }
-	    }
-	  }
-
-	  return myConstraints;
-	};
-
-	module.exports.updatePhysics = function (entity, newBodyData) {
-	  var body = NAF.physics.getEntityBody(entity);
-
-	  if (body && newBodyData != "") {
-	    body.position.copy(newBodyData.position);
-	    body.quaternion.copy(newBodyData.quaternion);
-	    body.velocity.copy(newBodyData.velocity);
-	    body.angularVelocity.copy(newBodyData.angularVelocity);
-	  }
-	};
-
-	module.exports.isStrongerThan = function (entity, otherBody) {
-	  // A way to decide which element is stronger
-	  // when a collision happens
-	  // so that we can decide which one inherits ownership
-	  var elBody = entity.body;
-	  if (elBody && otherBody) {
-	    // TODO: What if they are equal?
-	    return NAF.physics.calculatePhysicsStrength(elBody) > NAF.physics.calculatePhysicsStrength(otherBody);
-	  } else {
-	    return false;
-	  }
-	};
-
-	module.exports.calculatePhysicsStrength = function (body) {
-	  var speed = Math.abs(body.velocity.x) + Math.abs(body.velocity.y) + Math.abs(body.velocity.z);
-	  var rotationalSpeed = Math.abs(body.angularVelocity.x) + Math.abs(body.angularVelocity.y) + Math.abs(body.angularVelocity.z);
-
-	  return 2 * speed + rotationalSpeed;
-	};
-
-	module.exports.attachPhysicsLerp = function (entity, physicsData) {
-	  AFRAME.utils.entity.setComponentProperty(entity, "physics-lerp", {
-	    targetPosition: physicsData.position,
-	    targetQuaternion: physicsData.quaternion,
-	    targetVelocity: physicsData.velocity,
-	    targetAngularVelocity: physicsData.angularVelocity,
-	    time: 1000 / NAF.options.updateRate
-	  });
-	};
-
-	module.exports.detachPhysicsLerp = function (entity) {
-	  if (entity.hasAttribute('physics-lerp')) {
-	    entity.removeAttribute('physics-lerp');
-	  }
-	};
-
-	module.exports.sleep = function (entity) {
-	  var body = NAF.physics.getEntityBody(entity);
-
-	  if (body) {
-	    // TODO need this check? can non-physics entities get passed to this?
-	    body.sleep();
-	  }
-	};
-
-	module.exports.wakeUp = function (entity) {
-	  var body = NAF.physics.getEntityBody(entity);
-
-	  if (body) {
-	    // TODO need this check? can non-physics entities get passed to this?
-	    if (body.sleepState == CANNON.Body.SLEEPING) {
-	      body.wakeUp();
-	    }
-	  }
-	};
-
-	module.exports.getEntityBody = function (entity) {
-	  // This is necessary because of networked-aframes schema system and networked-remote
-	  if (entity.body) {
-	    return entity.body;
-	  } else {
-	    var childBody = entity.querySelector("[dynamic-body], [static-body]");
-
-	    if (childBody && childBody.body) {
-	      return childBody.body;
-	    }
-	  }
-
-	  return null;
-	};
-
-	module.exports.collisionEvent = "collide";
-
-	module.exports.getDataFromCollision = function (collisionEvent) {
-	  return {
-	    body: collisionEvent.detail.body,
-	    el: collisionEvent.detail.body.el
-	  };
-	};
-
-/***/ }),
-/* 51 */
-/***/ (function(module, exports) {
-
-	"use strict";
-
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2124,7 +1968,7 @@
 	module.exports = NafLogger;
 
 /***/ }),
-/* 52 */
+/* 51 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -2187,7 +2031,7 @@
 	module.exports = Schemas;
 
 /***/ }),
-/* 53 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2196,7 +2040,7 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var ChildEntityCache = __webpack_require__(54);
+	var ChildEntityCache = __webpack_require__(53);
 
 	var NetworkEntities = function () {
 	  function NetworkEntities() {
@@ -2385,6 +2229,18 @@
 	    value: function hasEntity(id) {
 	      return this.entities.hasOwnProperty(id);
 	    }
+	  }, {
+	    key: 'removeRemoteEntities',
+	    value: function removeRemoteEntities() {
+	      this.childCache = new ChildEntityCache();
+
+	      for (var id in this.entities) {
+	        var owner = this.entities[id].getAttribute('networked').owner;
+	        if (owner != NAF.clientId) {
+	          this.removeEntity(id);
+	        }
+	      }
+	    }
 	  }]);
 
 	  return NetworkEntities;
@@ -2393,7 +2249,7 @@
 	module.exports = NetworkEntities;
 
 /***/ }),
-/* 54 */
+/* 53 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -2443,7 +2299,7 @@
 	module.exports = ChildEntityCache;
 
 /***/ }),
-/* 55 */
+/* 54 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -2507,6 +2363,8 @@
 	  }, {
 	    key: 'onConnect',
 	    value: function onConnect(callback) {
+	      this.onConnectCallback = callback;
+
 	      if (this.isConnected()) {
 	        callback();
 	      } else {
@@ -2669,6 +2527,23 @@
 	        NAF.log.error('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
 	      }
 	    }
+	  }, {
+	    key: 'disconnect',
+	    value: function disconnect() {
+	      this.entities.removeRemoteEntities();
+	      this.adapter.disconnect();
+
+	      NAF.app = '';
+	      NAF.room = '';
+	      NAF.clientId = '';
+	      this.connectedClients = {};
+	      this.activeDataChannels = {};
+	      this.adapter = null;
+
+	      this.setupDefaultDataSubscriptions();
+
+	      document.body.removeEventListener('connected', this.onConnectCallback);
+	    }
 	  }]);
 
 	  return NetworkConnection;
@@ -2677,7 +2552,7 @@
 	module.exports = NetworkConnection;
 
 /***/ }),
-/* 56 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -2686,8 +2561,8 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var WsEasyRtcAdapter = __webpack_require__(57);
-	var EasyRtcAdapter = __webpack_require__(58);
+	var WsEasyRtcAdapter = __webpack_require__(56);
+	var EasyRtcAdapter = __webpack_require__(57);
 
 	var AdapterFactory = function () {
 	  function AdapterFactory() {
@@ -2731,7 +2606,7 @@
 	module.exports = AdapterFactory;
 
 /***/ }),
-/* 57 */
+/* 56 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -2848,6 +2723,11 @@
 	        return NAF.adapters.NOT_CONNECTED;
 	      }
 	    }
+	  }, {
+	    key: 'disconnect',
+	    value: function disconnect() {
+	      this.easyrtc.disconnect();
+	    }
 	  }]);
 
 	  return WsEasyRtcInterface;
@@ -2856,7 +2736,7 @@
 	module.exports = WsEasyRtcInterface;
 
 /***/ }),
-/* 58 */
+/* 57 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -3026,6 +2906,11 @@
 	        });
 	      }
 	    }
+	  }, {
+	    key: "disconnect",
+	    value: function disconnect() {
+	      this.easyrtc.disconnect();
+	    }
 
 	    /**
 	     * Privates
@@ -3073,7 +2958,7 @@
 	module.exports = EasyRtcAdapter;
 
 /***/ }),
-/* 59 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3087,14 +2972,15 @@
 	    room: { default: 'default' },
 	    connectOnLoad: { default: true },
 	    onConnect: { default: 'onConnect' },
-	    adapter: { default: 'wsEasyRtc' }, // See src/adapters/AdapterFactory.js for list of adapters
+	    adapter: { default: 'wsEasyRtc' }, // See https://github.com/networked-aframe/networked-aframe#adapters for list of adapters
 	    audio: { default: false }, // Only if adapter supports audio
 	    debug: { default: false }
 	  },
 
 	  init: function init() {
 	    var el = this.el;
-	    el.addEventListener('connect', this.connect.bind(this));
+	    this.connect = this.connect.bind(this);
+	    el.addEventListener('connect', this.connect);
 	    if (this.data.connectOnLoad) {
 	      el.emit('connect', null, false);
 	    }
@@ -3132,18 +3018,24 @@
 
 	  callOnConnect: function callOnConnect() {
 	    NAF.connection.onConnect(window[this.data.onConnect]);
+	  },
+
+	  remove: function remove() {
+	    NAF.log.write('networked-scene disconnected');
+	    this.el.removeEventListener('connect', this.connect);
+	    NAF.connection.disconnect();
 	  }
 	});
 
 /***/ }),
-/* 60 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var naf = __webpack_require__(47);
-	var componentHelper = __webpack_require__(61);
-	var Compressor = __webpack_require__(65);
+	var componentHelper = __webpack_require__(60);
+	var Compressor = __webpack_require__(64);
 	var bind = AFRAME.utils.bind;
 
 	AFRAME.registerComponent('networked', {
@@ -3156,7 +3048,8 @@
 	  },
 
 	  init: function init() {
-	    var data = this.data;
+	    var _this = this;
+
 	    var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
 	    this.onConnected = bind(this.onConnected, this);
@@ -3167,11 +3060,11 @@
 	    this.cachedData = {};
 	    this.initNetworkParent();
 
-	    if (data.networkId === '') {
-	      data.networkId = NAF.utils.createNetworkId();
+	    if (this.data.networkId === '') {
+	      this.el.setAttribute(this.name, { networkId: NAF.utils.createNetworkId() });
 	    }
 
-	    if (data.template != '') {
+	    if (this.data.template != '') {
 	      this.initTemplate();
 	    }
 
@@ -3179,7 +3072,7 @@
 	      this.firstUpdate();
 	      this.attachLerp();
 	    } else {
-	      this.registerEntity(data.networkId);
+	      this.registerEntity(this.data.networkId);
 	    }
 
 	    if (this.data.owner === '') {
@@ -3188,7 +3081,9 @@
 	      // Note that this only works because the reliable messages are sent over a single websocket connection.
 	      // If they are sent over a different transport this check may need to change
 	      if (NAF.connection.isConnected()) {
-	        this.syncAll();
+	        this.waitForTemplate(function () {
+	          _this.syncAll();
+	        });
 	      }
 	    }
 
@@ -3241,18 +3136,17 @@
 	  },
 
 	  firstUpdate: function firstUpdate() {
+	    var _this2 = this;
+
 	    var entityData = this.el.firstUpdateData;
 	    this.networkUpdate(entityData); // updates root element only
-	    this.waitForTemplateAndUpdateChildren();
+
+	    this.waitForTemplate(function () {
+	      _this2.networkUpdate(entityData);
+	    });
 	  },
 
-	  waitForTemplateAndUpdateChildren: function waitForTemplateAndUpdateChildren() {
-	    var self = this;
-	    var callback = function callback() {
-	      var entityData = self.el.firstUpdateData;
-	      self.networkUpdate(entityData);
-	    };
-
+	  waitForTemplate: function waitForTemplate(callback) {
 	    // wait for template to render (and monkey-patching to finish, so next tick), then callback
 	    if (this.templateEl) {
 	      this.templateEl.addEventListener('templaterendered', function () {
@@ -3276,7 +3170,7 @@
 	  },
 
 	  onConnected: function onConnected() {
-	    this.data.owner = NAF.clientId;
+	    this.el.setAttribute(this.name, { owner: NAF.clientId });
 	  },
 
 	  isMine: function isMine() {
@@ -3463,7 +3357,7 @@
 	  },
 
 	  remove: function remove() {
-	    if (this.isMine()) {
+	    if (this.isMine() && NAF.connection.isConnected()) {
 	      var syncData = { networkId: this.data.networkId };
 	      NAF.connection.broadcastDataGuaranteed('r', syncData);
 	    }
@@ -3479,12 +3373,12 @@
 	});
 
 /***/ }),
-/* 61 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var deepEqual = __webpack_require__(62);
+	var deepEqual = __webpack_require__(61);
 
 	module.exports.gatherComponentsData = function (el, schemaComponents) {
 	  var elComponents = el.components;
@@ -3566,7 +3460,7 @@
 	};
 
 /***/ }),
-/* 62 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3574,8 +3468,8 @@
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	var pSlice = Array.prototype.slice;
-	var objectKeys = __webpack_require__(63);
-	var isArguments = __webpack_require__(64);
+	var objectKeys = __webpack_require__(62);
+	var isArguments = __webpack_require__(63);
 
 	var deepEqual = module.exports = function (actual, expected, opts) {
 	  if (!opts) opts = {};
@@ -3666,7 +3560,7 @@
 	}
 
 /***/ }),
-/* 63 */
+/* 62 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -3682,7 +3576,7 @@
 	}
 
 /***/ }),
-/* 64 */
+/* 63 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -3706,7 +3600,7 @@
 	};
 
 /***/ }),
-/* 65 */
+/* 64 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -3802,7 +3696,7 @@
 	};
 
 /***/ }),
-/* 66 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3844,8 +3738,10 @@
 	        this.sound.disconnect();
 	      }
 	      if (newStream) {
-	        // Chrome seems to require a MediaStream be attached to an AudioElement before AudioNodes work correctly, this is unused besides ths
+	        // Chrome seems to require a MediaStream be attached to an AudioElement before AudioNodes work correctly
 	        this.audioEl = new Audio();
+	        this.audioEl.setAttribute("autoplay", "autoplay");
+	        this.audioEl.setAttribute("playsinline", "playsinline");
 	        this.audioEl.srcObject = newStream;
 
 	        this.sound.setNodeSource(this.sound.context.createMediaStreamSource(newStream));
