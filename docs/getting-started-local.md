@@ -36,7 +36,7 @@ Now let's setup the required dependencies. Create a file called `package.json` a
   },
   "author": "YOUR_NAME",
   "dependencies": {
-    "networked-aframe": "^0.3.0"
+    "networked-aframe": "^0.4.0"
   }
 }
 ```
@@ -72,7 +72,9 @@ Let's run the default server and start playing with the examples. From your proj
 node ./server/easyrtc-server.js
 ```
 
-You'll notice the `package.json` also has a shortcut to start the server that you can use by running:
+
+
+You'll notice the `package.json` has a shortcut to start the server that you can use by running:
 
 ```sh
 npm start
@@ -106,7 +108,7 @@ Here's the template we'll start with:
 ```html
 <html>
   <head>
-    <script src="https://aframe.io/releases/0.5.0/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="easyrtc/easyrtc.js"></script>
     <script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js"></script>

@@ -76,8 +76,9 @@ class NetworkConnection {
   }
 
   occupantsReceived(occupantList) {
-    this.checkForDisconnectingClients(this.connectedClients, occupantList);
+    var prevConnectedClients = Object.assign({}, this.connectedClients);
     this.connectedClients = occupantList;
+    this.checkForDisconnectingClients(prevConnectedClients, occupantList);
     this.checkForConnectingClients(occupantList);
   }
 
