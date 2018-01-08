@@ -1,11 +1,9 @@
-var WsEasyRtcAdapter = require("./WsEasyRtcAdapter");
 var EasyRtcAdapter = require("./EasyRtcAdapter");
 
 class AdapterFactory {
   constructor() {
     this.adapters = {
-      "wseasyrtc": WsEasyRtcAdapter,
-      "easyrtc": EasyRtcAdapter
+      "easyrtc": EasyRtcAdapter,
     };
 
     this.IS_CONNECTED = AdapterFactory.IS_CONNECTED;

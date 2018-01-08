@@ -3,7 +3,12 @@ class EasyRtcAdapter {
     this.app = "default";
     this.room = "default";
     this.easyrtc = easyrtc || window.easyrtc;
+    this.webrtc = false;
 
+    // WebSockets only
+    this.connectedClients = [];
+
+    // WebRTC only
     this.audioStreams = {};
     this.pendingAudioRequest = {};
   }
@@ -24,8 +29,8 @@ class EasyRtcAdapter {
   // options: { datachannel: bool, audio: bool }
   setWebRtcOptions(options) {
     // this.easyrtc.enableDebug(true);
+    this.webrtc = true;
     this.easyrtc.enableDataChannels(options.datachannel);
-
     this.easyrtc.enableVideo(false);
     this.easyrtc.enableAudio(options.audio);
 
@@ -49,57 +54,90 @@ class EasyRtcAdapter {
   }
 
   setDataChannelListeners(openListener, closedListener, messageListener) {
-    this.easyrtc.setDataChannelOpenListener(openListener);
-    this.easyrtc.setDataChannelCloseListener(closedListener);
-    this.easyrtc.setPeerListener(messageListener);
+    if (this.webrtc) {
+      this.easyrtc.setDataChannelOpenListener(openListener);
+      this.easyrtc.setDataChannelCloseListener(closedListener);
+      this.easyrtc.setPeerListener(messageListener);
+    } else {
+      this.openListener = openListener;
+      this.closedListener = closedListener;
+      this.easyrtc.setPeerListener(messageListener);
+    }
   }
 
   connect() {
-    var that = this;
-    var connectedCallback = function(id) {
-      that._storeAudioStream(
-        that.easyrtc.myEasyrtcid,
-        that.easyrtc.getLocalStream()
-      );
-      that._myRoomJoinTime = that._getRoomJoinTime(id);
-      that.connectSuccess(id);
-    };
+    if (this.webrtc) {
+      // WebRTC
+      var that = this;
+      var connectedCallback = function(id) {
+        that._storeAudioStream(
+          that.easyrtc.myEasyrtcid,
+          that.easyrtc.getLocalStream()
+        );
+        that._myRoomJoinTime = that._getRoomJoinTime(id);
+        that.connectSuccess(id);
+      };
 
-    if (this.easyrtc.audioEnabled) {
-      this._connectWithAudio(connectedCallback, this.connectFailure);
+      if (this.easyrtc.audioEnabled) {
+        this._connectWithAudio(connectedCallback, this.connectFailure);
+      } else {
+        this.easyrtc.connect(this.app, connectedCallback, this.connectFailure);
+      }
     } else {
-      this.easyrtc.connect(this.app, connectedCallback, this.connectFailure);
+      // WebSockets only
+      this.easyrtc.connect(this.app, this.connectSuccess, this.connectFailure);
     }
   }
 
   shouldStartConnectionTo(client) {
-    return this._myRoomJoinTime <= client.roomJoinTime;
+    if (this.webrtc) {
+      return this._myRoomJoinTime <= client.roomJoinTime;
+    } else {
+      return true;
+    }
   }
 
   startStreamConnection(clientId) {
-    this.easyrtc.call(
-      clientId,
-      function(caller, media) {
-        if (media === "datachannel") {
-          NAF.log.write("Successfully started datachannel to ", caller);
+    if (this.webrtc) {
+      this.easyrtc.call(
+        clientId,
+        function(caller, media) {
+          if (media === "datachannel") {
+            NAF.log.write("Successfully started datachannel to ", caller);
+          }
+        },
+        function(errorCode, errorText) {
+          console.error(errorCode, errorText);
+        },
+        function(wasAccepted) {
+          // console.log("was accepted=" + wasAccepted);
         }
-      },
-      function(errorCode, errorText) {
-        console.error(errorCode, errorText);
-      },
-      function(wasAccepted) {
-        // console.log("was accepted=" + wasAccepted);
-      }
-    );
+      );
+    } else {
+      this.connectedClients.push(clientId);
+      this.openListener(clientId);
+    }
   }
 
   closeStreamConnection(clientId) {
-    // Handled by easyrtc
+    if (this.webrtc) {
+      // Handled by EasyRTC
+    } else {
+      var index = this.connectedClients.indexOf(clientId);
+      if (index > -1) {
+        this.connectedClients.splice(index, 1);
+      }
+      this.closedListener(clientId);
+    }
   }
 
   sendData(clientId, dataType, data) {
     // send via webrtc otherwise fallback to websockets
-    this.easyrtc.sendData(clientId, dataType, data);
+    if (this.webrtc) {
+      this.easyrtc.sendData(clientId, dataType, data);
+    } else {
+      this.sendDataGuaranteed(clientId, dataType, data);
+    }
   }
 
   sendDataGuaranteed(clientId, dataType, data) {
@@ -107,35 +145,54 @@ class EasyRtcAdapter {
   }
 
   broadcastData(dataType, data) {
-    var roomOccupants = this.easyrtc.getRoomOccupantsAsMap(this.room);
+    if (this.webrtc) {
+      var roomOccupants = this.easyrtc.getRoomOccupantsAsMap(this.room);
 
-    // Iterate over the keys of the easyrtc room occupants map.
-    // getRoomOccupantsAsArray uses Object.keys which allocates memory.
-    for (var roomOccupant in roomOccupants) {
-      if (
-        roomOccupants.hasOwnProperty(roomOccupant) &&
-        roomOccupant !== this.easyrtc.myEasyrtcid
-      ) {
-        // send via webrtc otherwise fallback to websockets
-        this.easyrtc.sendData(roomOccupant, dataType, data);
+      // Iterate over the keys of the easyrtc room occupants map.
+      // getRoomOccupantsAsArray uses Object.keys which allocates memory.
+      for (var roomOccupant in roomOccupants) {
+        if (
+          roomOccupants.hasOwnProperty(roomOccupant) &&
+          roomOccupant !== this.easyrtc.myEasyrtcid
+        ) {
+          // send via webrtc otherwise fallback to websockets
+          this.easyrtc.sendData(roomOccupant, dataType, data);
+        }
       }
+    } else {
+      var destination = {targetRoom: this.room};
+      this.easyrtc.sendDataWS(destination, dataType, data);
     }
   }
 
   broadcastDataGuaranteed(dataType, data) {
-    var destination = { targetRoom: this.room };
-    this.easyrtc.sendDataWS(destination, dataType, data);
+    if (this.webrtc) {
+      var destination = { targetRoom: this.room };
+      this.easyrtc.sendDataWS(destination, dataType, data);
+    } else {
+      this.broadcastData(dataType, data);
+    }
   }
 
   getConnectStatus(clientId) {
-    var status = this.easyrtc.getConnectStatus(clientId);
+    if (this.webrtc) {
+      var status = this.easyrtc.getConnectStatus(clientId);
 
-    if (status == this.easyrtc.IS_CONNECTED) {
-      return NAF.adapters.IS_CONNECTED;
-    } else if (status == this.easyrtc.NOT_CONNECTED) {
-      return NAF.adapters.NOT_CONNECTED;
+      if (status == this.easyrtc.IS_CONNECTED) {
+        return NAF.adapters.IS_CONNECTED;
+      } else if (status == this.easyrtc.NOT_CONNECTED) {
+        return NAF.adapters.NOT_CONNECTED;
+      } else {
+        return NAF.adapters.CONNECTING;
+      }
     } else {
-      return NAF.adapters.CONNECTING;
+      var connected = this.connectedClients.indexOf(clientId) != -1;
+
+      if (connected) {
+        return NAF.adapters.IS_CONNECTED;
+      } else {
+        return NAF.adapters.NOT_CONNECTED;
+      }
     }
   }
 
