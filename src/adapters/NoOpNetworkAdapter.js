@@ -27,6 +27,8 @@ class NoOpNetworkAdapter extends NafInterface {
   sendDataGuaranteed(clientId, dataType, data) {this.notImplemented('sendDataGuaranteed')}
   broadcastData(dataType, data) {this.notImplemented('broadcastData')}
   broadcastDataGuaranteed(dataType, data) {this.notImplemented('broadcastDataGuaranteed')}
+
+  disconnect() {this.notImplemented('disconnect')}
 }
 
 module.exports = NoOpAdapter;

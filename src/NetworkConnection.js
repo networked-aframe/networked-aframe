@@ -54,6 +54,8 @@ class NetworkConnection {
   }
 
   onConnect(callback) {
+    this.onConnectCallback = callback;
+
     if (this.isConnected()) {
       callback();
     } else {
@@ -74,8 +76,9 @@ class NetworkConnection {
   }
 
   occupantsReceived(occupantList) {
-    this.checkForDisconnectingClients(this.connectedClients, occupantList);
+    var prevConnectedClients = Object.assign({}, this.connectedClients);
     this.connectedClients = occupantList;
+    this.checkForDisconnectingClients(prevConnectedClients, occupantList);
     this.checkForConnectingClients(occupantList);
   }
 
@@ -197,6 +200,22 @@ class NetworkConnection {
 
   getServerTime() {
     return this.adapter.getServerTime();
+  }
+
+  disconnect() {
+    this.entities.removeRemoteEntities();
+    this.adapter.disconnect();
+
+    NAF.app = '';
+    NAF.room = '';
+    NAF.clientId = '';
+    this.connectedClients = {};
+    this.activeDataChannels = {};
+    this.adapter = null;
+
+    this.setupDefaultDataSubscriptions();
+
+    document.body.removeEventListener('connected', this.onConnectCallback);
   }
 }
 

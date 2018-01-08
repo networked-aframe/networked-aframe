@@ -122,7 +122,7 @@ class WsEasyRtcInterface {
 
   getConnectStatus(clientId) {
     var connected = this.connectedClients.indexOf(clientId) != -1;
-    
+
     if (connected) {
       return NAF.adapters.IS_CONNECTED;
     } else {
@@ -132,6 +132,10 @@ class WsEasyRtcInterface {
 
   getServerTime() {
     return Date.now() + this.avgTimeOffset;
+  }
+
+  disconnect() {
+    this.easyrtc.disconnect();
   }
 }
 

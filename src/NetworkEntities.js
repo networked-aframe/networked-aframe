@@ -52,7 +52,7 @@ class NetworkEntities {
       owner: entityData.owner,
       networkId: entityData.networkId
     };
-    
+
     entity.setAttribute('networked', networkData);
     entity.firstUpdateData = entityData;
   }
@@ -176,6 +176,17 @@ class NetworkEntities {
 
   hasEntity(id) {
     return this.entities.hasOwnProperty(id);
+  }
+
+  removeRemoteEntities() {
+    this.childCache = new ChildEntityCache();
+
+    for (var id in this.entities) {
+      var owner = this.entities[id].getAttribute('networked').owner;
+      if (owner != NAF.clientId) {
+        this.removeEntity(id);
+      }
+    }
   }
 }
 

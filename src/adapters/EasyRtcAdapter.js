@@ -188,6 +188,10 @@ class EasyRtcAdapter {
     }
   }
 
+  disconnect() {
+    this.easyrtc.disconnect();
+  }
+
   /**
    * Privates
    */

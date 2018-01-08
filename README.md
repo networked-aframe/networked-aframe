@@ -142,6 +142,24 @@ Required on the A-Frame `<a-scene>` component.
 | audio  | Turn on / off microphone audio streaming for your app. Only works if the chosen adapter supports it. | false |
 | debug  | Turn on / off Networked-Aframe debug logs. | false |
 
+### Connecting
+
+By defualt, `networked-scene` will connect to your server automatically. To prevent this and instead have control over when to connect, set `connectOnLoad` to false in `networked-scene`. When you are ready to connect emit the `connect` event on the `a-scene` element.
+
+```javascript
+AFRAME.scenes[0].emit('connect');
+```
+
+### Disconnecting
+
+To disconnect simply remove the `networked-scene` component from the `a-scene` element.
+
+```javascript
+AFRAME.scenes[0].removeAttribute('networked-scene');
+```
+
+Completely removing `a-scene` from your page will also handle cleanly disconnecting.
+
 
 ### Creating Networked Entities
 

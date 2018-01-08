@@ -333,7 +333,7 @@ AFRAME.registerComponent('networked', {
   },
 
   remove: function () {
-    if (this.isMine()) {
+    if (this.isMine() && NAF.connection.isConnected()) {
       var syncData = { networkId: this.data.networkId };
       NAF.connection.broadcastDataGuaranteed('r', syncData);
     }
