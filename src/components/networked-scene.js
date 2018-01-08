@@ -8,7 +8,8 @@ AFRAME.registerComponent('networked-scene', {
     connectOnLoad: {default: true},
     onConnect: {default: 'onConnect'},
     adapter: {default: 'wsEasyRtc'}, // See https://github.com/networked-aframe/networked-aframe#adapters for list of adapters
-    audio: {default: false}, // Only if adapter supports audio
+    webrtc: {default: false}, // Only if adapter supports WebRTC
+    audio: {default: false}, // Only if webrtc is true and adapter supports audio streaming
     debug: {default: false},
   },
 
@@ -34,7 +35,13 @@ AFRAME.registerComponent('networked-scene', {
     if (this.hasOnConnectFunction()) {
       this.callOnConnect();
     }
-    NAF.connection.connect(this.data.serverURL, this.data.app, this.data.room, this.data.audio);
+    NAF.connection.connect(
+      this.data.serverURL,
+      this.data.app,
+      this.data.room,
+      this.data.audio,
+      this.data.webrtc
+    );
   },
 
   checkDeprecatedProperties: function() {
