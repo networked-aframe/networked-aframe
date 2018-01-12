@@ -1,4 +1,5 @@
 var deepEqual = require('deep-equal');
+var almostEqual = require('almost-equal');
 
 module.exports.gatherComponentsData = function(el, schemaComponents) {
   var elComponents = el.components;
@@ -33,6 +34,10 @@ module.exports.gatherComponentsData = function(el, schemaComponents) {
 module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
   var newComps = el.components;
   var dirtyComps = [];
+  
+  function almostEqualVec3(a, b) {
+    return almostEqual(a.x, b.x, 0.1, almostEqual.FLT_EPSILON) && almostEqual(a.y, b.y,  0.1, almostEqual.FLT_EPSILON) && almostEqual(a.z, b.z, 0.1, almostEqual.FLT_EPSILON);
+  }
 
   for (var i in syncedComps) {
     var schema = syncedComps[i];
@@ -73,8 +78,14 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
     }
 
     var oldCompData = cachedData[compKey];
-    if (!deepEqual(oldCompData, newCompData)) {
-      dirtyComps.push(schema);
+    if (oldCompData.x && oldCompData.y && oldCompData.z)  {
+      if (!almostEqualVec3(oldCompData, newCompData)) { 
+        dirtyComps.push(schema);
+      }
+    } else {
+      if (!deepEqual(oldCompData, newCompData)) { 
+        dirtyComps.push(schema);
+      }
     }
   }
   return dirtyComps;
