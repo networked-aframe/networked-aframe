@@ -67,10 +67,12 @@ suite('networked_withParent', function() {
 
     test('broadcasts uncompressed data with parent', sinon.test(function() {
       this.stub(naf.connection, 'broadcastDataGuaranteed');
+
       var expected = {
         0: 0,
         networkId: 'network1',
         owner: 'owner1',
+        lastOwnerTime: -1,
         parent: 'parentId',
         template: 't1',
         components: {

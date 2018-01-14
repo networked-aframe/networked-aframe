@@ -198,6 +198,10 @@ class NetworkConnection {
     }
   }
 
+  getServerTime() {
+    return this.adapter.getServerTime();
+  }
+
   disconnect() {
     this.entities.removeRemoteEntities();
     this.adapter.disconnect();

@@ -5,9 +5,14 @@ class WsEasyRtcInterface {
     this.app = 'default';
     this.room = 'default';
     this.connectedClients = [];
+
+    this.serverTimeRequests = 0;
+    this.timeOffsets = [];
+    this.avgTimeOffset = 0;
   }
 
   setServerUrl(url) {
+    this.serverUrl = url;
     this.easyrtc.setSocketUrl(url);
   }
 
@@ -41,8 +46,44 @@ class WsEasyRtcInterface {
     this.easyrtc.setPeerListener(messageListener);
   }
 
+  updateTimeOffset() {
+    const clientSentTime = Date.now() + this.avgTimeOffset;
+
+    return fetch(document.location.href, { method: "HEAD", cache: "no-cache" })
+      .then(res => {
+        var precision = 1000;
+        var serverReceivedTime = new Date(res.headers.get("Date")).getTime() + (precision / 2);
+        var clientReceivedTime = Date.now();
+        var serverTime = serverReceivedTime + ((clientReceivedTime - clientSentTime) / 2);
+        var timeOffset = serverTime - clientReceivedTime;
+
+        this.serverTimeRequests++;
+
+        if (this.serverTimeRequests <= 10) {
+          this.timeOffsets.push(timeOffset);
+        } else {
+          this.timeOffsets[this.serverTimeRequests % 10] = timeOffset;
+        }
+        
+        this.avgTimeOffset = this.timeOffsets.reduce((acc, offset) => acc += offset, 0) / this.timeOffsets.length;
+
+        if (this.serverTimeRequests > 10) {
+          setTimeout(() => this.updateTimeOffset(), 5 * 60 * 1000); // Sync clock every 5 minutes.
+        } else {
+          this.updateTimeOffset();
+        }
+      });
+  }
+
   connect() {
-    this.easyrtc.connect(this.app, this.connectSuccess, this.connectFailure);
+    Promise.all([
+      this.updateTimeOffset(),
+      new Promise((resolve, reject) => {
+        this.easyrtc.connect(this.app, resolve, reject);
+      })
+    ]).then(([_, clientId]) => {
+      this.connectSuccess(clientId);
+    }).catch(this.connectFailure);
   }
 
   shouldStartConnectionTo(clientId) {
@@ -87,6 +128,10 @@ class WsEasyRtcInterface {
     } else {
       return NAF.adapters.NOT_CONNECTED;
     }
+  }
+
+  getServerTime() {
+    return Date.now() + this.avgTimeOffset;
   }
 
   disconnect() {

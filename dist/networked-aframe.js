@@ -1889,11 +1889,27 @@
 	 * @param {ANode} entity - Entity to begin the search on
 	 * @returns {ANode} An entity with a `networked` component or null
 	 */
-	module.exports.getNetworkedEntity = function (entity) {
+	function getNetworkedEntity(entity) {
 	  while (entity && !(entity.components && entity.components.networked)) {
 	    entity = entity.parentNode;
 	  }
 	  return entity;
+	};
+
+	module.exports.getNetworkedEntity = getNetworkedEntity;
+
+	module.exports.takeOwnership = function (entity) {
+	  var networkedEntity = getNetworkedEntity(entity);
+
+	  if (!networkedEntity) {
+	    return NAF.log.error("takeOwnership() must be called on an entity or child of an entity with the [networked] component.");
+	  }
+
+	  return networkedEntity.components['networked'].takeOwnership();
+	};
+
+	module.exports.isMine = function (entity) {
+	  return getNetworkedEntity(entity).components['networked'].isMine();
 	};
 
 	module.exports.monkeyPatchEntityFromTemplateChild = function (entity, templateChild, callback) {
@@ -2529,6 +2545,11 @@
 	      }
 	    }
 	  }, {
+	    key: 'getServerTime',
+	    value: function getServerTime() {
+	      return this.adapter.getServerTime();
+	    }
+	  }, {
 	    key: 'disconnect',
 	    value: function disconnect() {
 	      this.entities.removeRemoteEntities();
@@ -2612,6 +2633,8 @@
 
 	'use strict';
 
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2624,11 +2647,16 @@
 	    this.app = 'default';
 	    this.room = 'default';
 	    this.connectedClients = [];
+
+	    this.serverTimeRequests = 0;
+	    this.timeOffsets = [];
+	    this.avgTimeOffset = 0;
 	  }
 
 	  _createClass(WsEasyRtcInterface, [{
 	    key: 'setServerUrl',
 	    value: function setServerUrl(url) {
+	      this.serverUrl = url;
 	      this.easyrtc.setSocketUrl(url);
 	    }
 	  }, {
@@ -2668,9 +2696,54 @@
 	      this.easyrtc.setPeerListener(messageListener);
 	    }
 	  }, {
+	    key: 'updateTimeOffset',
+	    value: function updateTimeOffset() {
+	      var _this = this;
+
+	      var clientSentTime = Date.now() + this.avgTimeOffset;
+
+	      return fetch(document.location.href, { method: "HEAD", cache: "no-cache" }).then(function (res) {
+	        var precision = 1000;
+	        var serverReceivedTime = new Date(res.headers.get("Date")).getTime() + precision / 2;
+	        var clientReceivedTime = Date.now();
+	        var serverTime = serverReceivedTime + (clientReceivedTime - clientSentTime) / 2;
+	        var timeOffset = serverTime - clientReceivedTime;
+
+	        _this.serverTimeRequests++;
+
+	        if (_this.serverTimeRequests <= 10) {
+	          _this.timeOffsets.push(timeOffset);
+	        } else {
+	          _this.timeOffsets[_this.serverTimeRequests % 10] = timeOffset;
+	        }
+
+	        _this.avgTimeOffset = _this.timeOffsets.reduce(function (acc, offset) {
+	          return acc += offset;
+	        }, 0) / _this.timeOffsets.length;
+
+	        if (_this.serverTimeRequests > 10) {
+	          setTimeout(function () {
+	            return _this.updateTimeOffset();
+	          }, 5 * 60 * 1000); // Sync clock every 5 minutes.
+	        } else {
+	          _this.updateTimeOffset();
+	        }
+	      });
+	    }
+	  }, {
 	    key: 'connect',
 	    value: function connect() {
-	      this.easyrtc.connect(this.app, this.connectSuccess, this.connectFailure);
+	      var _this2 = this;
+
+	      Promise.all([this.updateTimeOffset(), new Promise(function (resolve, reject) {
+	        _this2.easyrtc.connect(_this2.app, resolve, reject);
+	      })]).then(function (_ref) {
+	        var _ref2 = _slicedToArray(_ref, 2),
+	            _ = _ref2[0],
+	            clientId = _ref2[1];
+
+	        _this2.connectSuccess(clientId);
+	      }).catch(this.connectFailure);
 	    }
 	  }, {
 	    key: 'shouldStartConnectionTo',
@@ -2725,6 +2798,11 @@
 	      }
 	    }
 	  }, {
+	    key: 'getServerTime',
+	    value: function getServerTime() {
+	      return Date.now() + this.avgTimeOffset;
+	    }
+	  }, {
 	    key: 'disconnect',
 	    value: function disconnect() {
 	      this.easyrtc.disconnect();
@@ -2742,6 +2820,8 @@
 
 	"use strict";
 
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2756,6 +2836,9 @@
 
 	    this.audioStreams = {};
 	    this.pendingAudioRequest = {};
+
+	    this.timeOffsets = [];
+	    this.avgTimeOffset = 0;
 	  }
 
 	  _createClass(EasyRtcAdapter, [{
@@ -2810,20 +2893,61 @@
 	      this.easyrtc.setPeerListener(messageListener);
 	    }
 	  }, {
+	    key: "updateTimeOffset",
+	    value: function updateTimeOffset() {
+	      var _this = this;
+
+	      var clientSentTime = Date.now() + this.avgTimeOffset;
+
+	      return fetch(document.location.href, { method: "HEAD", cache: "no-cache" }).then(function (res) {
+	        var precision = 1000;
+	        var serverReceivedTime = new Date(res.headers.get("Date")).getTime() + precision / 2;
+	        var clientReceivedTime = Date.now();
+	        var serverTime = serverReceivedTime + (clientReceivedTime - clientSentTime) / 2;
+	        var timeOffset = serverTime - clientReceivedTime;
+
+	        _this.serverTimeRequests++;
+
+	        if (_this.serverTimeRequests <= 10) {
+	          _this.timeOffsets.push(timeOffset);
+	        } else {
+	          _this.timeOffsets[_this.serverTimeRequests % 10] = timeOffset;
+	        }
+
+	        _this.avgTimeOffset = _this.timeOffsets.reduce(function (acc, offset) {
+	          return acc += offset;
+	        }, 0) / _this.timeOffsets.length;
+
+	        if (_this.serverTimeRequests > 10) {
+	          setTimeout(function () {
+	            return _this.updateTimeOffset();
+	          }, 5 * 60 * 1000); // Sync clock every 5 minutes.
+	        } else {
+	          _this.updateTimeOffset();
+	        }
+	      });
+	    }
+	  }, {
 	    key: "connect",
 	    value: function connect() {
-	      var that = this;
-	      var connectedCallback = function connectedCallback(id) {
-	        that._storeAudioStream(that.easyrtc.myEasyrtcid, that.easyrtc.getLocalStream());
-	        that._myRoomJoinTime = that._getRoomJoinTime(id);
-	        that.connectSuccess(id);
-	      };
+	      var _this2 = this;
 
-	      if (this.easyrtc.audioEnabled) {
-	        this._connectWithAudio(connectedCallback, this.connectFailure);
-	      } else {
-	        this.easyrtc.connect(this.app, connectedCallback, this.connectFailure);
-	      }
+	      Promise.all([this.updateTimeOffset(), new Promise(function (resolve, reject) {
+	        if (_this2.easyrtc.audioEnabled) {
+	          _this2._connectWithAudio(resolve, reject);
+	        } else {
+	          _this2.easyrtc.connect(_this2.app, resolve, reject);
+	        }
+	      })]).then(function (_ref) {
+	        var _ref2 = _slicedToArray(_ref, 2),
+	            _ = _ref2[0],
+	            clientId = _ref2[1];
+
+	        _this2._storeAudioStream(_this2.easyrtc.myEasyrtcid, _this2.easyrtc.getLocalStream());
+
+	        _this2._myRoomJoinTime = _this2._getRoomJoinTime(clientId);
+	        _this2.connectSuccess(clientId);
+	      }).catch(this.connectFailure);
 	    }
 	  }, {
 	    key: "shouldStartConnectionTo",
@@ -2951,6 +3075,11 @@
 	      var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
 	      return joinTime;
 	    }
+	  }, {
+	    key: "getServerTime",
+	    value: function getServerTime() {
+	      return Date.now() + this.avgTimeOffset;
+	    }
 	  }]);
 
 	  return EasyRtcAdapter;
@@ -3049,8 +3178,6 @@
 	  },
 
 	  init: function init() {
-	    var _this = this;
-
 	    var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
 	    this.onConnected = bind(this.onConnected, this);
@@ -3076,19 +3203,28 @@
 	      this.registerEntity(this.data.networkId);
 	    }
 
-	    if (this.data.owner === '') {
-	      this.setNetworkIdWhenConnected();
-	      // Only send the initial sync if we are connected. Otherwise this gets sent when the dataChannel is opened with each peer.
-	      // Note that this only works because the reliable messages are sent over a single websocket connection.
-	      // If they are sent over a different transport this check may need to change
-	      if (NAF.connection.isConnected()) {
-	        this.waitForTemplate(function () {
-	          _this.syncAll();
-	        });
-	      }
+	    this.lastOwnerTime = -1;
+
+	    if (NAF.clientId) {
+	      this.onConnected();
+	    } else {
+	      document.body.addEventListener('connected', this.onConnected, false);
 	    }
 
 	    document.body.dispatchEvent(this.entityCreatedEvent());
+	  },
+
+	  takeOwnership: function takeOwnership() {
+	    var owner = this.data.owner;
+	    var lastOwnerTime = this.lastOwnerTime;
+	    var now = NAF.connection.getServerTime();
+	    if (owner && !this.isMine() && lastOwnerTime < now) {
+	      this.lastOwnerTime = now;
+	      this.el.setAttribute("networked", { owner: NAF.clientId });
+	      this.syncAll();
+	      return true;
+	    }
+	    return false;
 	  },
 
 	  wasCreatedByNetwork: function wasCreatedByNetwork() {
@@ -3137,13 +3273,13 @@
 	  },
 
 	  firstUpdate: function firstUpdate() {
-	    var _this2 = this;
+	    var _this = this;
 
 	    var entityData = this.el.firstUpdateData;
 	    this.networkUpdate(entityData); // updates root element only
 
 	    this.waitForTemplate(function () {
-	      _this2.networkUpdate(entityData);
+	      _this.networkUpdate(entityData);
 	    });
 	  },
 
@@ -3158,24 +3294,23 @@
 	    }
 	  },
 
-	  setNetworkIdWhenConnected: function setNetworkIdWhenConnected() {
-	    if (NAF.clientId) {
-	      this.onConnected();
-	    } else {
-	      this.listenForConnected();
-	    }
-	  },
-
-	  listenForConnected: function listenForConnected() {
-	    document.body.addEventListener('connected', this.onConnected.bind(this), false);
-	  },
-
 	  onConnected: function onConnected() {
-	    this.el.setAttribute(this.name, { owner: NAF.clientId });
+	    var _this2 = this;
+
+	    if (this.data.owner === '') {
+	      this.lastOwnerTime = NAF.connection.getServerTime();
+	      this.el.setAttribute(this.name, { owner: NAF.clientId });
+
+	      this.waitForTemplate(function () {
+	        _this2.syncAll();
+	      });
+	    }
+
+	    document.body.removeEventListener('connected', this.onConnected, false);
 	  },
 
 	  isMine: function isMine() {
-	    return NAF.connection.isMineAndConnected(this.data.owner);
+	    return this.data.owner === NAF.clientId;
 	  },
 
 	  play: function play() {
@@ -3273,6 +3408,7 @@
 	      0: 0, // 0 for not compressed
 	      networkId: data.networkId,
 	      owner: data.owner,
+	      lastOwnerTime: this.lastOwnerTime,
 	      template: data.template,
 	      parent: this.getParentId(),
 	      components: components
@@ -3310,6 +3446,17 @@
 	    if (entityData[0] == 1) {
 	      entityData = Compressor.decompressSyncData(entityData, this.getAllSyncedComponents());
 	    }
+
+	    // Avoid updating components if the entity data received did not come from the current owner.
+	    if (entityData.lastOwnerTime < this.lastOwnerTime || this.lastOwnerTime === entityData.lastOwnerTime && this.data.owner > entityData.owner) {
+	      return;
+	    }
+
+	    if (this.data.owner !== entityData.owner) {
+	      this.lastOwnerTime = entityData.lastOwnerTime;
+	      this.el.setAttribute("networked", { owner: entityData.owner });
+	    }
+
 	    this.updateComponents(entityData.components);
 	  },
 
@@ -3433,7 +3580,6 @@
 	      var selector = schema.selector;
 	      var compName = schema.component;
 	      var propName = schema.property;
-
 	      var childEl = selector ? el.querySelector(selector) : el;
 	      var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
 	      if (!hasComponent) {
