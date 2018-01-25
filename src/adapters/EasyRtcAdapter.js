@@ -1,12 +1,14 @@
 class EasyRtcAdapter {
+
   constructor(easyrtc) {
+    this.easyrtc = easyrtc || window.easyrtc;
     this.app = "default";
     this.room = "default";
-    this.easyrtc = easyrtc || window.easyrtc;
 
     this.audioStreams = {};
     this.pendingAudioRequest = {};
 
+    this.serverTimeRequests = 0;
     this.timeOffsets = [];
     this.avgTimeOffset = 0;
   }
@@ -75,7 +77,7 @@ class EasyRtcAdapter {
         } else {
           this.timeOffsets[this.serverTimeRequests % 10] = timeOffset;
         }
-        
+
         this.avgTimeOffset = this.timeOffsets.reduce((acc, offset) => acc += offset, 0) / this.timeOffsets.length;
 
         if (this.serverTimeRequests > 10) {
