@@ -77,7 +77,7 @@ module.exports.getNetworkedEntity = getNetworkedEntity;
 module.exports.takeOwnership = function(entity) {
   const networkedEntity = getNetworkedEntity(entity);
 
-  if(!networkedEntity) {
+  if (!networkedEntity) {
     return NAF.log.error("takeOwnership() must be called on an entity or child of an entity with the [networked] component.")
   }
 
@@ -86,28 +86,4 @@ module.exports.takeOwnership = function(entity) {
 
 module.exports.isMine = function(entity) {
   return getNetworkedEntity(entity).components['networked'].isMine();
-};
-
-module.exports.monkeyPatchEntityFromTemplateChild = function(entity, templateChild, callback) {
-  templateChild.addEventListener('templaterendered', function() {
-    var cloned = templateChild.firstChild;
-    // mirror the attributes
-    Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
-      entity.setAttribute(attr.nodeName, attr.nodeValue);
-    });
-
-    // take the children
-    for (var child = cloned.firstChild; child; child = cloned.firstChild) {
-      cloned.removeChild(child);
-      entity.appendChild(child);
-    }
-
-    cloned.pause && cloned.pause();
-    templateChild.pause();
-    setTimeout(function() {
-      try { templateChild.removeChild(cloned); } catch (e) {}
-      try { entity.removeChild(templateChild); } catch (e) {}
-      if (callback) { callback(); }
-    });
-  });
 };
