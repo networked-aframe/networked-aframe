@@ -54,9 +54,10 @@ AFRAME.registerComponent('networked', {
     const owner = this.data.owner;
     const lastOwnerTime = this.lastOwnerTime;
     const now = NAF.connection.getServerTime();
-    if(owner && !this.isMine() && lastOwnerTime < now) {
+    if (owner && !this.isMine() && lastOwnerTime < now) {
       this.lastOwnerTime = now;
-      this.el.setAttribute("networked", { owner: NAF.clientId });
+      this.removeLerp();
+      this.el.setAttribute('networked', { owner: NAF.clientId });
       this.syncAll();
       return true;
     }
@@ -79,6 +80,12 @@ AFRAME.registerComponent('networked', {
   attachLerp: function() {
     if (NAF.options.useLerp) {
       this.el.setAttribute('lerp', '');
+    }
+  },
+
+  removeLerp: function() {
+    if (NAF.options.useLerp) {
+      this.el.removeAttribute('lerp');
     }
   },
 
@@ -118,7 +125,7 @@ AFRAME.registerComponent('networked', {
   },
 
   waitForTemplate: function(callback) {
-    // wait for template to render (and monkey-patching to finish, so next tick), then callback
+    // wait for template to render then callback
     if (this.templateEl) {
       this.templateEl.addEventListener('templaterendered', function() { setTimeout(callback); });
     } else {
@@ -172,20 +179,20 @@ AFRAME.registerComponent('networked', {
   },
 
   onSyncAll: function(e) {
-    const { takeover, targetClientId } = e.detail;
-    this.syncAll(takeover, targetClientId);
+    const { targetClientId } = e.detail;
+    this.syncAll(targetClientId);
   },
 
   /* Sending updates */
 
-  syncAll: function(takeover, targetClientId) {
+  syncAll: function(targetClientId) {
     if (!this.canSync()) {
       return;
     }
     this.updateNextSyncTime();
     var syncedComps = this.getAllSyncedComponents();
     var components = componentHelper.gatherComponentsData(this.el, syncedComps);
-    var syncData = this.createSyncData(components, takeover);
+    var syncData = this.createSyncData(components);
     // console.error('syncAll', syncData, NAF.clientId);
     if (targetClientId) {
       NAF.connection.sendDataGuaranteed(targetClientId, 'u', syncData);
@@ -227,10 +234,8 @@ AFRAME.registerComponent('networked', {
     this.nextSyncTime = NAF.utils.now() + 1000 / NAF.options.updateRate;
   },
 
-  createSyncData: function(components, takeover) {
+  createSyncData: function(components) {
     var data = this.data;
-    takeover = !!takeover;
-
     var sync = {
       0: 0, // 0 for not compressed
       networkId: data.networkId,
@@ -275,14 +280,15 @@ AFRAME.registerComponent('networked', {
     }
 
     // Avoid updating components if the entity data received did not come from the current owner.
-    if (entityData.lastOwnerTime < this.lastOwnerTime || 
+    if (entityData.lastOwnerTime < this.lastOwnerTime ||
           (this.lastOwnerTime === entityData.lastOwnerTime && this.data.owner > entityData.owner)) {
       return;
     }
 
     if (this.data.owner !== entityData.owner) {
       this.lastOwnerTime = entityData.lastOwnerTime;
-      this.el.setAttribute("networked", { owner: entityData.owner });
+      this.attachLerp();
+      this.el.setAttribute('networked', { owner: entityData.owner });
     }
 
     this.updateComponents(entityData.components);

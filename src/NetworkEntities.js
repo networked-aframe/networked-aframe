@@ -132,7 +132,7 @@ class NetworkEntities {
       if (this.entities.hasOwnProperty(id)) {
         this.entities[id].emit(
           'syncAll',
-          { targetClientId, takeover: false },
+          { targetClientId },
           false
         );
       }
