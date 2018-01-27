@@ -1912,36 +1912,6 @@
 	  return getNetworkedEntity(entity).components['networked'].isMine();
 	};
 
-	module.exports.monkeyPatchEntityFromTemplateChild = function (entity, templateChild, callback) {
-	  templateChild.addEventListener('templaterendered', function () {
-	    var cloned = templateChild.firstChild;
-	    // mirror the attributes
-	    Array.prototype.slice.call(cloned.attributes || []).forEach(function (attr) {
-	      entity.setAttribute(attr.nodeName, attr.nodeValue);
-	    });
-
-	    // take the children
-	    for (var child = cloned.firstChild; child; child = cloned.firstChild) {
-	      cloned.removeChild(child);
-	      entity.appendChild(child);
-	    }
-
-	    cloned.pause && cloned.pause();
-	    templateChild.pause();
-	    setTimeout(function () {
-	      try {
-	        templateChild.removeChild(cloned);
-	      } catch (e) {}
-	      try {
-	        entity.removeChild(templateChild);
-	      } catch (e) {}
-	      if (callback) {
-	        callback();
-	      }
-	    });
-	  });
-	};
-
 /***/ }),
 /* 50 */
 /***/ (function(module, exports) {
@@ -2197,7 +2167,7 @@
 	    value: function completeSync(targetClientId) {
 	      for (var id in this.entities) {
 	        if (this.entities.hasOwnProperty(id)) {
-	          this.entities[id].emit('syncAll', { targetClientId: targetClientId, takeover: false }, false);
+	          this.entities[id].emit('syncAll', { targetClientId: targetClientId }, false);
 	        }
 	      }
 	    }
@@ -2646,6 +2616,7 @@
 	    this.easyrtc = easyrtc || window.easyrtc;
 	    this.app = 'default';
 	    this.room = 'default';
+
 	    this.connectedClients = [];
 
 	    this.serverTimeRequests = 0;
@@ -2830,13 +2801,14 @@
 	  function EasyRtcAdapter(easyrtc) {
 	    _classCallCheck(this, EasyRtcAdapter);
 
+	    this.easyrtc = easyrtc || window.easyrtc;
 	    this.app = "default";
 	    this.room = "default";
-	    this.easyrtc = easyrtc || window.easyrtc;
 
 	    this.audioStreams = {};
 	    this.pendingAudioRequest = {};
 
+	    this.serverTimeRequests = 0;
 	    this.timeOffsets = [];
 	    this.avgTimeOffset = 0;
 	  }
@@ -3220,7 +3192,8 @@
 	    var now = NAF.connection.getServerTime();
 	    if (owner && !this.isMine() && lastOwnerTime < now) {
 	      this.lastOwnerTime = now;
-	      this.el.setAttribute("networked", { owner: NAF.clientId });
+	      this.removeLerp();
+	      this.el.setAttribute('networked', { owner: NAF.clientId });
 	      this.syncAll();
 	      return true;
 	    }
@@ -3243,6 +3216,12 @@
 	  attachLerp: function attachLerp() {
 	    if (NAF.options.useLerp) {
 	      this.el.setAttribute('lerp', '');
+	    }
+	  },
+
+	  removeLerp: function removeLerp() {
+	    if (NAF.options.useLerp) {
+	      this.el.removeAttribute('lerp');
 	    }
 	  },
 
@@ -3284,7 +3263,7 @@
 	  },
 
 	  waitForTemplate: function waitForTemplate(callback) {
-	    // wait for template to render (and monkey-patching to finish, so next tick), then callback
+	    // wait for template to render then callback
 	    if (this.templateEl) {
 	      this.templateEl.addEventListener('templaterendered', function () {
 	        setTimeout(callback);
@@ -3342,23 +3321,21 @@
 	  },
 
 	  onSyncAll: function onSyncAll(e) {
-	    var _e$detail = e.detail,
-	        takeover = _e$detail.takeover,
-	        targetClientId = _e$detail.targetClientId;
+	    var targetClientId = e.detail.targetClientId;
 
-	    this.syncAll(takeover, targetClientId);
+	    this.syncAll(targetClientId);
 	  },
 
 	  /* Sending updates */
 
-	  syncAll: function syncAll(takeover, targetClientId) {
+	  syncAll: function syncAll(targetClientId) {
 	    if (!this.canSync()) {
 	      return;
 	    }
 	    this.updateNextSyncTime();
 	    var syncedComps = this.getAllSyncedComponents();
 	    var components = componentHelper.gatherComponentsData(this.el, syncedComps);
-	    var syncData = this.createSyncData(components, takeover);
+	    var syncData = this.createSyncData(components);
 	    // console.error('syncAll', syncData, NAF.clientId);
 	    if (targetClientId) {
 	      NAF.connection.sendDataGuaranteed(targetClientId, 'u', syncData);
@@ -3400,10 +3377,8 @@
 	    this.nextSyncTime = NAF.utils.now() + 1000 / NAF.options.updateRate;
 	  },
 
-	  createSyncData: function createSyncData(components, takeover) {
+	  createSyncData: function createSyncData(components) {
 	    var data = this.data;
-	    takeover = !!takeover;
-
 	    var sync = {
 	      0: 0, // 0 for not compressed
 	      networkId: data.networkId,
@@ -3454,7 +3429,8 @@
 
 	    if (this.data.owner !== entityData.owner) {
 	      this.lastOwnerTime = entityData.lastOwnerTime;
-	      this.el.setAttribute("networked", { owner: entityData.owner });
+	      this.attachLerp();
+	      this.el.setAttribute('networked', { owner: entityData.owner });
 	    }
 
 	    this.updateComponents(entityData.components);
