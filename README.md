@@ -95,6 +95,7 @@ Open in two tabs if nobody else is online.
 * [Dance Club](http://haydenlee.io/networked-aframe/a-saturday-night/index.html)
 * [Google Blocks](http://haydenlee.io/networked-aframe/google-blocks.html)
 * [Tracked Controllers](http://haydenlee.io/networked-aframe/tracked-controllers.html)
+* [Positional Audio](https://networked-aframe-audio.glitch.me/)
 * [Nametags](https://glitch.com/edit/#!/naf-nametags)
 * [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
 * [Form to set room and username](https://glitch.com/edit/#!/naf-form-example)
