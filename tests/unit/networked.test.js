@@ -155,10 +155,10 @@ suite('networked', function() {
     }));
   });
 
-  suite('attachAndShowTemplate', function() {
+  suite('initTemplate', function() {
 
     test('shows template', sinon.test(function() {
-      networked.attachAndShowTemplate('temp', true);
+      networked.initTemplate('temp', true);
 
       var templateChild = entity.querySelector('[template]');
       var result = templateChild.components.visible.attrValue;
@@ -167,7 +167,7 @@ suite('networked', function() {
     }));
 
     test('hides template', sinon.test(function() {
-      networked.attachAndShowTemplate('temp', false);
+      networked.initTemplate('temp', false);
 
       var templateChild = entity.querySelector('[template]');
       var result = templateChild.components.visible.attrValue;
