@@ -29,10 +29,6 @@ env:
     - CI_ACTION="npm run lint"
     - CI_ACTION="npm run dist"
 
-branches:
-  only:
-    - master
-
 after_success:
     - npm run codecov
 
