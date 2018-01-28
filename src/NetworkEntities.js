@@ -1,3 +1,4 @@
+/* global NAF */
 var ChildEntityCache = require('./ChildEntityCache');
 
 class NetworkEntities {

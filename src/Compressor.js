@@ -1,3 +1,5 @@
+/* global NAF */
+
 /**
   Compressed packet structure:
   [

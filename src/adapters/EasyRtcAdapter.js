@@ -1,3 +1,4 @@
+/* global NAF */
 const NoOpAdapter = require('./NoOpAdapter');
 
 class EasyRtcAdapter extends NoOpAdapter {
@@ -232,7 +233,7 @@ class EasyRtcAdapter extends NoOpAdapter {
 
   _getRoomJoinTime(clientId) {
     var myRoomId = NAF.room;
-    var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId]
+    var joinTime = this.easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId]
       .roomJoinTime;
     return joinTime;
   }

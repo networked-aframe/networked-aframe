@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test */
+/* global assert, process, setup, suite, test, sinon */
 var NafLogger = require('../../src/NafLogger');
 
 suite('NafLogger', function() {
