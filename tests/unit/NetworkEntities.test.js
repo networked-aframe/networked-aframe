@@ -228,7 +228,7 @@ suite('NetworkEntities', function() {
 
     test('emits sync on 3 entities', function() {
       var entityList = [];
-      for (var i = 0; i < 3; i++) {
+      for (let i = 0; i < 3; i++) {
         entityData.networkId = i;
         var entity = document.createElement('a-entity');
         entities.registerEntity(entityData.networkId, entity);
@@ -238,14 +238,14 @@ suite('NetworkEntities', function() {
 
       entities.completeSync();
 
-      for (var i = 0; i < 3; i++) {
+      for (let i = 0; i < 3; i++) {
         assert.isTrue(entityList[i].emit.calledWith('syncAll'))
       }
     });
 
     test('emits sync on many entities', function() {
       var entityList = [];
-      for (var i = 0; i < 20; i++) {
+      for (let i = 0; i < 20; i++) {
         entityData.networkId = i;
         var entity = document.createElement('a-entity');
         entities.registerEntity(entityData.networkId, entity);
@@ -254,8 +254,8 @@ suite('NetworkEntities', function() {
       }
 
       entities.completeSync();
-      
-      for (var i = 0; i < 20; i++) {
+
+      for (let i = 0; i < 20; i++) {
         assert.isTrue(entityList[i].emit.calledWith('syncAll'))
       }
     });
