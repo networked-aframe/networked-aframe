@@ -72,7 +72,7 @@ function getNetworkedEntity(entity) {
     entity = entity.parentNode;
   }
   return entity;
-};
+}
 
 module.exports.getNetworkedEntity = getNetworkedEntity;
 

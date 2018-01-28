@@ -8,7 +8,6 @@
   "extends": "eslint:recommended",
   "rules": {
     "no-unused-vars": ["error", { "args": "none" }],
-    "no-extra-semi": "off",
     "no-empty": "off",
     "no-console": "off"
   }
