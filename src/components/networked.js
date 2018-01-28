@@ -28,7 +28,7 @@ AFRAME.registerComponent('networked', {
     }
 
     if (this.data.template != '') {
-      this.initTemplate(this.data.template, this.showLocalTemplate);
+      this.initTemplate(this.data.template, this.data.showLocalTemplate);
     }
 
     if (wasCreatedByNetwork) {
