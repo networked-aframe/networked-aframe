@@ -95,7 +95,7 @@ class NetworkEntities {
       var childEntityData = children[i];
       var childId = childEntityData.networkId;
       if (this.hasEntity(childId)) {
-        console.warn(
+        NAF.log.warn(
           'Tried to instantiate entity multiple times',
           childId,
           childEntityData,

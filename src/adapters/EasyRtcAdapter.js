@@ -127,7 +127,7 @@ class EasyRtcAdapter extends NoOpAdapter {
         }
       },
       function(errorCode, errorText) {
-        console.error(errorCode, errorText);
+        NAF.log.error(errorCode, errorText);
       },
       function(wasAccepted) {
         // console.log("was accepted=" + wasAccepted);
@@ -182,7 +182,6 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   getMediaStream(clientId) {
-    console.log('getMediaStream', clientId);
     var that = this;
     if (this.audioStreams[clientId]) {
       NAF.log.write("Already had audio for " + clientId);
@@ -226,7 +225,7 @@ class EasyRtcAdapter extends NoOpAdapter {
         that.easyrtc.connect(that.app, connectSuccess, connectFailure);
       },
       function(errorCode, errmesg) {
-        console.error(errorCode, errmesg);
+        NAF.log.error(errorCode, errmesg);
       }
     );
   }
