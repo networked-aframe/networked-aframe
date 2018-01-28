@@ -1,3 +1,5 @@
+/* global NAF */
+
 module.exports.whenEntityLoaded = function(entity, callback) {
   if (entity.hasLoaded) { callback(); }
   entity.addEventListener('loaded', function () {
@@ -70,7 +72,7 @@ function getNetworkedEntity(entity) {
     entity = entity.parentNode;
   }
   return entity;
-};
+}
 
 module.exports.getNetworkedEntity = getNetworkedEntity;
 

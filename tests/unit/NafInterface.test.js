@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test */
+/* global process, suite, test */
 var NafInterface = require('../../src/NafInterface');
 
 suite('NafInterface', function() {

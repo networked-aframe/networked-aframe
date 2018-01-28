@@ -1,8 +1,7 @@
-/* global assert, process, setup, suite, test */
-var aframe = require('aframe');
+/* global assert, process, setup, suite, test, teardown, sinon */
+require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
-var componentHelper = require('../../src/ComponentHelper');
 
 require('../../src/components/networked');
 
@@ -179,7 +178,7 @@ suite('networked', function() {
   suite('tick', function() {
 
     test('syncs if need to', sinon.test(function() {
-      this.stub(NAF.utils, 'now').returns(4);
+      this.stub(naf.utils, 'now').returns(4);
       this.stub(networked, 'syncDirty');
       networked.nextSyncTime = 4;
 
@@ -189,7 +188,7 @@ suite('networked', function() {
     }));
 
     test('does not sync if does not need to', sinon.test(function() {
-      this.stub(NAF.utils, 'now').returns(3.9);
+      this.stub(naf.utils, 'now').returns(3.9);
       this.stub(networked, 'syncDirty');
       networked.nextSyncTime = 4;
 
@@ -284,8 +283,8 @@ suite('networked', function() {
 
     test('syncs compressed data that has changed (all components changed)', sinon.test(function() {
       this.stub(naf.utils, 'createNetworkId').returns('network1');
-      this.stub(NAF.connection, 'broadcastData');
-      NAF.options.compressSyncPackets = true;
+      this.stub(naf.connection, 'broadcastData');
+      naf.options.compressSyncPackets = true;
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
@@ -298,7 +297,7 @@ suite('networked', function() {
       networked.hasSentFirstSync = true;
       networked.syncDirty();
 
-      var called = NAF.connection.broadcastData.calledWithExactly('u', expected);
+      var called = naf.connection.broadcastData.calledWithExactly('u', expected);
       assert.isTrue(called);
     }));
 

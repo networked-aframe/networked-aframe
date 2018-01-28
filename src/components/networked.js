@@ -1,4 +1,4 @@
-var naf = require('../NafIndex');
+/* global AFRAME, NAF */
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 var bind = AFRAME.utils.bind;

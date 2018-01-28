@@ -1,5 +1,7 @@
-/* global assert, process, setup, suite, test */
+/* global assert, process, setup, suite, test, sinon */
 var NafLogger = require('../../src/NafLogger');
+
+/*eslint no-console: "off" */
 
 suite('NafLogger', function() {
 
@@ -51,6 +53,27 @@ suite('NafLogger', function() {
       this.logger.error('test', 123, 456);
 
       assert.isTrue(console.error.called);
+    }));
+  });
+
+  suite('warn', function() {
+
+    test('debug on', sinon.test(function() {
+      this.spy(console, 'warn');
+      this.logger.setDebug(true);
+
+      this.logger.warn('test', 123, 456);
+
+      assert.isTrue(console.warn.calledOnce);
+    }));
+
+    test('debug off', sinon.test(function() {
+      this.spy(console, 'warn');
+      this.logger.setDebug(false);
+
+      this.logger.warn('test', 123, 456);
+
+      assert.isTrue(console.warn.called);
     }));
   });
 });
