@@ -1,5 +1,3 @@
-var naf = require('../NafIndex');
-
 AFRAME.registerComponent('networked-scene', {
   schema: {
     serverURL: {default: '/'},

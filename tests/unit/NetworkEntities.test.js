@@ -1,5 +1,5 @@
 /* global assert, process, setup, suite, test */
-var aframe = require('aframe');
+require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
 var NetworkEntities = require('../../src/NetworkEntities');
@@ -82,7 +82,6 @@ suite('NetworkEntities', function() {
 
       var position = entity.components.position.attrValue;
       var rotation = entity.components.rotation.attrValue;
-      var id = entity.getAttribute('id');
 
       assert.isOk(entity);
       assert.deepEqual(position, {x: 1, y: 2, z: 3});

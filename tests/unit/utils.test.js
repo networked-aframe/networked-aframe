@@ -1,5 +1,5 @@
 /* global assert, process, setup, suite, test */
-var aframe = require('aframe');
+require('aframe');
 var helpers = require('./helpers');
 var utils = require('../../src/utils');
 

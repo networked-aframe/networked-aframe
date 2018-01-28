@@ -1,4 +1,4 @@
-var aframe = require('aframe');
+require('aframe');
 var utils = require('../../src/utils');
 var helpers = require('./helpers');
 

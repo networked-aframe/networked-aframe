@@ -1,6 +1,10 @@
-class EasyRtcAdapter {
+const NoOpAdapter = require('./NoOpAdapter');
+
+class EasyRtcAdapter extends NoOpAdapter {
 
   constructor(easyrtc) {
+    super();
+
     this.easyrtc = easyrtc || window.easyrtc;
     this.app = "default";
     this.room = "default";

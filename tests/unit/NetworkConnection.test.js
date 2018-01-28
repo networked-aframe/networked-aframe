@@ -1,8 +1,6 @@
 /* global assert, process, setup, suite, test */
 var NetworkConnection = require('../../src/NetworkConnection');
 var AdapterFactory = require('../../src/adapters/AdapterFactory');
-var NetworkEntities = require('../../src/NetworkEntities');
-var naf = require('../../src/NafIndex');
 
 suite('NetworkConnection', function() {
   var connection;

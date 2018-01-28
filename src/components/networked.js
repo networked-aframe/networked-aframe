@@ -1,4 +1,3 @@
-var naf = require('../NafIndex');
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 var bind = AFRAME.utils.bind;
