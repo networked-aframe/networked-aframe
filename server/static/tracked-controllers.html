@@ -48,17 +48,15 @@
         <!-- Templates -->
 
         <!-- Player -->
-        <script id="player-template" type="text/html">
+        <template id="player-template">
           <a-entity></a-entity>
-        </script>
+        </template>
 
         <!-- Head -->
-        <script id="head-template" type="text/html">
+        <template id="head-template">
           <a-entity class="avatar">
             <a-sphere class="head"
-              color="#5985ff"
               scale="0.3 0.35 0.25"
-              random-color
             ></a-sphere>
             <a-entity class="face"
               position="0 0.05 0"
@@ -87,17 +85,23 @@
               </a-sphere>
             </a-entity>
           </a-entity>
-        </script>
+        </template>
 
         <!-- Hand -->
-        <script id="hand-template" type="text/html">
+        <template id="hand-template">
           <a-box scale="0.1 0.1 0.1"></a-box>
-        </script>
+        </template>
 
         <!-- /Templates -->
       </a-assets>
 
       <a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" spawn-in-circle="radius:3" wasd-controls>
+        <a-sphere class="head"
+          color="#5985ff"
+          random-color
+          visible="false"
+        ></a-sphere>
+
         <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;showLocalTemplate:false;"></a-entity>
 
         <a-entity hand-controls="left" networked="template:#hand-template;showLocalTemplate:false;"></a-entity>

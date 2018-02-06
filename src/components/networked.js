@@ -6,7 +6,6 @@ var bind = AFRAME.utils.bind;
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
-    showLocalTemplate: {default: true},
 
     networkId: {default: ''},
     owner: {default: ''},
@@ -25,10 +24,6 @@ AFRAME.registerComponent('networked', {
 
     if (this.data.networkId === '') {
       this.el.setAttribute(this.name, {networkId: NAF.utils.createNetworkId()});
-    }
-
-    if (this.data.template != '') {
-      this.initTemplate();
     }
 
     if (wasCreatedByNetwork) {
@@ -93,54 +88,16 @@ AFRAME.registerComponent('networked', {
     NAF.entities.registerEntity(networkId, this.el);
   },
 
-  initTemplate: function() {
-    var data = this.data;
-    var showTemplate = !this.wasCreatedByNetwork() && data.showLocalTemplate;
-    this.attachAndShowTemplate(data.template, data.showLocalTemplate);
-  },
-
-  attachAndShowTemplate: function(template, show) {
-    var el = this.el;
-    var data = this.data;
-
-    if (this.templateEl) {
-      el.removeChild(this.templateEl);
-    }
-
-    var templateChild = document.createElement('a-entity');
-    templateChild.setAttribute('template', 'src:' + template);
-    templateChild.setAttribute('visible', show);
-
-    el.appendChild(templateChild);
-    this.templateEl = templateChild;
-  },
-
   firstUpdate: function() {
     var entityData = this.el.firstUpdateData;
-    this.networkUpdate(entityData); // updates root element only
-
-    this.waitForTemplate(() => {
-      this.networkUpdate(entityData);
-    });
-  },
-
-  waitForTemplate: function(callback) {
-    // wait for template to render then callback
-    if (this.templateEl) {
-      this.templateEl.addEventListener('templaterendered', function() { setTimeout(callback); });
-    } else {
-      setTimeout(callback);
-    }
+    this.networkUpdate(entityData);
   },
 
   onConnected: function() {
     if (this.data.owner === '') {
       this.lastOwnerTime = NAF.connection.getServerTime();
       this.el.setAttribute(this.name, {owner: NAF.clientId});
-
-      this.waitForTemplate(() => {
-        this.syncAll();
-      });
+      this.syncAll();
     }
 
     document.body.removeEventListener('connected', this.onConnected, false);

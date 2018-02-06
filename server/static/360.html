@@ -37,7 +37,7 @@
     ">
       <a-assets>
         <!-- Avatar-->
-        <script id="avatar-template" type="text/html">
+        <template id="avatar-template">
           <a-entity class="avatar">
             <a-sphere class="head"
               color="#5985ff"
@@ -70,7 +70,7 @@
               </a-sphere>
             </a-entity>
           </a-entity>
-        </script>
+        </template>
       </a-assets>
 
       <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>

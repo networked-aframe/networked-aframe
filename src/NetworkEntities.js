@@ -17,10 +17,12 @@ class NetworkEntities {
     NAF.log.write('Creating remote entity', entityData);
 
     var networkId = entityData.networkId;
+    var template = document.querySelector(entityData.template);
+    var clone = document.importNode(template.content, true);
+    // TODO: Find a better query fro finding the root node. The root could be an a-box etc.
+    var el = clone.firstElementChild;
 
-    var el = document.createElement('a-entity');
     el.setAttribute('id', 'naf-' + networkId);
-
     this.initPosition(el, entityData.components);
     this.initRotation(el, entityData.components);
     this.addNetworkComponent(el, entityData);
@@ -52,8 +54,8 @@ class NetworkEntities {
       owner: entityData.owner,
       networkId: entityData.networkId
     };
-
-    entity.setAttribute('networked', networkData);
+    // TODO: refactor so we append this element before setting the attribute in order to avoid string serialization.
+    entity.setAttribute('networked', `template: ${entityData.template}; owner: ${entityData.owner}; networkId: ${entityData}`);
     entity.firstUpdateData = entityData;
   }
 
