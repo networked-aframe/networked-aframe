@@ -6,7 +6,7 @@ var bind = AFRAME.utils.bind;
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
-    attachLocalTemplate: { default: false },
+    attachLocalTemplate: { default: true },
 
     networkId: {default: ''},
     owner: {default: ''},
