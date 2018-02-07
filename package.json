@@ -29,7 +29,6 @@
     "easyrtc": "1.1.0",
     "express": "^4.10.7",
     "aframe-lerp-component": "^1.1.0",
-    "aframe-template-component": "3.2.1",
     "serve-static": "^1.8.0",
     "socket.io": "^1.4.5",
     "socket.io-client": "^1.4.5"
