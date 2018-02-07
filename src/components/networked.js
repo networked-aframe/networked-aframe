@@ -6,6 +6,7 @@ var bind = AFRAME.utils.bind;
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
+    attachLocalTemplate: { default: false },
 
     networkId: {default: ''},
     owner: {default: ''},
@@ -29,8 +30,11 @@ AFRAME.registerComponent('networked', {
     if (wasCreatedByNetwork) {
       this.firstUpdate();
       this.attachLerp();
-    }
-    else {
+    } else {
+      if (this.data.attachLocalTemplate) {
+        this.attachLocalTemplate();
+      }
+
       this.registerEntity(this.data.networkId);
     }
 
@@ -43,6 +47,23 @@ AFRAME.registerComponent('networked', {
     }
 
     document.body.dispatchEvent(this.entityCreatedEvent());
+  },
+
+  attachLocalTemplate: function() {
+    var template = document.querySelector(this.data.template);
+    var clone = document.importNode(template.content, true);
+    var el = clone.firstElementChild;
+    var elAttrs = el.attributes;
+
+    // Merge root element attributes with this entity
+    for (var i = 0; i < elAttrs.length; i++) {
+      this.el.setAttribute(elAttrs[i].name, elAttrs[i].value);
+    }
+
+    // Append all child elements
+    for (var i = 0; i < el.children.length; i++) {
+      this.el.appendChild(document.importNode(el.children[i], true));
+    }
   },
 
   takeOwnership: function() {

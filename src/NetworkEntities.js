@@ -19,7 +19,6 @@ class NetworkEntities {
     var networkId = entityData.networkId;
     var template = document.querySelector(entityData.template);
     var clone = document.importNode(template.content, true);
-    // TODO: Find a better query fro finding the root node. The root could be an a-box etc.
     var el = clone.firstElementChild;
 
     el.setAttribute('id', 'naf-' + networkId);
