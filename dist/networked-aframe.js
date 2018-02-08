@@ -544,7 +544,7 @@
 	      var hasPosition = componentData.hasOwnProperty('position');
 	      if (hasPosition) {
 	        var position = componentData.position;
-	        entity.setAttribute('position', position);
+	        entity.setAttribute('position', position.x + ' ' + position.y + ' ' + position.z);
 	      }
 	    }
 	  }, {
@@ -553,7 +553,7 @@
 	      var hasRotation = componentData.hasOwnProperty('rotation');
 	      if (hasRotation) {
 	        var rotation = componentData.rotation;
-	        entity.setAttribute('rotation', rotation);
+	        entity.setAttribute('rotation', rotation.x + ' ' + rotation.y + ' ' + rotation.z);
 	      }
 	    }
 	  }, {
@@ -565,7 +565,7 @@
 	        networkId: entityData.networkId
 	      };
 	      // TODO: refactor so we append this element before setting the attribute in order to avoid string serialization.
-	      entity.setAttribute('networked', 'template: ' + entityData.template + '; owner: ' + entityData.owner + '; networkId: ' + entityData);
+	      entity.setAttribute('networked', 'template: ' + entityData.template + '; owner: ' + entityData.owner + '; networkId: ' + entityData.networkId);
 	      entity.firstUpdateData = entityData;
 	    }
 	  }, {
@@ -1661,6 +1661,7 @@
 	    }
 
 	    document.body.dispatchEvent(this.entityCreatedEvent());
+	    this.el.dispatchEvent(new CustomEvent('instantiated', { detail: { el: this.el } }));
 	  },
 
 	  attachLocalTemplate: function attachLocalTemplate() {
@@ -2288,6 +2289,11 @@
 
 	    this._setMediaStream = this._setMediaStream.bind(this);
 
+	    this.onInstantiated = this.onInstantiated.bind(this);
+	    this.el.addEventListener("instantiated", this.onInstantiated);
+	  },
+
+	  onInstantiated: function onInstantiated(e) {
 	    var networkedEl = NAF.utils.getNetworkedEntity(this.el);
 	    var ownerId = networkedEl && networkedEl.components.networked.data.owner;
 	    if (ownerId) {
@@ -2300,7 +2306,6 @@
 	      naf.log.error('[networked-audio-source] must be added on an entity, or a child of an entity, with the [networked] component.');
 	    }
 	  },
-
 	  _setMediaStream: function _setMediaStream(newStream) {
 	    if (!this.sound) {
 	      this.setupSound();

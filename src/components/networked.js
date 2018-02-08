@@ -47,6 +47,7 @@ AFRAME.registerComponent('networked', {
     }
 
     document.body.dispatchEvent(this.entityCreatedEvent());
+    this.el.dispatchEvent(new CustomEvent('instantiated', {detail: {el: this.el}}));
   },
 
   attachLocalTemplate: function() {

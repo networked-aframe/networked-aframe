@@ -12,6 +12,11 @@ AFRAME.registerComponent('networked-audio-source', {
 
     this._setMediaStream = this._setMediaStream.bind(this);
 
+    this.onInstantiated = this.onInstantiated.bind(this);
+    this.el.addEventListener("instantiated", this.onInstantiated);
+  },
+
+  onInstantiated(e) {
     const networkedEl = NAF.utils.getNetworkedEntity(this.el);
     const ownerId = networkedEl && networkedEl.components.networked.data.owner;
     if (ownerId) {

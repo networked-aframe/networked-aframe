@@ -35,7 +35,7 @@ class NetworkEntities {
     var hasPosition = componentData.hasOwnProperty('position');
     if (hasPosition) {
       var position = componentData.position;
-      entity.setAttribute('position', position);
+      entity.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
     }
   }
 
@@ -43,7 +43,7 @@ class NetworkEntities {
     var hasRotation = componentData.hasOwnProperty('rotation');
     if (hasRotation) {
       var rotation = componentData.rotation;
-      entity.setAttribute('rotation', rotation);
+      entity.setAttribute('rotation', `${rotation.x} ${rotation.y} ${rotation.z}`);
     }
   }
 
@@ -54,7 +54,7 @@ class NetworkEntities {
       networkId: entityData.networkId
     };
     // TODO: refactor so we append this element before setting the attribute in order to avoid string serialization.
-    entity.setAttribute('networked', `template: ${entityData.template}; owner: ${entityData.owner}; networkId: ${entityData}`);
+    entity.setAttribute('networked', `template: ${entityData.template}; owner: ${entityData.owner}; networkId: ${entityData.networkId}`);
     entity.firstUpdateData = entityData;
   }
 
