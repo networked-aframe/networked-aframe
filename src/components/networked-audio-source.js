@@ -12,22 +12,17 @@ AFRAME.registerComponent('networked-audio-source', {
 
     this._setMediaStream = this._setMediaStream.bind(this);
 
-    this.onInstantiated = this.onInstantiated.bind(this);
-    this.el.addEventListener("instantiated", this.onInstantiated);
-  },
+    NAF.utils.getNetworkedEntity(this.el).then((networkedEl) => {
+      const ownerId = networkedEl.components.networked.data.owner;
 
-  onInstantiated(e) {
-    const networkedEl = NAF.utils.getNetworkedEntity(this.el);
-    const ownerId = networkedEl && networkedEl.components.networked.data.owner;
-    if (ownerId) {
-      NAF.connection.adapter.getMediaStream(ownerId)
-        .then(this._setMediaStream)
-        .catch((e) => naf.log.error(`Error getting media stream for ${ownerId}`, e));
-    } else if(ownerId === '') {
-      // Correctly configured local entity, perhaps do something here for enabling debug audio loopback
-    } else {
-      naf.log.error('[networked-audio-source] must be added on an entity, or a child of an entity, with the [networked] component.');
-    }
+      if (ownerId) {
+        NAF.connection.adapter.getMediaStream(ownerId)
+          .then(this._setMediaStream)
+          .catch((e) => naf.log.error(`Error getting media stream for ${ownerId}`, e));
+      } else {
+        // Correctly configured local entity, perhaps do something here for enabling debug audio loopback
+      }
+    });
   },
 
   _setMediaStream(newStream) {
