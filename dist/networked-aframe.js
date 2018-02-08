@@ -2324,18 +2324,14 @@
 
 	    this._setMediaStream = this._setMediaStream.bind(this);
 
-	    console.log("initializing networked-audio-source");
-
 	    NAF.utils.getNetworkedEntity(this.el).then(function (networkedEl) {
-	      console.log("got networked-audio-source networked el");
-
 	      var ownerId = networkedEl.components.networked.data.owner;
+
 	      if (ownerId) {
 	        NAF.connection.adapter.getMediaStream(ownerId).then(_this._setMediaStream).catch(function (e) {
 	          return naf.log.error('Error getting media stream for ' + ownerId, e);
 	        });
 	      } else {
-	        console.log("no owner");
 	        // Correctly configured local entity, perhaps do something here for enabling debug audio loopback
 	      }
 	    });
