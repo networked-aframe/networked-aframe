@@ -145,7 +145,7 @@ Required on the A-Frame `<a-scene>` component.
 
 ### Connecting
 
-By defualt, `networked-scene` will connect to your server automatically. To prevent this and instead have control over when to connect, set `connectOnLoad` to false in `networked-scene`. When you are ready to connect emit the `connect` event on the `a-scene` element.
+By default, `networked-scene` will connect to your server automatically. To prevent this and instead have control over when to connect, set `connectOnLoad` to false in `networked-scene`. When you are ready to connect emit the `connect` event on the `a-scene` element.
 
 ```javascript
 AFRAME.scenes[0].emit('connect');
