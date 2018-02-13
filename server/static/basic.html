@@ -4,9 +4,8 @@
     <title>Dev Example — Networked-Aframe</title>
     <meta name="description" content="Dev Example — Networked-Aframe">
 
-    <script src="https://cdn.rawgit.com/aframevr/aframe/c2c97c2a6dd470f2c24271bbb94529d12b7d3fb9/dist/aframe-master.js"></script>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
     <script src="/build.js"></script>
-    <script>window.NAF || document.write('<script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js">\x3C/script>')</script>
 
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
@@ -92,7 +91,7 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera position="0 1.6 0" spawn-in-circle="radius:3" wasd-controls look-controls></a-entity>
+      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
       </a-entity>
 
       <a-entity position="0 0 0"

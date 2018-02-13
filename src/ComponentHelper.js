@@ -1,6 +1,4 @@
 var deepEqual = require('deep-equal');
-const cameraWorldPosition = new THREE.Vector3();
-const cameraGroupConjugate = new THREE.Quaternion();
 
 module.exports.gatherComponentsData = function(el, schemaComponents) {
   var compsData = {};
@@ -10,23 +8,7 @@ module.exports.gatherComponentsData = function(el, schemaComponents) {
 
     if (typeof element === 'string') {
       if (el.components.hasOwnProperty(element)) {
-        var name = element;
-        // In VR mode, aframe gives over control of the camera to three's WebVRManager. WebVRManager modifies
-        // the camera's matrixWorld directly, so we have to decompose the camera's position ourselves.
-        // However, the camera's world position incorporates the camera's rotation in a weird way, so we have to
-        // undo that rotation as well.
-        if (name === 'position' && el.components.hasOwnProperty('camera') && el.sceneEl.is('vr-mode')) {
-          el.components.camera.camera.getWorldPosition(cameraWorldPosition);
-          cameraGroupConjugate.copy(el.object3D.quaternion);
-          cameraGroupConjugate.conjugate();
-          cameraWorldPosition.sub(el.object3D.position);
-          cameraWorldPosition.applyQuaternion(cameraGroupConjugate);
-          cameraWorldPosition.add(el.object3D.position);
-          compsData[name] = AFRAME.utils.clone(cameraWorldPosition);
-        }
-        else {
-          compsData[name] = AFRAME.utils.clone(el.getAttribute(name));
-        }
+        compsData[element] = AFRAME.utils.clone(el.getAttribute(element));
       }
     } else {
       var childKey = NAF.utils.childSchemaToKey(element);
