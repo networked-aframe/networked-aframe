@@ -1,4 +1,4 @@
-var naf = require('../NafIndex');
+/* global AFRAME, NAF */
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 var bind = AFRAME.utils.bind;
@@ -28,7 +28,7 @@ AFRAME.registerComponent('networked', {
     }
 
     if (this.data.template != '') {
-      this.initTemplate();
+      this.initTemplate(this.data.template, this.data.showLocalTemplate);
     }
 
     if (wasCreatedByNetwork) {
@@ -93,25 +93,16 @@ AFRAME.registerComponent('networked', {
     NAF.entities.registerEntity(networkId, this.el);
   },
 
-  initTemplate: function() {
-    var data = this.data;
-    var showTemplate = !this.wasCreatedByNetwork() && data.showLocalTemplate;
-    this.attachAndShowTemplate(data.template, data.showLocalTemplate);
-  },
-
-  attachAndShowTemplate: function(template, show) {
-    var el = this.el;
-    var data = this.data;
-
+  initTemplate: function(template, show) {
     if (this.templateEl) {
-      el.removeChild(this.templateEl);
+      this.el.removeChild(this.templateEl);
     }
 
     var templateChild = document.createElement('a-entity');
     templateChild.setAttribute('template', 'src:' + template);
     templateChild.setAttribute('visible', show);
 
-    el.appendChild(templateChild);
+    this.el.appendChild(templateChild);
     this.templateEl = templateChild;
   },
 

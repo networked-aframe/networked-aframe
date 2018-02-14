@@ -1,4 +1,4 @@
-/* global AFRAME, THREE */
+/* global AFRAME */
 
 /**
  * Animation of the floor tiles

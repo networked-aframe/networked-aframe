@@ -22,12 +22,12 @@ module.exports.sceneFactory = function (opts) {
     });
   }
   if (opts.entity) {
-    var entity = utils.createHtmlNodeFromString(opts.entity);
+    let entity = utils.createHtmlNodeFromString(opts.entity);
     scene.appendChild(entity);
-  };
+  }
   if (opts.entities) {
     for (var i = 0; i < opts.entities.length; i++) {
-      var entity = utils.createHtmlNodeFromString(opts.entities[i]);
+      let entity = utils.createHtmlNodeFromString(opts.entities[i]);
       scene.appendChild(entity);
     }
   }

@@ -1,3 +1,4 @@
+/* global AFRAME, NAF */
 var deepEqual = require('deep-equal');
 
 module.exports.gatherComponentsData = function(el, schemaComponents) {
@@ -50,8 +51,8 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
       var compName = schema.component;
       var propName = schema.property;
       var childEl = selector ? el.querySelector(selector) : el;
-      var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
-      if (!hasComponent) {
+      var hasComp = childEl && childEl.components.hasOwnProperty(compName);
+      if (!hasComp) {
         continue;
       }
       compKey = NAF.utils.childSchemaToKey(schema);

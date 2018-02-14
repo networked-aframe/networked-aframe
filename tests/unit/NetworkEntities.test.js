@@ -1,5 +1,5 @@
-/* global assert, process, setup, suite, test */
-var aframe = require('aframe');
+/* global assert, process, setup, suite, test, teardown, sinon */
+require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
 var NetworkEntities = require('../../src/NetworkEntities');
@@ -82,7 +82,6 @@ suite('NetworkEntities', function() {
 
       var position = entity.components.position.attrValue;
       var rotation = entity.components.rotation.attrValue;
-      var id = entity.getAttribute('id');
 
       assert.isOk(entity);
       assert.deepEqual(position, {x: 1, y: 2, z: 3});
@@ -228,7 +227,7 @@ suite('NetworkEntities', function() {
 
     test('emits sync on 3 entities', function() {
       var entityList = [];
-      for (var i = 0; i < 3; i++) {
+      for (let i = 0; i < 3; i++) {
         entityData.networkId = i;
         var entity = document.createElement('a-entity');
         entities.registerEntity(entityData.networkId, entity);
@@ -238,14 +237,14 @@ suite('NetworkEntities', function() {
 
       entities.completeSync();
 
-      for (var i = 0; i < 3; i++) {
+      for (let i = 0; i < 3; i++) {
         assert.isTrue(entityList[i].emit.calledWith('syncAll'))
       }
     });
 
     test('emits sync on many entities', function() {
       var entityList = [];
-      for (var i = 0; i < 20; i++) {
+      for (let i = 0; i < 20; i++) {
         entityData.networkId = i;
         var entity = document.createElement('a-entity');
         entities.registerEntity(entityData.networkId, entity);
@@ -254,8 +253,8 @@ suite('NetworkEntities', function() {
       }
 
       entities.completeSync();
-      
-      for (var i = 0; i < 20; i++) {
+
+      for (let i = 0; i < 20; i++) {
         assert.isTrue(entityList[i].emit.calledWith('syncAll'))
       }
     });

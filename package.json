@@ -14,7 +14,7 @@
     "easyrtc-install": "cd ./node_modules/easyrtc; npm install; cd ../../;",
     "dev": "npm run build && node ./server/easyrtc-server.js",
     "dist": "webpack --config webpack.config.js && webpack -p --config webpack.prod.config.js",
-    "lint": "eslint src server tests *.js",
+    "lint": "eslint src tests *.js",
     "prepublish": "npm run dist",
     "preghpages": "npm run build && shx rm -rf gh-pages && shx mkdir gh-pages && shx cp -r examples/* gh-pages",
     "ghpages": "npm run preghpages && ghpages -p gh-pages",

@@ -1,7 +1,6 @@
-/* global assert, process, setup, suite, test */
+/* global assert, process, setup, suite, test, sinon, teardown */
 var NetworkConnection = require('../../src/NetworkConnection');
 var AdapterFactory = require('../../src/adapters/AdapterFactory');
-var NetworkEntities = require('../../src/NetworkEntities');
 var naf = require('../../src/NafIndex');
 
 suite('NetworkConnection', function() {
@@ -47,7 +46,7 @@ suite('NetworkConnection', function() {
   });
 
   teardown(function() {
-    NAF.clientId = '';
+    naf.clientId = '';
   });
 
   suite('setupDefaultDataSubscriptions', function() {
