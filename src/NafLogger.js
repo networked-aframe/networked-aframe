@@ -1,3 +1,5 @@
+/*eslint no-console: "off" */
+
 class NafLogger {
 
   constructor() {
@@ -12,6 +14,10 @@ class NafLogger {
     if (this.debug) {
       console.log.apply(this, arguments);
     }
+  }
+
+  warn() {
+    console.warn.apply(this, arguments);
   }
 
   error() {

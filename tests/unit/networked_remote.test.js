@@ -1,14 +1,13 @@
-/* global assert, process, setup, suite, test */
-var aframe = require('aframe');
+/* global assert, process, setup, suite, test, sinon, teardown */
+require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
-var Compressor = require('../../src/Compressor');
 
 require('../../src/components/networked');
 
 suite('networked_remote', function() {
   var scene;
-  var entity;
+  var el;
   var component;
 
   function initScene(done) {
@@ -150,11 +149,6 @@ suite('networked_remote', function() {
           visible: false
         }
       };
-      var childComponent = {
-        selector: '.head',
-        component: 'visible'
-      };
-      // component.data.components.push(childComponent);
       var childKey = '.head'+naf.utils.delimiter+'visible';
       entityData.components[childKey] = true;
 
@@ -181,11 +175,6 @@ suite('networked_remote', function() {
           visible: false
         }
       };
-      var childComponent = {
-        selector: '.head',
-        component: 'visible'
-      };
-      // component.data.components.push(childComponent);
       var childKey = '.head'+naf.utils.delimiter+'visible';
       entityData.components[childKey] = true;
       while (el.firstChild) { // Remove children

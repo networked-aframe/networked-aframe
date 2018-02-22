@@ -1,10 +1,12 @@
-var aframe = require('aframe');
+/* global suite, setup, teardown, assert, test */
+require('aframe');
 var utils = require('../../src/utils');
 var helpers = require('./helpers');
 
 var componentHelper = require('../../src/ComponentHelper');
 
 suite('ComponentHelper', function () {
+  var scene;
 
   function initScene(done) {
     var opts = {};

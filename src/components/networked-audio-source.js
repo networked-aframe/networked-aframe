@@ -1,3 +1,4 @@
+/* global AFRAME, NAF, THREE */
 var naf = require('../NafIndex');
 
 // @TODO if aframevr/aframe#3042 gets merged, this should just delegate to the aframe sound component

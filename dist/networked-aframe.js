@@ -53,9 +53,9 @@
 	__webpack_require__(3);
 
 	// Network components
-	__webpack_require__(14);
-	__webpack_require__(15);
-	__webpack_require__(21);
+	__webpack_require__(16);
+	__webpack_require__(17);
+	__webpack_require__(23);
 
 /***/ }),
 /* 1 */
@@ -300,6 +300,8 @@
 
 	'use strict';
 
+	/* global NAF */
+
 	module.exports.whenEntityLoaded = function (entity, callback) {
 	  if (entity.hasLoaded) {
 	    callback();
@@ -431,6 +433,8 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	/*eslint no-console: "off" */
+
 	var NafLogger = function () {
 	  function NafLogger() {
 	    _classCallCheck(this, NafLogger);
@@ -449,6 +453,11 @@
 	      if (this.debug) {
 	        console.log.apply(this, arguments);
 	      }
+	    }
+	  }, {
+	    key: "warn",
+	    value: function warn() {
+	      console.warn.apply(this, arguments);
 	    }
 	  }, {
 	    key: "error",
@@ -471,6 +480,8 @@
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	/* global NAF */
 
 	var Schemas = function () {
 	  function Schemas() {
@@ -535,6 +546,7 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	/* global NAF */
 	var ChildEntityCache = __webpack_require__(9);
 
 	var NetworkEntities = function () {
@@ -592,11 +604,6 @@
 	  }, {
 	    key: 'addNetworkComponent',
 	    value: function addNetworkComponent(entity, entityData) {
-	      var networkData = {
-	        template: entityData.template,
-	        owner: entityData.owner,
-	        networkId: entityData.networkId
-	      };
 	      // TODO: refactor so we append this element before setting the attribute in order to avoid string serialization.
 	      entity.setAttribute('networked', 'template: ' + entityData.template + '; owner: ' + entityData.owner + '; networkId: ' + entityData.networkId);
 	      entity.firstUpdateData = entityData;
@@ -643,7 +650,7 @@
 	        var childEntityData = children[i];
 	        var childId = childEntityData.networkId;
 	        if (this.hasEntity(childId)) {
-	          console.warn('Tried to instantiate entity multiple times', childId, childEntityData, 'Existing entity:', this.getEntity(childId));
+	          NAF.log.warn('Tried to instantiate entity multiple times', childId, childEntityData, 'Existing entity:', this.getEntity(childId));
 	          continue;
 	        }
 	        var childEntity = this.createRemoteEntity(childEntityData);
@@ -804,6 +811,7 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	/* global NAF */
 	var ReservedDataType = { Update: 'u', Remove: 'r' };
 
 	var NetworkConnection = function () {
@@ -1064,7 +1072,7 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var WsEasyRtcAdapter = __webpack_require__(12);
-	var EasyRtcAdapter = __webpack_require__(13);
+	var EasyRtcAdapter = __webpack_require__(15);
 
 	var AdapterFactory = function () {
 	  function AdapterFactory() {
@@ -1109,7 +1117,7 @@
 
 /***/ }),
 /* 12 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -1119,19 +1127,31 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var WsEasyRtcInterface = function () {
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	/* global NAF */
+	var NoOpAdapter = __webpack_require__(13);
+
+	var WsEasyRtcInterface = function (_NoOpAdapter) {
+	  _inherits(WsEasyRtcInterface, _NoOpAdapter);
+
 	  function WsEasyRtcInterface(easyrtc) {
 	    _classCallCheck(this, WsEasyRtcInterface);
 
-	    this.easyrtc = easyrtc || window.easyrtc;
-	    this.app = 'default';
-	    this.room = 'default';
+	    var _this = _possibleConstructorReturn(this, (WsEasyRtcInterface.__proto__ || Object.getPrototypeOf(WsEasyRtcInterface)).call(this));
 
-	    this.connectedClients = [];
+	    _this.easyrtc = easyrtc || window.easyrtc;
+	    _this.app = 'default';
+	    _this.room = 'default';
 
-	    this.serverTimeRequests = 0;
-	    this.timeOffsets = [];
-	    this.avgTimeOffset = 0;
+	    _this.connectedClients = [];
+
+	    _this.serverTimeRequests = 0;
+	    _this.timeOffsets = [];
+	    _this.avgTimeOffset = 0;
+	    return _this;
 	  }
 
 	  _createClass(WsEasyRtcInterface, [{
@@ -1179,7 +1199,7 @@
 	  }, {
 	    key: 'updateTimeOffset',
 	    value: function updateTimeOffset() {
-	      var _this = this;
+	      var _this2 = this;
 
 	      var clientSentTime = Date.now() + this.avgTimeOffset;
 
@@ -1190,40 +1210,40 @@
 	        var serverTime = serverReceivedTime + (clientReceivedTime - clientSentTime) / 2;
 	        var timeOffset = serverTime - clientReceivedTime;
 
-	        _this.serverTimeRequests++;
+	        _this2.serverTimeRequests++;
 
-	        if (_this.serverTimeRequests <= 10) {
-	          _this.timeOffsets.push(timeOffset);
+	        if (_this2.serverTimeRequests <= 10) {
+	          _this2.timeOffsets.push(timeOffset);
 	        } else {
-	          _this.timeOffsets[_this.serverTimeRequests % 10] = timeOffset;
+	          _this2.timeOffsets[_this2.serverTimeRequests % 10] = timeOffset;
 	        }
 
-	        _this.avgTimeOffset = _this.timeOffsets.reduce(function (acc, offset) {
+	        _this2.avgTimeOffset = _this2.timeOffsets.reduce(function (acc, offset) {
 	          return acc += offset;
-	        }, 0) / _this.timeOffsets.length;
+	        }, 0) / _this2.timeOffsets.length;
 
-	        if (_this.serverTimeRequests > 10) {
+	        if (_this2.serverTimeRequests > 10) {
 	          setTimeout(function () {
-	            return _this.updateTimeOffset();
+	            return _this2.updateTimeOffset();
 	          }, 5 * 60 * 1000); // Sync clock every 5 minutes.
 	        } else {
-	          _this.updateTimeOffset();
+	          _this2.updateTimeOffset();
 	        }
 	      });
 	    }
 	  }, {
 	    key: 'connect',
 	    value: function connect() {
-	      var _this2 = this;
+	      var _this3 = this;
 
 	      Promise.all([this.updateTimeOffset(), new Promise(function (resolve, reject) {
-	        _this2.easyrtc.connect(_this2.app, resolve, reject);
+	        _this3.easyrtc.connect(_this3.app, resolve, reject);
 	      })]).then(function (_ref) {
 	        var _ref2 = _slicedToArray(_ref, 2),
 	            _ = _ref2[0],
 	            clientId = _ref2[1];
 
-	        _this2.connectSuccess(clientId);
+	        _this3.connectSuccess(clientId);
 	      }).catch(this.connectFailure);
 	    }
 	  }, {
@@ -1291,13 +1311,173 @@
 	  }]);
 
 	  return WsEasyRtcInterface;
-	}();
+	}(NoOpAdapter);
 
 	module.exports = WsEasyRtcInterface;
 
 /***/ }),
 /* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var NafInterface = __webpack_require__(14);
+
+	var NoOpAdapter = function (_NafInterface) {
+	  _inherits(NoOpAdapter, _NafInterface);
+
+	  function NoOpAdapter() {
+	    _classCallCheck(this, NoOpAdapter);
+
+	    return _possibleConstructorReturn(this, (NoOpAdapter.__proto__ || Object.getPrototypeOf(NoOpAdapter)).apply(this, arguments));
+	  }
+
+	  _createClass(NoOpAdapter, [{
+	    key: 'setServerUrl',
+
+
+	    /* Pre-Connect setup methods - Call before `connect` */
+
+	    value: function setServerUrl(url) {
+	      this.notImplemented('setServerUrl');
+	    }
+	  }, {
+	    key: 'setApp',
+	    value: function setApp(app) {
+	      this.notImplemented('setApp');
+	    }
+	  }, {
+	    key: 'setRoom',
+	    value: function setRoom(roomName) {
+	      this.notImplemented('setRoom');
+	    }
+	  }, {
+	    key: 'setWebRtcOptions',
+	    value: function setWebRtcOptions(options) {
+	      this.notImplemented('setWebRtcOptions');
+	    }
+	  }, {
+	    key: 'setServerConnectListeners',
+	    value: function setServerConnectListeners(successListener, failureListener) {
+	      this.notImplemented('setServerConnectListeners');
+	    }
+	  }, {
+	    key: 'setRoomOccupantListener',
+	    value: function setRoomOccupantListener(occupantListener) {
+	      this.notImplemented('setRoomOccupantListener');
+	    }
+	  }, {
+	    key: 'setDataChannelListeners',
+	    value: function setDataChannelListeners(openListener, closedListener, messageListener) {
+	      this.notImplemented('setDataChannelListeners');
+	    }
+	  }, {
+	    key: 'connect',
+	    value: function connect() {
+	      this.notImplemented('connect');
+	    }
+	  }, {
+	    key: 'shouldStartConnectionTo',
+	    value: function shouldStartConnectionTo(clientId) {
+	      this.notImplemented('shouldStartConnectionTo');
+	    }
+	  }, {
+	    key: 'startStreamConnection',
+	    value: function startStreamConnection(clientId) {
+	      this.notImplemented('startStreamConnection');
+	    }
+	  }, {
+	    key: 'closeStreamConnection',
+	    value: function closeStreamConnection(clientId) {
+	      this.notImplemented('closeStreamConnection');
+	    }
+	  }, {
+	    key: 'getConnectStatus',
+	    value: function getConnectStatus(clientId) {
+	      this.notImplemented('getConnectStatus');
+	    }
+	  }, {
+	    key: 'getMediaStream',
+	    value: function getMediaStream(clientId) {
+	      return Promise.reject("Interface method not implemented: getMediaStream");
+	    }
+	  }, {
+	    key: 'getServerTime',
+	    value: function getServerTime() {
+	      this.notImplemented('getServerTime');
+	    }
+	  }, {
+	    key: 'sendData',
+	    value: function sendData(clientId, dataType, data) {
+	      this.notImplemented('sendData');
+	    }
+	  }, {
+	    key: 'sendDataGuaranteed',
+	    value: function sendDataGuaranteed(clientId, dataType, data) {
+	      this.notImplemented('sendDataGuaranteed');
+	    }
+	  }, {
+	    key: 'broadcastData',
+	    value: function broadcastData(dataType, data) {
+	      this.notImplemented('broadcastData');
+	    }
+	  }, {
+	    key: 'broadcastDataGuaranteed',
+	    value: function broadcastDataGuaranteed(dataType, data) {
+	      this.notImplemented('broadcastDataGuaranteed');
+	    }
+	  }, {
+	    key: 'disconnect',
+	    value: function disconnect() {
+	      this.notImplemented('disconnect');
+	    }
+	  }]);
+
+	  return NoOpAdapter;
+	}(NafInterface);
+
+	module.exports = NoOpAdapter;
+
+/***/ }),
+/* 14 */
 /***/ (function(module, exports) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	/* global NAF */
+
+	var NafInterface = function () {
+	  function NafInterface() {
+	    _classCallCheck(this, NafInterface);
+	  }
+
+	  _createClass(NafInterface, [{
+	    key: 'notImplemented',
+	    value: function notImplemented(name) {
+	      NAF.log.error('Interface method not implemented:', name);
+	    }
+	  }]);
+
+	  return NafInterface;
+	}();
+
+	module.exports = NafInterface;
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
 
@@ -1307,20 +1487,32 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var EasyRtcAdapter = function () {
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	/* global NAF */
+	var NoOpAdapter = __webpack_require__(13);
+
+	var EasyRtcAdapter = function (_NoOpAdapter) {
+	  _inherits(EasyRtcAdapter, _NoOpAdapter);
+
 	  function EasyRtcAdapter(easyrtc) {
 	    _classCallCheck(this, EasyRtcAdapter);
 
-	    this.easyrtc = easyrtc || window.easyrtc;
-	    this.app = "default";
-	    this.room = "default";
+	    var _this = _possibleConstructorReturn(this, (EasyRtcAdapter.__proto__ || Object.getPrototypeOf(EasyRtcAdapter)).call(this));
 
-	    this.audioStreams = {};
-	    this.pendingAudioRequest = {};
+	    _this.easyrtc = easyrtc || window.easyrtc;
+	    _this.app = "default";
+	    _this.room = "default";
 
-	    this.serverTimeRequests = 0;
-	    this.timeOffsets = [];
-	    this.avgTimeOffset = 0;
+	    _this.audioStreams = {};
+	    _this.pendingAudioRequest = {};
+
+	    _this.serverTimeRequests = 0;
+	    _this.timeOffsets = [];
+	    _this.avgTimeOffset = 0;
+	    return _this;
 	  }
 
 	  _createClass(EasyRtcAdapter, [{
@@ -1377,7 +1569,7 @@
 	  }, {
 	    key: "updateTimeOffset",
 	    value: function updateTimeOffset() {
-	      var _this = this;
+	      var _this2 = this;
 
 	      var clientSentTime = Date.now() + this.avgTimeOffset;
 
@@ -1388,47 +1580,47 @@
 	        var serverTime = serverReceivedTime + (clientReceivedTime - clientSentTime) / 2;
 	        var timeOffset = serverTime - clientReceivedTime;
 
-	        _this.serverTimeRequests++;
+	        _this2.serverTimeRequests++;
 
-	        if (_this.serverTimeRequests <= 10) {
-	          _this.timeOffsets.push(timeOffset);
+	        if (_this2.serverTimeRequests <= 10) {
+	          _this2.timeOffsets.push(timeOffset);
 	        } else {
-	          _this.timeOffsets[_this.serverTimeRequests % 10] = timeOffset;
+	          _this2.timeOffsets[_this2.serverTimeRequests % 10] = timeOffset;
 	        }
 
-	        _this.avgTimeOffset = _this.timeOffsets.reduce(function (acc, offset) {
+	        _this2.avgTimeOffset = _this2.timeOffsets.reduce(function (acc, offset) {
 	          return acc += offset;
-	        }, 0) / _this.timeOffsets.length;
+	        }, 0) / _this2.timeOffsets.length;
 
-	        if (_this.serverTimeRequests > 10) {
+	        if (_this2.serverTimeRequests > 10) {
 	          setTimeout(function () {
-	            return _this.updateTimeOffset();
+	            return _this2.updateTimeOffset();
 	          }, 5 * 60 * 1000); // Sync clock every 5 minutes.
 	        } else {
-	          _this.updateTimeOffset();
+	          _this2.updateTimeOffset();
 	        }
 	      });
 	    }
 	  }, {
 	    key: "connect",
 	    value: function connect() {
-	      var _this2 = this;
+	      var _this3 = this;
 
 	      Promise.all([this.updateTimeOffset(), new Promise(function (resolve, reject) {
-	        if (_this2.easyrtc.audioEnabled) {
-	          _this2._connectWithAudio(resolve, reject);
+	        if (_this3.easyrtc.audioEnabled) {
+	          _this3._connectWithAudio(resolve, reject);
 	        } else {
-	          _this2.easyrtc.connect(_this2.app, resolve, reject);
+	          _this3.easyrtc.connect(_this3.app, resolve, reject);
 	        }
 	      })]).then(function (_ref) {
 	        var _ref2 = _slicedToArray(_ref, 2),
 	            _ = _ref2[0],
 	            clientId = _ref2[1];
 
-	        _this2._storeAudioStream(_this2.easyrtc.myEasyrtcid, _this2.easyrtc.getLocalStream());
+	        _this3._storeAudioStream(_this3.easyrtc.myEasyrtcid, _this3.easyrtc.getLocalStream());
 
-	        _this2._myRoomJoinTime = _this2._getRoomJoinTime(clientId);
-	        _this2.connectSuccess(clientId);
+	        _this3._myRoomJoinTime = _this3._getRoomJoinTime(clientId);
+	        _this3.connectSuccess(clientId);
 	      }).catch(this.connectFailure);
 	    }
 	  }, {
@@ -1444,7 +1636,7 @@
 	          NAF.log.write("Successfully started datachannel to ", caller);
 	        }
 	      }, function (errorCode, errorText) {
-	        console.error(errorCode, errorText);
+	        NAF.log.error(errorCode, errorText);
 	      }, function (wasAccepted) {
 	        // console.log("was accepted=" + wasAccepted);
 	      });
@@ -1501,7 +1693,6 @@
 	  }, {
 	    key: "getMediaStream",
 	    value: function getMediaStream(clientId) {
-	      console.log('getMediaStream', clientId);
 	      var that = this;
 	      if (this.audioStreams[clientId]) {
 	        NAF.log.write("Already had audio for " + clientId);
@@ -1547,14 +1738,14 @@
 	      this.easyrtc.initMediaSource(function () {
 	        that.easyrtc.connect(that.app, connectSuccess, connectFailure);
 	      }, function (errorCode, errmesg) {
-	        console.error(errorCode, errmesg);
+	        NAF.log.error(errorCode, errmesg);
 	      });
 	    }
 	  }, {
 	    key: "_getRoomJoinTime",
 	    value: function _getRoomJoinTime(clientId) {
 	      var myRoomId = NAF.room;
-	      var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
+	      var joinTime = this.easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
 	      return joinTime;
 	    }
 	  }, {
@@ -1565,17 +1756,17 @@
 	  }]);
 
 	  return EasyRtcAdapter;
-	}();
+	}(NoOpAdapter);
 
 	module.exports = EasyRtcAdapter;
 
 /***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
+/* 16 */
+/***/ (function(module, exports) {
 
 	'use strict';
 
-	var naf = __webpack_require__(3);
+	/* global AFRAME, NAF */
 
 	AFRAME.registerComponent('networked-scene', {
 	  schema: {
@@ -1640,14 +1831,14 @@
 	});
 
 /***/ }),
-/* 15 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var naf = __webpack_require__(3);
-	var componentHelper = __webpack_require__(16);
-	var Compressor = __webpack_require__(20);
+	/* global AFRAME, NAF */
+	var componentHelper = __webpack_require__(18);
+	var Compressor = __webpack_require__(22);
 	var bind = AFRAME.utils.bind;
 
 	AFRAME.registerComponent('networked', {
@@ -1981,33 +2172,31 @@
 	});
 
 /***/ }),
-/* 16 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var deepEqual = __webpack_require__(17);
+	/* global AFRAME, NAF */
+	var deepEqual = __webpack_require__(19);
 
 	module.exports.gatherComponentsData = function (el, schemaComponents) {
-	  var elComponents = el.components;
 	  var compsData = {};
 
 	  for (var i in schemaComponents) {
 	    var element = schemaComponents[i];
 
 	    if (typeof element === 'string') {
-	      if (elComponents.hasOwnProperty(element)) {
-	        var name = element;
-	        var elComponent = elComponents[name];
-	        compsData[name] = AFRAME.utils.clone(elComponent.data);
+	      if (el.components.hasOwnProperty(element)) {
+	        compsData[element] = AFRAME.utils.clone(el.getAttribute(element));
 	      }
 	    } else {
 	      var childKey = NAF.utils.childSchemaToKey(element);
 	      var child = element.selector ? el.querySelector(element.selector) : el;
 	      if (child) {
-	        var comp = child.components[element.component];
-	        if (comp) {
-	          var data = element.property ? comp.data[element.property] : comp.data;
+	        if (child.components.hasOwnProperty(element.component)) {
+	          var attributeData = child.getAttribute(element.component);
+	          var data = element.property ? attributeData[element.property] : attributeData;
 	          compsData[childKey] = AFRAME.utils.clone(data);
 	        } else {
 	          // NAF.log.write('ComponentHelper.gatherComponentsData: Could not find component ' + element.component + ' on child ', child, child.components);
@@ -2019,7 +2208,6 @@
 	};
 
 	module.exports.findDirtyComponents = function (el, syncedComps, cachedData) {
-	  var newComps = el.components;
 	  var dirtyComps = [];
 
 	  for (var i in syncedComps) {
@@ -2029,24 +2217,24 @@
 
 	    var isRoot = typeof schema === 'string';
 	    if (isRoot) {
-	      var hasComponent = newComps.hasOwnProperty(schema);
+	      var hasComponent = el.components.hasOwnProperty(schema);
 	      if (!hasComponent) {
 	        continue;
 	      }
 	      compKey = schema;
-	      newCompData = newComps[schema].data;
+	      newCompData = el.getAttribute(schema);
 	    } else {
 	      // is child
 	      var selector = schema.selector;
 	      var compName = schema.component;
 	      var propName = schema.property;
 	      var childEl = selector ? el.querySelector(selector) : el;
-	      var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
-	      if (!hasComponent) {
+	      var hasComp = childEl && childEl.components.hasOwnProperty(compName);
+	      if (!hasComp) {
 	        continue;
 	      }
 	      compKey = NAF.utils.childSchemaToKey(schema);
-	      newCompData = childEl.components[compName].data;
+	      newCompData = childEl.getAttribute(compName);
 	      if (propName) {
 	        newCompData = newCompData[propName];
 	      }
@@ -2067,7 +2255,7 @@
 	};
 
 /***/ }),
-/* 17 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2075,8 +2263,8 @@
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	var pSlice = Array.prototype.slice;
-	var objectKeys = __webpack_require__(18);
-	var isArguments = __webpack_require__(19);
+	var objectKeys = __webpack_require__(20);
+	var isArguments = __webpack_require__(21);
 
 	var deepEqual = module.exports = function (actual, expected, opts) {
 	  if (!opts) opts = {};
@@ -2167,7 +2355,7 @@
 	}
 
 /***/ }),
-/* 18 */
+/* 20 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -2183,7 +2371,7 @@
 	}
 
 /***/ }),
-/* 19 */
+/* 21 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -2207,10 +2395,12 @@
 	};
 
 /***/ }),
-/* 20 */
+/* 22 */
 /***/ (function(module, exports) {
 
 	"use strict";
+
+	/* global NAF */
 
 	/**
 	  Compressed packet structure:
@@ -2280,7 +2470,7 @@
 	  entityData.template = compressed[4];
 
 	  var compressedComps = compressed[5];
-	  var components = this.decompressComponents(compressedComps, components);
+	  components = this.decompressComponents(compressedComps, components);
 	  entityData.components = components;
 
 	  return entityData;
@@ -2303,11 +2493,12 @@
 	};
 
 /***/ }),
-/* 21 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
+	/* global AFRAME, NAF, THREE */
 	var naf = __webpack_require__(3);
 
 	// @TODO if aframevr/aframe#3042 gets merged, this should just delegate to the aframe sound component

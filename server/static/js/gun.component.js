@@ -32,11 +32,8 @@ AFRAME.registerComponent('gun', {
   },
 
   getInitialBulletPosition: function(spawnerEl) {
-    var position = spawnerEl.getAttribute('position');
-
     var worldPos = new THREE.Vector3();
     worldPos.setFromMatrixPosition(spawnerEl.object3D.matrixWorld);
-
     return worldPos;
   },
 
