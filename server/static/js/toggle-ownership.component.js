@@ -15,7 +15,27 @@ AFRAME.registerComponent('toggle-ownership', {
 
     if (NAF.utils.isMine(this.el)) {
       this.updateColor();
+    } else {
+      this.el.setAttribute('material', 'opacity', 0.5);
     }
+
+    // Opacity is not a networked attribute, but change it based on ownership events
+    this.networkedEl = NAF.utils.getNetworkedEntity(this.el);
+    
+    this.networkedEl.addEventListener("ownership-gained", e => {
+      this.el.setAttribute('material', 'opacity', 1);
+    });
+
+    this.networkedEl.addEventListener("ownership-lost", e => {
+      this.el.setAttribute('material', 'opacity', 0.5);
+    });
+
+    this.networkedEl.addEventListener("ownership-changed", e => {
+      this.el.setAttribute('material', 'opacity', 0.8);
+      setTimeout(() => {
+        this.el.setAttribute('material', 'opacity', 0.5);
+      }, 200)
+    });
   },
 
   onKeyUp(e) {
