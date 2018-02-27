@@ -1,9 +1,15 @@
 var naf = require('../NafIndex');
 
-// @TODO if aframevr/aframe#3042 gets merged, this should just delegate to the aframe sound component
 AFRAME.registerComponent('networked-audio-source', {
   schema: {
-    positional: { default: true }
+    positional: { default: true },
+    distanceModel: {
+      default: "inverse",
+      oneOf: ["linear", "inverse", "exponential"]
+    },
+    maxDistance: { default: 10000 },
+    refDistance: { default: 1 },
+    rolloffFactor: { default: 1 }
   },
 
   init: function () {
@@ -25,6 +31,10 @@ AFRAME.registerComponent('networked-audio-source', {
     }
   },
 
+  update() {
+    this._setPannerProperties();
+  },
+
   _setMediaStream(newStream) {
     if(!this.sound) {
       this.setupSound();
@@ -40,10 +50,20 @@ AFRAME.registerComponent('networked-audio-source', {
         this.audioEl.setAttribute("autoplay", "autoplay");
         this.audioEl.setAttribute("playsinline", "playsinline");
         this.audioEl.srcObject = newStream;
+        this.audioEl.volume = 0; // we don't actually want to hear audio from this element
 
         this.sound.setNodeSource(this.sound.context.createMediaStreamSource(newStream));
       }
       this.stream = newStream;
+    }
+  },
+
+  _setPannerProperties() {
+    if (this.sound && this.data.positional) {
+      this.sound.setDistanceModel(this.data.distanceModel);
+      this.sound.setMaxDistance(this.data.maxDistance);
+      this.sound.setRefDistance(this.data.refDistance);
+      this.sound.setRolloffFactor(this.data.rolloffFactor);
     }
   },
 
@@ -77,5 +97,6 @@ AFRAME.registerComponent('networked-audio-source', {
       ? new THREE.PositionalAudio(this.listener)
       : new THREE.Audio(this.listener);
     el.setObject3D(this.attrName, this.sound);
+    this._setPannerProperties();
   }
 });
