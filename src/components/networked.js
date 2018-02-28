@@ -63,7 +63,7 @@ AFRAME.registerComponent('networked', {
       this.removeLerp();
       this.el.setAttribute('networked', { owner: NAF.clientId });
       this.syncAll();
-      this.el.emit(this.OWNERSHIP_GAINED);
+      this.el.emit(this.OWNERSHIP_GAINED, { el: this.el, previousOwner: owner });
       return true;
     }
     return false;
@@ -297,9 +297,9 @@ AFRAME.registerComponent('networked', {
       this.el.setAttribute('networked', { owner: entityData.owner });
 
       if (wasMine) {
-        this.el.emit(this.OWNERSHIP_LOST);
+        this.el.emit(this.OWNERSHIP_LOST, { el: this.el, newOwner: entityData.owner });
       } else {
-        this.el.emit(this.OWNERSHIP_CHANGED);
+        this.el.emit(this.OWNERSHIP_CHANGED, { el: this.el, previousOwner: this.data.owner, newOwner: entityData.owner});
       }
     }
 
