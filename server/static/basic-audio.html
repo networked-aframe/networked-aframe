@@ -52,8 +52,9 @@
 
         <!-- Avatar -->
         <template id="avatar-template">
-          <a-entity class="avatar" networked-audio-source>
+          <a-entity class="avatar">
             <a-sphere class="head"
+              color="#ffffff"
               scale="0.45 0.5 0.4"
             ></a-sphere>
             <a-entity class="face"
@@ -85,20 +86,14 @@
           </a-entity>
         </template>
 
-        <template id="simple">
-          <a-sphere></a-sphere>
-        </template>
-
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
-          <a-sphere class="head"
-            color="#5985ff"
-            scale="0.45 0.5 0.4"
-            random-color
-            visible="false"
-          ></a-sphere>
+      <a-entity id="player" networked="template:#avatar-template;attachLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
+        <a-sphere class="head"
+          visible="false"
+          random-color
+        ></a-sphere>
       </a-entity>
 
       <a-entity position="0 0 0"

@@ -79,9 +79,13 @@ function getNetworkedEntity(entity) {
       return reject("Entity does not have and is not a child of an entity with the [networked] component ");
     }
 
-    curEntity.addEventListener("instantiated", () => {
+    if (curEntity.hasLoaded) {
       resolve(curEntity);
-    }, { once: true });
+    } else {
+      curEntity.addEventListener("instantiated", () => {
+        resolve(curEntity);
+      }, { once: true });
+    }
   });
 };
 

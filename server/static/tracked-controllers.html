@@ -56,14 +56,15 @@
         <template id="head-template">
           <a-entity class="avatar">
             <a-sphere class="head"
-              scale="0.3 0.35 0.25"
+              color="#ffffff"
+              scale="0.45 0.5 0.4"
             ></a-sphere>
             <a-entity class="face"
               position="0 0.05 0"
             >
               <a-sphere class="eye"
                 color="#efefef"
-                position="0.1 0.1 -0.2"
+                position="0.16 0.1 -0.35"
                 scale="0.12 0.12 0.12"
               >
                 <a-sphere class="pupil"
@@ -74,7 +75,7 @@
               </a-sphere>
               <a-sphere class="eye"
                 color="#efefef"
-                position="-0.1 0.1 -0.2"
+                position="-0.16 0.1 -0.35"
                 scale="0.12 0.12 0.12"
               >
                 <a-sphere class="pupil"
@@ -89,23 +90,24 @@
 
         <!-- Hand -->
         <template id="hand-template">
-          <a-box scale="0.1 0.1 0.1"></a-box>
+          <a-entity>
+            <a-box scale="0.1 0.1 0.1"></a-box>
+          </a-entity>
         </template>
 
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" spawn-in-circle="radius:3" wasd-controls>
-        <a-sphere class="head"
-          color="#5985ff"
-          random-color
-          visible="false"
-        ></a-sphere>
+      <a-entity id="player" networked="template:#player-template;attachLocalTemplate:false;" spawn-in-circle="radius:3" wasd-controls>
+        <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;attachLocalTemplate:false;">
+            <a-sphere class="head"
+              random-color
+              visible="false"
+            ></a-sphere>
+        </a-entity>
 
-        <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;showLocalTemplate:false;"></a-entity>
-
-        <a-entity hand-controls="left" networked="template:#hand-template;showLocalTemplate:false;"></a-entity>
-        <a-entity hand-controls="right" networked="template:#hand-template;showLocalTemplate:false;"></a-entity>
+        <a-entity hand-controls="left" networked="template:#hand-template;"></a-entity>
+        <a-entity hand-controls="right" networked="template:#hand-template;"></a-entity>
       </a-entity>
 
       <a-entity position="0 0 0"

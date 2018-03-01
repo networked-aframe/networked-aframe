@@ -52,7 +52,7 @@
         <template id="avatar-template">
           <a-entity class="avatar">
             <a-sphere class="head"
-              random-color
+              color="#ffffff"
               scale="0.45 0.5 0.4"
             ></a-sphere>
             <a-entity class="face"
@@ -84,14 +84,15 @@
           </a-entity>
         </template>
 
-        <script id="simple" type="text/html">
-          <a-sphere></a-sphere>
-        </script>
-
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template" visible="false" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls></a-entity>
+      <a-entity id="player" networked="template:#avatar-template;attachLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
+        <a-sphere class="head"
+          visible="false"
+          random-color
+        ></a-sphere>
+      </a-entity>
 
       <a-entity position="0 0 0"
         geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
