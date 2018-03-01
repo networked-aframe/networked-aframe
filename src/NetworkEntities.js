@@ -23,20 +23,22 @@ class NetworkEntities {
     var el = clone.firstElementChild;
 
     el.setAttribute('id', 'naf-' + networkId);
-    this.initPosition(el, entityData.components);
-    this.initRotation(el, entityData.components);
-    this.addNetworkComponent(el, entityData);
-
     this.registerEntity(networkId, el);
 
     return el;
+  }
+
+  setInitialComponents(entity, entityData) {
+    this.initPosition(entity, entityData.components);
+    this.initRotation(entity, entityData.components);
+    this.addNetworkComponent(entity, entityData);
   }
 
   initPosition(entity, componentData) {
     var hasPosition = componentData.hasOwnProperty('position');
     if (hasPosition) {
       var position = componentData.position;
-      entity.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
+      entity.setAttribute('position', position);
     }
   }
 
@@ -44,7 +46,7 @@ class NetworkEntities {
     var hasRotation = componentData.hasOwnProperty('rotation');
     if (hasRotation) {
       var rotation = componentData.rotation;
-      entity.setAttribute('rotation', `${rotation.x} ${rotation.y} ${rotation.z}`);
+      entity.setAttribute('rotation', rotation);
     }
   }
 
@@ -54,8 +56,7 @@ class NetworkEntities {
       owner: entityData.owner,
       networkId: entityData.networkId
     };
-    // TODO: refactor so we append this element before setting the attribute in order to avoid string serialization.
-    entity.setAttribute('networked', `template: ${entityData.template}; owner: ${entityData.owner}; networkId: ${entityData.networkId}`);
+    entity.setAttribute('networked', networkData);
     entity.firstUpdateData = entityData;
   }
 
@@ -86,7 +87,7 @@ class NetworkEntities {
     } else {
       var remoteEntity = this.createRemoteEntity(entityData);
       this.createAndAppendChildren(networkId, remoteEntity);
-      this.addEntityToPage(remoteEntity, parent);
+      this.addEntityToPage(remoteEntity, parent, entityData);
     }
   }
 
@@ -108,25 +109,28 @@ class NetworkEntities {
       var childEntity = this.createRemoteEntity(childEntityData);
       this.createAndAppendChildren(childId, childEntity);
       parentEntity.appendChild(childEntity);
+      this.setInitialComponents(childEntity, childEntityData);
     }
   }
 
-  addEntityToPage(entity, parentId) {
+  addEntityToPage(entity, parentId, entityData) {
     if (this.hasEntity(parentId)) {
-      this.addEntityToParent(entity, parentId);
+      this.addEntityToParent(entity, parentId, entityData);
     } else {
-      this.addEntityToSceneRoot(entity);
+      this.addEntityToSceneRoot(entity, entityData);
     }
   }
 
-  addEntityToParent(entity, parentId) {
+  addEntityToParent(entity, parentId, entityData) {
     var parentEl = document.getElementById('naf-' + parentId);
     parentEl.appendChild(entity);
+    this.setInitialComponents(entity, entityData);
   }
 
-  addEntityToSceneRoot(el) {
+  addEntityToSceneRoot(el, entityData) {
     var scene = document.querySelector('a-scene');
     scene.appendChild(el);
+    this.setInitialComponents(el, entityData);
   }
 
   completeSync(targetClientId) {
