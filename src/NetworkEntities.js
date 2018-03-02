@@ -38,7 +38,12 @@ class NetworkEntities {
     var hasPosition = componentData.hasOwnProperty('position');
     if (hasPosition) {
       var position = componentData.position;
-      entity.setAttribute('position', position);
+
+      if (typeof position === "string") {
+        entity.setAttribute('position', position);
+      } else {
+        entity.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
+      }
     }
   }
 
@@ -46,17 +51,17 @@ class NetworkEntities {
     var hasRotation = componentData.hasOwnProperty('rotation');
     if (hasRotation) {
       var rotation = componentData.rotation;
-      entity.setAttribute('rotation', rotation);
+
+      if (typeof rotation === "string") {
+        entity.setAttribute('rotation', rotation);
+      } else {
+        entity.setAttribute('rotation', `${rotation.x} ${rotation.y} ${hasRotation.z}`);
+      }
     }
   }
 
   addNetworkComponent(entity, entityData) {
-    var networkData = {
-      template: entityData.template,
-      owner: entityData.owner,
-      networkId: entityData.networkId
-    };
-    entity.setAttribute('networked', networkData);
+    entity.setAttribute('networked', `template: ${entityData.template}; owner: ${entityData.owner}; networkId: ${entityData.networkId}`);
     entity.firstUpdateData = entityData;
   }
 
