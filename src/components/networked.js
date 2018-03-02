@@ -55,15 +55,15 @@ AFRAME.registerComponent('networked', {
     var clone = document.importNode(template.content, true);
     var el = clone.firstElementChild;
     var elAttrs = el.attributes;
-
+    
     // Merge root element attributes with this entity
-    for (var i = 0; i < elAttrs.length; i++) {
-      this.el.setAttribute(elAttrs[i].name, elAttrs[i].value);
+    for (var attrIdx = 0; attrIdx < elAttrs.length; attrIdx++) {
+      this.el.setAttribute(elAttrs[attrIdx].name, elAttrs[attrIdx].value);
     }
 
     // Append all child elements
-    for (var i = 0; i < el.children.length; i++) {
-      this.el.appendChild(document.importNode(el.children[i], true));
+    for (var elIdx = 0; elIdx < el.children.length; elIdx++) {
+      this.el.appendChild(document.importNode(el.children[elIdx], true));
     }
   },
 

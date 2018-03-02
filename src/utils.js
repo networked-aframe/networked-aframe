@@ -87,7 +87,7 @@ function getNetworkedEntity(entity) {
       }, { once: true });
     }
   });
-};
+}
 
 module.exports.getNetworkedEntity = getNetworkedEntity;
 
