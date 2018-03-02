@@ -379,11 +379,15 @@
 	      return reject("Entity does not have and is not a child of an entity with the [networked] component ");
 	    }
 
-	    curEntity.addEventListener("instantiated", function () {
+	    if (curEntity.hasLoaded) {
 	      resolve(curEntity);
-	    }, { once: true });
+	    } else {
+	      curEntity.addEventListener("instantiated", function () {
+	        resolve(curEntity);
+	      }, { once: true });
+	    }
 	  });
-	};
+	}
 
 	module.exports.getNetworkedEntity = getNetworkedEntity;
 
@@ -575,13 +579,16 @@
 	      var el = clone.firstElementChild;
 
 	      el.setAttribute('id', 'naf-' + networkId);
-	      this.initPosition(el, entityData.components);
-	      this.initRotation(el, entityData.components);
-	      this.addNetworkComponent(el, entityData);
-
 	      this.registerEntity(networkId, el);
 
 	      return el;
+	    }
+	  }, {
+	    key: 'setInitialComponents',
+	    value: function setInitialComponents(entity, entityData) {
+	      this.initPosition(entity, entityData.components);
+	      this.initRotation(entity, entityData.components);
+	      this.addNetworkComponent(entity, entityData);
 	    }
 	  }, {
 	    key: 'initPosition',
@@ -589,7 +596,12 @@
 	      var hasPosition = componentData.hasOwnProperty('position');
 	      if (hasPosition) {
 	        var position = componentData.position;
-	        entity.setAttribute('position', position.x + ' ' + position.y + ' ' + position.z);
+
+	        if (typeof position === "string") {
+	          entity.setAttribute('position', position);
+	        } else {
+	          entity.setAttribute('position', position.x + ' ' + position.y + ' ' + position.z);
+	        }
 	      }
 	    }
 	  }, {
@@ -598,13 +610,17 @@
 	      var hasRotation = componentData.hasOwnProperty('rotation');
 	      if (hasRotation) {
 	        var rotation = componentData.rotation;
-	        entity.setAttribute('rotation', rotation.x + ' ' + rotation.y + ' ' + rotation.z);
+
+	        if (typeof rotation === "string") {
+	          entity.setAttribute('rotation', rotation);
+	        } else {
+	          entity.setAttribute('rotation', rotation.x + ' ' + rotation.y + ' ' + hasRotation.z);
+	        }
 	      }
 	    }
 	  }, {
 	    key: 'addNetworkComponent',
 	    value: function addNetworkComponent(entity, entityData) {
-	      // TODO: refactor so we append this element before setting the attribute in order to avoid string serialization.
 	      entity.setAttribute('networked', 'template: ' + entityData.template + '; owner: ' + entityData.owner + '; networkId: ' + entityData.networkId);
 	      entity.firstUpdateData = entityData;
 	    }
@@ -639,7 +655,7 @@
 	      } else {
 	        var remoteEntity = this.createRemoteEntity(entityData);
 	        this.createAndAppendChildren(networkId, remoteEntity);
-	        this.addEntityToPage(remoteEntity, parent);
+	        this.addEntityToPage(remoteEntity, parent, entityData);
 	      }
 	    }
 	  }, {
@@ -656,28 +672,31 @@
 	        var childEntity = this.createRemoteEntity(childEntityData);
 	        this.createAndAppendChildren(childId, childEntity);
 	        parentEntity.appendChild(childEntity);
+	        this.setInitialComponents(childEntity, childEntityData);
 	      }
 	    }
 	  }, {
 	    key: 'addEntityToPage',
-	    value: function addEntityToPage(entity, parentId) {
+	    value: function addEntityToPage(entity, parentId, entityData) {
 	      if (this.hasEntity(parentId)) {
-	        this.addEntityToParent(entity, parentId);
+	        this.addEntityToParent(entity, parentId, entityData);
 	      } else {
-	        this.addEntityToSceneRoot(entity);
+	        this.addEntityToSceneRoot(entity, entityData);
 	      }
 	    }
 	  }, {
 	    key: 'addEntityToParent',
-	    value: function addEntityToParent(entity, parentId) {
+	    value: function addEntityToParent(entity, parentId, entityData) {
 	      var parentEl = document.getElementById('naf-' + parentId);
 	      parentEl.appendChild(entity);
+	      this.setInitialComponents(entity, entityData);
 	    }
 	  }, {
 	    key: 'addEntityToSceneRoot',
-	    value: function addEntityToSceneRoot(el) {
+	    value: function addEntityToSceneRoot(el, entityData) {
 	      var scene = document.querySelector('a-scene');
 	      scene.appendChild(el);
+	      this.setInitialComponents(el, entityData);
 	    }
 	  }, {
 	    key: 'completeSync',
@@ -1895,13 +1914,13 @@
 	    var elAttrs = el.attributes;
 
 	    // Merge root element attributes with this entity
-	    for (var i = 0; i < elAttrs.length; i++) {
-	      this.el.setAttribute(elAttrs[i].name, elAttrs[i].value);
+	    for (var attrIdx = 0; attrIdx < elAttrs.length; attrIdx++) {
+	      this.el.setAttribute(elAttrs[attrIdx].name, elAttrs[attrIdx].value);
 	    }
 
 	    // Append all child elements
-	    for (var i = 0; i < el.children.length; i++) {
-	      this.el.appendChild(document.importNode(el.children[i], true));
+	    for (var elIdx = 0; elIdx < el.children.length; elIdx++) {
+	      this.el.appendChild(document.importNode(el.children[elIdx], true));
 	    }
 	  },
 
