@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test, teardown, sinon */
+/* global assert, process, setup, suite, test, teardown */
 require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
@@ -21,33 +21,9 @@ suite('networked attachLocalTemplate:false', function() {
     naf.utils.whenEntityLoaded(scene, done);
   }
 
-  function MockNetworkAdapter() {
-    this.setServerUrl = sinon.stub();
-    this.setApp = sinon.stub();
-    this.setRoom = sinon.stub();
-    this.setWebRtcOptions = sinon.stub();
-
-    this.setServerConnectListeners = sinon.stub();
-    this.setRoomOccupantListener = sinon.stub();
-    this.setDataChannelListeners = sinon.stub();
-
-    this.connect = sinon.stub();
-    this.shouldStartConnectionTo = sinon.stub();
-    this.startStreamConnection = sinon.stub();
-    this.closeStreamConnection = sinon.stub();
-    this.getConnectStatus = sinon.stub();
-
-    this.sendData = sinon.stub();
-    this.sendDataGuaranteed = sinon.stub();
-    this.broadcastData = sinon.stub();
-    this.broadcastDataGuaranteed = sinon.stub();
-
-    this.getServerTime = sinon.stub();
-  }
-
   setup(function(done) {
     naf.options.compressSyncPackets = false;
-    naf.connection.setNetworkAdapter(new MockNetworkAdapter());
+    naf.connection.setNetworkAdapter(new helpers.MockNetworkAdapter());
     initScene(function() {
       entity = document.querySelector('#test-entity');
       networked = entity.components['networked'];
