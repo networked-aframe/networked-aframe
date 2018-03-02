@@ -13,9 +13,11 @@ AFRAME.registerComponent('toggle-ownership', {
     this.onKeyUp = this.onKeyUp.bind(this);
     document.addEventListener("keyup", this.onKeyUp);
 
-    if (NAF.utils.isMine(this.el)) {
-      this.updateColor();
-    }
+    NAF.utils.getNetworkedEntity(this.el).then((el) => {
+      if (NAF.utils.isMine(el)) {
+        this.updateColor();
+      }
+    });
   },
 
   onKeyUp(e) {

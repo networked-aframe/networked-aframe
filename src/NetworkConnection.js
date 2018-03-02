@@ -1,3 +1,4 @@
+/* global NAF */
 var ReservedDataType = { Update: 'u', Remove: 'r' };
 
 class NetworkConnection {

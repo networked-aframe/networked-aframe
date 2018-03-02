@@ -1,5 +1,5 @@
-/* global assert, process, setup, suite, test */
-var aframe = require('aframe');
+/* global assert, process, setup, suite, test, teardown, sinon */
+require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
 var NetworkEntities = require('../../src/NetworkEntities');
@@ -13,10 +13,10 @@ suite('NetworkEntities', function() {
   function initScene(done) {
     var opts = {
       assets: [
-        '<script id="template1" type="text/html"><a-entity></a-entity></script>',
-        '<script id="template2" type="text/html"><a-box></a-box></script>',
-        '<script id="template3" type="text/html"><a-sphere></a-sphere></script>',
-        '<script id="template4" type="text/html"><a-sphere><a-entity class="test-child"></a-entity></a-sphere></script>'
+        '<template id="template1"><a-entity></a-entity></template>',
+        '<template id="template2"><a-box></a-box></template>',
+        '<template id="template3"><a-sphere></a-sphere></template>',
+        '<template id="template4"><a-sphere><a-entity class="test-child"></a-entity></a-sphere></template>'
       ]
     };
     scene = helpers.sceneFactory(opts);
@@ -77,27 +77,39 @@ suite('NetworkEntities', function() {
       assert.isOk(entity);
     });
 
-    test('entity components set immediately', function() {
+  });
+
+  suite("setInitialComponents", function() {
+    test('entity components set immediately', function(done) {
       var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
+      entities.setInitialComponents(entity, entityData);
 
-      var position = entity.components.position.attrValue;
-      var rotation = entity.components.rotation.attrValue;
-      var id = entity.getAttribute('id');
-
-      assert.isOk(entity);
-      assert.deepEqual(position, {x: 1, y: 2, z: 3});
-      assert.deepEqual(rotation, {x: 4, y: 3, z: 2});
+      naf.utils.whenEntityLoaded(entity, function() {
+        var position = entity.getAttribute("position");
+        var rotation = entity.getAttribute("rotation");
+        
+        assert.deepEqual(position, {x: 1, y: 2, z: 3});
+        assert.deepEqual(rotation, {x: 4, y: 3, z: 2});
+        done();
+      });
     });
 
-    test('entity sets correct first update data', function() {
+    test('entity sets correct first update data', function(done) {
       var entity = entities.createRemoteEntity(entityData);
+      scene.appendChild(entity);
+      entities.setInitialComponents(entity, entityData);
 
-      assert.equal(entity.firstUpdateData, entityData);
+      naf.utils.whenEntityLoaded(entity, function() {
+        assert.equal(entity.firstUpdateData, entityData);
+        done();
+      });
     });
 
     test('entity sets correct networked component', function(done) {
       var entity = entities.createRemoteEntity(entityData);
       scene.appendChild(entity);
+      entities.setInitialComponents(entity, entityData);
 
       naf.utils.whenEntityLoaded(entity, function() {
         var componentData = entity.components.networked.data;
@@ -108,7 +120,7 @@ suite('NetworkEntities', function() {
         done();
       });
     });
-  });
+  })
 
   suite('updateEntity', function() {
 
@@ -228,7 +240,7 @@ suite('NetworkEntities', function() {
 
     test('emits sync on 3 entities', function() {
       var entityList = [];
-      for (var i = 0; i < 3; i++) {
+      for (let i = 0; i < 3; i++) {
         entityData.networkId = i;
         var entity = document.createElement('a-entity');
         entities.registerEntity(entityData.networkId, entity);
@@ -238,14 +250,14 @@ suite('NetworkEntities', function() {
 
       entities.completeSync();
 
-      for (var i = 0; i < 3; i++) {
+      for (let i = 0; i < 3; i++) {
         assert.isTrue(entityList[i].emit.calledWith('syncAll'))
       }
     });
 
     test('emits sync on many entities', function() {
       var entityList = [];
-      for (var i = 0; i < 20; i++) {
+      for (let i = 0; i < 20; i++) {
         entityData.networkId = i;
         var entity = document.createElement('a-entity');
         entities.registerEntity(entityData.networkId, entity);
@@ -254,8 +266,8 @@ suite('NetworkEntities', function() {
       }
 
       entities.completeSync();
-      
-      for (var i = 0; i < 20; i++) {
+
+      for (let i = 0; i < 20; i++) {
         assert.isTrue(entityList[i].emit.calledWith('syncAll'))
       }
     });

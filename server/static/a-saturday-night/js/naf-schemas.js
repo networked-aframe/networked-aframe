@@ -3,10 +3,7 @@ var headSchema = {
   components: [
     'position',
     'rotation',
-    {
-      selector: '.heads',
-      component: 'show-child'
-    }
+    'show-child'
   ]
 };
 NAF.schemas.add(headSchema);
@@ -17,10 +14,7 @@ var leftHandSchema = {
     'position',
     'rotation',
     'visible',
-    {
-      selector: '.hands',
-      component: 'show-child'
-    }
+    'show-child'
   ]
 };
 NAF.schemas.add(leftHandSchema);
@@ -31,10 +25,7 @@ var rightHandSchema = {
     'position',
     'rotation',
     'visible',
-    {
-      selector: '.hands',
-      component: 'show-child'
-    }
+    'show-child'
   ]
 };
 NAF.schemas.add(rightHandSchema);

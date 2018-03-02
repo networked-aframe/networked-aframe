@@ -1,6 +1,11 @@
-class EasyRtcAdapter {
+/* global NAF */
+const NoOpAdapter = require('./NoOpAdapter');
+
+class EasyRtcAdapter extends NoOpAdapter {
 
   constructor(easyrtc) {
+    super();
+
     this.easyrtc = easyrtc || window.easyrtc;
     this.app = "default";
     this.room = "default";
@@ -122,7 +127,7 @@ class EasyRtcAdapter {
         }
       },
       function(errorCode, errorText) {
-        console.error(errorCode, errorText);
+        NAF.log.error(errorCode, errorText);
       },
       function(wasAccepted) {
         // console.log("was accepted=" + wasAccepted);
@@ -177,7 +182,6 @@ class EasyRtcAdapter {
   }
 
   getMediaStream(clientId) {
-    console.log('getMediaStream', clientId);
     var that = this;
     if (this.audioStreams[clientId]) {
       NAF.log.write("Already had audio for " + clientId);
@@ -221,14 +225,14 @@ class EasyRtcAdapter {
         that.easyrtc.connect(that.app, connectSuccess, connectFailure);
       },
       function(errorCode, errmesg) {
-        console.error(errorCode, errmesg);
+        NAF.log.error(errorCode, errmesg);
       }
     );
   }
 
   _getRoomJoinTime(clientId) {
     var myRoomId = NAF.room;
-    var joinTime = easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId]
+    var joinTime = this.easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId]
       .roomJoinTime;
     return joinTime;
   }

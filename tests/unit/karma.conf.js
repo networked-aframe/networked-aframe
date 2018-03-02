@@ -23,6 +23,7 @@ var karma_conf = {
     {pattern: './tests/unit/utils.test.js'},
     {pattern: './tests/unit/NetworkConnection.test.js'},
     {pattern: './tests/unit/networked.test.js'},
+    {pattern: './tests/unit/networked_attachLocalTemplate.test.js'},
     {pattern: './tests/unit/networked_WithParent.test.js'},
     {pattern: './tests/unit/networked_remote.test.js'},
     {pattern: './tests/unit/NetworkEntities.test.js'},

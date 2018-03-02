@@ -1,8 +1,7 @@
-/* global assert, process, setup, suite, test */
-var aframe = require('aframe');
+/* global assert, process, setup, suite, test, teardown, sinon */
+require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
-var componentHelper = require('../../src/ComponentHelper');
 
 require('../../src/components/networked');
 
@@ -12,39 +11,19 @@ suite('networked', function() {
   var networked;
 
   function initScene(done) {
-    var opts = {};
-    opts.entity = '<a-entity id="test-entity" networked="template:t1;showLocalTemplate:false;" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity>';
+    var opts = {
+      assets: [
+        "<template id='t1'><a-entity><a-entity class='template-child'></a-entity></a-entity></template>"
+      ],
+      entity: '<a-entity id="test-entity" networked="template:#t1" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity>'
+    };
     scene = helpers.sceneFactory(opts);
     naf.utils.whenEntityLoaded(scene, done);
   }
 
-  function MockNetworkAdapter() {
-    this.setServerUrl = sinon.stub();
-    this.setApp = sinon.stub();
-    this.setRoom = sinon.stub();
-    this.setWebRtcOptions = sinon.stub();
-
-    this.setServerConnectListeners = sinon.stub();
-    this.setRoomOccupantListener = sinon.stub();
-    this.setDataChannelListeners = sinon.stub();
-
-    this.connect = sinon.stub();
-    this.shouldStartConnectionTo = sinon.stub();
-    this.startStreamConnection = sinon.stub();
-    this.closeStreamConnection = sinon.stub();
-    this.getConnectStatus = sinon.stub();
-
-    this.sendData = sinon.stub();
-    this.sendDataGuaranteed = sinon.stub();
-    this.broadcastData = sinon.stub();
-    this.broadcastDataGuaranteed = sinon.stub();
-
-    this.getServerTime = sinon.stub();
-  }
-
   setup(function(done) {
     naf.options.compressSyncPackets = false;
-    naf.connection.setNetworkAdapter(new MockNetworkAdapter());
+    naf.connection.setNetworkAdapter(new helpers.MockNetworkAdapter());
     initScene(function() {
       entity = document.querySelector('#test-entity');
       networked = entity.components['networked'];
@@ -119,11 +98,9 @@ suite('networked', function() {
       assert.isTrue(stub.calledWith('nid2', entity));
     }));
 
-    test('attaches template', function() {
-      var templateChild = entity.querySelector('[template]');
-      var result = templateChild.getAttribute('template');
-
-      assert.equal(result, 'src:t1');
+    test('attaches local template', function() {
+      var templateChild = entity.querySelector('.template-child');
+      assert.isOk(templateChild);
     });
   });
 
@@ -155,31 +132,10 @@ suite('networked', function() {
     }));
   });
 
-  suite('attachAndShowTemplate', function() {
-
-    test('shows template', sinon.test(function() {
-      networked.attachAndShowTemplate('temp', true);
-
-      var templateChild = entity.querySelector('[template]');
-      var result = templateChild.components.visible.attrValue;
-
-      assert.isTrue(result);
-    }));
-
-    test('hides template', sinon.test(function() {
-      networked.attachAndShowTemplate('temp', false);
-
-      var templateChild = entity.querySelector('[template]');
-      var result = templateChild.components.visible.attrValue;
-
-      assert.isFalse(result);
-    }));
-  });
-
   suite('tick', function() {
 
     test('syncs if need to', sinon.test(function() {
-      this.stub(NAF.utils, 'now').returns(4);
+      this.stub(naf.utils, 'now').returns(4);
       this.stub(networked, 'syncDirty');
       networked.nextSyncTime = 4;
 
@@ -189,7 +145,7 @@ suite('networked', function() {
     }));
 
     test('does not sync if does not need to', sinon.test(function() {
-      this.stub(NAF.utils, 'now').returns(3.9);
+      this.stub(naf.utils, 'now').returns(3.9);
       this.stub(networked, 'syncDirty');
       networked.nextSyncTime = 4;
 
@@ -211,7 +167,7 @@ suite('networked', function() {
         owner: 'owner1',
         lastOwnerTime: -1,
         parent: null,
-        template: 't1',
+        template: '#t1',
         components: {
           position: { x: 1, y: 2, z: 3 },
           rotation: { x: 4, y: 3, z: 2 }
@@ -266,7 +222,7 @@ suite('networked', function() {
         owner: 'owner1',
         lastOwnerTime: -1,
         parent: null,
-        template: 't1',
+        template: '#t1',
         components: {
           rotation: { x: 4, y: 3, z: 2 }
         }
@@ -284,13 +240,13 @@ suite('networked', function() {
 
     test('syncs compressed data that has changed (all components changed)', sinon.test(function() {
       this.stub(naf.utils, 'createNetworkId').returns('network1');
-      this.stub(NAF.connection, 'broadcastData');
-      NAF.options.compressSyncPackets = true;
+      this.stub(naf.connection, 'broadcastData');
+      naf.options.compressSyncPackets = true;
       var oldData = {
         position: { x: 1, y: 2, z: 5 /* changed */ },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
-      var expected = [1, 'network1', 'owner1', null, 't1', { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, '#t1', { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
 
       networked.init();
       networked.updateCache(oldData);
@@ -298,7 +254,7 @@ suite('networked', function() {
       networked.hasSentFirstSync = true;
       networked.syncDirty();
 
-      var called = NAF.connection.broadcastData.calledWithExactly('u', expected);
+      var called = naf.connection.broadcastData.calledWithExactly('u', expected);
       assert.isTrue(called);
     }));
 
@@ -310,7 +266,7 @@ suite('networked', function() {
         position: { x: 1, y: 2, z: 3 },
         rotation: { x: 4, y: 2 /* changed */, z: 2 }
       };
-      var expected = [1, 'network1', 'owner1', null, 't1', { 1: { x: 4, y: 3, z: 2 } }];
+      var expected = [1, 'network1', 'owner1', null, '#t1', { 1: { x: 4, y: 3, z: 2 } }];
 
       networked.init();
       networked.updateCache(oldData);

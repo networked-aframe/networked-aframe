@@ -1,3 +1,4 @@
+/* global NAF */
 var ChildEntityCache = require('./ChildEntityCache');
 
 class NetworkEntities {
@@ -17,24 +18,32 @@ class NetworkEntities {
     NAF.log.write('Creating remote entity', entityData);
 
     var networkId = entityData.networkId;
+    var template = document.querySelector(entityData.template);
+    var clone = document.importNode(template.content, true);
+    var el = clone.firstElementChild;
 
-    var el = document.createElement('a-entity');
     el.setAttribute('id', 'naf-' + networkId);
-
-    this.initPosition(el, entityData.components);
-    this.initRotation(el, entityData.components);
-    this.addNetworkComponent(el, entityData);
-
     this.registerEntity(networkId, el);
 
     return el;
+  }
+
+  setInitialComponents(entity, entityData) {
+    this.initPosition(entity, entityData.components);
+    this.initRotation(entity, entityData.components);
+    this.addNetworkComponent(entity, entityData);
   }
 
   initPosition(entity, componentData) {
     var hasPosition = componentData.hasOwnProperty('position');
     if (hasPosition) {
       var position = componentData.position;
-      entity.setAttribute('position', position);
+
+      if (typeof position === "string") {
+        entity.setAttribute('position', position);
+      } else {
+        entity.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
+      }
     }
   }
 
@@ -42,18 +51,17 @@ class NetworkEntities {
     var hasRotation = componentData.hasOwnProperty('rotation');
     if (hasRotation) {
       var rotation = componentData.rotation;
-      entity.setAttribute('rotation', rotation);
+
+      if (typeof rotation === "string") {
+        entity.setAttribute('rotation', rotation);
+      } else {
+        entity.setAttribute('rotation', `${rotation.x} ${rotation.y} ${hasRotation.z}`);
+      }
     }
   }
 
   addNetworkComponent(entity, entityData) {
-    var networkData = {
-      template: entityData.template,
-      owner: entityData.owner,
-      networkId: entityData.networkId
-    };
-
-    entity.setAttribute('networked', networkData);
+    entity.setAttribute('networked', `template: ${entityData.template}; owner: ${entityData.owner}; networkId: ${entityData.networkId}`);
     entity.firstUpdateData = entityData;
   }
 
@@ -84,7 +92,7 @@ class NetworkEntities {
     } else {
       var remoteEntity = this.createRemoteEntity(entityData);
       this.createAndAppendChildren(networkId, remoteEntity);
-      this.addEntityToPage(remoteEntity, parent);
+      this.addEntityToPage(remoteEntity, parent, entityData);
     }
   }
 
@@ -94,7 +102,7 @@ class NetworkEntities {
       var childEntityData = children[i];
       var childId = childEntityData.networkId;
       if (this.hasEntity(childId)) {
-        console.warn(
+        NAF.log.warn(
           'Tried to instantiate entity multiple times',
           childId,
           childEntityData,
@@ -106,25 +114,28 @@ class NetworkEntities {
       var childEntity = this.createRemoteEntity(childEntityData);
       this.createAndAppendChildren(childId, childEntity);
       parentEntity.appendChild(childEntity);
+      this.setInitialComponents(childEntity, childEntityData);
     }
   }
 
-  addEntityToPage(entity, parentId) {
+  addEntityToPage(entity, parentId, entityData) {
     if (this.hasEntity(parentId)) {
-      this.addEntityToParent(entity, parentId);
+      this.addEntityToParent(entity, parentId, entityData);
     } else {
-      this.addEntityToSceneRoot(entity);
+      this.addEntityToSceneRoot(entity, entityData);
     }
   }
 
-  addEntityToParent(entity, parentId) {
+  addEntityToParent(entity, parentId, entityData) {
     var parentEl = document.getElementById('naf-' + parentId);
     parentEl.appendChild(entity);
+    this.setInitialComponents(entity, entityData);
   }
 
-  addEntityToSceneRoot(el) {
+  addEntityToSceneRoot(el, entityData) {
     var scene = document.querySelector('a-scene');
     scene.appendChild(el);
+    this.setInitialComponents(el, entityData);
   }
 
   completeSync(targetClientId) {
