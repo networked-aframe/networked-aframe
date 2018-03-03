@@ -296,11 +296,11 @@ List of ownership transfer events:
 | Event | Description | Values |
 | -------- | ----------- | ------------- |
 | ownership-gained | Fired when a networked entity's ownership is taken | `evt.detail.el` - the entity whose ownership was gained |
-| | | `evt.detail.previousOwner` - the clientId of the previous owner |
+| | | `evt.detail.oldOwner` - the clientId of the previous owner |
 | ownership-lost | Fired when a networked entity's ownership is lost | `evt.detail.el` - the entity whose ownership was lost |
 | | | `evt.detail.newOwner` - the clientId of the new owner |
-| ownership-changed | Fired when a networked entity's ownership is changed, but you are neither the new or previous owner | `evt.detail.el` - the entity whose ownership was lost |
-| | | `evt.detail.previousOwner` - the clientId of the previous owner |
+| ownership-changed | Fired when a networked entity's ownership is changed | `evt.detail.el` - the entity whose ownership was lost |
+| | | `evt.detail.oldOwner` - the clientId of the previous owner |
 | | | `evt.detail.newOwner` - the clientId of the new owner |
 
 ### Adapters

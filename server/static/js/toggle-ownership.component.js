@@ -25,21 +25,26 @@ AFRAME.registerComponent('toggle-ownership', {
     let timeout;
 
     this.networkedEl.addEventListener("ownership-gained", e => {
-      clearTimeout(timeout);
-      this.el.setAttribute('material', 'opacity', 1);
+      e.detail.el.setAttribute('material', 'opacity', 1);
     });
 
     this.networkedEl.addEventListener("ownership-lost", e => {
-      clearTimeout(timeout);
-      this.el.setAttribute('material', 'opacity', 0.5);
+      e.detail.el.setAttribute('material', 'opacity', 0.5);
     });
 
     this.networkedEl.addEventListener("ownership-changed", e => {
       clearTimeout(timeout);
-      this.el.setAttribute('material', 'opacity', 0.8);
-      timeout = setTimeout(() => {
-        this.el.setAttribute('material', 'opacity', 0.5);
-      }, 200)
+      console.log(e.detail)
+      if (e.detail.newOwner == NAF.clientId) {
+        //same as listening to "ownership-gained"
+      } else if (e.detail.oldOwner == NAF.clientId) {
+        //same as listening to "ownership-lost"
+      } else {
+        e.detail.el.setAttribute('material', 'opacity', 0.8);
+        timeout = setTimeout(() => {
+          e.detail.el.setAttribute('material', 'opacity', 0.5);
+        }, 200)
+      }
     });
   },
 
