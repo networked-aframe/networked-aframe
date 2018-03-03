@@ -30,9 +30,11 @@ AFRAME.registerComponent('toggle-ownership', {
       this.el.setAttribute('material', 'opacity', 0.5);
     });
 
+    let timeout;
     this.networkedEl.addEventListener("ownership-changed", e => {
       this.el.setAttribute('material', 'opacity', 0.8);
-      setTimeout(() => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
         this.el.setAttribute('material', 'opacity', 0.5);
       }, 200)
     });
