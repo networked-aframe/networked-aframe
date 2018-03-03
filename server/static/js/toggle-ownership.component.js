@@ -22,18 +22,21 @@ AFRAME.registerComponent('toggle-ownership', {
     // Opacity is not a networked attribute, but change it based on ownership events
     this.networkedEl = NAF.utils.getNetworkedEntity(this.el);
     
+    let timeout;
+
     this.networkedEl.addEventListener("ownership-gained", e => {
+      clearTimeout(timeout);
       this.el.setAttribute('material', 'opacity', 1);
     });
 
     this.networkedEl.addEventListener("ownership-lost", e => {
+      clearTimeout(timeout);
       this.el.setAttribute('material', 'opacity', 0.5);
     });
 
-    let timeout;
     this.networkedEl.addEventListener("ownership-changed", e => {
-      this.el.setAttribute('material', 'opacity', 0.8);
       clearTimeout(timeout);
+      this.el.setAttribute('material', 'opacity', 0.8);
       timeout = setTimeout(() => {
         this.el.setAttribute('material', 'opacity', 0.5);
       }, 200)
