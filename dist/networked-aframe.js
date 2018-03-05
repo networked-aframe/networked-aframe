@@ -3199,7 +3199,8 @@
 	      this.removeLerp();
 	      this.el.setAttribute('networked', { owner: NAF.clientId });
 	      this.syncAll();
-	      this.el.emit(this.OWNERSHIP_GAINED);
+	      this.el.emit(this.OWNERSHIP_GAINED, { el: this.el, oldOwner: owner });
+	      this.el.emit(this.OWNERSHIP_CHANGED, { el: this.el, oldOwner: owner, newOwner: NAF.clientId });
 	      return true;
 	    }
 	    return false;
@@ -3436,15 +3437,16 @@
 	      var wasMine = this.isMine();
 	      this.lastOwnerTime = entityData.lastOwnerTime;
 	      this.attachLerp();
-	      this.el.setAttribute('networked', { owner: entityData.owner });
 
+	      var oldOwner = this.data.owner;
+	      var newOwner = entityData.owner;
 	      if (wasMine) {
-	        this.el.emit(this.OWNERSHIP_LOST);
-	      } else {
-	        this.el.emit(this.OWNERSHIP_CHANGED);
+	        this.el.emit(this.OWNERSHIP_LOST, { el: this.el, newOwner: newOwner });
 	      }
-	    }
+	      this.el.emit(this.OWNERSHIP_CHANGED, { el: this.el, oldOwner: oldOwner, newOwner: newOwner });
 
+	      this.el.setAttribute('networked', { owner: entityData.owner });
+	    }
 	    this.updateComponents(entityData.components);
 	  },
 
