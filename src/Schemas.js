@@ -1,3 +1,5 @@
+/* global NAF */
+
 class Schemas {
 
   constructor() {

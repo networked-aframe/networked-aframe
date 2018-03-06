@@ -1,8 +1,7 @@
-/* global assert, process, setup, suite, test */
-var aframe = require('aframe');
+/* global assert, process, setup, suite, test, sinon, teardown */
+require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
-var componentHelper = require('../../src/ComponentHelper');
 
 require('../../src/components/networked');
 
@@ -14,8 +13,13 @@ suite('networked_withParent', function() {
   var parentNetworked;
 
   function initScene(done) {
-    var opts = {};
-    opts.entity = '<a-entity id="test-parent" networked="template:t2"><a-entity id="test-entity" networked="template:t1;showLocalTemplate:false;" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity></a-entity>';
+    var opts = {
+      assets: [
+        "<template id='t1'><a-entity></a-entity></template>",
+        "<template id='t2'><a-entity></a-entity></template>"
+      ],
+      entity: '<a-entity id="test-parent" networked="template:#t2"><a-entity id="test-entity" networked="template:#t1" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity></a-entity>'
+    };
     scene = helpers.sceneFactory(opts);
     naf.utils.whenEntityLoaded(scene, done);
   }
@@ -30,7 +34,7 @@ suite('networked_withParent', function() {
 
       parentNetworked = parent.components['networked'];
       parentNetworked.data.networkId = '';
-      
+
       done();
     });
   });
@@ -74,7 +78,7 @@ suite('networked_withParent', function() {
         owner: 'owner1',
         lastOwnerTime: -1,
         parent: 'parentId',
-        template: 't1',
+        template: '#t1',
         components: {
           position: { x: 1, y: 2, z: 3 },
           rotation: { x: 4, y: 3, z: 2 }

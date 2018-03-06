@@ -88,7 +88,13 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
+      <a-entity id="player" networked="template:#avatar-template" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
+        <a-sphere class="head"
+          color="#5985ff"
+          scale="0.45 0.5 0.4"
+          random-color
+          visible="false"
+        ></a-sphere>
       </a-entity>
 
       <a-entity position="0 0 0"

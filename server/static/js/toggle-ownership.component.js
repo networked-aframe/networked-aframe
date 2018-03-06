@@ -13,38 +13,38 @@ AFRAME.registerComponent('toggle-ownership', {
     this.onKeyUp = this.onKeyUp.bind(this);
     document.addEventListener("keyup", this.onKeyUp);
 
-    if (NAF.utils.isMine(this.el)) {
-      this.updateColor();
-    } else {
-      this.el.setAttribute('material', 'opacity', 0.5);
-    }
-
-    // Opacity is not a networked attribute, but change it based on ownership events
-    this.networkedEl = NAF.utils.getNetworkedEntity(this.el);
-    
-    let timeout;
-
-    this.networkedEl.addEventListener("ownership-gained", e => {
-      e.detail.el.setAttribute('material', 'opacity', 1);
-    });
-
-    this.networkedEl.addEventListener("ownership-lost", e => {
-      e.detail.el.setAttribute('material', 'opacity', 0.5);
-    });
-
-    this.networkedEl.addEventListener("ownership-changed", e => {
-      clearTimeout(timeout);
-      console.log(e.detail)
-      if (e.detail.newOwner == NAF.clientId) {
-        //same as listening to "ownership-gained"
-      } else if (e.detail.oldOwner == NAF.clientId) {
-        //same as listening to "ownership-lost"
+    NAF.utils.getNetworkedEntity(this.el).then((el) => {
+      if (NAF.utils.isMine(el)) {
+        this.updateColor();
       } else {
-        e.detail.el.setAttribute('material', 'opacity', 0.8);
-        timeout = setTimeout(() => {
-          e.detail.el.setAttribute('material', 'opacity', 0.5);
-        }, 200)
+        this.el.setAttribute('material', 'opacity', 0.5);
       }
+
+      // Opacity is not a networked attribute, but change it based on ownership events
+      let timeout;
+
+      el.addEventListener("ownership-gained", e => {
+        e.detail.el.setAttribute('material', 'opacity', 1);
+      });
+
+      el.addEventListener("ownership-lost", e => {
+        e.detail.el.setAttribute('material', 'opacity', 0.5);
+      });
+
+      el.addEventListener("ownership-changed", e => {
+        clearTimeout(timeout);
+        console.log(e.detail)
+        if (e.detail.newOwner == NAF.clientId) {
+          //same as listening to "ownership-gained"
+        } else if (e.detail.oldOwner == NAF.clientId) {
+          //same as listening to "ownership-lost"
+        } else {
+          e.detail.el.setAttribute('material', 'opacity', 0.8);
+          timeout = setTimeout(() => {
+            e.detail.el.setAttribute('material', 'opacity', 0.5);
+          }, 200)
+        }
+      });
     });
   },
 

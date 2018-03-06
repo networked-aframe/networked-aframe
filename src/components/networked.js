@@ -1,4 +1,4 @@
-var naf = require('../NafIndex');
+/* global AFRAME, NAF */
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 var bind = AFRAME.utils.bind;
@@ -6,7 +6,7 @@ var bind = AFRAME.utils.bind;
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
-    showLocalTemplate: {default: true},
+    attachLocalTemplate: { default: true },
 
     networkId: {default: ''},
     owner: {default: ''},
@@ -31,15 +31,14 @@ AFRAME.registerComponent('networked', {
       this.el.setAttribute(this.name, {networkId: NAF.utils.createNetworkId()});
     }
 
-    if (this.data.template != '') {
-      this.initTemplate();
-    }
-
     if (wasCreatedByNetwork) {
       this.firstUpdate();
       this.attachLerp();
-    }
-    else {
+    } else {
+      if (this.data.attachLocalTemplate) {
+        this.attachLocalTemplate();
+      }
+
       this.registerEntity(this.data.networkId);
     }
 
@@ -52,6 +51,24 @@ AFRAME.registerComponent('networked', {
     }
 
     document.body.dispatchEvent(this.entityCreatedEvent());
+    this.el.dispatchEvent(new CustomEvent('instantiated', {detail: {el: this.el}}));
+  },
+
+  attachLocalTemplate: function() {
+    var template = document.querySelector(this.data.template);
+    var clone = document.importNode(template.content, true);
+    var el = clone.firstElementChild;
+    var elAttrs = el.attributes;
+    
+    // Merge root element attributes with this entity
+    for (var attrIdx = 0; attrIdx < elAttrs.length; attrIdx++) {
+      this.el.setAttribute(elAttrs[attrIdx].name, elAttrs[attrIdx].value);
+    }
+
+    // Append all child elements
+    for (var elIdx = 0; elIdx < el.children.length; elIdx++) {
+      this.el.appendChild(document.importNode(el.children[elIdx], true));
+    }
   },
 
   takeOwnership: function() {
@@ -99,54 +116,16 @@ AFRAME.registerComponent('networked', {
     NAF.entities.registerEntity(networkId, this.el);
   },
 
-  initTemplate: function() {
-    var data = this.data;
-    var showTemplate = !this.wasCreatedByNetwork() && data.showLocalTemplate;
-    this.attachAndShowTemplate(data.template, data.showLocalTemplate);
-  },
-
-  attachAndShowTemplate: function(template, show) {
-    var el = this.el;
-    var data = this.data;
-
-    if (this.templateEl) {
-      el.removeChild(this.templateEl);
-    }
-
-    var templateChild = document.createElement('a-entity');
-    templateChild.setAttribute('template', 'src:' + template);
-    templateChild.setAttribute('visible', show);
-
-    el.appendChild(templateChild);
-    this.templateEl = templateChild;
-  },
-
   firstUpdate: function() {
     var entityData = this.el.firstUpdateData;
-    this.networkUpdate(entityData); // updates root element only
-
-    this.waitForTemplate(() => {
-      this.networkUpdate(entityData);
-    });
-  },
-
-  waitForTemplate: function(callback) {
-    // wait for template to render then callback
-    if (this.templateEl) {
-      this.templateEl.addEventListener('templaterendered', function() { setTimeout(callback); });
-    } else {
-      setTimeout(callback);
-    }
+    this.networkUpdate(entityData);
   },
 
   onConnected: function() {
     if (this.data.owner === '') {
       this.lastOwnerTime = NAF.connection.getServerTime();
       this.el.setAttribute(this.name, {owner: NAF.clientId});
-
-      this.waitForTemplate(() => {
-        this.syncAll();
-      });
+      this.syncAll();
     }
 
     document.body.removeEventListener('connected', this.onConnected, false);

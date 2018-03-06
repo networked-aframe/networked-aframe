@@ -1,9 +1,16 @@
+/* global AFRAME, NAF, THREE */
 var naf = require('../NafIndex');
 
-// @TODO if aframevr/aframe#3042 gets merged, this should just delegate to the aframe sound component
 AFRAME.registerComponent('networked-audio-source', {
   schema: {
-    positional: { default: true }
+    positional: { default: true },
+    distanceModel: {
+      default: "inverse",
+      oneOf: ["linear", "inverse", "exponential"]
+    },
+    maxDistance: { default: 10000 },
+    refDistance: { default: 1 },
+    rolloffFactor: { default: 1 }
   },
 
   init: function () {
@@ -12,17 +19,21 @@ AFRAME.registerComponent('networked-audio-source', {
 
     this._setMediaStream = this._setMediaStream.bind(this);
 
-    const networkedEl = NAF.utils.getNetworkedEntity(this.el);
-    const ownerId = networkedEl && networkedEl.components.networked.data.owner;
-    if (ownerId) {
-      NAF.connection.adapter.getMediaStream(ownerId)
-        .then(this._setMediaStream)
-        .catch((e) => naf.log.error(`Error getting media stream for ${ownerId}`, e));
-    } else if(ownerId === '') {
-      // Correctly configured local entity, perhaps do something here for enabling debug audio loopback
-    } else {
-      naf.log.error('[networked-audio-source] must be added on an entity, or a child of an entity, with the [networked] component.');
-    }
+    NAF.utils.getNetworkedEntity(this.el).then((networkedEl) => {
+      const ownerId = networkedEl.components.networked.data.owner;
+
+      if (ownerId) {
+        NAF.connection.adapter.getMediaStream(ownerId)
+          .then(this._setMediaStream)
+          .catch((e) => naf.log.error(`Error getting media stream for ${ownerId}`, e));
+      } else {
+        // Correctly configured local entity, perhaps do something here for enabling debug audio loopback
+      }
+    });
+  },
+
+  update() {
+    this._setPannerProperties();
   },
 
   _setMediaStream(newStream) {
@@ -40,10 +51,20 @@ AFRAME.registerComponent('networked-audio-source', {
         this.audioEl.setAttribute("autoplay", "autoplay");
         this.audioEl.setAttribute("playsinline", "playsinline");
         this.audioEl.srcObject = newStream;
+        this.audioEl.volume = 0; // we don't actually want to hear audio from this element
 
         this.sound.setNodeSource(this.sound.context.createMediaStreamSource(newStream));
       }
       this.stream = newStream;
+    }
+  },
+
+  _setPannerProperties() {
+    if (this.sound && this.data.positional) {
+      this.sound.setDistanceModel(this.data.distanceModel);
+      this.sound.setMaxDistance(this.data.maxDistance);
+      this.sound.setRefDistance(this.data.refDistance);
+      this.sound.setRolloffFactor(this.data.rolloffFactor);
     }
   },
 
@@ -77,5 +98,6 @@ AFRAME.registerComponent('networked-audio-source', {
       ? new THREE.PositionalAudio(this.listener)
       : new THREE.Audio(this.listener);
     el.setObject3D(this.attrName, this.sound);
+    this._setPannerProperties();
   }
 });
