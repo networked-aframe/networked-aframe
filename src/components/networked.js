@@ -45,7 +45,7 @@ AFRAME.registerComponent('networked', {
     this.lastOwnerTime = -1;
 
     if (NAF.clientId) {
-      this.onConnected();
+      this.el.addEventListener("loaded", this.onConnected, false);
     } else {
       document.body.addEventListener('connected', this.onConnected, false);
     }
@@ -125,7 +125,10 @@ AFRAME.registerComponent('networked', {
     if (this.data.owner === '') {
       this.lastOwnerTime = NAF.connection.getServerTime();
       this.el.setAttribute(this.name, {owner: NAF.clientId});
-      this.syncAll();
+
+      setTimeout(() => {
+        this.syncAll();
+      }, 0);
     }
 
     document.body.removeEventListener('connected', this.onConnected, false);
