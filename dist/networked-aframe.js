@@ -1902,7 +1902,7 @@
 	    this.lastOwnerTime = -1;
 
 	    if (NAF.clientId) {
-	      this.onConnected();
+	      this.el.addEventListener("loaded", this.onConnected, false);
 	    } else {
 	      document.body.addEventListener('connected', this.onConnected, false);
 	    }
@@ -1979,10 +1979,15 @@
 	  },
 
 	  onConnected: function onConnected() {
+	    var _this = this;
+
 	    if (this.data.owner === '') {
 	      this.lastOwnerTime = NAF.connection.getServerTime();
 	      this.el.setAttribute(this.name, { owner: NAF.clientId });
-	      this.syncAll();
+
+	      setTimeout(function () {
+	        _this.syncAll();
+	      }, 0);
 	    }
 
 	    document.body.removeEventListener('connected', this.onConnected, false);
