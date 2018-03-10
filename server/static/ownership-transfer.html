@@ -30,47 +30,6 @@
     <script src="/js/spawner.component.js"></script>
     <script src="/js/toggle-ownership.component.js"></script>
 
-    <script>
-      // Define custom schema for syncing avatar color, set by random-color
-      NAF.schemas.add({
-        template: '#avatar-template',
-        components: [
-          'position',
-          'rotation',
-          {
-            selector: '.head',
-            component: 'material',
-            property: 'color'
-          }
-        ]
-      });
-
-      NAF.schemas.add({
-        template: '#cube-template',
-        components: [
-          "position",
-          {
-            selector: '.cube',
-            component: 'rotation'
-          },
-          {
-            selector: '.cube',
-            component: 'material',
-            property: 'color'
-          },
-          {
-            selector: '.cube',
-            component: 'toggle-ownership',
-            property: 'direction'
-          }
-        ]
-      });
-
-      // Called by Networked-Aframe when connected to server
-      function onConnect () {
-        console.log("onConnect", new Date());
-      }
-    </script>
   </head>
   <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
@@ -170,6 +129,48 @@
       if (isMobile) {
         var particles = document.getElementById('particles');
         particles.parentNode.removeChild(particles);
+      }
+    </script>
+
+    <script>
+      // Define custom schema for syncing avatar color, set by random-color
+      NAF.schemas.add({
+        template: '#avatar-template',
+        components: [
+          'position',
+          'rotation',
+          {
+            selector: '.head',
+            component: 'material',
+            property: 'color'
+          }
+        ]
+      });
+
+      NAF.schemas.add({
+        template: '#cube-template',
+        components: [
+          "position",
+          {
+            selector: '.cube',
+            component: 'rotation'
+          },
+          {
+            selector: '.cube',
+            component: 'material',
+            property: 'color'
+          },
+          {
+            selector: '.cube',
+            component: 'toggle-ownership',
+            property: 'direction'
+          }
+        ]
+      });
+
+      // Called by Networked-Aframe when connected to server
+      function onConnect () {
+        console.log("onConnect", new Date());
       }
     </script>
   </body>
