@@ -492,6 +492,7 @@
 	    _classCallCheck(this, Schemas);
 
 	    this.dict = {};
+	    this.templateCache = {};
 	  }
 
 	  _createClass(Schemas, [{
@@ -499,6 +500,11 @@
 	    value: function add(schema) {
 	      if (this.validate(schema)) {
 	        this.dict[schema.template] = schema;
+	        var templateEl = document.querySelector(schema.template);
+	        if (!templateEl) {
+	          NAF.log.error('template el not found for ' + schema.template + ', make sure NAF.schemas.add is called after <a-scene> is defined.');
+	        }
+	        this.templateCache[schema.template] = document.importNode(templateEl.content, true);
 	      } else {
 	        NAF.log.error('Schema not valid: ', schema);
 	        NAF.log.error('See https://github.com/haydenjameslee/networked-aframe#syncing-custom-components');
@@ -508,6 +514,14 @@
 	    key: 'hasTemplate',
 	    value: function hasTemplate(template) {
 	      return this.dict.hasOwnProperty(template);
+	    }
+	  }, {
+	    key: 'getCachedTemplate',
+	    value: function getCachedTemplate(template) {
+	      if (!this.templateCache.hasOwnProperty(template)) {
+	        NAF.log.error('template el for ' + template + ' is not cached, register template with NAF.schemas.add.');
+	      }
+	      return this.templateCache[template].firstElementChild.cloneNode(true);
 	    }
 	  }, {
 	    key: 'getComponents',
@@ -574,21 +588,17 @@
 	      NAF.log.write('Creating remote entity', entityData);
 
 	      var networkId = entityData.networkId;
-	      var template = document.querySelector(entityData.template);
-	      var clone = document.importNode(template.content, true);
-	      var el = clone.firstElementChild;
+	      var el = NAF.schemas.getCachedTemplate(entityData.template);
 
 	      el.setAttribute('id', 'naf-' + networkId);
+
+	      this.initPosition(el, entityData.components);
+	      this.initRotation(el, entityData.components);
+	      this.addNetworkComponent(el, entityData);
+
 	      this.registerEntity(networkId, el);
 
 	      return el;
-	    }
-	  }, {
-	    key: 'setInitialComponents',
-	    value: function setInitialComponents(entity, entityData) {
-	      this.initPosition(entity, entityData.components);
-	      this.initRotation(entity, entityData.components);
-	      this.addNetworkComponent(entity, entityData);
 	    }
 	  }, {
 	    key: 'initPosition',
@@ -596,12 +606,7 @@
 	      var hasPosition = componentData.hasOwnProperty('position');
 	      if (hasPosition) {
 	        var position = componentData.position;
-
-	        if (typeof position === "string") {
-	          entity.setAttribute('position', position);
-	        } else {
-	          entity.setAttribute('position', position.x + ' ' + position.y + ' ' + position.z);
-	        }
+	        entity.setAttribute('position', position);
 	      }
 	    }
 	  }, {
@@ -610,18 +615,19 @@
 	      var hasRotation = componentData.hasOwnProperty('rotation');
 	      if (hasRotation) {
 	        var rotation = componentData.rotation;
-
-	        if (typeof rotation === "string") {
-	          entity.setAttribute('rotation', rotation);
-	        } else {
-	          entity.setAttribute('rotation', rotation.x + ' ' + rotation.y + ' ' + hasRotation.z);
-	        }
+	        entity.setAttribute('rotation', rotation);
 	      }
 	    }
 	  }, {
 	    key: 'addNetworkComponent',
 	    value: function addNetworkComponent(entity, entityData) {
-	      entity.setAttribute('networked', 'template: ' + entityData.template + '; owner: ' + entityData.owner + '; networkId: ' + entityData.networkId);
+	      var networkData = {
+	        template: entityData.template,
+	        owner: entityData.owner,
+	        networkId: entityData.networkId
+	      };
+
+	      entity.setAttribute('networked', networkData);
 	      entity.firstUpdateData = entityData;
 	    }
 	  }, {
@@ -655,7 +661,7 @@
 	      } else {
 	        var remoteEntity = this.createRemoteEntity(entityData);
 	        this.createAndAppendChildren(networkId, remoteEntity);
-	        this.addEntityToPage(remoteEntity, parent, entityData);
+	        this.addEntityToPage(remoteEntity, parent);
 	      }
 	    }
 	  }, {
@@ -672,31 +678,28 @@
 	        var childEntity = this.createRemoteEntity(childEntityData);
 	        this.createAndAppendChildren(childId, childEntity);
 	        parentEntity.appendChild(childEntity);
-	        this.setInitialComponents(childEntity, childEntityData);
 	      }
 	    }
 	  }, {
 	    key: 'addEntityToPage',
-	    value: function addEntityToPage(entity, parentId, entityData) {
+	    value: function addEntityToPage(entity, parentId) {
 	      if (this.hasEntity(parentId)) {
-	        this.addEntityToParent(entity, parentId, entityData);
+	        this.addEntityToParent(entity, parentId);
 	      } else {
-	        this.addEntityToSceneRoot(entity, entityData);
+	        this.addEntityToSceneRoot(entity);
 	      }
 	    }
 	  }, {
 	    key: 'addEntityToParent',
-	    value: function addEntityToParent(entity, parentId, entityData) {
+	    value: function addEntityToParent(entity, parentId) {
 	      var parentEl = document.getElementById('naf-' + parentId);
 	      parentEl.appendChild(entity);
-	      this.setInitialComponents(entity, entityData);
 	    }
 	  }, {
 	    key: 'addEntityToSceneRoot',
-	    value: function addEntityToSceneRoot(el, entityData) {
+	    value: function addEntityToSceneRoot(el) {
 	      var scene = document.querySelector('a-scene');
 	      scene.appendChild(el);
-	      this.setInitialComponents(el, entityData);
 	    }
 	  }, {
 	    key: 'completeSync',
@@ -1898,7 +1901,7 @@
 	    this.lastOwnerTime = -1;
 
 	    if (NAF.clientId) {
-	      this.onConnected();
+	      this.el.addEventListener("loaded", this.onConnected, false);
 	    } else {
 	      document.body.addEventListener('connected', this.onConnected, false);
 	    }
@@ -1908,9 +1911,7 @@
 	  },
 
 	  attachLocalTemplate: function attachLocalTemplate() {
-	    var template = document.querySelector(this.data.template);
-	    var clone = document.importNode(template.content, true);
-	    var el = clone.firstElementChild;
+	    var el = NAF.schemas.getCachedTemplate(this.data.template);
 	    var elAttrs = el.attributes;
 
 	    // Merge root element attributes with this entity
@@ -1920,7 +1921,7 @@
 
 	    // Append all child elements
 	    for (var elIdx = 0; elIdx < el.children.length; elIdx++) {
-	      this.el.appendChild(document.importNode(el.children[elIdx], true));
+	      this.el.appendChild(el.children[elIdx]);
 	    }
 	  },
 
@@ -1973,10 +1974,15 @@
 	  },
 
 	  onConnected: function onConnected() {
+	    var _this = this;
+
 	    if (this.data.owner === '') {
 	      this.lastOwnerTime = NAF.connection.getServerTime();
 	      this.el.setAttribute(this.name, { owner: NAF.clientId });
-	      this.syncAll();
+
+	      setTimeout(function () {
+	        _this.syncAll();
+	      }, 0);
 	    }
 
 	    document.body.removeEventListener('connected', this.onConnected, false);

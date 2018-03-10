@@ -41,7 +41,7 @@ AFRAME.registerComponent('networked', {
     this.lastOwnerTime = -1;
 
     if (NAF.clientId) {
-      this.el.addEventListener("loaded", this.onConnected, false);
+      this.onConnected();
     } else {
       document.body.addEventListener('connected', this.onConnected, false);
     }
@@ -51,9 +51,7 @@ AFRAME.registerComponent('networked', {
   },
 
   attachLocalTemplate: function() {
-    var template = document.querySelector(this.data.template);
-    var clone = document.importNode(template.content, true);
-    var el = clone.firstElementChild;
+    var el = NAF.schemas.getCachedTemplate(this.data.template);
     var elAttrs = el.attributes;
     
     // Merge root element attributes with this entity
@@ -63,7 +61,7 @@ AFRAME.registerComponent('networked', {
 
     // Append all child elements
     for (var elIdx = 0; elIdx < el.children.length; elIdx++) {
-      this.el.appendChild(document.importNode(el.children[elIdx], true));
+      this.el.appendChild(el.children[elIdx]);
     }
   },
 
@@ -119,8 +117,8 @@ AFRAME.registerComponent('networked', {
     if (this.data.owner === '') {
       this.lastOwnerTime = NAF.connection.getServerTime();
       this.el.setAttribute(this.name, {owner: NAF.clientId});
-
       setTimeout(() => {
+        //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
         this.syncAll();
       }, 0);
     }
