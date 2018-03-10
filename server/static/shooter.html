@@ -16,22 +16,6 @@
     <script src="js/gun.component.js"></script>
     <script src="js/forward.component.js"></script>
     <script src="js/remove-in-seconds.component.js"></script>
-
-    <script>
-      // Define custom schema for syncing avatar components
-      NAF.schemas.add({
-        template: '#avatar-template',
-        components: [
-          'position',
-          'rotation',
-          {
-            selector: '.head',
-            component: 'material'
-          }
-        ]
-      });
-    </script>
-
   </head>
   <body>
 
@@ -138,6 +122,21 @@
         var particles = document.getElementById('particles');
         particles.parentNode.removeChild(particles);
       }
+    </script>
+
+    <script>
+      // Define custom schema for syncing avatar components
+      NAF.schemas.add({
+        template: '#avatar-template',
+        components: [
+          'position',
+          'rotation',
+          {
+            selector: '.head',
+            component: 'material'
+          }
+        ]
+      });
     </script>
   </body>
 </html>

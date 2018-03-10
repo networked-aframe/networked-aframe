@@ -30,3 +30,11 @@ var rightHandSchema = {
 };
 NAF.schemas.add(rightHandSchema);
 
+var playerTemplate = {
+  template: '#player-template',
+  components: [
+    'position',
+    'rotation'
+  ]
+};
+NAF.schemas.add(playerTemplate);
