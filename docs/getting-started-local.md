@@ -2,7 +2,7 @@
 
 Hello friends! This tutorial will show you how to write your very first multi-user virtual reality experience on the web.
 
-You might be thinking: wait you can do VR on the web? And the answer is yes! Using the [WebVR standard](https://webvr.info/) and an awesome library called [A-Frame](https://aframe.io), VR on the web is actually really easy and evolving rapidly. Your second question is then: wait to do multi-user won't I have to know all about servers and complicated networking protocols? Answer: not anymore! The recently released [Networked-Aframe](https://github.com/haydenjameslee/networked-aframe) (NAF for short) has you covered. NAF hides away a lot of the networking complexity, allowing you to write multi-user VR apps entirely in HTML.
+You might be thinking: wait you can do VR on the web? And the answer is yes! Using the [WebVR standard](https://webvr.info/) and an awesome library called [A-Frame](https://aframe.io), VR on the web is actually really easy and evolving rapidly. Your second question is then: wait to do multi-user won't I have to know all about servers and complicated networking protocols? Answer: not anymore! The recently released [Networked-Aframe](https://github.com/networked-aframe/networked-aframe) (NAF for short) has you covered. NAF hides away a lot of the networking complexity, allowing you to write multi-user VR apps entirely in HTML.
 
 This tutorial goes through how to setup a Networked-Aframe experience from scratch, however if you'd like to get started writing your app with no fuss, remix this project on Glitch and get right to it:
 
@@ -36,7 +36,7 @@ Now let's setup the required dependencies. Create a file called `package.json` a
   },
   "author": "YOUR_NAME",
   "dependencies": {
-    "networked-aframe": "^0.4.0"
+    "networked-aframe": "^0.5.0"
   }
 }
 ```
@@ -94,7 +94,7 @@ To see the networking in action, open up two browser windows and go to the same 
 
 <img src="http://i.imgur.com/B5kbgXg.gif" width="500">
 
-If at any point in this tutorial you don't see the same results, or you run into an unknown error, don't hesitate from posting a question on the [networked-aframe issues page](https://github.com/haydenjameslee/networked-aframe/issues). I'm sure other people will run into the same issues and greatly appreciate the conversation your question will spark.
+If at any point in this tutorial you don't see the same results, or you run into an unknown error, don't hesitate from posting a question on the [networked-aframe issues page](https://github.com/networked-aframe/networked-aframe/issues). I'm sure other people will run into the same issues and greatly appreciate the conversation your question will spark.
 
 
 ## Create an Example from Scratch
@@ -137,7 +137,7 @@ Now when you open two tabs at `localhost:8080/my-example.html` you should see th
 
 <img src="http://i.imgur.com/IpqHRGQ.png" width="500">
 
-To see the full list of options your app with other options check out the documentation on the [networked-scene component](https://github.com/haydenjameslee/networked-aframe#scene-component).
+To see the full list of options your app with other options check out the documentation on the [networked-scene component](https://github.com/networked-aframe/networked-aframe#scene-component).
 
 
 ## Create an Avatar
@@ -189,7 +189,7 @@ Templates are added in A-Frame's `<a-assets>` tag. Let's add the assets tag with
 
 Refresh both browser tabs and move with the arrow keys. Once connected you should see an avatar appear for the other user.
 
-The avatars appear in the exact same position: '0 1.3 0' which is not a great experience when in social VR. Virtual Personal Space is a thing! So next step is to choose a better spot to spawn the avatar. It's tricky to know where other users are before you've spawned the avatar (since you don't know yet when you've connected to all users), however we can improve the experience a lot by choosing a random point on a circle, and praying to [RNGesus](https://cdn.mmos.com/wp-content/gallery/rng-isnt-random/RNG-meme.jpg) that the random number generator doesn't spawn you close so other users. If you're looking for better support for spawn collision avoidance [let me know](https://github.com/haydenjameslee/networked-aframe/issues) and we'll work something out.
+The avatars appear in the exact same position: '0 1.3 0' which is not a great experience when in social VR. Virtual Personal Space is a thing! So next step is to choose a better spot to spawn the avatar. It's tricky to know where other users are before you've spawned the avatar (since you don't know yet when you've connected to all users), however we can improve the experience a lot by choosing a random point on a circle, and praying to [RNGesus](https://cdn.mmos.com/wp-content/gallery/rng-isnt-random/RNG-meme.jpg) that the random number generator doesn't spawn you close so other users. If you're looking for better support for spawn collision avoidance [let me know](https://github.com/networked-aframe/networked-aframe/issues) and we'll work something out.
 
 Adds this script to your `<head>` tag:
 
@@ -260,7 +260,7 @@ Things should be looking a little more Tron-like now.
 
 <img src="http://i.imgur.com/DVVIku1.png" width="500">
 
-At this point your example will be very close to the included `basic.html` example, so if you've run into any problems check out the basic example source code [html](https://github.com/haydenjameslee/networked-aframe/blob/master/server/static/basic.html) & [js](https://github.com/haydenjameslee/networked-aframe/blob/master/server/static/js/basic.js) for a working reference.
+At this point your example will be very close to the included `basic.html` example, so if you've run into any problems check out the basic example source code [html](https://github.com/networked-aframe/networked-aframe/blob/master/server/static/basic.html) for a working reference.
 
 ## Advanced Features
 
@@ -268,7 +268,7 @@ Now you have a basic networked WebVR scene up and running. But there's a lot mor
 
 ### Hand Controllers
 
-To add hand controllers follow the [tracked controllers example](https://github.com/haydenjameslee/networked-aframe/blob/master/server/static/tracked-controllers.html).
+To add hand controllers follow the [tracked controllers example](https://github.com/networked-aframe/networked-aframe/blob/master/server/static/tracked-controllers.html).
 
 ### WebRTC
 
@@ -281,7 +281,7 @@ NAF has built in voice chat when you're using WebRTC. Change `adapter` and `audi
 
 ### Syncing Custom Components
 
-Components are synchronized by checking the `data` property [provided by A-Frame](https://aframe.io/docs/0.5.0/core/entity.html#getattribute-componentname) on a network 'tick'. How quickly this tick happens can be defined in the [NAF Options](https://github.com/haydenjameslee/networked-aframe#options), but the default is 15 times per second. On each tick the `data` property is checked against its previous value, and if it changed it's sent over the network to the other users.
+Components are synchronized by checking the `data` property [provided by A-Frame](https://aframe.io/docs/0.7.0/core/entity.html#getattribute-componentname) on a network 'tick'. How quickly this tick happens can be defined in the [NAF Options](https://github.com/networked-aframe/networked-aframe#options), but the default is 15 times per second. On each tick the `data` property is checked against its previous value, and if it changed it's sent over the network to the other users.
 
 So how do we choose which components to sync? By default, the `position` and `rotation` components are synced but NAF lets you specify any component that you wish to sync, included child components found in the deep depths of your templates.
 
@@ -329,7 +329,7 @@ In order to delete a network entity the user that created the entity can simply 
 
 And there you have it. Your very own multi-user virtual reality experience running in a web browser!
 
-Check out the Networked-Aframe documentation for more features and help. And again, be sure to post any questions on the [GitHub Issues page](https://github.com/haydenjameslee/networked-aframe/issues) or feel free to message me directly on [twitter](https://twitter.com/haydenlee37).
+Check out the Networked-Aframe documentation for more features and help. And again, be sure to post any questions on the [GitHub Issues page](https://github.com/networked-aframe/networked-aframe/issues) or feel free to message me directly on [twitter](https://twitter.com/haydenlee37).
 
 I would love love love you to send me cool examples you've made, and I'm looking to include more default examples with credit to the author, so [let me know](https://twitter.com/haydenlee37) what you make!
 
