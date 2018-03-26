@@ -91,3 +91,9 @@ module.exports.MockNetworkAdapter = function MockNetworkAdapter() {
 
   this.getServerTime = sinon.stub();
 };
+
+module.exports.addTemplateToDom = function(id) {
+  var template = document.createElement('template');
+  template.id = id;
+  document.body.appendChild(template);
+};

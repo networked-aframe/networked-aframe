@@ -1,11 +1,6 @@
 /* global assert, process, setup, suite, test */
 var Schemas = require('../../src/Schemas');
-
-function addTemplateToDOM(id) {
-  var template = document.createElement('template');
-  template.id = id;
-  document.body.appendChild(template);
-}
+var helpers = require('./helpers');
 
 suite('Schemas', function() {
   var schemas;
@@ -75,7 +70,7 @@ suite('Schemas', function() {
   suite('add', function() {
 
     test('adds correct schema', function() {
-      addTemplateToDOM('template4');
+      helpers.addTemplateToDom('template4');
       var schema = {
         template: '#template4',
         components: [
@@ -137,8 +132,8 @@ suite('Schemas', function() {
   suite('clear', function() {
 
     test('removes all schemas', function() {
-      addTemplateToDOM('template4');
-      addTemplateToDOM('templasd');
+      helpers.addTemplateToDom('template4');
+      helpers.addTemplateToDom('templasd');
 
       var schema1 = {
         template: '#template4',

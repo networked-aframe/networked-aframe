@@ -18,6 +18,13 @@ suite('networked_remote', function() {
       entity: '<a-entity id="test-entity" networked="template:#t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>'
     };
     scene = helpers.sceneFactory(opts);
+    NAF.schemas.add({
+      template: '#t1',
+      components: [
+        'position',
+        'rotation'
+      ]
+    });
     naf.utils.whenEntityLoaded(scene, done);
   }
 
