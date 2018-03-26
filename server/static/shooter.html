@@ -16,22 +16,6 @@
     <script src="js/gun.component.js"></script>
     <script src="js/forward.component.js"></script>
     <script src="js/remove-in-seconds.component.js"></script>
-
-    <script>
-      // Define custom schema for syncing avatar components
-      NAF.schemas.add({
-        template: '#avatar-template',
-        components: [
-          'position',
-          'rotation',
-          {
-            selector: '.head',
-            component: 'material'
-          }
-        ]
-      });
-    </script>
-
   </head>
   <body>
 
@@ -47,12 +31,10 @@
         <!-- Templates -->
 
         <!-- Avatar -->
-        <script id="avatar-template" type="text/html">
+        <template id="avatar-template">
           <a-entity class="avatar">
             <a-sphere class="head"
-              color="#5985ff"
               scale="0.45 0.5 0.4"
-              random-color
             ></a-sphere>
             <a-entity class="face"
               position="0 0.05 0"
@@ -91,20 +73,25 @@
               ></a-entity>
             </a-entity>
           </a-entity>
-        </script>
+        </template>
 
         <!-- Bullet -->
-        <script id="bullet-template" type="text/html">
+        <template id="bullet-template">
           <a-sphere class="bullet"
             scale="0.1 0.1 0.1"
             color="#fff"
           ></a-sphere>
-        </script>
+        </template>
 
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" gun="bulletTemplate:#bullet-template" camera="userHeight: 1.6" spawn-in-circle="radius:3;" wasd-controls look-controls>
+      <a-entity id="player" networked="template:#avatar-template" gun="bulletTemplate:#bullet-template" camera="userHeight: 1.6" spawn-in-circle="radius:3;" wasd-controls look-controls>
+        <a-sphere class="head"
+          color="#5985ff"
+          random-color
+          visible="false"
+        ></a-sphere>
       </a-entity>
 
       <a-entity position="0 0 0"
@@ -135,6 +122,21 @@
         var particles = document.getElementById('particles');
         particles.parentNode.removeChild(particles);
       }
+    </script>
+
+    <script>
+      // Define custom schema for syncing avatar components
+      NAF.schemas.add({
+        template: '#avatar-template',
+        components: [
+          'position',
+          'rotation',
+          {
+            selector: '.head',
+            component: 'material'
+          }
+        ]
+      });
     </script>
   </body>
 </html>

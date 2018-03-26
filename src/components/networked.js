@@ -6,7 +6,7 @@ var bind = AFRAME.utils.bind;
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
-    showLocalTemplate: {default: true},
+    attachTemplateToLocal: { default: true },
 
     networkId: {default: ''},
     owner: {default: ''},
@@ -31,15 +31,14 @@ AFRAME.registerComponent('networked', {
       this.el.setAttribute(this.name, {networkId: NAF.utils.createNetworkId()});
     }
 
-    if (this.data.template != '') {
-      this.initTemplate(this.data.template, this.data.showLocalTemplate);
-    }
-
     if (wasCreatedByNetwork) {
       this.firstUpdate();
       this.attachLerp();
-    }
-    else {
+    } else {
+      if (this.data.attachTemplateToLocal) {
+        this.attachTemplateToLocal();
+      }
+
       this.registerEntity(this.data.networkId);
     }
 
@@ -52,6 +51,22 @@ AFRAME.registerComponent('networked', {
     }
 
     document.body.dispatchEvent(this.entityCreatedEvent());
+    this.el.dispatchEvent(new CustomEvent('instantiated', {detail: {el: this.el}}));
+  },
+
+  attachTemplateToLocal: function() {
+    var el = NAF.schemas.getCachedTemplate(this.data.template);
+    var elAttrs = el.attributes;
+
+    // Merge root element attributes with this entity
+    for (var attrIdx = 0; attrIdx < elAttrs.length; attrIdx++) {
+      this.el.setAttribute(elAttrs[attrIdx].name, elAttrs[attrIdx].value);
+    }
+
+    // Append all child elements
+    for (var elIdx = 0; elIdx < el.children.length; elIdx++) {
+      this.el.appendChild(el.children[elIdx]);
+    }
   },
 
   takeOwnership: function() {
@@ -99,45 +114,19 @@ AFRAME.registerComponent('networked', {
     NAF.entities.registerEntity(networkId, this.el);
   },
 
-  initTemplate: function(template, show) {
-    if (this.templateEl) {
-      this.el.removeChild(this.templateEl);
-    }
-
-    var templateChild = document.createElement('a-entity');
-    templateChild.setAttribute('template', 'src:' + template);
-    templateChild.setAttribute('visible', show);
-
-    this.el.appendChild(templateChild);
-    this.templateEl = templateChild;
-  },
-
   firstUpdate: function() {
     var entityData = this.el.firstUpdateData;
-    this.networkUpdate(entityData); // updates root element only
-
-    this.waitForTemplate(() => {
-      this.networkUpdate(entityData);
-    });
-  },
-
-  waitForTemplate: function(callback) {
-    // wait for template to render then callback
-    if (this.templateEl) {
-      this.templateEl.addEventListener('templaterendered', function() { setTimeout(callback); });
-    } else {
-      setTimeout(callback);
-    }
+    this.networkUpdate(entityData);
   },
 
   onConnected: function() {
     if (this.data.owner === '') {
       this.lastOwnerTime = NAF.connection.getServerTime();
       this.el.setAttribute(this.name, {owner: NAF.clientId});
-
-      this.waitForTemplate(() => {
+      setTimeout(() => {
+        //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
         this.syncAll();
-      });
+      }, 0);
     }
 
     document.body.removeEventListener('connected', this.onConnected, false);

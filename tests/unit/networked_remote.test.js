@@ -11,11 +11,20 @@ suite('networked_remote', function() {
   var component;
 
   function initScene(done) {
-    var opts = {};
-    opts.entities = [
-      '<a-entity id="test-entity" networked="template:t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>',
-    ];
+    var opts = {
+      assets: [
+        "<template id='t1'><a-entity><a-entity class='template-child'></a-entity></a-entity></template>"
+      ],
+      entity: '<a-entity id="test-entity" networked="template:#t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>'
+    };
     scene = helpers.sceneFactory(opts);
+    NAF.schemas.add({
+      template: '#t1',
+      components: [
+        'position',
+        'rotation'
+      ]
+    });
     naf.utils.whenEntityLoaded(scene, done);
   }
 
@@ -45,10 +54,8 @@ suite('networked_remote', function() {
   suite('init', function() {
 
     test('attaches template', function() {
-      var templateChild = el.querySelector('[template]');
-      var result = templateChild.getAttribute('template');
-
-      assert.equal(result, 'src:t1');
+      var templateChild = el.querySelector('.template-child');
+      assert.isOk(templateChild);
     });
 
     test('does not add lerp when created by network', function() {

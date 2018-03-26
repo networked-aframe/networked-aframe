@@ -18,8 +18,8 @@ class NetworkEntities {
     NAF.log.write('Creating remote entity', entityData);
 
     var networkId = entityData.networkId;
+    var el = NAF.schemas.getCachedTemplate(entityData.template);
 
-    var el = document.createElement('a-entity');
     el.setAttribute('id', 'naf-' + networkId);
 
     this.initPosition(el, entityData.components);

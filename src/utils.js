@@ -65,27 +65,64 @@ module.exports.childSchemaEqual = function(a, b) {
 /**
  * Find the closest ancestor (including the passed in entity) that has a `networked` component
  * @param {ANode} entity - Entity to begin the search on
- * @returns {ANode} An entity with a `networked` component or null
+ * @returns {Promise<ANode>} An promise that resolves to an entity with a `networked` component
  */
 function getNetworkedEntity(entity) {
-  while(entity && !(entity.components && entity.components.networked)) {
-    entity = entity.parentNode;
-  }
-  return entity;
+  return new Promise((resolve, reject) => {
+    let curEntity = entity;
+
+    while(curEntity && !curEntity.hasAttribute("networked")) {
+      curEntity = curEntity.parentNode;
+    }
+
+    if (!curEntity) {
+      return reject("Entity does not have and is not a child of an entity with the [networked] component ");
+    }
+
+    if (curEntity.hasLoaded) {
+      resolve(curEntity);
+    } else {
+      curEntity.addEventListener("instantiated", () => {
+        resolve(curEntity);
+      }, { once: true });
+    }
+  });
 }
 
 module.exports.getNetworkedEntity = getNetworkedEntity;
 
 module.exports.takeOwnership = function(entity) {
-  const networkedEntity = getNetworkedEntity(entity);
+  let curEntity = entity;
 
-  if (!networkedEntity) {
-    return NAF.log.error("takeOwnership() must be called on an entity or child of an entity with the [networked] component.")
+  while(curEntity && !curEntity.hasAttribute("networked")) {
+    curEntity = curEntity.parentNode;
   }
 
-  return networkedEntity.components['networked'].takeOwnership();
+  if (curEntity) {
+    if (!curEntity.components.networked) {
+      throw new Error("Entity with [networked] component not initialized.");
+    }
+
+    return curEntity.components.networked.takeOwnership();
+  }
+
+  throw new Error("takeOwnership() must be called on an entity or child of an entity with the [networked] component.");
 };
 
 module.exports.isMine = function(entity) {
-  return getNetworkedEntity(entity).components['networked'].isMine();
+  let curEntity = entity;
+
+  while(curEntity && !curEntity.hasAttribute("networked")) {
+    curEntity = curEntity.parentNode;
+  }
+
+  if (curEntity) {
+    if (!curEntity.components.networked) {
+      throw new Error("Entity with [networked] component not initialized.");
+    }
+
+    return curEntity.components.networked.data.owner === NAF.clientId;
+  }
+
+  throw new Error("isMine() must be called on an entity or child of an entity with the [networked] component.");
 };

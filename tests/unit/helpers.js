@@ -1,4 +1,4 @@
-/* global suite */
+/* global suite, sinon */
 var utils = require('../../src/utils');
 
 
@@ -66,4 +66,34 @@ module.exports.getSkipCISuite = function () {
   } else {
     return suite;
   }
+};
+
+module.exports.MockNetworkAdapter = function MockNetworkAdapter() {
+  this.setServerUrl = sinon.stub();
+  this.setApp = sinon.stub();
+  this.setRoom = sinon.stub();
+  this.setWebRtcOptions = sinon.stub();
+
+  this.setServerConnectListeners = sinon.stub();
+  this.setRoomOccupantListener = sinon.stub();
+  this.setDataChannelListeners = sinon.stub();
+
+  this.connect = sinon.stub();
+  this.shouldStartConnectionTo = sinon.stub();
+  this.startStreamConnection = sinon.stub();
+  this.closeStreamConnection = sinon.stub();
+  this.getConnectStatus = sinon.stub();
+
+  this.sendData = sinon.stub();
+  this.sendDataGuaranteed = sinon.stub();
+  this.broadcastData = sinon.stub();
+  this.broadcastDataGuaranteed = sinon.stub();
+
+  this.getServerTime = sinon.stub();
+};
+
+module.exports.addTemplateToDom = function(id) {
+  var template = document.createElement('template');
+  template.id = id;
+  document.body.appendChild(template);
 };
