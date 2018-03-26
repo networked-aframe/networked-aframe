@@ -66,7 +66,7 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template;attachLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
+      <a-entity id="player" networked="template:#avatar-template;attachTemplateToLocal:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
         <a-sphere class="head"
           visible="false"
           random-color
@@ -102,7 +102,7 @@
         particles.parentNode.removeChild(particles);
       }
     </script>
-    
+
     <script>
       // Define custom schema for syncing avatar color, set by random-color
       NAF.schemas.add({

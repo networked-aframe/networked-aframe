@@ -78,8 +78,8 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#player-template;attachLocalTemplate:false;" spawn-in-circle="radius:3" wasd-controls>
-        <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;attachLocalTemplate:false;">
+      <a-entity id="player" networked="template:#player-template;attachTemplateToLocal:false;" spawn-in-circle="radius:3" wasd-controls>
+        <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;attachTemplateToLocal:false;">
             <a-sphere class="head"
               random-color
               visible="false"

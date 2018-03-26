@@ -5,7 +5,7 @@ var naf = require('../../src/NafIndex');
 
 require('../../src/components/networked');
 
-suite('networked attachLocalTemplate:false', function() {
+suite('networked attachTemplateToLocal:false', function() {
   var scene;
   var entity;
   var networked;
@@ -15,7 +15,7 @@ suite('networked attachLocalTemplate:false', function() {
       assets: [
         "<template id='t1'><a-entity><a-entity class='template-child'></a-entity></a-entity></template>"
       ],
-      entity: '<a-entity id="test-entity" networked="template:#t1;attachLocalTemplate:false;" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity>'
+      entity: '<a-entity id="test-entity" networked="template:#t1;attachTemplateToLocal:false;" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity>'
     };
     scene = helpers.sceneFactory(opts);
     naf.utils.whenEntityLoaded(scene, done);

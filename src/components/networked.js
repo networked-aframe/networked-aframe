@@ -6,7 +6,7 @@ var bind = AFRAME.utils.bind;
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
-    attachLocalTemplate: { default: true },
+    attachTemplateToLocal: { default: true },
 
     networkId: {default: ''},
     owner: {default: ''},
@@ -31,8 +31,8 @@ AFRAME.registerComponent('networked', {
       this.firstUpdate();
       this.attachLerp();
     } else {
-      if (this.data.attachLocalTemplate) {
-        this.attachLocalTemplate();
+      if (this.data.attachTemplateToLocal) {
+        this.attachTemplateToLocal();
       }
 
       this.registerEntity(this.data.networkId);
@@ -50,10 +50,10 @@ AFRAME.registerComponent('networked', {
     this.el.dispatchEvent(new CustomEvent('instantiated', {detail: {el: this.el}}));
   },
 
-  attachLocalTemplate: function() {
+  attachTemplateToLocal: function() {
     var el = NAF.schemas.getCachedTemplate(this.data.template);
     var elAttrs = el.attributes;
-    
+
     // Merge root element attributes with this entity
     for (var attrIdx = 0; attrIdx < elAttrs.length; attrIdx++) {
       this.el.setAttribute(elAttrs[attrIdx].name, elAttrs[attrIdx].value);

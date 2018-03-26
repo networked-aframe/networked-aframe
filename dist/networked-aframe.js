@@ -1866,7 +1866,7 @@
 	AFRAME.registerComponent('networked', {
 	  schema: {
 	    template: { default: '' },
-	    attachLocalTemplate: { default: true },
+	    attachTemplateToLocal: { default: true },
 
 	    networkId: { default: '' },
 	    owner: { default: '' }
@@ -1891,8 +1891,8 @@
 	      this.firstUpdate();
 	      this.attachLerp();
 	    } else {
-	      if (this.data.attachLocalTemplate) {
-	        this.attachLocalTemplate();
+	      if (this.data.attachTemplateToLocal) {
+	        this.attachTemplateToLocal();
 	      }
 
 	      this.registerEntity(this.data.networkId);
@@ -1910,7 +1910,7 @@
 	    this.el.dispatchEvent(new CustomEvent('instantiated', { detail: { el: this.el } }));
 	  },
 
-	  attachLocalTemplate: function attachLocalTemplate() {
+	  attachTemplateToLocal: function attachTemplateToLocal() {
 	    var el = NAF.schemas.getCachedTemplate(this.data.template);
 	    var elAttrs = el.attributes;
 

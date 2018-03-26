@@ -34,7 +34,7 @@
   <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
-    <a-scene  
+    <a-scene
       networked-scene="
         room: dev;
         debug: true;
@@ -91,7 +91,7 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template;attachLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:1" wasd-controls look-controls spawner="template:#cube-template">
+      <a-entity id="player" networked="template:#avatar-template;attachTemplateToLocal:false;" camera="userHeight: 1.6" spawn-in-circle="radius:1" wasd-controls look-controls spawner="template:#cube-template">
         <a-sphere class="head"
           random-color
           visible="false"
