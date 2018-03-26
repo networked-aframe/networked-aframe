@@ -1794,7 +1794,7 @@
 	naf.utils = utils;
 	naf.log = new NafLogger();
 	naf.schemas = new Schemas();
-	naf.version = "0.5.0";
+	naf.version = "0.5.2";
 
 	naf.adapters = new AdapterFactory();
 	var entities = new NetworkEntities();
@@ -3150,6 +3150,10 @@
 	  },
 
 	  init: function init() {
+	    this.OWNERSHIP_GAINED = 'ownership-gained';
+	    this.OWNERSHIP_CHANGED = 'ownership-changed';
+	    this.OWNERSHIP_LOST = 'ownership-lost';
+
 	    var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
 	    this.onConnected = bind(this.onConnected, this);
@@ -3195,6 +3199,8 @@
 	      this.removeLerp();
 	      this.el.setAttribute('networked', { owner: NAF.clientId });
 	      this.syncAll();
+	      this.el.emit(this.OWNERSHIP_GAINED, { el: this.el, oldOwner: owner });
+	      this.el.emit(this.OWNERSHIP_CHANGED, { el: this.el, oldOwner: owner, newOwner: NAF.clientId });
 	      return true;
 	    }
 	    return false;
@@ -3428,11 +3434,19 @@
 	    }
 
 	    if (this.data.owner !== entityData.owner) {
+	      var wasMine = this.isMine();
 	      this.lastOwnerTime = entityData.lastOwnerTime;
 	      this.attachLerp();
+
+	      var oldOwner = this.data.owner;
+	      var newOwner = entityData.owner;
+	      if (wasMine) {
+	        this.el.emit(this.OWNERSHIP_LOST, { el: this.el, newOwner: newOwner });
+	      }
+	      this.el.emit(this.OWNERSHIP_CHANGED, { el: this.el, oldOwner: oldOwner, newOwner: newOwner });
+
 	      this.el.setAttribute('networked', { owner: entityData.owner });
 	    }
-
 	    this.updateComponents(entityData.components);
 	  },
 
@@ -3826,10 +3840,16 @@
 
 	var naf = __webpack_require__(47);
 
-	// @TODO if aframevr/aframe#3042 gets merged, this should just delegate to the aframe sound component
 	AFRAME.registerComponent('networked-audio-source', {
 	  schema: {
-	    positional: { default: true }
+	    positional: { default: true },
+	    distanceModel: {
+	      default: "inverse",
+	      oneOf: ["linear", "inverse", "exponential"]
+	    },
+	    maxDistance: { default: 10000 },
+	    refDistance: { default: 1 },
+	    rolloffFactor: { default: 1 }
 	  },
 
 	  init: function init() {
@@ -3851,6 +3871,9 @@
 	    }
 	  },
 
+	  update: function update() {
+	    this._setPannerProperties();
+	  },
 	  _setMediaStream: function _setMediaStream(newStream) {
 	    if (!this.sound) {
 	      this.setupSound();
@@ -3866,10 +3889,19 @@
 	        this.audioEl.setAttribute("autoplay", "autoplay");
 	        this.audioEl.setAttribute("playsinline", "playsinline");
 	        this.audioEl.srcObject = newStream;
+	        this.audioEl.volume = 0; // we don't actually want to hear audio from this element
 
 	        this.sound.setNodeSource(this.sound.context.createMediaStreamSource(newStream));
 	      }
 	      this.stream = newStream;
+	    }
+	  },
+	  _setPannerProperties: function _setPannerProperties() {
+	    if (this.sound && this.data.positional) {
+	      this.sound.setDistanceModel(this.data.distanceModel);
+	      this.sound.setMaxDistance(this.data.maxDistance);
+	      this.sound.setRefDistance(this.data.refDistance);
+	      this.sound.setRolloffFactor(this.data.rolloffFactor);
 	    }
 	  },
 
@@ -3902,6 +3934,7 @@
 
 	    this.sound = this.data.positional ? new THREE.PositionalAudio(this.listener) : new THREE.Audio(this.listener);
 	    el.setObject3D(this.attrName, this.sound);
+	    this._setPannerProperties();
 	  }
 	});
 
