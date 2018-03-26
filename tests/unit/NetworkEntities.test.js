@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test, teardown, sinon */
+/* global NAF, assert, process, setup, suite, test, teardown, sinon */
 require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
