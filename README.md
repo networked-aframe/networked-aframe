@@ -145,7 +145,7 @@ Required on the A-Frame `<a-scene>` component.
 
 ### Connecting
 
-By defualt, `networked-scene` will connect to your server automatically. To prevent this and instead have control over when to connect, set `connectOnLoad` to false in `networked-scene`. When you are ready to connect emit the `connect` event on the `a-scene` element.
+By default, `networked-scene` will connect to your server automatically. To prevent this and instead have control over when to connect, set `connectOnLoad` to false in `networked-scene`. When you are ready to connect emit the `connect` event on the `a-scene` element.
 
 ```javascript
 AFRAME.scenes[0].emit('connect');
@@ -334,6 +334,19 @@ List of events:
 | entityCreated | Fired when a networked entity is created | `evt.detail.el` - new entity |
 | entityDeleted | Fired when a networked entity is deleted | `evt.detail.networkId` - networkId of deleted entity |
 
+The following events are fired on the `networked` component. See the [toggle-ownership component](./server/static/js/toggle-ownership.component.js) for examples.
+
+List of ownership transfer events:
+
+| Event | Description | Values |
+| -------- | ----------- | ------------- |
+| ownership-gained | Fired when a networked entity's ownership is taken | `evt.detail.el` - the entity whose ownership was gained |
+| | | `evt.detail.oldOwner` - the clientId of the previous owner |
+| ownership-lost | Fired when a networked entity's ownership is lost | `evt.detail.el` - the entity whose ownership was lost |
+| | | `evt.detail.newOwner` - the clientId of the new owner |
+| ownership-changed | Fired when a networked entity's ownership is changed | `evt.detail.el` - the entity whose ownership was lost |
+| | | `evt.detail.oldOwner` - the clientId of the previous owner |
+| | | `evt.detail.newOwner` - the clientId of the new owner |
 
 ### Adapters
 
