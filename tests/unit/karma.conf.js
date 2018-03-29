@@ -17,7 +17,6 @@ var karma_conf = {
   ],
   files: [
     // Define test files.
-    // {pattern: './tests/unit/**/*.test.js'},
     {pattern: './tests/unit/NafInterface.test.js'},
     {pattern: './tests/unit/NafLogger.test.js'},
     {pattern: './tests/unit/utils.test.js'},
@@ -31,8 +30,6 @@ var karma_conf = {
     {pattern: './tests/unit/ComponentHelper.test.js'},
 
     {pattern: './src/**/*.js', included: false}
-    // Serve test assets.
-    // {pattern: 'tests/assets/**/*', included: false, served: true}
   ],
   frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal', 'browserify'],
   preprocessors: {

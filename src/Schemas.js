@@ -15,8 +15,7 @@ class Schemas {
         NAF.log.error(`Template el not found for ${schema.template}, make sure NAF.schemas.add is called after <a-scene> is defined.`);
         return;
       }
-      if (!this.validateTemplate(templateEl)) {
-        NAF.log.error(`Template for ${schema.template} has more than one child. Templates must have one direct child element, no more. Template found:`, templateEl);
+      if (!this.validateTemplate(schema, templateEl)) {
         return;
       }
       this.templateCache[schema.template] = document.importNode(templateEl.content, true);
@@ -51,8 +50,20 @@ class Schemas {
       ;
   }
 
-  validateTemplate(el) {
-    return this.templateHasOneOrZeroChildren(el);
+  validateTemplate(schema, el) {
+    if (!this.isTemplateTag(el)) {
+      NAF.log.error(`Template for ${schema.template} is not a <template> tag. Instead found: ${el.tagName}`);
+      return false;
+    } else if (!this.templateHasOneOrZeroChildren(el)) {
+      NAF.log.error(`Template for ${schema.template} has more than one child. Templates must have one direct child element, no more. Template found:`, el);
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  isTemplateTag(el) {
+    return el.tagName.toLowerCase() === 'template';
   }
 
   templateHasOneOrZeroChildren(el) {

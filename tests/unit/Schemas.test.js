@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test */
+/* global assert, process, setup, suite, test, teardown */
 var Schemas = require('../../src/Schemas');
 var helpers = require('./helpers');
 require('../../src/NafIndex');
@@ -49,12 +49,34 @@ suite('Schemas', function() {
   suite('validateTemplate', function() {
 
     test('catches template with more than one child', function() {
+      var schema = {
+        template: '#template4',
+        components: [
+          'position'
+        ]
+      };
       const template = helpers.addTemplateToDomWithChildren('template4', 2);
 
-      var result = schemas.validateTemplate(template);
+      var result = schemas.validateTemplate(schema, template);
 
       assert.isFalse(result);
     });
+
+    test('catches template that is not a template tag', function() {
+      var schema = {
+        template: '#template',
+        components: [
+          'position'
+        ]
+      };
+      const template = document.createElement('div');
+      template.id = 'template';
+      document.body.appendChild(template);
+
+      var result = schemas.validateTemplate(schema, template);
+
+      assert.isFalse(result);
+    })
   });
 
   suite('hasTemplate', function() {
