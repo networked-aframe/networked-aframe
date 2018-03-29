@@ -1,5 +1,9 @@
 # Networked-Aframe Release Notes
 
+## 0.5.2
+- [Ownership transfer events](https://github.com/networked-aframe/networked-aframe/pull/99)
+- [Fix audio spatialization and expose panner properties](https://github.com/networked-aframe/networked-aframe/pull/100)
+
 ## 0.5.1 
 - Add and remove lerp when not owned by you
 - Fixed easyrtc adapter HEAD request bug
