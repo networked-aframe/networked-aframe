@@ -8,11 +8,16 @@ class Schemas {
   }
 
   add(schema) {
-    if (this.validate(schema)) {
+    if (this.validateSchema(schema)) {
       this.dict[schema.template] = schema;
       var templateEl = document.querySelector(schema.template);
       if (!templateEl) {
-        NAF.log.error(`template el not found for ${schema.template}, make sure NAF.schemas.add is called after <a-scene> is defined.`);
+        NAF.log.error(`Template el not found for ${schema.template}, make sure NAF.schemas.add is called after <a-scene> is defined.`);
+        return;
+      }
+      if (!this.validateTemplate(templateEl)) {
+        NAF.log.error(`Template for ${schema.template} has more than one child. Templates must have one direct child element, no more. Template found:`, templateEl);
+        return;
       }
       this.templateCache[schema.template] = document.importNode(templateEl.content, true);
     } else {
@@ -40,10 +45,18 @@ class Schemas {
     return components;
   }
 
-  validate(schema) {
+  validateSchema(schema) {
     return schema.hasOwnProperty('template')
       && schema.hasOwnProperty('components')
       ;
+  }
+
+  validateTemplate(el) {
+    return this.templateHasOneOrZeroChildren(el);
+  }
+
+  templateHasOneOrZeroChildren(el) {
+    return el.content.childElementCount < 2;
   }
 
   remove(template) {

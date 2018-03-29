@@ -1,16 +1,20 @@
 /* global assert, process, setup, suite, test */
 var Schemas = require('../../src/Schemas');
 var helpers = require('./helpers');
+require('../../src/NafIndex');
 
 suite('Schemas', function() {
   var schemas;
 
   setup(function() {
     schemas = new Schemas();
-
   });
 
-  suite('validate', function() {
+  teardown(function() {
+    document.body.innerHTML = '';
+  });
+
+  suite('validateSchema', function() {
 
     test('marks correct schema correct', function() {
       var schema = {
@@ -19,7 +23,7 @@ suite('Schemas', function() {
           'scale'
         ]
       };
-      var result = schemas.validate(schema);
+      var result = schemas.validateSchema(schema);
       assert.isTrue(result);
     });
 
@@ -29,7 +33,7 @@ suite('Schemas', function() {
           'scale'
         ]
       };
-      var result = schemas.validate(schema);
+      var result = schemas.validateSchema(schema);
       assert.isFalse(result);
     });
 
@@ -37,14 +41,25 @@ suite('Schemas', function() {
       var schema = {
         template: '#template4'
       };
-      var result = schemas.validate(schema);
+      var result = schemas.validateSchema(schema);
+      assert.isFalse(result);
+    });
+  });
+
+  suite('validateTemplate', function() {
+
+    test('catches template with more than one child', function() {
+      const template = helpers.addTemplateToDomWithChildren('template4', 2);
+
+      var result = schemas.validateTemplate(template);
+
       assert.isFalse(result);
     });
   });
 
   suite('hasTemplate', function() {
 
-    test('does not have schemas when empty', function() {
+    test('does not have templates when empty', function() {
       var template = '#template1';
 
       var result = schemas.hasTemplate(template);
@@ -52,7 +67,7 @@ suite('Schemas', function() {
       assert.isFalse(result);
     });
 
-    test('does has schema after added', function() {
+    test('has template after schema added', function() {
       var schema = {
         template: '#template4',
         components: [
@@ -70,7 +85,7 @@ suite('Schemas', function() {
   suite('add', function() {
 
     test('adds correct schema', function() {
-      helpers.addTemplateToDom('template4');
+      helpers.addTemplateToDomWithChildren('template4', 1);
       var schema = {
         template: '#template4',
         components: [
@@ -93,6 +108,21 @@ suite('Schemas', function() {
       var result = schemas.hasTemplate(schema.template);
 
       assert.isFalse(result);
+    });
+
+    test('invalid template not added', function() {
+      helpers.addTemplateToDomWithChildren('template4', 2);
+      var schema = {
+        template: '#template4',
+        components: [
+          'scale'
+        ]
+      };
+      schemas.add(schema);
+
+      var result = schemas.hasTemplate(schema.template);
+
+      assert.isTrue(result);
     });
   });
 
@@ -132,8 +162,8 @@ suite('Schemas', function() {
   suite('clear', function() {
 
     test('removes all schemas', function() {
-      helpers.addTemplateToDom('template4');
-      helpers.addTemplateToDom('templasd');
+      helpers.addTemplateToDomWithChildren('template4', 1);
+      helpers.addTemplateToDomWithChildren('templasd', 1);
 
       var schema1 = {
         template: '#template4',
