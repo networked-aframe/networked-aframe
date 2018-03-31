@@ -13,26 +13,6 @@
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
     <script src="/js/spawn-in-circle.component.js"></script>
-
-    <script>
-      // Define custom schema for syncing avatar color, set by random-color
-      NAF.schemas.add({
-        template: '#head-template',
-        components: [
-          'position',
-          'rotation',
-          {
-            selector: '.head',
-            component: 'material'
-          }
-        ]
-      });
-
-      // Called by Networked-Aframe when connected to server
-      function onConnect () {
-        console.log("onConnect");
-      }
-    </script>
   </head>
   <body>
 
@@ -48,24 +28,23 @@
         <!-- Templates -->
 
         <!-- Player -->
-        <script id="player-template" type="text/html">
+        <template id="player-template">
           <a-entity></a-entity>
-        </script>
+        </template>
 
         <!-- Head -->
-        <script id="head-template" type="text/html">
+        <template id="head-template">
           <a-entity class="avatar">
             <a-sphere class="head"
-              color="#5985ff"
-              scale="0.3 0.35 0.25"
-              random-color
+              color="#ffffff"
+              scale="0.45 0.5 0.4"
             ></a-sphere>
             <a-entity class="face"
               position="0 0.05 0"
             >
               <a-sphere class="eye"
                 color="#efefef"
-                position="0.1 0.1 -0.2"
+                position="0.16 0.1 -0.35"
                 scale="0.12 0.12 0.12"
               >
                 <a-sphere class="pupil"
@@ -76,7 +55,7 @@
               </a-sphere>
               <a-sphere class="eye"
                 color="#efefef"
-                position="-0.1 0.1 -0.2"
+                position="-0.16 0.1 -0.35"
                 scale="0.12 0.12 0.12"
               >
                 <a-sphere class="pupil"
@@ -87,21 +66,28 @@
               </a-sphere>
             </a-entity>
           </a-entity>
-        </script>
+        </template>
 
         <!-- Hand -->
-        <script id="hand-template" type="text/html">
-          <a-box scale="0.1 0.1 0.1"></a-box>
-        </script>
+        <template id="hand-template">
+          <a-entity>
+            <a-box scale="0.1 0.1 0.1"></a-box>
+          </a-entity>
+        </template>
 
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" spawn-in-circle="radius:3" wasd-controls>
-        <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;showLocalTemplate:false;"></a-entity>
+      <a-entity id="player" networked="template:#player-template;attachTemplateToLocal:false;" spawn-in-circle="radius:3" wasd-controls>
+        <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;attachTemplateToLocal:false;">
+            <a-sphere class="head"
+              random-color
+              visible="false"
+            ></a-sphere>
+        </a-entity>
 
-        <a-entity hand-controls="left" networked="template:#hand-template;showLocalTemplate:false;"></a-entity>
-        <a-entity hand-controls="right" networked="template:#hand-template;showLocalTemplate:false;"></a-entity>
+        <a-entity hand-controls="left" networked="template:#hand-template;"></a-entity>
+        <a-entity hand-controls="right" networked="template:#hand-template;"></a-entity>
       </a-entity>
 
       <a-entity position="0 0 0"
@@ -131,6 +117,42 @@
       if (isMobile) {
         var particles = document.getElementById('particles');
         particles.parentNode.removeChild(particles);
+      }
+    </script>
+
+    <script>
+      // Define custom schema for syncing avatar color, set by random-color
+      NAF.schemas.add({
+        template: '#head-template',
+        components: [
+          'position',
+          'rotation',
+          {
+            selector: '.head',
+            component: 'material'
+          }
+        ]
+      });
+
+      NAF.schemas.add({
+        template: '#player-template',
+        components: [
+          'position',
+          'rotation'
+        ]
+      });
+
+      NAF.schemas.add({
+        template: '#hand-template',
+        components: [
+          'position',
+          'rotation'
+        ]
+      });
+
+      // Called by Networked-Aframe when connected to server
+      function onConnect () {
+        console.log("onConnect");
       }
     </script>
   </body>

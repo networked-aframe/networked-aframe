@@ -74,11 +74,11 @@ Basic Example
   <body>
     <a-scene networked-scene>
       <a-assets>
-        <script id="avatar-template" type="text/html">
-          <a-sphere></a-sphere>
-        </script>
+        <template id="avatar-template">
+           <a-sphere></a-sphere>
+        </template>
       </a-assets>
-      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera wasd-controls look-controls>
+      <a-entity id="player" networked="template:#avatar-template;attachTemplateToLocal:false;" camera wasd-controls look-controls>
       </a-entity>
     </a-scene>
   </body>
@@ -165,16 +165,61 @@ Completely removing `a-scene` from your page will also handle cleanly disconnect
 ### Creating Networked Entities
 
 ```html
-<a-entity networked="template=YOUR_TEMPLATE;showLocalTemplate=true"></a-entity>
+<a-assets>
+  <template id="my-template">
+    <a-entity>
+      <a-sphere color="#f00"></a-sphere>
+    </a-entity>
+  </template>
+<a-assets>
+
+<!-- Attach local template by default -->
+<a-entity networked="template: #my-template">
+</a-entity>
+
+<!-- Do not attach local template -->
+<a-entity networked="template:#my-template;attachTemplateToLocal:false">
+</a-entity>
 ```
 
 Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is added to allow for less network updates while keeping smooth motion.
 
+Templates must only have one root element. When `attachTemplateToLocal` is set to true, the attributes on this element will be copied to the local entity and the children will be appended to the local entity. Remotely instantiated entities will be a copy of the root element of the template with the `networked` component added to it.
+
+#### Example `attachTemplateToLocal=true`
+
+```html
+<a-entity wasd-controls networked="template:#my-template">
+</a-entity>
+
+<!-- Locally instantiated as: -->
+<a-entity wasd-controls networked="template:#my-template">
+  <a-sphere color="#f00"></a-sphere>
+</a-entity>
+
+<!-- Remotely instantiated as: -->
+<a-entity networked="template:#my-template;networkId:123;">
+  <a-sphere color="#f00"></a-sphere>
+</a-entity>
+```
+#### Example `attachTemplateToLocal=false`
+
+```html
+<a-entity wasd-controls networked="template:#my-template;attachTemplateToLocal:false;">
+</a-entity>
+
+<!-- No changes to local entity on instantiation -->
+
+<!-- Remotely instantiated as: -->
+<a-entity networked="template:#my-template;networkId:123;">
+  <a-sphere color="#f00"></a-sphere>
+</a-entity>
+```
 
 | Parameter | Description | Default
 | -------- | ------------ | --------------
-| template  | A css selector to a script tag stored in `<a-assets>` - [Template documentation](https://github.com/ngokevin/kframe/tree/master/components/template) | ''
-| showLocalTemplate  | Set to false to hide the template for the local user. This is most useful for hiding your own avatar's head | true
+| template  | A css selector to a template tag stored in `<a-assets>` | ''
+| attachTemplateToLocal  | Does not attach the template for the local user when set to false. This is useful when there is different behavior locally and remotely. | true
 
 
 ### Deleting Networked Entities
@@ -220,8 +265,8 @@ Component data is retrieved by the A-Frame Component `data` property. During the
 To sync nested templates setup your HTML nodes like so:
 
 ```HTML
-<a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" wasd-controls>
-  <a-entity camera look-controls networked="template:#head-template;showLocalTemplate:false;"></a-entity>
+<a-entity id="player" networked="template:#player-template;attachTemplateToLocal:false;" wasd-controls>
+  <a-entity camera look-controls networked="template:#head-template;attachTemplateToLocal:false;"></a-entity>
   <a-entity hand-controls="left" networked="template:#left-hand-template"></a-entity>
   <a-entity hand-controls="right" networked="template:#right-hand-template"></a-entity>
 </a-entity>

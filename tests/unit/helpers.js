@@ -1,4 +1,4 @@
-/* global suite */
+/* global suite, sinon */
 var utils = require('../../src/utils');
 
 
@@ -22,12 +22,12 @@ module.exports.sceneFactory = function (opts) {
     });
   }
   if (opts.entity) {
-    var entity = utils.createHtmlNodeFromString(opts.entity);
+    let entity = utils.createHtmlNodeFromString(opts.entity);
     scene.appendChild(entity);
-  };
+  }
   if (opts.entities) {
     for (var i = 0; i < opts.entities.length; i++) {
-      var entity = utils.createHtmlNodeFromString(opts.entities[i]);
+      let entity = utils.createHtmlNodeFromString(opts.entities[i]);
       scene.appendChild(entity);
     }
   }
@@ -66,4 +66,44 @@ module.exports.getSkipCISuite = function () {
   } else {
     return suite;
   }
+};
+
+module.exports.MockNetworkAdapter = function MockNetworkAdapter() {
+  this.setServerUrl = sinon.stub();
+  this.setApp = sinon.stub();
+  this.setRoom = sinon.stub();
+  this.setWebRtcOptions = sinon.stub();
+
+  this.setServerConnectListeners = sinon.stub();
+  this.setRoomOccupantListener = sinon.stub();
+  this.setDataChannelListeners = sinon.stub();
+
+  this.connect = sinon.stub();
+  this.shouldStartConnectionTo = sinon.stub();
+  this.startStreamConnection = sinon.stub();
+  this.closeStreamConnection = sinon.stub();
+  this.getConnectStatus = sinon.stub();
+
+  this.sendData = sinon.stub();
+  this.sendDataGuaranteed = sinon.stub();
+  this.broadcastData = sinon.stub();
+  this.broadcastDataGuaranteed = sinon.stub();
+
+  this.getServerTime = sinon.stub();
+};
+
+module.exports.addTemplateToDom = function(id) {
+  const template = document.createElement('template');
+  template.id = id;
+  document.body.appendChild(template);
+  return template;
+};
+
+module.exports.addTemplateToDomWithChildren = function(id, numChildren) {
+  const template = this.addTemplateToDom(id);
+  template.content = document.createElement('fragment'); // account for dev env not handling templates correctly
+  for (var i = 0; i < numChildren; i++) {
+    template.content.appendChild(document.createElement('a-entity'));
+  }
+  return template;
 };

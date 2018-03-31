@@ -1,5 +1,4 @@
 // Dependencies
-require('aframe-template-component');
 require('aframe-lerp-component');
 
 // Global vars and functions

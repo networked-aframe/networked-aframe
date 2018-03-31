@@ -4,7 +4,7 @@
     <title>Dev Example — Networked-Aframe</title>
     <meta name="description" content="Dev Example — Networked-Aframe">
 
-    <script src="https://aframe.io/releases/0.7.0/aframe.js"></script>
+    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
     <script src="/build.js"></script>
     <script>window.NAF || document.write('<script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js">\x3C/script>')</script>
 
@@ -15,7 +15,11 @@
   <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
-    <a-scene>
+    <a-scene networked-scene="
+      room: dev;
+      debug: true;
+      adapter: easyrtc;
+    ">
       <a-assets>
 
         <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
@@ -27,9 +31,8 @@
         <template id="avatar-template">
           <a-entity class="avatar">
             <a-sphere class="head"
-              color="#5985ff"
+              color="#ffffff"
               scale="0.45 0.5 0.4"
-              random-color
             ></a-sphere>
             <a-entity class="face"
               position="0 0.05 0"
@@ -63,12 +66,10 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
+      <a-entity id="player" networked="template:#avatar-template;attachTemplateToLocal:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
         <a-sphere class="head"
-          color="#5985ff"
-          scale="0.45 0.5 0.4"
-          random-color
           visible="false"
+          random-color
         ></a-sphere>
       </a-entity>
 
@@ -99,20 +100,6 @@
       if (isMobile) {
         var particles = document.getElementById('particles');
         particles.parentNode.removeChild(particles);
-      }
-
-      var roomIndex = 0;
-      document.body.onkeyup = function(e){
-        if(e.keyCode == 32){
-          var scene = document.querySelector('a-scene');
-          if(scene.hasAttribute('networked-scene')) {
-            scene.removeAttribute('networked-scene');
-          } else {
-            scene.setAttribute('networked-scene', 'debug:true;room:disconnect-' + roomIndex + ';adapter:wseasyrtc');
-            console.log('Joining room: ' + roomIndex);
-            roomIndex++;
-          }
-        }
       }
     </script>
 

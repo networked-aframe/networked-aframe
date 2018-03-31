@@ -1,3 +1,4 @@
+/* global suite, test, assert */
 var utils = require('../../src/utils');
 var Compressor = require('../../src/Compressor');
 
