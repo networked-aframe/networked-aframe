@@ -1,15 +1,15 @@
 # Networked-Aframe Release Notes
 
-# 0.6.0
+## 0.6.0
 
 The release of version 0.6 brings a major change in how templates work, among a few other fixes. This new template system is _not_ backwards compatible, meaning to upgrade to NAF 0.6 you will need to update your existing projects.
 
-### Features:
+#### Features:
 - A-Frame 0.8 support
 - New template system
 - `networked-aframe.min.js` shrinks from 67.8 kB to 44.7 kB
 
-### Migration Guide
+#### Migration Guide
 
 1. Templates are defined in a `<template>` tag rather than `<script type="text/html">`. Change all your templates to use the `<template>` tag.
 
