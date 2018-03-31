@@ -270,7 +270,7 @@
 	naf.utils = utils;
 	naf.log = new NafLogger();
 	naf.schemas = new Schemas();
-	naf.version = "0.5.2";
+	naf.version = "0.6.0";
 
 	naf.adapters = new AdapterFactory();
 	var entities = new NetworkEntities();
@@ -498,11 +498,15 @@
 	  _createClass(Schemas, [{
 	    key: 'add',
 	    value: function add(schema) {
-	      if (this.validate(schema)) {
+	      if (this.validateSchema(schema)) {
 	        this.dict[schema.template] = schema;
 	        var templateEl = document.querySelector(schema.template);
 	        if (!templateEl) {
-	          NAF.log.error('template el not found for ' + schema.template + ', make sure NAF.schemas.add is called after <a-scene> is defined.');
+	          NAF.log.error('Template el not found for ' + schema.template + ', make sure NAF.schemas.add is called after <a-scene> is defined.');
+	          return;
+	        }
+	        if (!this.validateTemplate(schema, templateEl)) {
+	          return;
 	        }
 	        this.templateCache[schema.template] = document.importNode(templateEl.content, true);
 	      } else {
@@ -533,9 +537,32 @@
 	      return components;
 	    }
 	  }, {
-	    key: 'validate',
-	    value: function validate(schema) {
+	    key: 'validateSchema',
+	    value: function validateSchema(schema) {
 	      return schema.hasOwnProperty('template') && schema.hasOwnProperty('components');
+	    }
+	  }, {
+	    key: 'validateTemplate',
+	    value: function validateTemplate(schema, el) {
+	      if (!this.isTemplateTag(el)) {
+	        NAF.log.error('Template for ' + schema.template + ' is not a <template> tag. Instead found: ' + el.tagName);
+	        return false;
+	      } else if (!this.templateHasOneOrZeroChildren(el)) {
+	        NAF.log.error('Template for ' + schema.template + ' has more than one child. Templates must have one direct child element, no more. Template found:', el);
+	        return false;
+	      } else {
+	        return true;
+	      }
+	    }
+	  }, {
+	    key: 'isTemplateTag',
+	    value: function isTemplateTag(el) {
+	      return el.tagName.toLowerCase() === 'template';
+	    }
+	  }, {
+	    key: 'templateHasOneOrZeroChildren',
+	    value: function templateHasOneOrZeroChildren(el) {
+	      return el.content.childElementCount < 2;
 	    }
 	  }, {
 	    key: 'remove',
