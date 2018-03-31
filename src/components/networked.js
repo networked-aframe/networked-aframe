@@ -302,7 +302,7 @@ AFRAME.registerComponent('networked', {
         this.el.emit(this.OWNERSHIP_LOST, { el: this.el, newOwner: newOwner });
       }
       this.el.emit(this.OWNERSHIP_CHANGED, { el: this.el, oldOwner: oldOwner, newOwner: newOwner});
-      
+
       this.el.setAttribute('networked', { owner: entityData.owner });
     }
     this.updateComponents(entityData.components);
