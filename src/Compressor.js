@@ -1,3 +1,5 @@
+/* global NAF */
+
 /**
   Compressed packet structure:
   [
@@ -66,7 +68,7 @@ module.exports.decompressSyncData = function(compressed, components) {
   entityData.template = compressed[4];
 
   var compressedComps = compressed[5];
-  var components = this.decompressComponents(compressedComps, components);
+  components = this.decompressComponents(compressedComps, components);
   entityData.components = components;
 
   return entityData;

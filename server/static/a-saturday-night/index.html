@@ -5,7 +5,7 @@
     <script src="https://aframe.io/releases/0.6.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
-    <script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js"></script>
+    <script src="../build.js"></script>
 
     <script src="js/spawn-in-circle.component.js"></script>
     <script src="js/show-child.component.js"></script>
@@ -17,8 +17,6 @@
     <script src="js/roomcolor.component.js"></script>
     <script src="js/hand-components.component.js"></script>
     <script src="js/show-in-vr.component.js"></script>
-
-    <script src="js/naf-schemas.js"></script>
   </head>
   <body>
   	<!-- "Solid Gold" by Miami Slice is licensed under CC 4.0: http://freemusicarchive.org/music/Miami_Slice/Disco_Cuts/Solid_Gold -->
@@ -36,33 +34,36 @@
 		  debug: true;
 		">
 			<a-assets>
-				<script id="player-template" type="text/html">
+				<template id="player-template">
 		      <a-entity></a-entity>
-			  </script>
+        </template>
 
-			  <script id="head-template" type="text/html">
+			  <template id="head-template">
 		      <a-entity class="heads" show-child="0">
 		      	<a-entity class="head" gltf-model="#avatar1-head-obj"></a-entity>
 		      	<a-entity class="head" gltf-model="#avatar2-head-obj"></a-entity>
-		      	<a-entity class="head" gltf-model="#avatar3-head-obj"></a-entity>
+            <a-entity class="head" gltf-model="#avatar3-head-obj"></a-entity>
+            <a-entity class="head" gltf-model="#avatar4-head-obj"></a-entity>
 		      </a-entity>
-			  </script>
+			  </template>
 
-			  <script id="left-hand-template" type="text/html">
+			  <template id="left-hand-template">
 		      <a-entity class="hands" show-child="0">
 		      	<a-entity class="hand" gltf-model="#avatar1-hand-left-obj"></a-entity>
 		      	<a-entity class="hand" gltf-model="#avatar2-hand-left-obj"></a-entity>
-		      	<a-entity class="hand" gltf-model="#avatar3-hand-left-obj"></a-entity>
+            <a-entity class="hand" gltf-model="#avatar3-hand-left-obj"></a-entity>
+            <a-entity class="hand" gltf-model="#avatar4-hand-left-obj"></a-entity>
 		      </a-entity>
-			  </script>
+			  </template>
 
-			  <script id="right-hand-template" type="text/html">
+			  <template id="right-hand-template">
 		      <a-entity class="hands" show-child="0">
 		      	<a-entity class="hand" gltf-model="#avatar1-hand-right-obj"></a-entity>
 		      	<a-entity class="hand" gltf-model="#avatar2-hand-right-obj"></a-entity>
-		      	<a-entity class="hand" gltf-model="#avatar3-hand-right-obj"></a-entity>
+            <a-entity class="hand" gltf-model="#avatar3-hand-right-obj"></a-entity>
+            <a-entity class="hand" gltf-model="#avatar4-hand-left-obj"></a-entity>
 		      </a-entity>
-			  </script>
+			  </template>
 
 			  <img src="assets/room/set.jpg">
         <img src="assets/room/tv.png">
@@ -97,13 +98,29 @@
 
         <a-asset-item id="avatar4-head-obj" src="assets/avatar4/avatar4-head.gltf"></a-asset-item>
         <a-asset-item id="avatar4-hand-right-obj" src="assets/avatar4/avatar4-hand-right.gltf"></a-asset-item>
+        <a-asset-item id="avatar4-hand-left-obj" src="assets/avatar4/avatar4-hand-left.gltf"></a-asset-item>
 
 			</a-assets>
 
-			<a-entity id="player" networked="template:#player-template;showLocalTemplate:false;" spawn-in-circle="radius:2;" wasd-controls show-avatar="index:0;numAvatars:3" randomize-avatar>
-			  <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;showLocalTemplate:false;"></a-entity>
-			  <a-entity networked="template:#left-hand-template" hand-components="left" show-in-vr visible="false"></a-entity>
-			  <a-entity networked="template:#right-hand-template" hand-components="right" show-in-vr visible="false"></a-entity>
+			<a-entity id="player" networked="template:#player-template;attachTemplateToLocal:false;" spawn-in-circle="radius:2;" wasd-controls show-avatar="index:0;numAvatars:4" randomize-avatar>
+			  <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;attachTemplateToLocal:false;" class="heads" visible="false" show-child="0">
+          <a-entity class="head" gltf-model="#avatar1-head-obj"></a-entity>
+          <a-entity class="head" gltf-model="#avatar2-head-obj"></a-entity>
+          <a-entity class="head" gltf-model="#avatar3-head-obj"></a-entity>
+          <a-entity class="head" gltf-model="#avatar4-head-obj"></a-entity>
+        </a-entity>
+			  <a-entity networked="template:#left-hand-template;attachTemplateToLocal:false;" class="hands" hand-components="left" show-in-vr visible="false" show-child="0">
+          <a-entity class="hand" gltf-model="#avatar1-hand-left-obj"></a-entity>
+          <a-entity class="hand" gltf-model="#avatar2-hand-left-obj"></a-entity>
+          <a-entity class="hand" gltf-model="#avatar3-hand-left-obj"></a-entity>
+          <a-entity class="hand" gltf-model="#avatar4-hand-left-obj"></a-entity>
+        </a-entity>
+			  <a-entity networked="template:#right-hand-template;attachTemplateToLocal:false;" class="hands" hand-components="right" show-in-vr visible="false" show-child="0">
+          <a-entity class="hand" gltf-model="#avatar1-hand-right-obj"></a-entity>
+          <a-entity class="hand" gltf-model="#avatar2-hand-right-obj"></a-entity>
+          <a-entity class="hand" gltf-model="#avatar3-hand-right-obj"></a-entity>
+          <a-entity class="hand" gltf-model="#avatar4-hand-right-obj"></a-entity>
+        </a-entity>
 			</a-entity>
 
 			<!-- Lights -->
@@ -136,5 +153,7 @@
       <a-entity id="tv2" gltf-model="#tv-obj" position="0.87 2.15 -2.44" rotation="0 151.8 0"></a-entity>
 
 		</a-scene>
+
+    <script src="js/naf-schemas.js"></script>
   </body>
 </html>

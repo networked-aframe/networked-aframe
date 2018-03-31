@@ -1,4 +1,4 @@
-var naf = require('../NafIndex');
+/* global AFRAME, NAF */
 
 AFRAME.registerComponent('networked-scene', {
   schema: {

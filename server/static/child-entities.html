@@ -11,27 +11,6 @@
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>
     <script src="/js/spawn-in-circle.component.js"></script>
-
-    <script>
-      // Define custom schema for syncing avatar color, set by random-color
-      NAF.schemas.add({
-        template: '#avatar-template',
-        components: [
-          'position',
-          'rotation',
-          {
-            selector: '.head',
-            component: 'material',
-            property: 'color'
-          }
-        ]
-      });
-
-      // Called by Networked-Aframe when connected to server
-      function onConnect () {
-        console.log("onConnect", new Date());
-      }
-    </script>
   </head>
   <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
@@ -49,17 +28,15 @@
         <!-- Templates -->
 
         <!-- Avatar -->
-        <script id="avatar-template" type="text/html">
+        <template id="avatar-template">
           <a-entity class="avatar">
             <a-sphere class="head"
-              color="#5985ff"
               scale="0.45 0.5 0.4"
-              random-color
             ></a-sphere>
           </a-entity>
-        </script>
+        </template>
 
-        <script id="face-template" type="text/html">
+        <template id="face-template">
           <a-entity class="face"
               position="0 0.05 0"
             >
@@ -86,17 +63,23 @@
               ></a-sphere>
             </a-sphere>
           </a-entity>
-        </script>
+        </template>
 
-        <script id="simple" type="text/html">
+        <template id="simple">
           <a-sphere></a-sphere>
-        </script>
+        </template>
 
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
-        <a-entity id="face" networked="template:#face-template;showLocalTemplate:false;"></a-entity>
+      <a-entity id="player" networked="template:#avatar-template" camera="userHeight: 1.6" spawn-in-circle="radius:3" wasd-controls look-controls>
+        <a-sphere class="head"
+          color="#5985ff"
+          scale="0.45 0.5 0.4"
+          random-color
+          visible="false"
+        ></a-sphere>
+        <a-entity id="face" networked="template:#face-template"></a-entity>
       </a-entity>
 
       <a-entity position="0 0 0"
@@ -126,6 +109,35 @@
       if (isMobile) {
         var particles = document.getElementById('particles');
         particles.parentNode.removeChild(particles);
+      }
+    </script>
+
+    <script>
+      // Define custom schema for syncing avatar color, set by random-color
+      NAF.schemas.add({
+        template: '#avatar-template',
+        components: [
+          'position',
+          'rotation',
+          {
+            selector: '.head',
+            component: 'material',
+            property: 'color'
+          }
+        ]
+      });
+
+      NAF.schemas.add({
+        template: '#face-template',
+        components: [
+          'position',
+          'rotation',
+        ]
+      });
+
+      // Called by Networked-Aframe when connected to server
+      function onConnect () {
+        console.log("onConnect", new Date());
       }
     </script>
   </body>

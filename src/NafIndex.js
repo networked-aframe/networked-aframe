@@ -14,7 +14,7 @@ naf.options = options;
 naf.utils = utils;
 naf.log = new NafLogger();
 naf.schemas = new Schemas();
-naf.version = "0.5.2";
+naf.version = "0.6.0";
 
 naf.adapters = new AdapterFactory();
 var entities = new NetworkEntities();

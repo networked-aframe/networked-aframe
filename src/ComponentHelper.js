@@ -1,25 +1,23 @@
+/* global AFRAME, NAF */
 var deepEqual = require('deep-equal');
 
 module.exports.gatherComponentsData = function(el, schemaComponents) {
-  var elComponents = el.components;
   var compsData = {};
 
   for (var i in schemaComponents) {
     var element = schemaComponents[i];
 
     if (typeof element === 'string') {
-      if (elComponents.hasOwnProperty(element)) {
-        var name = element;
-        var elComponent = elComponents[name];
-        compsData[name] = AFRAME.utils.clone(elComponent.data);
+      if (el.components.hasOwnProperty(element)) {
+        compsData[element] = AFRAME.utils.clone(el.getAttribute(element));
       }
     } else {
       var childKey = NAF.utils.childSchemaToKey(element);
       var child = element.selector ? el.querySelector(element.selector) : el;
       if (child) {
-        var comp = child.components[element.component];
-        if (comp) {
-          var data = element.property ? comp.data[element.property] : comp.data;
+        if (child.components.hasOwnProperty(element.component)) {
+          var attributeData = child.getAttribute(element.component);
+          var data = element.property ? attributeData[element.property] : attributeData;
           compsData[childKey] = AFRAME.utils.clone(data);
         } else {
           // NAF.log.write('ComponentHelper.gatherComponentsData: Could not find component ' + element.component + ' on child ', child, child.components);
@@ -31,7 +29,6 @@ module.exports.gatherComponentsData = function(el, schemaComponents) {
 };
 
 module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
-  var newComps = el.components;
   var dirtyComps = [];
 
   for (var i in syncedComps) {
@@ -41,12 +38,12 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
 
     var isRoot = typeof schema === 'string';
     if (isRoot) {
-      var hasComponent = newComps.hasOwnProperty(schema)
+      var hasComponent = el.components.hasOwnProperty(schema)
       if (!hasComponent) {
         continue;
       }
       compKey = schema;
-      newCompData = newComps[schema].data;
+      newCompData = el.getAttribute(schema);
     }
     else {
       // is child
@@ -54,17 +51,17 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
       var compName = schema.component;
       var propName = schema.property;
       var childEl = selector ? el.querySelector(selector) : el;
-      var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
-      if (!hasComponent) {
+      var hasComp = childEl && childEl.components.hasOwnProperty(compName);
+      if (!hasComp) {
         continue;
       }
       compKey = NAF.utils.childSchemaToKey(schema);
-      newCompData = childEl.components[compName].data;
+      newCompData = childEl.getAttribute(compName);
       if (propName) {
         newCompData = newCompData[propName];
       }
     }
-    
+
     var compIsCached = cachedData.hasOwnProperty(compKey);
     if (!compIsCached) {
       dirtyComps.push(schema);

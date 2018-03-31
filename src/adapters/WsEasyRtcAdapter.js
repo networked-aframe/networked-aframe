@@ -1,6 +1,11 @@
-class WsEasyRtcInterface {
+/* global NAF */
+const NoOpAdapter = require('./NoOpAdapter');
+
+class WsEasyRtcInterface extends NoOpAdapter {
 
   constructor(easyrtc) {
+    super();
+
     this.easyrtc = easyrtc || window.easyrtc;
     this.app = 'default';
     this.room = 'default';

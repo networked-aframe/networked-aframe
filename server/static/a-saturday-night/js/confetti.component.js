@@ -1,4 +1,4 @@
-/* global AFRAME, THREE */
+/* global AFRAME */
 
 /**
  * Let's party
@@ -16,12 +16,9 @@ AFRAME.registerComponent('confetti', {
   init: function () {
     var data = this.data;
     var confettiContainerEl = document.createElement('a-entity')
-    var confetiNum = data.waveSize * data.wavesNumber;
     var i;
     var j;
-    var confettiEls = this.confettiEls = [];
     var color;
-    var conffetiEl;
     var colors = ['red', 'blue', 'green'];
     var redConfettiEl = this.redConfettiEl = document.createElement('a-entity');
     var blueConfettiEl = this.blueConfettiEl = document.createElement('a-entity');

@@ -1,3 +1,4 @@
+/* global NAF */
 var ChildEntityCache = require('./ChildEntityCache');
 
 class NetworkEntities {
@@ -17,8 +18,8 @@ class NetworkEntities {
     NAF.log.write('Creating remote entity', entityData);
 
     var networkId = entityData.networkId;
+    var el = NAF.schemas.getCachedTemplate(entityData.template);
 
-    var el = document.createElement('a-entity');
     el.setAttribute('id', 'naf-' + networkId);
 
     this.initPosition(el, entityData.components);
@@ -94,7 +95,7 @@ class NetworkEntities {
       var childEntityData = children[i];
       var childId = childEntityData.networkId;
       if (this.hasEntity(childId)) {
-        console.warn(
+        NAF.log.warn(
           'Tried to instantiate entity multiple times',
           childId,
           childEntityData,

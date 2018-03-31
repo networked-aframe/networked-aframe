@@ -31,7 +31,7 @@ AFRAME.registerComponent('spotlight', {
     for (var i = 0; i < mesh.children.length; i++) {
       mesh.children[i].material = material;
     }
-    
+
     if (this.star === null) {
       var starTexture = new THREE.TextureLoader().load( document.getElementById('star-img').getAttribute('src') );
       var starMaterial = new THREE.SpriteMaterial({
@@ -50,8 +50,8 @@ AFRAME.registerComponent('spotlight', {
   tick: function (time, delta) {
     if (!this.el.getObject3D('mesh')) return;
     this.el.setAttribute('rotation', {
-      x: this.initialRotation.x + Math.sin(time / this.speed.x) * 30, 
-      y: this.initialRotation.y, 
+      x: this.initialRotation.x + Math.sin(time / this.speed.x) * 30,
+      y: this.initialRotation.y,
       z: this.initialRotation.z + Math.sin(time / this.speed.y) * 30
     });
     if (this.star) {

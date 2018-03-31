@@ -148,7 +148,7 @@ Templates are added in A-Frame's `<a-assets>` tag. Let's add the assets tag with
 
 ```html
 <a-assets>
-  <script id="avatar-template" type="text/html">
+  <template id="avatar-template">
     <a-entity class="avatar">
       <a-sphere class="head"
         color="#5985ff"
@@ -181,10 +181,10 @@ Templates are added in A-Frame's `<a-assets>` tag. Let's add the assets tag with
         </a-sphere>
       </a-entity>
     </a-entity>
-  </script>
+  </template>
 </a-assets>
 
-<a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera position="0 1.3 0" wasd-controls look-controls></a-entity>
+<a-entity id="player" networked="template:#avatar-template;attachTemplateToLocal:false;" camera position="0 1.3 0" wasd-controls look-controls></a-entity>
 ```
 
 Refresh both browser tabs and move with the arrow keys. Once connected you should see an avatar appear for the other user.
@@ -231,7 +231,7 @@ AFRAME.registerComponent('spawn-in-circle', {
 Then add the `spawn-in-circle` component to your player, like this:
 
 ```html
-<a-entity id="player" networked="template:#avatar-template;showLocalTemplate:false;" camera position="0 1.3 0" spawn-in-circle="radius:3;" wasd-controls look-controls></a-entity>
+<a-entity id="player" networked="template:#avatar-template;attachTemplateToLocal:false;" camera position="0 1.3 0" spawn-in-circle="radius:3;" wasd-controls look-controls></a-entity>
 ```
 
 Refresh those browsers and your scene should be starting to take shape (albeit with a [completely white environment](https://c1.staticflickr.com/8/7405/11599367004_2f03c315fb_b.jpg)).
@@ -281,7 +281,7 @@ NAF has built in voice chat when you're using WebRTC. Change `adapter` and `audi
 
 ### Syncing Custom Components
 
-Components are synchronized by checking the `data` property [provided by A-Frame](https://aframe.io/docs/0.7.0/core/entity.html#getattribute-componentname) on a network 'tick'. How quickly this tick happens can be defined in the [NAF Options](https://github.com/networked-aframe/networked-aframe#options), but the default is 15 times per second. On each tick the `data` property is checked against its previous value, and if it changed it's sent over the network to the other users.
+Components are synchronized by comparing the state of a component [provided by A-Frame](https://aframe.io/docs/0.7.0/core/entity.html#getattribute-componentname) on a network 'tick'. How quickly this tick happens can be defined in the [NAF Options](https://github.com/networked-aframe/networked-aframe#options), but the default is 15 times per second. On each tick the state is checked against its previous value, and if it changed it's sent over the network to the other users.
 
 So how do we choose which components to sync? By default, the `position` and `rotation` components are synced but NAF lets you specify any component that you wish to sync, included child components found in the deep depths of your templates.
 
@@ -312,14 +312,18 @@ To add the randomizer component include this script in the `<head>` section:
 <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
 ```
 
-and change the avatar template's head tag to use the `random-color` component:
+Until now the local player hasn't had a head at all. Since we want to sync our player's head color, we need to create a local instance of a head. When we change the color of this head it will be synced to all other clients, as defined in our schema.
+
+Add the following element as a child to the player element:
 
 ```html
 <a-sphere class="head"
-  scale="0.45 0.5 0.4"
+  visible="false"
   random-color
 ></a-sphere>
 ```
+
+This creates a local head that we can modify when we want to change our avatar's color. The `visible="false"` attribute ensures that the local head is never seen (we never want to see our own head) and the `random-color` attribute chooses a random color that our avatar will start with. The `a-sphere` entity definition automatically inserts a material to the entity so we don't need to add a `material` attribute manually.
 
 ### Deleting entities
 
