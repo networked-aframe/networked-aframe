@@ -174,11 +174,11 @@ Completely removing `a-scene` from your page will also handle cleanly disconnect
 <a-assets>
 
 <!-- Attach local template by default -->
-<a-entity networked="template=#my-template">
+<a-entity networked="template: #my-template">
 </a-entity>
 
 <!-- Do not attach local template -->
-<a-entity networked="template=#my-template;attachTemplateToLocal=false">
+<a-entity networked="template:#my-template;attachTemplateToLocal:false">
 </a-entity>
 ```
 
@@ -189,29 +189,29 @@ Templates must only have one root element. When `attachTemplateToLocal` is set t
 #### Example `attachTemplateToLocal=true`
 
 ```html
-<a-entity wasd-controls networked="template=#my-template">
+<a-entity wasd-controls networked="template:#my-template">
 </a-entity>
 
 <!-- Locally instantiated as: -->
-<a-entity wasd-controls networked="template=#my-template">
+<a-entity wasd-controls networked="template:#my-template">
   <a-sphere color="#f00"></a-sphere>
 </a-entity>
 
 <!-- Remotely instantiated as: -->
-<a-entity networked="template=#my-template;networkId:123;">
+<a-entity networked="template:#my-template;networkId:123;">
   <a-sphere color="#f00"></a-sphere>
 </a-entity>
 ```
 #### Example `attachTemplateToLocal=false`
 
 ```html
-<a-entity wasd-controls networked="template=#my-template;attachTemplateToLocal:false;">
+<a-entity wasd-controls networked="template:#my-template;attachTemplateToLocal:false;">
 </a-entity>
 
 <!-- No changes to local entity on instantiation -->
 
 <!-- Remotely instantiated as: -->
-<a-entity networked="template=#my-template;networkId:123;">
+<a-entity networked="template:#my-template;networkId:123;">
   <a-sphere color="#f00"></a-sphere>
 </a-entity>
 ```

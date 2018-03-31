@@ -93,7 +93,17 @@ module.exports.MockNetworkAdapter = function MockNetworkAdapter() {
 };
 
 module.exports.addTemplateToDom = function(id) {
-  var template = document.createElement('template');
+  const template = document.createElement('template');
   template.id = id;
   document.body.appendChild(template);
+  return template;
+};
+
+module.exports.addTemplateToDomWithChildren = function(id, numChildren) {
+  const template = this.addTemplateToDom(id);
+  template.content = document.createElement('fragment'); // account for dev env not handling templates correctly
+  for (var i = 0; i < numChildren; i++) {
+    template.content.appendChild(document.createElement('a-entity'));
+  }
+  return template;
 };
