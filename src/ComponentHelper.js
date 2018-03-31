@@ -3,14 +3,13 @@ var deepEqual = require('deep-equal');
 var OBJECT3D_COMPONENTS = ['position', 'rotation', 'scale', 'visible'];
 
 module.exports.gatherComponentsData = function(el, schemaComponents) {
-  var elComponents = el.components;
   var compsData = {};
 
   for (var i in schemaComponents) {
     var element = schemaComponents[i];
 
     if (typeof element === 'string') {
-      if (elComponents.hasOwnProperty(element)) {
+      if (el.getAttribute(element)) {
         var name = element;
         compsData[name] = AFRAME.utils.clone(el.getAttribute(name));
       }
@@ -18,8 +17,7 @@ module.exports.gatherComponentsData = function(el, schemaComponents) {
       var childKey = NAF.utils.childSchemaToKey(element);
       var child = element.selector ? el.querySelector(element.selector) : el;
       if (child) {
-        var comp = child.components[element.component];
-        if (comp) {
+        if (child.getAttribute(element.component)) {
           var data = element.property ? el.getAttribute(element.component)[element.property] : el.getAttribute(element.component);
           compsData[childKey] = AFRAME.utils.clone(data);
         } else {
@@ -32,7 +30,6 @@ module.exports.gatherComponentsData = function(el, schemaComponents) {
 };
 
 module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
-  var newComps = el.components;
   var dirtyComps = [];
 
   for (var i = 0; i < syncedComps.length; i++) {
@@ -42,12 +39,12 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
 
     var isRoot = typeof schema === 'string';
     if (isRoot) {
-      var hasComponent = newComps.hasOwnProperty(schema)
+      var hasComponent = el.getAttribute(schema);
       if (!hasComponent && OBJECT3D_COMPONENTS.indexOf(syncedComps[i]) === -1) {
         continue;
       }
       compKey = schema;
-      newCompData = newComps[schema].data;
+      newCompData = el.getAttribute(schema);
     }
     else {
       // is child
@@ -55,12 +52,12 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
       var compName = schema.component;
       var propName = schema.property;
       var childEl = selector ? el.querySelector(selector) : el;
-      var hasComponent = childEl && childEl.components.hasOwnProperty(compName);
-      if (!hasComponent && OBJECT3D_COMPONENTS.indexOf(compName) === -1) {
+      var hasComponent = childEl && childEl.getAttribute(compName);
+      if (!hasComponent) {
         continue;
       }
       compKey = NAF.utils.childSchemaToKey(schema);
-      newCompData = childEl.components[compName].data;
+      newCompData = childEl.getAttribute(compName);
       if (propName) {
         newCompData = newCompData[propName];
       }
