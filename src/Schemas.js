@@ -5,6 +5,29 @@ class Schemas {
   constructor() {
     this.dict = {};
     this.templateCache = {};
+    this.registeredDefaults = false;
+  }
+
+  registerDefaults() {
+    const templates = document.querySelectorAll('a-assets template');
+    for (let i = 0; i < templates.length; i++) {
+      const id = '#' + templates[i].id;
+      if (id !== '#' && !this.hasTemplate(id)) {
+        const schema = this.createDefaultSchema(id);
+        this.add(schema);
+      }
+    }
+    this.registeredDefaults = true;
+  }
+
+  createDefaultSchema(name) {
+    return {
+      template: name,
+      components: [
+        'position',
+        'rotation',
+      ]
+    }
   }
 
   add(schema) {
@@ -30,6 +53,9 @@ class Schemas {
   }
 
   getCachedTemplate(template) {
+    if (!this.registeredDefaults) {
+      this.registerDefaults();
+    }
     if (!this.templateCache.hasOwnProperty(template)) {
       NAF.log.error(`template el for ${template} is not cached, register template with NAF.schemas.add.`);
     }
