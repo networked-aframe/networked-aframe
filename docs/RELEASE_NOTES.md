@@ -61,7 +61,7 @@ Will result in:
 
 This is why a template must have exactly one root element.
 
-4. The `attachTemplateToLocal` property of `networked-scene` is removed. In its place is the `attachTemplateToLocal` property. By setting `attachTemplateToLocal: false` the template will not be attached to the local networked entity. This allows you to specify a different hierarchy for the local entity:
+4. The `showLocalTemplate` property of `networked-scene` is removed. In its place is the `attachTemplateToLocal` property. By setting `attachTemplateToLocal: false` the template will not be attached to the local networked entity. This allows you to specify a different hierarchy for the local entity:
 
 ```html
 <a-entity networked="template: #avatar-template; attachTemplateToLocal: false;">
