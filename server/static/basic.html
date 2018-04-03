@@ -94,16 +94,6 @@
     </style>
 
     <script>
-      // On mobile remove elements that are resource heavy
-      var isMobile = AFRAME.utils.device.isMobile();
-
-      if (isMobile) {
-        var particles = document.getElementById('particles');
-        particles.parentNode.removeChild(particles);
-      }
-    </script>
-
-    <script>
       // Define custom schema for syncing avatar color, set by random-color
       NAF.schemas.add({
         template: '#avatar-template',
@@ -121,6 +111,14 @@
       // Called by Networked-Aframe when connected to server
       function onConnect () {
         console.log("onConnect", new Date());
+      }
+
+      // On mobile remove elements that are resource heavy
+      var isMobile = AFRAME.utils.device.isMobile();
+
+      if (isMobile) {
+        var particles = document.getElementById('particles');
+        particles.parentNode.removeChild(particles);
       }
     </script>
   </body>
