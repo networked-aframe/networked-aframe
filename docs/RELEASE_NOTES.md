@@ -1,5 +1,10 @@
 # Networked-Aframe Release Notes
 
+## 0.6.1
+
+- Removes requirement to add a schema for a template if only syncing the default components (position and rotation)
+- Fixes bug with `attachTemplateToLocal="true"` not correctly merging the template with the local element
+
 ## 0.6.0
 
 The release of version 0.6 brings a major change in how templates work, among a few other fixes. This new template system is _not_ backwards compatible, meaning to upgrade to NAF 0.6 you will need to update your existing projects.
