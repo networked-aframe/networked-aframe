@@ -61,15 +61,15 @@ Will result in:
 
 This is why a template must have exactly one root element.
 
-4. The `showLocalTemplate` property of `networked-scene` is removed. In its place is the `attachLocalTemplate` property. By setting `attachLocalTemplate: false` the template will not be attached to the local networked entity. This allows you to specify a different hierarchy for the local entity:
+4. The `showLocalTemplate` property of `networked-scene` is removed. In its place is the `attachTemplateToLocal` property. By setting `attachTemplateToLocal: false` the template will not be attached to the local networked entity. This allows you to specify a different hierarchy for the local entity:
 
 ```html
-<a-entity networked="template: #avatar-template; attachLocalTemplate: false;">
+<a-entity networked="template: #avatar-template; attachTemplateToLocal: false;">
   <a-entity player-hud position="0 0 1"></a-entity>
 </a-entity>
 ```
 
-In order to network child components when `attachLocalTemplate` is false, you must make sure those same components exist on the local element. By default `attachLocalTemplate` is set to true.
+In order to network child components when `attachTemplateToLocal` is false, you must make sure those same components exist on the local element. By default `attachTemplateToLocal` is set to true.
 
 ## 0.5.2
 - [Ownership transfer events](https://github.com/networked-aframe/networked-aframe/pull/99)

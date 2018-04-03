@@ -1942,8 +1942,8 @@
 	  },
 
 	  attachTemplateToLocal: function attachTemplateToLocal() {
-	    var el = NAF.schemas.getCachedTemplate(this.data.template);
-	    var elAttrs = el.attributes;
+	    var template = NAF.schemas.getCachedTemplate(this.data.template);
+	    var elAttrs = template.attributes;
 
 	    // Merge root element attributes with this entity
 	    for (var attrIdx = 0; attrIdx < elAttrs.length; attrIdx++) {
@@ -1951,8 +1951,8 @@
 	    }
 
 	    // Append all child elements
-	    for (var elIdx = 0; elIdx < el.children.length; elIdx++) {
-	      this.el.appendChild(el.children[elIdx]);
+	    while (template.firstElementChild) {
+	      this.el.appendChild(template.firstElementChild);
 	    }
 	  },
 

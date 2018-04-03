@@ -55,17 +55,17 @@ AFRAME.registerComponent('networked', {
   },
 
   attachTemplateToLocal: function() {
-    var el = NAF.schemas.getCachedTemplate(this.data.template);
-    var elAttrs = el.attributes;
+    const template = NAF.schemas.getCachedTemplate(this.data.template);
+    const elAttrs = template.attributes;
 
     // Merge root element attributes with this entity
-    for (var attrIdx = 0; attrIdx < elAttrs.length; attrIdx++) {
+    for (let attrIdx = 0; attrIdx < elAttrs.length; attrIdx++) {
       this.el.setAttribute(elAttrs[attrIdx].name, elAttrs[attrIdx].value);
     }
 
     // Append all child elements
-    for (var elIdx = 0; elIdx < el.children.length; elIdx++) {
-      this.el.appendChild(el.children[elIdx]);
+    while (template.firstElementChild) {
+      this.el.appendChild(template.firstElementChild);
     }
   },
 
@@ -282,7 +282,7 @@ AFRAME.registerComponent('networked', {
         this.el.emit(this.OWNERSHIP_LOST, { el: this.el, newOwner: newOwner });
       }
       this.el.emit(this.OWNERSHIP_CHANGED, { el: this.el, oldOwner: oldOwner, newOwner: newOwner});
-      
+
       this.el.setAttribute('networked', { owner: entityData.owner });
     }
     this.updateComponents(entityData.components);
