@@ -3,21 +3,8 @@
 class Schemas {
 
   constructor() {
-    this.dict = {};
+    this.schemaDict = {};
     this.templateCache = {};
-    this.registeredDefaults = false;
-  }
-
-  registerDefaults() {
-    const templates = document.querySelectorAll('a-assets template');
-    for (let i = 0; i < templates.length; i++) {
-      const id = '#' + templates[i].id;
-      if (id !== '#' && !this.hasTemplate(id)) {
-        const schema = this.createDefaultSchema(id);
-        this.add(schema);
-      }
-    }
-    this.registeredDefaults = true;
   }
 
   createDefaultSchema(name) {
@@ -32,7 +19,7 @@ class Schemas {
 
   add(schema) {
     if (this.validateSchema(schema)) {
-      this.dict[schema.template] = schema;
+      this.schemaDict[schema.template] = schema;
       var templateEl = document.querySelector(schema.template);
       if (!templateEl) {
         NAF.log.error(`Template el not found for ${schema.template}, make sure NAF.schemas.add is called after <a-scene> is defined.`);
@@ -48,26 +35,36 @@ class Schemas {
     }
   }
 
-  hasTemplate(template) {
-    return this.dict.hasOwnProperty(template);
-  }
-
   getCachedTemplate(template) {
-    if (!this.registeredDefaults) {
-      this.registerDefaults();
-    }
-    if (!this.templateCache.hasOwnProperty(template)) {
-      NAF.log.error(`template el for ${template} is not cached, register template with NAF.schemas.add.`);
+    if (!this.templateIsCached(template)) {
+      if (this.templateExistsInScene(template)) {
+        this.add(this.createDefaultSchema(template));
+      } else {
+        NAF.log.error(`Template el for ${template} is not in the scene, add the template to <a-assets> and register with NAF.schemas.add.`);
+      }
     }
     return this.templateCache[template].firstElementChild.cloneNode(true);
+  }
+
+  templateIsCached(template) {
+    return this.templateCache.hasOwnProperty(template);
   }
 
   getComponents(template) {
     var components = ['position', 'rotation'];
     if (this.hasTemplate(template)) {
-      components = this.dict[template].components;
+      components = this.schemaDict[template].components;
     }
     return components;
+  }
+
+  hasTemplate(template) {
+    return this.schemaDict.hasOwnProperty(template);
+  }
+
+  templateExistsInScene(templateSelector) {
+    var el = document.querySelector(templateSelector);
+    return el && this.isTemplateTag(el);
   }
 
   validateSchema(schema) {
@@ -97,11 +94,11 @@ class Schemas {
   }
 
   remove(template) {
-    delete this.dict[template];
+    delete this.schemaDict[template];
   }
 
   clear() {
-    this.dict = {};
+    this.schemaDict = {};
   }
 }
 
