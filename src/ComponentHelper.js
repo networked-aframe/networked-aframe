@@ -1,5 +1,5 @@
 /* global AFRAME, NAF */
-var deepEqual = require('deep-equal');
+var deepEqual = AFRAME.utils.deepEqual;
 
 module.exports.gatherComponentsData = function(el, schemaComponents) {
   var compsData = {};
