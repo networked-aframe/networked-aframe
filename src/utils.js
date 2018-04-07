@@ -25,7 +25,7 @@ module.exports.getNetworkOwner = function(el) {
 module.exports.getNetworkId = function(el) {
   var components = el.components;
   if (components.hasOwnProperty('networked')) {
-    return components['networked'].networkId;
+    return components['networked'].data.networkId;
   }
   return null;
 }
