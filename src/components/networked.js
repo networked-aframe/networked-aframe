@@ -180,7 +180,7 @@ AFRAME.registerComponent('networked', {
         var progress = (now - scaleComp.lastUpdated) / scaleComp.duration;
 
         if (progress <= 1) {
-          scaleComp.el.object3D.scale.lerpVectors(scaleComp.start, posComp.target, progress);
+          scaleComp.el.object3D.scale.lerpVectors(scaleComp.start, scaleComp.target, progress);
         }
       }
     }
