@@ -2,6 +2,7 @@
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 var bind = AFRAME.utils.bind;
+var degToRad = THREE.Math.degToRad;
 
 AFRAME.registerComponent('networked', {
   schema: {
@@ -16,6 +17,12 @@ AFRAME.registerComponent('networked', {
     this.OWNERSHIP_GAINED = 'ownership-gained';
     this.OWNERSHIP_CHANGED = 'ownership-changed';
     this.OWNERSHIP_LOST = 'ownership-lost';
+
+    this.conversionEuler = new THREE.Euler();
+    this.conversionEuler.order = "YXZ";
+    this.positionComponents = [];
+    this.scaleComponents = [];
+    this.rotationComponents = [];
 
     var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
@@ -33,7 +40,6 @@ AFRAME.registerComponent('networked', {
 
     if (wasCreatedByNetwork) {
       this.firstUpdate();
-      this.attachLerp();
     } else {
       if (this.data.attachTemplateToLocal) {
         this.attachTemplateToLocal();
@@ -98,18 +104,6 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  attachLerp: function() {
-    if (NAF.options.useLerp) {
-      this.el.setAttribute('lerp', '');
-    }
-  },
-
-  removeLerp: function() {
-    if (NAF.options.useLerp) {
-      this.el.removeAttribute('lerp');
-    }
-  },
-
   registerEntity: function(networkId) {
     NAF.entities.registerEntity(networkId, this.el);
   },
@@ -161,6 +155,34 @@ AFRAME.registerComponent('networked', {
   tick: function() {
     if (this.isMine() && this.needsToSync()) {
       this.syncDirty();
+    }
+
+    var now = Date.now();
+
+    if (!this.isMine()) {
+      for (const posComp of this.positionComponents) {
+        var progress = (now - posComp.lastUpdated) / posComp.duration;
+        
+        if (progress <= 1) {
+          posComp.el.object3D.position.lerpVectors(posComp.start, posComp.target, progress);
+        }
+      }
+
+      for (const rotComp of this.rotationComponents) {
+        var progress = (now - rotComp.lastUpdated) /rotComp.duration;
+        
+        if (progress <= 1) {
+          THREE.Quaternion.slerp(rotComp.start, rotComp.target, rotComp.el.object3D.quaternion, progress);
+        }
+      }
+
+      for (const scaleComp of this.scaleComponents) {
+        var progress = (now - scaleComp.lastUpdated) / scaleComp.duration;
+
+        if (progress <= 1) {
+          scaleComp.el.object3D.scale.lerpVectors(scaleComp.start, posComp.target, progress);
+        }
+      }
     }
   },
 
@@ -274,7 +296,6 @@ AFRAME.registerComponent('networked', {
     if (this.data.owner !== entityData.owner) {
       var wasMine = this.isMine();
       this.lastOwnerTime = entityData.lastOwnerTime;
-      this.attachLerp();
 
       const oldOwner = this.data.owner;
       const newOwner = entityData.owner;
@@ -302,14 +323,87 @@ AFRAME.registerComponent('networked', {
               childEl.setAttribute(schema.component, schema.property, data);
             }
             else {
-              childEl.setAttribute(schema.component, data);
+              this.updateComponent(childEl, schema.component, data);
             }
           }
         } else {
-          el.setAttribute(key, data);
+          this.updateComponent(el, key, data);
         }
       }
     }
+  },
+
+  updateComponent: function (el, key, data) {
+    switch(key) {
+      case "position":
+        var posComp = this.positionComponents.find((item) => item.el === el);
+
+        if (!posComp) {
+          posComp = {};
+          posComp.el = el;
+          posComp.start = new THREE.Vector3(data.x, data.y, data.z);
+          posComp.target = new THREE.Vector3(data.x, data.y, data.z);
+          posComp.lastUpdated = Date.now();
+          posComp.duration = 1;
+          this.positionComponents.push(posComp);
+        } else {
+          posComp.start.copy(posComp.target);
+          posComp.target.set(data.x, data.y, data.z);
+          var now = Date.now();
+          posComp.duration = now - posComp.lastUpdated;
+          posComp.lastUpdated = now;
+        }
+        break;
+      case "rotation":
+        var rotComp = this.rotationComponents.find((item) => item.el === el);
+
+        if (!rotComp) {
+          rotComp = {};
+          rotComp.el = el;
+          this.conversionEuler.set(degToRad(data.x), degToRad(data.y), degToRad(data.z));
+          rotComp.start = new THREE.Quaternion().setFromEuler(this.conversionEuler);
+          rotComp.target = new THREE.Quaternion().setFromEuler(this.conversionEuler);
+          rotComp.lastUpdated = Date.now();
+          rotComp.duration = 1;
+          this.rotationComponents.push(rotComp);
+        } else {
+          rotComp.start.copy(rotComp.target);
+          this.conversionEuler.set(degToRad(data.x), degToRad(data.y), degToRad(data.z));
+          rotComp.target.setFromEuler(this.conversionEuler);
+          var now = Date.now();
+          rotComp.duration = now - rotComp.lastUpdated;
+          rotComp.lastUpdated = now;
+        }
+        break;
+      case "scale":
+        var scaleComp = this.scaleComponents.find((item) => item.el === el);
+
+        if (!scaleComp) {
+          scaleComp = {};
+          scaleComp.el = el;
+          scaleComp.start = new THREE.Vector3(data.x, data.y, data.z);
+          scaleComp.target = new THREE.Vector3(data.x, data.y, data.z);
+          scaleComp.lastUpdated = Date.now();
+          scaleComp.duration = 1;
+          this.scaleComponents.push(scaleComp);
+        } else {
+          scaleComp.start.copy(scaleComp.target);
+          scaleComp.target.set(data.x, data.y, data.z);
+          var now = Date.now();
+          scaleComp.duration = now - scaleComp.lastUpdated;
+          scaleComp.lastUpdated = now;
+        }
+        break;
+      default:
+        el.setAttribute(key, data);
+        break;
+    }
+  },
+
+  removeLerp: function() {
+    this.positionComponents = [];
+    this.rotationComponents = [];
+    this.scaleComponents = [];
   },
 
   isSyncableComponent: function(key) {
