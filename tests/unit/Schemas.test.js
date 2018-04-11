@@ -79,31 +79,6 @@ suite('Schemas', function() {
     })
   });
 
-  suite('hasTemplate', function() {
-
-    test('does not have templates when empty', function() {
-      var template = '#template1';
-
-      var result = schemas.hasTemplate(template);
-
-      assert.isFalse(result);
-    });
-
-    test('has template after schema added', function() {
-      var schema = {
-        template: '#template4',
-        components: [
-          'scale'
-        ]
-      };
-      schemas.dict[schema.template] = schema;
-
-      var result = schemas.hasTemplate(schema.template);
-
-      assert.isTrue(result);
-    });
-  });
-
   suite('add', function() {
 
     test('adds correct schema', function() {
