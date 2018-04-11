@@ -58,31 +58,6 @@ suite('networked_remote', function() {
       assert.isOk(templateChild);
     });
 
-    test('does not add lerp when created by network', function() {
-      var result = el.hasAttribute('lerp');
-
-      assert.isFalse(result);
-    });
-
-    test('adds lerp when created by network', function() {
-      el.firstUpdateData = {test: true};
-      component.init();
-
-      var result = el.hasAttribute('lerp');
-
-      assert.isTrue(result);
-    });
-
-    test('does not add lerp if lerp option off', function() {
-      naf.options.useLerp = false;
-      el.removeAttribute('lerp');
-
-      component.init();
-      var result = el.hasAttribute('lerp');
-
-      assert.isFalse(result);
-    });
-
     test('updates root immediately', sinon.test(function() {
       this.stub(component, 'networkUpdate');
       var testData = {test: "testing"};
