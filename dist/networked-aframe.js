@@ -2558,13 +2558,19 @@
 	      }
 	      if (newStream) {
 	        // Chrome seems to require a MediaStream be attached to an AudioElement before AudioNodes work correctly
-	        this.audioEl = new Audio();
-	        this.audioEl.setAttribute("autoplay", "autoplay");
-	        this.audioEl.setAttribute("playsinline", "playsinline");
-	        this.audioEl.srcObject = newStream;
-	        this.audioEl.volume = 0; // we don't actually want to hear audio from this element
+	        // We don't want to do this in other browsers, particularly in Safari, which actually plays the audio despite
+	        // setting the volume to 0.
+	        if (/chrome/i.test(navigator.userAgent)) {
+	          this.audioEl = new Audio();
+	          this.audioEl.setAttribute("autoplay", "autoplay");
+	          this.audioEl.setAttribute("playsinline", "playsinline");
+	          this.audioEl.srcObject = newStream;
+	          this.audioEl.volume = 0; // we don't actually want to hear audio from this element
+	        }
 
-	        this.sound.setNodeSource(this.sound.context.createMediaStreamSource(newStream));
+	        var soundSource = this.sound.context.createMediaStreamSource(newStream);
+	        this.sound.setNodeSource(soundSource);
+	        this.el.emit('sound-source-set', { soundSource: soundSource });
 	      }
 	      this.stream = newStream;
 	    }
