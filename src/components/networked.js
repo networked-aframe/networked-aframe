@@ -307,6 +307,7 @@ AFRAME.registerComponent('networked', {
 
   updateComponents: function(components) {
     var el = this.el;
+    var syncedComponents = NAF.schemas.getComponents(this.data.template);
 
     for (var key in components) {
       if (this.isSyncableComponent(key)) {
@@ -319,18 +320,32 @@ AFRAME.registerComponent('networked', {
               childEl.setAttribute(schema.component, schema.property, data);
             }
             else {
-              this.updateComponent(childEl, schema.component, data);
+              var shouldLerp = this.shouldLerpComponent(syncedComponents, schema);
+              this.updateComponent(childEl, schema.component, data, shouldLerp);
             }
           }
         } else {
-          this.updateComponent(el, key, data);
+          this.updateComponent(el, key, data, true);
         }
       }
     }
   },
 
-  updateComponent: function (el, key, data) {
-    if (!NAF.options.useLerp) {
+  shouldLerpComponent: function(syncedComponents, schema) {
+    for (var i = 0; i < syncedComponents.length; i++) {
+      var syncedComponent = syncedComponents[i];
+
+      // Lerp matching component unless lerp is explicitly set to false
+      if (schema.selector === syncedComponent.selector && schema.component === syncedComponent.component) {
+        return syncedComponent.lerp !== false;
+      }
+    }
+
+    return false;
+  },
+
+  updateComponent: function (el, key, data, lerp) {
+    if (!NAF.options.useLerp || !lerp) {
       return el.setAttribute(key, data);
     }
 
