@@ -10,38 +10,39 @@ AFRAME.registerComponent('toggle-ownership', {
   },
 
   init() {
+    var that = this;
     this.onKeyUp = this.onKeyUp.bind(this);
-    document.addEventListener("keyup", this.onKeyUp);
+    document.addEventListener('keyup', this.onKeyUp);
 
     NAF.utils.getNetworkedEntity(this.el).then((el) => {
       if (NAF.utils.isMine(el)) {
-        this.updateColor();
+        that.updateColor();
       } else {
-        this.el.setAttribute('material', 'opacity', 0.5);
+        that.updateOpacity(0.5);
       }
 
       // Opacity is not a networked attribute, but change it based on ownership events
       let timeout;
 
-      el.addEventListener("ownership-gained", e => {
-        e.detail.el.setAttribute('material', 'opacity', 1);
+      el.addEventListener('ownership-gained', e => {
+        that.updateOpacity(1);
       });
 
-      el.addEventListener("ownership-lost", e => {
-        e.detail.el.setAttribute('material', 'opacity', 0.5);
+      el.addEventListener('ownership-lost', e => {
+        that.updateOpacity(0.5);
       });
 
-      el.addEventListener("ownership-changed", e => {
+      el.addEventListener('ownership-changed', e => {
         clearTimeout(timeout);
         console.log(e.detail)
         if (e.detail.newOwner == NAF.clientId) {
-          //same as listening to "ownership-gained"
+          //same as listening to 'ownership-gained'
         } else if (e.detail.oldOwner == NAF.clientId) {
-          //same as listening to "ownership-lost"
+          //same as listening to 'ownership-lost'
         } else {
-          e.detail.el.setAttribute('material', 'opacity', 0.8);
+          that.updateOpacity(0.8);
           timeout = setTimeout(() => {
-            e.detail.el.setAttribute('material', 'opacity', 0.5);
+            that.updateOpacity(0.5);
           }, 200)
         }
       });
@@ -54,14 +55,18 @@ AFRAME.registerComponent('toggle-ownership', {
     }
 
     if(NAF.utils.takeOwnership(this.el)) {
-      this.el.setAttribute("toggle-ownership", { direction: this.data.direction * -1 });
+      this.el.setAttribute('toggle-ownership', { direction: this.data.direction * -1 });
       this.updateColor();
     }
   },
 
   updateColor() {
-    const headColor = document.querySelector("#player .head").getAttribute("material").color;
+    const headColor = document.querySelector('#player .head').getAttribute('material').color;
     this.el.setAttribute('material', 'color', headColor);
+  },
+
+  updateOpacity(opacity) {
+    this.el.setAttribute('material', 'opacity', opacity);
   },
 
   tick() {
@@ -73,7 +78,7 @@ AFRAME.registerComponent('toggle-ownership', {
     this.el.object3D.rotateY(this.data.speed * this.data.direction);
 
     const rotation = this.el.object3D.rotation;
-    this.el.setAttribute("rotation", {
+    this.el.setAttribute('rotation', {
       x: THREE.Math.radToDeg(rotation.x),
       y: THREE.Math.radToDeg(rotation.y),
       z: THREE.Math.radToDeg(rotation.z),

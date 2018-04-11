@@ -102,20 +102,20 @@
 
 			</a-assets>
 
-			<a-entity id="player" networked="template:#player-template;attachLocalTemplate:false;" spawn-in-circle="radius:2;" wasd-controls show-avatar="index:0;numAvatars:4" randomize-avatar>
-			  <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;attachLocalTemplate:false;" class="heads" visible="false" show-child="0">
+			<a-entity id="player" networked="template:#player-template;attachTemplateToLocal:false;" spawn-in-circle="radius:2;" wasd-controls show-avatar="index:0;numAvatars:4" randomize-avatar>
+			  <a-entity camera="userHeight: 1.6" look-controls networked="template:#head-template;attachTemplateToLocal:false;" class="heads" visible="false" show-child="0">
           <a-entity class="head" gltf-model="#avatar1-head-obj"></a-entity>
           <a-entity class="head" gltf-model="#avatar2-head-obj"></a-entity>
           <a-entity class="head" gltf-model="#avatar3-head-obj"></a-entity>
           <a-entity class="head" gltf-model="#avatar4-head-obj"></a-entity>
         </a-entity>
-			  <a-entity networked="template:#left-hand-template;attachLocalTemplate:false;" class="hands" hand-components="left" show-in-vr visible="false" show-child="0">
+			  <a-entity networked="template:#left-hand-template;attachTemplateToLocal:false;" class="hands" hand-components="left" show-in-vr visible="false" show-child="0">
           <a-entity class="hand" gltf-model="#avatar1-hand-left-obj"></a-entity>
           <a-entity class="hand" gltf-model="#avatar2-hand-left-obj"></a-entity>
           <a-entity class="hand" gltf-model="#avatar3-hand-left-obj"></a-entity>
           <a-entity class="hand" gltf-model="#avatar4-hand-left-obj"></a-entity>
         </a-entity>
-			  <a-entity networked="template:#right-hand-template;attachLocalTemplate:false;" class="hands" hand-components="right" show-in-vr visible="false" show-child="0">
+			  <a-entity networked="template:#right-hand-template;attachTemplateToLocal:false;" class="hands" hand-components="right" show-in-vr visible="false" show-child="0">
           <a-entity class="hand" gltf-model="#avatar1-hand-right-obj"></a-entity>
           <a-entity class="hand" gltf-model="#avatar2-hand-right-obj"></a-entity>
           <a-entity class="hand" gltf-model="#avatar3-hand-right-obj"></a-entity>

@@ -3,16 +3,30 @@
 class Schemas {
 
   constructor() {
-    this.dict = {};
+    this.schemaDict = {};
     this.templateCache = {};
   }
 
+  createDefaultSchema(name) {
+    return {
+      template: name,
+      components: [
+        'position',
+        'rotation',
+      ]
+    }
+  }
+
   add(schema) {
-    if (this.validate(schema)) {
-      this.dict[schema.template] = schema;
+    if (this.validateSchema(schema)) {
+      this.schemaDict[schema.template] = schema;
       var templateEl = document.querySelector(schema.template);
       if (!templateEl) {
-        NAF.log.error(`template el not found for ${schema.template}, make sure NAF.schemas.add is called after <a-scene> is defined.`);
+        NAF.log.error(`Template el not found for ${schema.template}, make sure NAF.schemas.add is called after <a-scene> is defined.`);
+        return;
+      }
+      if (!this.validateTemplate(schema, templateEl)) {
+        return;
       }
       this.templateCache[schema.template] = document.importNode(templateEl.content, true);
     } else {
@@ -21,37 +35,70 @@ class Schemas {
     }
   }
 
-  hasTemplate(template) {
-    return this.dict.hasOwnProperty(template);
-  }
-
   getCachedTemplate(template) {
-    if (!this.templateCache.hasOwnProperty(template)) {
-      NAF.log.error(`template el for ${template} is not cached, register template with NAF.schemas.add.`);
+    if (!this.templateIsCached(template)) {
+      if (this.templateExistsInScene(template)) {
+        this.add(this.createDefaultSchema(template));
+      } else {
+        NAF.log.error(`Template el for ${template} is not in the scene, add the template to <a-assets> and register with NAF.schemas.add.`);
+      }
     }
     return this.templateCache[template].firstElementChild.cloneNode(true);
+  }
+
+  templateIsCached(template) {
+    return this.templateCache.hasOwnProperty(template);
   }
 
   getComponents(template) {
     var components = ['position', 'rotation'];
     if (this.hasTemplate(template)) {
-      components = this.dict[template].components;
+      components = this.schemaDict[template].components;
     }
     return components;
   }
 
-  validate(schema) {
+  hasTemplate(template) {
+    return this.schemaDict.hasOwnProperty(template);
+  }
+
+  templateExistsInScene(templateSelector) {
+    var el = document.querySelector(templateSelector);
+    return el && this.isTemplateTag(el);
+  }
+
+  validateSchema(schema) {
     return schema.hasOwnProperty('template')
       && schema.hasOwnProperty('components')
       ;
   }
 
+  validateTemplate(schema, el) {
+    if (!this.isTemplateTag(el)) {
+      NAF.log.error(`Template for ${schema.template} is not a <template> tag. Instead found: ${el.tagName}`);
+      return false;
+    } else if (!this.templateHasOneOrZeroChildren(el)) {
+      NAF.log.error(`Template for ${schema.template} has more than one child. Templates must have one direct child element, no more. Template found:`, el);
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  isTemplateTag(el) {
+    return el.tagName.toLowerCase() === 'template';
+  }
+
+  templateHasOneOrZeroChildren(el) {
+    return el.content.childElementCount < 2;
+  }
+
   remove(template) {
-    delete this.dict[template];
+    delete this.schemaDict[template];
   }
 
   clear() {
-    this.dict = {};
+    this.schemaDict = {};
   }
 }
 

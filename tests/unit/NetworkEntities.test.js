@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test, teardown, sinon */
+/* global NAF, assert, process, setup, suite, test, teardown, sinon */
 require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
@@ -20,6 +20,34 @@ suite('NetworkEntities', function() {
       ]
     };
     scene = helpers.sceneFactory(opts);
+    NAF.schemas.add({
+      template: '#template1',
+      components: [
+        'position',
+        'rotation'
+      ]
+    });
+    NAF.schemas.add({
+      template: '#template2',
+      components: [
+        'position',
+        'rotation'
+      ]
+    });
+    NAF.schemas.add({
+      template: '#template3',
+      components: [
+        'position',
+        'rotation'
+      ]
+    });
+    NAF.schemas.add({
+      template: '#template4',
+      components: [
+        'position',
+        'rotation'
+      ]
+    });
     naf.utils.whenEntityLoaded(scene, done);
   }
 
@@ -79,16 +107,16 @@ suite('NetworkEntities', function() {
 
   });
 
-  suite("setInitialComponents", function() {
+  suite('setInitialComponents', function() {
+
     test('entity components set immediately', function(done) {
       var entity = entities.createRemoteEntity(entityData);
       scene.appendChild(entity);
-      entities.setInitialComponents(entity, entityData);
 
       naf.utils.whenEntityLoaded(entity, function() {
-        var position = entity.getAttribute("position");
-        var rotation = entity.getAttribute("rotation");
-        
+        var position = entity.getAttribute('position');
+        var rotation = entity.getAttribute('rotation');
+
         assert.deepEqual(position, {x: 1, y: 2, z: 3});
         assert.deepEqual(rotation, {x: 4, y: 3, z: 2});
         done();
@@ -98,7 +126,6 @@ suite('NetworkEntities', function() {
     test('entity sets correct first update data', function(done) {
       var entity = entities.createRemoteEntity(entityData);
       scene.appendChild(entity);
-      entities.setInitialComponents(entity, entityData);
 
       naf.utils.whenEntityLoaded(entity, function() {
         assert.equal(entity.firstUpdateData, entityData);
@@ -109,7 +136,6 @@ suite('NetworkEntities', function() {
     test('entity sets correct networked component', function(done) {
       var entity = entities.createRemoteEntity(entityData);
       scene.appendChild(entity);
-      entities.setInitialComponents(entity, entityData);
 
       naf.utils.whenEntityLoaded(entity, function() {
         var componentData = entity.components.networked.data;

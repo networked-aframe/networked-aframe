@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test, sinon, teardown */
+/* global NAF, assert, process, setup, suite, test, sinon, teardown */
 require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
@@ -18,6 +18,13 @@ suite('networked_remote', function() {
       entity: '<a-entity id="test-entity" networked="template:#t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>'
     };
     scene = helpers.sceneFactory(opts);
+    NAF.schemas.add({
+      template: '#t1',
+      components: [
+        'position',
+        'rotation'
+      ]
+    });
     naf.utils.whenEntityLoaded(scene, done);
   }
 
@@ -49,31 +56,6 @@ suite('networked_remote', function() {
     test('attaches template', function() {
       var templateChild = el.querySelector('.template-child');
       assert.isOk(templateChild);
-    });
-
-    test('does not add lerp when created by network', function() {
-      var result = el.hasAttribute('lerp');
-
-      assert.isFalse(result);
-    });
-
-    test('adds lerp when created by network', function() {
-      el.firstUpdateData = {test: true};
-      component.init();
-
-      var result = el.hasAttribute('lerp');
-
-      assert.isTrue(result);
-    });
-
-    test('does not add lerp if lerp option off', function() {
-      naf.options.useLerp = false;
-      el.removeAttribute('lerp');
-
-      component.init();
-      var result = el.hasAttribute('lerp');
-
-      assert.isFalse(result);
     });
 
     test('updates root immediately', sinon.test(function() {

@@ -17,14 +17,11 @@ var karma_conf = {
   ],
   files: [
     // Define test files.
-    // {pattern: './tests/unit/**/*.test.js'},
     {pattern: './tests/unit/NafInterface.test.js'},
     {pattern: './tests/unit/NafLogger.test.js'},
     {pattern: './tests/unit/utils.test.js'},
     {pattern: './tests/unit/NetworkConnection.test.js'},
-    {pattern: './tests/unit/networked.test.js'},
-    {pattern: './tests/unit/networked_attachLocalTemplate.test.js'},
-    {pattern: './tests/unit/networked_WithParent.test.js'},
+    {pattern: './tests/unit/networked.tenthParent.test.js'},
     {pattern: './tests/unit/networked_remote.test.js'},
     {pattern: './tests/unit/NetworkEntities.test.js'},
     {pattern: './tests/unit/Schemas.test.js'},
@@ -33,8 +30,6 @@ var karma_conf = {
     {pattern: './tests/unit/ComponentHelper.test.js'},
 
     {pattern: './src/**/*.js', included: false}
-    // Serve test assets.
-    // {pattern: 'tests/assets/**/*', included: false, served: true}
   ],
   frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal', 'browserify'],
   preprocessors: {
