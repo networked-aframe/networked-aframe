@@ -1717,7 +1717,7 @@
 	/* global AFRAME, NAF */
 	var componentHelper = __webpack_require__(16);
 	var Compressor = __webpack_require__(20);
-	var degToRad = THREE.Math.degToRad;
+	var DEG2RAD = THREE.Math.DEG2RAD;
 
 	AFRAME.registerComponent('networked', {
 	  schema: {
@@ -2082,7 +2082,7 @@
 	        if (!rotComp) {
 	          rotComp = {};
 	          rotComp.el = el;
-	          this.conversionEuler.set(degToRad(data.x), degToRad(data.y), degToRad(data.z));
+	          this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
 	          rotComp.start = new THREE.Quaternion().setFromEuler(this.conversionEuler);
 	          rotComp.target = new THREE.Quaternion().setFromEuler(this.conversionEuler);
 	          rotComp.lastUpdated = Date.now();
@@ -2090,7 +2090,7 @@
 	          this.rotationComponents.push(rotComp);
 	        } else {
 	          rotComp.start.copy(rotComp.target);
-	          this.conversionEuler.set(degToRad(data.x), degToRad(data.y), degToRad(data.z));
+	          this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
 	          rotComp.target.setFromEuler(this.conversionEuler);
 	          var now = Date.now();
 	          rotComp.duration = now - rotComp.lastUpdated;
