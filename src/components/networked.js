@@ -1,7 +1,7 @@
 /* global AFRAME, NAF */
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
-var degToRad = THREE.Math.degToRad;
+var DEG2RAD = THREE.Math.DEG2RAD;
 
 AFRAME.registerComponent('networked', {
   schema: {
@@ -360,7 +360,7 @@ AFRAME.registerComponent('networked', {
         if (!rotComp) {
           rotComp = {};
           rotComp.el = el;
-          this.conversionEuler.set(degToRad(data.x), degToRad(data.y), degToRad(data.z));
+          this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
           rotComp.start = new THREE.Quaternion().setFromEuler(this.conversionEuler);
           rotComp.target = new THREE.Quaternion().setFromEuler(this.conversionEuler);
           rotComp.lastUpdated = Date.now();
@@ -368,7 +368,7 @@ AFRAME.registerComponent('networked', {
           this.rotationComponents.push(rotComp);
         } else {
           rotComp.start.copy(rotComp.target);
-          this.conversionEuler.set(degToRad(data.x), degToRad(data.y), degToRad(data.z));
+          this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
           rotComp.target.setFromEuler(this.conversionEuler);
           var now = Date.now();
           rotComp.duration = now - rotComp.lastUpdated;
