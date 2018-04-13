@@ -34,7 +34,7 @@ AFRAME.registerComponent('networked-scene', {
     if (this.hasOnConnectFunction()) {
       this.callOnConnect();
     }
-    NAF.connection.connect(this.data.serverURL, this.data.app, this.data.room, this.data.audio);
+    return NAF.connection.connect(this.data.serverURL, this.data.app, this.data.room, this.data.audio);
   },
 
   checkDeprecatedProperties: function() {
