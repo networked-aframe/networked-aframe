@@ -51,7 +51,7 @@ class NetworkConnection {
     );
     this.adapter.setRoomOccupantListener(this.occupantsReceived.bind(this));
 
-    this.adapter.connect();
+    return this.adapter.connect();
   }
 
   onConnect(callback) {
