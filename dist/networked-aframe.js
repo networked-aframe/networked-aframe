@@ -740,7 +740,7 @@
 	      this.adapter.setDataChannelListeners(this.dataChannelOpen.bind(this), this.dataChannelClosed.bind(this), this.receivedData.bind(this));
 	      this.adapter.setRoomOccupantListener(this.occupantsReceived.bind(this));
 
-	      this.adapter.connect();
+	      return this.adapter.connect();
 	    }
 	  }, {
 	    key: 'onConnect',
@@ -1680,7 +1680,7 @@
 	    if (this.hasOnConnectFunction()) {
 	      this.callOnConnect();
 	    }
-	    NAF.connection.connect(this.data.serverURL, this.data.app, this.data.room, this.data.audio);
+	    return NAF.connection.connect(this.data.serverURL, this.data.app, this.data.room, this.data.audio);
 	  },
 
 	  checkDeprecatedProperties: function checkDeprecatedProperties() {
