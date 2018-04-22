@@ -70,8 +70,7 @@ class NetworkEntities {
       }
       this.receiveFirstUpdateFromEntity(entityData);
     } else {
-      console.error(`Recieved compressed update from ${networkId} for entity we haven't created yet:`);
-      console.error(entityData);
+      console.error(`Recieved compressed update from ${networkId} for entity we haven't created yet:`, entityData);
     }
   }
 
@@ -84,11 +83,9 @@ class NetworkEntities {
   warnForIncompleteFirstUpdate(entityData, networkId){
     const numSentComps = Object.keys(entityData.components).length;
     const numTemplateComps = NAF.schemas.getComponents(entityData.template).length;
-    console.warn(`Expected ${numTemplateComps} from ${networkId} for first update. Only received ${numSentComps}.`);
-    console.warn("Received:");
-    console.warn(entityData.components);
-    console.warn("Expected:");
-    console.warn(NAF.schemas.getComponents(entityData.template));
+    console.warn(`Only received ${numSentComps} of ${numTemplateComps} expected component updates from ${networkId}'s first update.`,
+                 "Expected:", NAF.schemas.getComponents(entityData.template),
+                 "Received:", entityData.components);
   }
 
   receiveFirstUpdateFromEntity(entityData) {
