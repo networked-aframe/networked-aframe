@@ -1,4 +1,4 @@
-/* global AFRAME, NAF */
+/* global AFRAME, NAF, THREE */
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 var DEG2RAD = THREE.Math.DEG2RAD;
@@ -161,23 +161,32 @@ AFRAME.registerComponent('networked', {
     if (!this.isMine()) {
       for (var i = 0; i < this.positionComponents.length; i++) {
         var posComp = this.positionComponents[i];
-        var progress = (now - posComp.lastUpdated) / posComp.duration;
-        progress = progress > 1 ? 1 : progress;
-        posComp.el.object3D.position.lerpVectors(posComp.start, posComp.target, progress);
+
+        if (posComp.duration > 0) {
+          var posProgress = (now - posComp.lastUpdated) / posComp.duration;
+          posProgress = posProgress > 1 ? 1 : posProgress;
+          posComp.el.object3D.position.lerpVectors(posComp.start, posComp.target, posProgress);
+        }
       }
 
       for (var j = 0; j < this.rotationComponents.length; j++) {
         var rotComp = this.rotationComponents[j];
-        var progress = (now - rotComp.lastUpdated) /rotComp.duration;
-        progress = progress > 1 ? 1 : progress;
-        THREE.Quaternion.slerp(rotComp.start, rotComp.target, rotComp.el.object3D.quaternion, progress);
+
+        if (rotComp.duration > 0) {
+          var rotProgress = (now - rotComp.lastUpdated) / rotComp.duration;
+          rotProgress = rotProgress > 1 ? 1 : rotProgress;
+          THREE.Quaternion.slerp(rotComp.start, rotComp.target, rotComp.el.object3D.quaternion, rotProgress);
+        }
       }
 
       for (var k = 0; k < this.scaleComponents.length; k++) {
         var scaleComp = this.scaleComponents[k];
-        var progress = (now - scaleComp.lastUpdated) / scaleComp.duration;
-        progress = progress > 1 ? 1 : progress;
-        scaleComp.el.object3D.scale.lerpVectors(scaleComp.start, scaleComp.target, progress);
+
+        if (scaleComp.duration > 0) {
+          var scaleProgress = (now - scaleComp.lastUpdated) / scaleComp.duration;
+          scaleProgress = scaleProgress > 1 ? 1 : scaleProgress;
+          scaleComp.el.object3D.scale.lerpVectors(scaleComp.start, scaleComp.target, scaleProgress);
+        }
       }
     }
   },
@@ -349,6 +358,8 @@ AFRAME.registerComponent('networked', {
       return el.setAttribute(key, data);
     }
 
+    var now = Date.now();
+
     switch(key) {
       case "position":
         var posComp = this.positionComponents.find((item) => item.el === el);
@@ -364,7 +375,6 @@ AFRAME.registerComponent('networked', {
         } else {
           posComp.start.copy(posComp.target);
           posComp.target.set(data.x, data.y, data.z);
-          var now = Date.now();
           posComp.duration = now - posComp.lastUpdated;
           posComp.lastUpdated = now;
         }
@@ -385,7 +395,6 @@ AFRAME.registerComponent('networked', {
           rotComp.start.copy(rotComp.target);
           this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
           rotComp.target.setFromEuler(this.conversionEuler);
-          var now = Date.now();
           rotComp.duration = now - rotComp.lastUpdated;
           rotComp.lastUpdated = now;
         }
@@ -404,7 +413,6 @@ AFRAME.registerComponent('networked', {
         } else {
           scaleComp.start.copy(scaleComp.target);
           scaleComp.target.set(data.x, data.y, data.z);
-          var now = Date.now();
           scaleComp.duration = now - scaleComp.lastUpdated;
           scaleComp.lastUpdated = now;
         }
