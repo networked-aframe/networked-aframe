@@ -161,9 +161,10 @@ AFRAME.registerComponent('networked', {
     if (!this.isMine()) {
       for (var i = 0; i < this.positionComponents.length; i++) {
         var posComp = this.positionComponents[i];
+        var posElapsed = now - posComp.lastUpdated;
 
-        if (posComp.duration > 0) {
-          var posProgress = (now - posComp.lastUpdated) / posComp.duration;
+        if (posElapsed > 0 && posComp.duration > 0) {
+          var posProgress = posElapsed / posComp.duration;
           posProgress = posProgress > 1 ? 1 : posProgress;
           posComp.el.object3D.position.lerpVectors(posComp.start, posComp.target, posProgress);
         }
@@ -171,9 +172,10 @@ AFRAME.registerComponent('networked', {
 
       for (var j = 0; j < this.rotationComponents.length; j++) {
         var rotComp = this.rotationComponents[j];
+        var rotElapsed = now - rotComp.lastUpdated;
 
-        if (rotComp.duration > 0) {
-          var rotProgress = (now - rotComp.lastUpdated) / rotComp.duration;
+        if (rotElapsed > 0 && rotComp.duration > 0) {
+          var rotProgress = rotElapsed / rotComp.duration;
           rotProgress = rotProgress > 1 ? 1 : rotProgress;
           THREE.Quaternion.slerp(rotComp.start, rotComp.target, rotComp.el.object3D.quaternion, rotProgress);
         }
@@ -181,9 +183,10 @@ AFRAME.registerComponent('networked', {
 
       for (var k = 0; k < this.scaleComponents.length; k++) {
         var scaleComp = this.scaleComponents[k];
+        var scaleElapsed = now - scaleComp.lastUpdated;
 
-        if (scaleComp.duration > 0) {
-          var scaleProgress = (now - scaleComp.lastUpdated) / scaleComp.duration;
+        if (scaleElapsed > 0 && scaleComp.duration > 0) {
+          var scaleProgress = scaleElapsed / scaleComp.duration;
           scaleProgress = scaleProgress > 1 ? 1 : scaleProgress;
           scaleComp.el.object3D.scale.lerpVectors(scaleComp.start, scaleComp.target, scaleProgress);
         }
