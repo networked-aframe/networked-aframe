@@ -64,8 +64,14 @@ class NetworkEntities {
 
     if (this.hasEntity(networkId)) {
       this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
-    } else if (!isCompressed && this.isFullSync(entityData)) {
+    } else if (!isCompressed) {
+      if (!this.isFullSync(entityData)){
+        this.warnForIncompleteFirstUpdate(entityData, networkId);
+      }
       this.receiveFirstUpdateFromEntity(entityData);
+    } else {
+      console.error(`Recieved compressed update from ${networkId} for entity we haven't created yet:`);
+      console.error(entityData);
     }
   }
 
@@ -73,6 +79,16 @@ class NetworkEntities {
     var numSentComps = Object.keys(entityData.components).length;
     var numTemplateComps = NAF.schemas.getComponents(entityData.template).length;
     return numSentComps === numTemplateComps;
+  }
+
+  warnForIncompleteFirstUpdate(entityData, networkId){
+    const numSentComps = Object.keys(entityData.components).length;
+    const numTemplateComps = NAF.schemas.getComponents(entityData.template).length;
+    console.warn(`Expected ${numTemplateComps} from ${networkId} for first update. Only received ${numSentComps}.`);
+    console.warn("Received:");
+    console.warn(entityData.components);
+    console.warn("Expected:");
+    console.warn(NAF.schemas.getComponents(entityData.template));
   }
 
   receiveFirstUpdateFromEntity(entityData) {
