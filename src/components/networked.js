@@ -162,34 +162,25 @@ AFRAME.registerComponent('networked', {
       for (var i = 0; i < this.positionComponents.length; i++) {
         var posComp = this.positionComponents[i];
         var posElapsed = now - posComp.lastUpdated;
-
-        if (posElapsed > 0 && posComp.duration > 0) {
-          var posProgress = posElapsed / posComp.duration;
-          posProgress = posProgress > 1 ? 1 : posProgress;
-          posComp.el.object3D.position.lerpVectors(posComp.start, posComp.target, posProgress);
-        }
+        var posProgress = posComp.duration === 0 ? 1 : posElapsed / posComp.duration;
+        posProgress = THREE.Math.clamp(posProgress, 0, 1);
+        posComp.el.object3D.position.lerpVectors(posComp.start, posComp.target, posProgress);
       }
 
       for (var j = 0; j < this.rotationComponents.length; j++) {
         var rotComp = this.rotationComponents[j];
         var rotElapsed = now - rotComp.lastUpdated;
-
-        if (rotElapsed > 0 && rotComp.duration > 0) {
-          var rotProgress = rotElapsed / rotComp.duration;
-          rotProgress = rotProgress > 1 ? 1 : rotProgress;
-          THREE.Quaternion.slerp(rotComp.start, rotComp.target, rotComp.el.object3D.quaternion, rotProgress);
-        }
+        var rotProgress = rotComp.duration === 0 ? 1 : rotElapsed / rotComp.duration;
+        rotProgress = THREE.Math.clamp(rotProgress, 0, 1);
+        THREE.Quaternion.slerp(rotComp.start, rotComp.target, rotComp.el.object3D.quaternion, rotProgress);
       }
 
       for (var k = 0; k < this.scaleComponents.length; k++) {
         var scaleComp = this.scaleComponents[k];
         var scaleElapsed = now - scaleComp.lastUpdated;
-
-        if (scaleElapsed > 0 && scaleComp.duration > 0) {
-          var scaleProgress = scaleElapsed / scaleComp.duration;
-          scaleProgress = scaleProgress > 1 ? 1 : scaleProgress;
-          scaleComp.el.object3D.scale.lerpVectors(scaleComp.start, scaleComp.target, scaleProgress);
-        }
+        var scaleProgress = scaleComp.duration === 0 ? 1 : scaleElapsed / scaleComp.duration;
+        scaleProgress = THREE.Math.clamp(scaleProgress, 0, 1);
+        scaleComp.el.object3D.scale.lerpVectors(scaleComp.start, scaleComp.target, scaleProgress);
       }
     }
   },
