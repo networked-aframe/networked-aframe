@@ -457,7 +457,7 @@ AFRAME.registerComponent('networked', {
       var syncData = { networkId: this.data.networkId };
       NAF.connection.broadcastDataGuaranteed('r', syncData);
       if (NAF.entities.hasEntity(this.data.networkId)) {
-        delete NAF.entities.entities[this.data.networkId];
+        NAF.entities.forgetEntity(this.data.networkId);
       } else {
         NAF.log.error("Sending remove for entity that is not in entities array:", this.data.networkId);
       }

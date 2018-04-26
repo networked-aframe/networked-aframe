@@ -160,13 +160,17 @@ class NetworkEntities {
   removeEntity(id) {
     if (this.hasEntity(id)) {
       var entity = this.entities[id];
-      delete this.entities[id];
+      this.forgetEntity(id);
       entity.parentNode.removeChild(entity);
       return entity;
     } else {
       NAF.log.error("Tried to remove entity I don't have:", id);
       return null;
     }
+  }
+
+  forgetEntity(id){
+    delete this.entities[id];
   }
 
   getEntity(id) {
