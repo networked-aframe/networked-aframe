@@ -594,6 +594,7 @@
 	        entity.parentNode.removeChild(entity);
 	        return entity;
 	      } else {
+	        NAF.log.error("Tried to remove entity I don't have:", id);
 	        return null;
 	      }
 	    }
@@ -1836,6 +1837,10 @@
 	      this.el.setAttribute(this.name, { owner: NAF.clientId });
 	      setTimeout(function () {
 	        //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
+	        if (!_this.el.parentNode) {
+	          NAF.log.warn("Networked element was removed before ever getting the chance to syncAll", _this.data.networkId, _this.el.parentNode);
+	          return;
+	        }
 	        _this.syncAll();
 	      }, 0);
 	    }
@@ -1871,6 +1876,11 @@
 
 	  tick: function tick() {
 	    if (this.isMine() && this.needsToSync()) {
+	      if (!this.el.parentElement) {
+	        NAF.log.error("tick called on an entity that seems to have been removed");
+	        //TODO: Find out why tick is still being called
+	        return;
+	      }
 	      this.syncDirty();
 	    }
 
@@ -2171,6 +2181,11 @@
 	    if (this.isMine() && NAF.connection.isConnected()) {
 	      var syncData = { networkId: this.data.networkId };
 	      NAF.connection.broadcastDataGuaranteed('r', syncData);
+	      if (NAF.entities.hasEntity(this.data.networkId)) {
+	        delete NAF.entities.entities[this.data.networkId];
+	      } else {
+	        NAF.log.error("Sending remove for entity that is not in entities array:", this.data.networkId);
+	      }
 	    }
 	    document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
 	  },
