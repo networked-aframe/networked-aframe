@@ -2189,7 +2189,7 @@
 	        NAF.connection.broadcastDataGuaranteed('r', syncData);
 	        NAF.entities.forgetEntity(this.data.networkId);
 	      } else {
-	        NAF.log.error("Sending remove for entity that is not in entities array.");
+	        NAF.log.error("Removing networked entity that is not in entities array.");
 	      }
 	    }
 	    document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
