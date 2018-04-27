@@ -119,7 +119,7 @@ AFRAME.registerComponent('networked', {
       setTimeout(() => {
         //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
         if (!this.el.parentNode){
-          NAF.log.warn("Networked element was removed before ever getting the chance to syncAll", this.data.networkId, this.el.parentNode);
+          NAF.log.warn("Networked element was removed before ever getting the chance to syncAll");
           return;
         }
         this.syncAll();
