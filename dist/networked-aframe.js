@@ -590,12 +590,18 @@
 	    value: function removeEntity(id) {
 	      if (this.hasEntity(id)) {
 	        var entity = this.entities[id];
-	        delete this.entities[id];
+	        this.forgetEntity(id);
 	        entity.parentNode.removeChild(entity);
 	        return entity;
 	      } else {
+	        NAF.log.error("Tried to remove entity I don't have.");
 	        return null;
 	      }
+	    }
+	  }, {
+	    key: 'forgetEntity',
+	    value: function forgetEntity(id) {
+	      delete this.entities[id];
 	    }
 	  }, {
 	    key: 'getEntity',
@@ -1836,6 +1842,10 @@
 	      this.el.setAttribute(this.name, { owner: NAF.clientId });
 	      setTimeout(function () {
 	        //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
+	        if (!_this.el.parentNode) {
+	          NAF.log.warn("Networked element was removed before ever getting the chance to syncAll");
+	          return;
+	        }
 	        _this.syncAll();
 	      }, 0);
 	    }
@@ -1871,6 +1881,11 @@
 
 	  tick: function tick() {
 	    if (this.isMine() && this.needsToSync()) {
+	      if (!this.el.parentElement) {
+	        NAF.log.error("tick called on an entity that seems to have been removed");
+	        //TODO: Find out why tick is still being called
+	        return;
+	      }
 	      this.syncDirty();
 	    }
 
@@ -2170,7 +2185,12 @@
 	  remove: function remove() {
 	    if (this.isMine() && NAF.connection.isConnected()) {
 	      var syncData = { networkId: this.data.networkId };
-	      NAF.connection.broadcastDataGuaranteed('r', syncData);
+	      if (NAF.entities.hasEntity(this.data.networkId)) {
+	        NAF.connection.broadcastDataGuaranteed('r', syncData);
+	        NAF.entities.forgetEntity(this.data.networkId);
+	      } else {
+	        NAF.log.error("Removing networked entity that is not in entities array.");
+	      }
 	    }
 	    document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
 	  },
