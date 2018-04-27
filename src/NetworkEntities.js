@@ -164,7 +164,7 @@ class NetworkEntities {
       entity.parentNode.removeChild(entity);
       return entity;
     } else {
-      NAF.log.error("Tried to remove entity I don't have:", id);
+      NAF.log.error("Tried to remove entity I don't have.");
       return null;
     }
   }

@@ -455,13 +455,12 @@ AFRAME.registerComponent('networked', {
   remove: function () {
     if (this.isMine() && NAF.connection.isConnected()) {
       var syncData = { networkId: this.data.networkId };
-      NAF.connection.broadcastDataGuaranteed('r', syncData);
       if (NAF.entities.hasEntity(this.data.networkId)) {
+        NAF.connection.broadcastDataGuaranteed('r', syncData);
         NAF.entities.forgetEntity(this.data.networkId);
       } else {
-        NAF.log.error("Sending remove for entity that is not in entities array:", this.data.networkId);
+        NAF.log.error("Sending remove for entity that is not in entities array.");
       }
-
     }
     document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
   },
