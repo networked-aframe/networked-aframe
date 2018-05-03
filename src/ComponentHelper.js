@@ -1,5 +1,12 @@
 /* global AFRAME, NAF */
 var deepEqual = require('deep-equal');
+NAF.PREDICATE_XYZ_ALMOST_EQUALS = 1;
+
+var xyzAlmostEquals = function(v, w, eps){
+  return (Math.abs(v.x - w.x) < eps &&
+          Math.abs(v.y - w.y) < eps &&
+          Math.abs(v.z - w.z) < eps);
+};
 
 module.exports.gatherComponentsData = function(el, schemaComponents) {
   var compsData = {};
@@ -77,7 +84,12 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
     }
 
     var oldCompData = cachedData[compKey];
-    if (!deepEqual(oldCompData, newCompData)) {
+    if (schema.dirtyPredicate){
+      if (schema.dirtyPredicate.type === NAF.PREDICATE_XYZ_ALMOST_EQUALS
+          && !xyzAlmostEquals(oldCompData, newCompData, schema.dirtyPredicate.epsilon)){
+        dirtyComps.push(schema);
+      }
+    } else if (!deepEqual(oldCompData, newCompData)) {
       dirtyComps.push(schema);
     }
   }
