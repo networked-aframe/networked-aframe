@@ -5,6 +5,7 @@ class Schemas {
   constructor() {
     this.schemaDict = {};
     this.templateCache = {};
+    this.dirtyPredicates = {};
   }
 
   createDefaultSchema(name) {
@@ -15,6 +16,10 @@ class Schemas {
         'rotation',
       ]
     }
+  }
+
+  registerDirtyPredicate(name, predicate){
+    this.dirtyPredicates[name] = predicate;
   }
 
   add(schema) {
