@@ -299,6 +299,7 @@
 
 	    this.schemaDict = {};
 	    this.templateCache = {};
+	    this.dirtyPredicates = {};
 	  }
 
 	  _createClass(Schemas, [{
@@ -308,6 +309,11 @@
 	        template: name,
 	        components: ['position', 'rotation']
 	      };
+	    }
+	  }, {
+	    key: 'registerDirtyPredicate',
+	    value: function registerDirtyPredicate(name, predicate) {
+	      this.dirtyPredicates[name] = predicate;
 	    }
 	  }, {
 	    key: 'add',
@@ -2211,11 +2217,6 @@
 
 	/* global AFRAME, NAF */
 	var deepEqual = __webpack_require__(17);
-	NAF.PREDICATE_XYZ_ALMOST_EQUALS = 1;
-
-	var xyzAlmostEquals = function xyzAlmostEquals(v, w, eps) {
-	  return Math.abs(v.x - w.x) < eps && Math.abs(v.y - w.y) < eps && Math.abs(v.z - w.z) < eps;
-	};
 
 	module.exports.gatherComponentsData = function (el, schemaComponents) {
 	  var compsData = {};
@@ -2293,7 +2294,7 @@
 
 	    var oldCompData = cachedData[compKey];
 	    if (schema.dirtyPredicate) {
-	      if (schema.dirtyPredicate.type === NAF.PREDICATE_XYZ_ALMOST_EQUALS && !xyzAlmostEquals(oldCompData, newCompData, schema.dirtyPredicate.epsilon)) {
+	      if (NAF.schemas.dirtyPredicates[schema.dirtyPredicate.name](oldCompData, newCompData, schema.dirtyPredicate.options)) {
 	        dirtyComps.push(schema);
 	      }
 	    } else if (!deepEqual(oldCompData, newCompData)) {
