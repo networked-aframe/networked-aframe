@@ -17,6 +17,10 @@ AFRAME.registerComponent('networked', {
     this.OWNERSHIP_CHANGED = 'ownership-changed';
     this.OWNERSHIP_LOST = 'ownership-lost';
 
+    this.onOwnershipGainedEvent = {};
+    this.onOwnershipChangedEvent = {};
+    this.onOwnershipLostEvent = {};
+
     this.conversionEuler = new THREE.Euler();
     this.conversionEuler.order = "YXZ";
     this.positionComponents = [];
@@ -91,8 +95,16 @@ AFRAME.registerComponent('networked', {
       this.removeLerp();
       this.el.setAttribute('networked', { owner: NAF.clientId });
       this.syncAll();
-      this.el.emit(this.OWNERSHIP_GAINED, { el: this.el, oldOwner: owner });
-      this.el.emit(this.OWNERSHIP_CHANGED, { el: this.el, oldOwner: owner, newOwner: NAF.clientId});
+
+      this.onOwnershipGainedEvent.el = this.el;
+      this.onOwnershipGainedEvent.oldOwner = owner;
+      this.el.emit(this.OWNERSHIP_GAINED, this.onOwnershipGainedEvent);
+
+      this.onOwnershipChangedEvent.el = this.el;
+      this.onOwnershipChangedEvent.oldOwner = owner;
+      this.onOwnershipChangedEvent.newOwner = NAF.clientId;
+      this.el.emit(this.OWNERSHIP_CHANGED, this.onOwnershipChangedEvent);
+
       return true;
     }
     return false;
@@ -367,9 +379,14 @@ AFRAME.registerComponent('networked', {
       const oldOwner = this.data.owner;
       const newOwner = entityData.owner;
       if (wasMine) {
-        this.el.emit(this.OWNERSHIP_LOST, { el: this.el, newOwner: newOwner });
+        this.onOwnershipLostEvent.el = this.el;
+        this.onOwnershipLostEvent.newOwner = newOwner;
+        this.el.emit(this.OWNERSHIP_LOST, this.onOwnershipLostEvent);
       }
-      this.el.emit(this.OWNERSHIP_CHANGED, { el: this.el, oldOwner: oldOwner, newOwner: newOwner});
+      this.onOwnershipChangedEvent.el = this.el;
+      this.onOwnershipChangedEvent.oldOwner = oldOwner;
+      this.onOwnershipChangedEvent.newOwner = newOwner;
+      this.el.emit(this.OWNERSHIP_CHANGED, this.onOwnershipChangedEvent);
 
       this.el.setAttribute('networked', { owner: entityData.owner });
     }

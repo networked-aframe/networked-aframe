@@ -8,6 +8,8 @@ class NetworkEntities {
     this.childCache = new ChildEntityCache();
 
     this.onRemoteEntityCreatedEvent = new Event('remoteEntityCreated');
+    this.onNetworkUpdateEvent = {};
+    this.onSyncAllEvent = {};
   }
 
   registerEntity(networkId, entity) {
@@ -63,7 +65,8 @@ class NetworkEntities {
     var networkId = isCompressed ? entityData[1] : entityData.networkId;
 
     if (this.hasEntity(networkId)) {
-      this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
+      this.onNetworkUpdateEvent.entityData = entityData;
+      this.entities[networkId].emit('networkUpdate', this.onNetworkUpdateEvent, false);
     } else if (!isCompressed && this.isFullSync(entityData)) {
       this.receiveFirstUpdateFromEntity(entityData);
     }
@@ -134,9 +137,10 @@ class NetworkEntities {
   completeSync(targetClientId) {
     for (var id in this.entities) {
       if (this.entities.hasOwnProperty(id)) {
+        this.onSyncAllEvent.targetClientId = targetClientId;
         this.entities[id].emit(
           'syncAll',
-          { targetClientId },
+          this.onSyncAllEvent,
           false
         );
       }
