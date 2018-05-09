@@ -70,7 +70,10 @@ class NetworkEntities {
   }
 
   isFullSync(entityData) {
-    var numSentComps = Object.keys(entityData.components).length;
+    var numSentComps = 0;
+    for (var componentIndex in entityData.components) {
+      numSentComps++;
+    }
     var numTemplateComps = NAF.schemas.getComponents(entityData.template).length;
     return numSentComps === numTemplateComps;
   }
