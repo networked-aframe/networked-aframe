@@ -74,6 +74,7 @@ class NetworkEntities {
 
   isFullSync(entityData) {
     var numSentComps = 0;
+    // eslint-disable-next-line no-unused-vars
     for (var componentIndex in entityData.components) {
       numSentComps++;
     }
