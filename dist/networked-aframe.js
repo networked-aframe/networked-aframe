@@ -299,7 +299,6 @@
 
 	    this.schemaDict = {};
 	    this.templateCache = {};
-	    this.dirtyPredicates = {};
 	  }
 
 	  _createClass(Schemas, [{
@@ -309,11 +308,6 @@
 	        template: name,
 	        components: ['position', 'rotation']
 	      };
-	    }
-	  }, {
-	    key: 'registerDirtyPredicate',
-	    value: function registerDirtyPredicate(name, predicate) {
-	      this.dirtyPredicates[name] = predicate;
 	    }
 	  }, {
 	    key: 'add',
@@ -2293,10 +2287,8 @@
 	    }
 
 	    var oldCompData = cachedData[compKey];
-	    if (schema.dirtyPredicate) {
-	      if (NAF.schemas.dirtyPredicates[schema.dirtyPredicate.name](oldCompData, newCompData, schema.dirtyPredicate.options)) {
-	        dirtyComps.push(schema);
-	      }
+	    if (schema.requiresNetworkUpdate && schema.requiresNetworkUpdate(oldCompData, newCompData)) {
+	      dirtyComps.push(schema);
 	    } else if (!deepEqual(oldCompData, newCompData)) {
 	      dirtyComps.push(schema);
 	    }

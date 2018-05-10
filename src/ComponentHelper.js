@@ -77,10 +77,8 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
     }
 
     var oldCompData = cachedData[compKey];
-    if (schema.dirtyPredicate){
-      if (NAF.schemas.dirtyPredicates[schema.dirtyPredicate.name](oldCompData, newCompData, schema.dirtyPredicate.options)){
-        dirtyComps.push(schema);
-      }
+    if (schema.requiresNetworkUpdate && schema.requiresNetworkUpdate(oldCompData, newCompData)){
+      dirtyComps.push(schema);
     } else if (!deepEqual(oldCompData, newCompData)) {
       dirtyComps.push(schema);
     }
