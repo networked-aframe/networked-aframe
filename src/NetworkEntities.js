@@ -61,13 +61,12 @@ class NetworkEntities {
   }
 
   updateEntity(client, dataType, entityData) {
-    var isCompressed = entityData[0] == 1;
-    var networkId = isCompressed ? entityData[1] : entityData.networkId;
+    var networkId = entityData.networkId;
 
     if (this.hasEntity(networkId)) {
       this.onNetworkUpdateEvent.entityData = entityData;
       this.entities[networkId].emit('networkUpdate', this.onNetworkUpdateEvent, false);
-    } else if (!isCompressed && this.isFullSync(entityData)) {
+    } else if (this.isFullSync(entityData)) {
       this.receiveFirstUpdateFromEntity(entityData);
     }
   }

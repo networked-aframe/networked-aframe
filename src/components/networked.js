@@ -1,5 +1,4 @@
 /* global AFRAME, NAF, THREE */
-var Compressor = require('../Compressor');
 var deepEqual = require('fast-deep-equal');
 var DEG2RAD = THREE.Math.DEG2RAD;
 
@@ -34,9 +33,7 @@ AFRAME.registerComponent('networked', {
     this.syncDirty = this.syncDirty.bind(this);
     this.networkUpdateHandler = this.networkUpdateHandler.bind(this);
 
-    this.syncData = {
-      0: 0, // 0 for not compressed
-    };
+    this.syncData = {};
     this.componentSchemas =  NAF.schemas.getComponents(this.data.template);
     this.cachedElements = new Array(this.componentSchemas.length);
     this.cachedData = new Array(this.componentSchemas.length);
@@ -254,10 +251,6 @@ AFRAME.registerComponent('networked', {
 
     var syncData = this.createSyncData(components);
 
-    if (NAF.options.compressSyncPackets) {
-      syncData = Compressor.compressSyncData(syncData, syncedComps);
-    }
-
     NAF.connection.broadcastData('u', syncData);
   },
 
@@ -362,10 +355,6 @@ AFRAME.registerComponent('networked', {
   },
 
   networkUpdate: function(entityData) {
-    if (entityData[0] == 1) {
-      entityData = Compressor.decompressSyncData(entityData, this.getAllSyncedComponents());
-    }
-
     // Avoid updating components if the entity data received did not come from the current owner.
     if (entityData.lastOwnerTime < this.lastOwnerTime ||
           (this.lastOwnerTime === entityData.lastOwnerTime && this.data.owner > entityData.owner)) {
