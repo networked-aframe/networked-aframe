@@ -378,7 +378,7 @@ AFRAME.registerComponent('networked', {
       this.el.emit(this.OWNERSHIP_CHANGED, this.onOwnershipChangedEvent);
 
       this.el.setAttribute('networked', { owner: entityData.owner });
-    }
+    }    
     this.updateComponents(entityData.components);
   },
 
@@ -387,6 +387,10 @@ AFRAME.registerComponent('networked', {
       var componentData = components[componentIndex];
       var componentSchema = this.componentSchemas[componentIndex];
       var componentElement = this.getCachedElement(componentIndex);
+
+      if (componentElement === null) {
+        continue;
+      }
 
       if (componentSchema.component) {
         var shouldLerp = componentSchema.lerp !== false;

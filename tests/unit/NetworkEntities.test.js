@@ -8,7 +8,6 @@ suite('NetworkEntities', function() {
   var scene;
   var entities;
   var entityData;
-  var compressedData;
 
   function initScene(done) {
     var opts = {
@@ -52,31 +51,19 @@ suite('NetworkEntities', function() {
   }
 
   setup(function(done) {
-    naf.options.useLerp = true;
+    naf.options.useLerp = false;
     naf.schemas.clear();
     entities = new NetworkEntities();
     entityData = {
-      0: 0,
       networkId: 'test1',
       owner: 'abcdefg',
       parent: null,
       template: '#template1',
       components: {
-        position: '1 2 3',
-        rotation: '4 3 2'
-      }
-    };
-    compressedData = [
-      1,
-      'test1',
-      'abcdefg',
-      null,
-      '#template1',
-      {
         0: '1 2 3',
         1: '4 3 2'
       }
-    ];
+    };
     initScene(done);
     naf.connection.isMineAndConnected = sinon.stub();
   });
@@ -150,7 +137,7 @@ suite('NetworkEntities', function() {
 
   suite('updateEntity', function() {
 
-    test('first uncompressed update creates new entity', sinon.test(function() {
+    test('first update creates new entity', sinon.test(function() {
       var mockEl = document.createElement('a-entity');
       this.stub(entities, 'createRemoteEntity').returns(mockEl);
 
@@ -159,7 +146,7 @@ suite('NetworkEntities', function() {
       assert.isTrue(entities.createRemoteEntity.calledWith(entityData));
     }));
 
-    test('second uncompressed update updates entity', sinon.test(function() {
+    test('second update updates entity', sinon.test(function() {
       var mockEl = document.createElement('a-entity');
       this.stub(entities, 'createRemoteEntity').returns(mockEl);
 
@@ -170,30 +157,6 @@ suite('NetworkEntities', function() {
 
       entities.updateEntity('client', 'u', entityData); // updates entity
 
-      assert.isTrue(mockEl.emit.calledWith('networkUpdate'));
-    }));
-
-    test('compressed data when entity not created, does not fail', sinon.test(function() {
-      var mockEl = document.createElement('a-entity');
-      this.stub(entities, 'createRemoteEntity').returns(mockEl);
-
-      entities.updateEntity('client', 'u', compressedData);
-
-      assert.isFalse(entities.createRemoteEntity.called);
-    }));
-
-    test('compressed data updates entity', sinon.test(function() {
-      var mockEl = document.createElement('a-entity');
-      this.stub(entities, 'createRemoteEntity').returns(mockEl);
-
-      entities.updateEntity('client', 'u', entityData); // creates entity
-
-      entities.registerEntity(entityData.networkId, mockEl);
-      sinon.spy(mockEl, 'emit');
-
-      entities.updateEntity('client', 'u', compressedData); // updates entity
-
-      assert.isTrue(entities.createRemoteEntity.called);
       assert.isTrue(mockEl.emit.calledWith('networkUpdate'));
     }));
 
@@ -211,25 +174,23 @@ suite('NetworkEntities', function() {
     test('child entities created after parent', sinon.test(function() {
       var entityDataParent = entityData;
       var entityDataChild1 = {
-        0: 0,
         networkId: 'test-child-1',
         owner: 'abcdefg',
         parent: 'test1',
         template: '#template1',
         components: {
-          position: '1 2 3',
-          rotation: '4 3 2'
+          0: '1 2 3',
+          1: '4 3 2'
         }
       };
       var entityDataChild2 = {
-        0: 0,
         networkId: 'test-child-2',
         owner: 'abcdefg',
         parent: 'test1',
         template: '#template1',
         components: {
-          position: '1 2 3',
-          rotation: '4 3 2'
+          0: '1 2 3',
+          1: '4 3 2'
         }
       };
 

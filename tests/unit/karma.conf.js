@@ -21,14 +21,11 @@ var karma_conf = {
     {pattern: './tests/unit/NafLogger.test.js'},
     {pattern: './tests/unit/utils.test.js'},
     {pattern: './tests/unit/NetworkConnection.test.js'},
-    {pattern: './tests/unit/networked.tenthParent.test.js'},
+    {pattern: './tests/unit/networked.test.js'},
     {pattern: './tests/unit/networked_remote.test.js'},
     {pattern: './tests/unit/NetworkEntities.test.js'},
     {pattern: './tests/unit/Schemas.test.js'},
     {pattern: './tests/unit/ChildEntityCache.test.js'},
-    {pattern: './tests/unit/Compressor.test.js'},
-    {pattern: './tests/unit/ComponentHelper.test.js'},
-
     {pattern: './src/**/*.js', included: false}
   ],
   frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal', 'browserify'],

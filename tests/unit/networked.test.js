@@ -22,7 +22,6 @@ suite('networked', function() {
   }
 
   setup(function(done) {
-    naf.options.compressSyncPackets = false;
     naf.connection.setNetworkAdapter(new helpers.MockNetworkAdapter());
     initScene(function() {
       entity = document.querySelector('#test-entity');
@@ -162,15 +161,14 @@ suite('networked', function() {
       this.stub(naf.connection, 'broadcastDataGuaranteed');
 
       var expected = {
-        0: 0,
         networkId: 'network1',
         owner: 'owner1',
         lastOwnerTime: -1,
         parent: null,
         template: '#t1',
         components: {
-          position: { x: 1, y: 2, z: 3 },
-          rotation: { x: 4, y: 3, z: 2 }
+          0: { x: 1, y: 2, z: 3 },
+          1: { x: 4, y: 3, z: 2 }
         }
       };
 
@@ -183,17 +181,17 @@ suite('networked', function() {
     }));
 
     test('updates cache', sinon.test(function() {
-      var oldData = {
-        position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2 }
-      };
-      networked.updateCache(oldData);
       this.stub(naf.connection, 'broadcastDataGuaranteed');
-      this.spy(networked, 'updateCache');
+
+      networked.el.setAttribute('position', { x: 1, y: 2, z: 5 });
+      networked.el.setAttribute('rotation', { x: 4, y: 2, z: 2 });
 
       networked.syncAll();
 
-      assert.isTrue(networked.updateCache.calledOnce);
+      assert.deepEqual(networked.cachedData, [
+        { x: 1, y: 2, z: 5 /* changed */ },
+        { x: 4, y: 2 /* changed */, z: 2 }
+      ]);
     }));
 
     test('sets next sync time', sinon.test(function() {
@@ -208,88 +206,45 @@ suite('networked', function() {
 
   suite('syncDirty', function() {
 
-    test('syncs uncompressed data that has changed', sinon.test(function() {
+    test('syncs data that has changed', sinon.test(function() {
       this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastData');
 
-      var oldData = {
-        position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 2 /* changed */, z: 2 }
-      };
       var expected = {
-        0: 0,
         networkId: 'network1',
         owner: 'owner1',
         lastOwnerTime: -1,
         parent: null,
         template: '#t1',
         components: {
-          rotation: { x: 4, y: 3, z: 2 }
+          1: { x: 9, y: 8, z: 7 }
         }
       };
 
       networked.init();
-      networked.updateCache(oldData);
-      document.body.dispatchEvent(new Event('loggedIn'));
-      networked.hasSentFirstSync = true;
+
+      // Force initial sync instead of waiting on onConnected
+      networked.syncAll();
+
+      networked.el.setAttribute("rotation", { x: 9, y: 8, z: 7 });
+
       networked.syncDirty();
 
       var called = naf.connection.broadcastData.calledWithExactly('u', expected);
-      assert.isTrue(called);
-    }));
-
-    test('syncs compressed data that has changed (all components changed)', sinon.test(function() {
-      this.stub(naf.utils, 'createNetworkId').returns('network1');
-      this.stub(naf.connection, 'broadcastData');
-      naf.options.compressSyncPackets = true;
-      var oldData = {
-        position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2 }
-      };
-      var expected = [1, 'network1', 'owner1', null, '#t1', { 0: { x: 1, y: 2, z: 3 }, 1: { x: 4, y: 3, z: 2 } }];
-
-      networked.init();
-      networked.updateCache(oldData);
-      document.body.dispatchEvent(new Event('loggedIn'));
-      networked.hasSentFirstSync = true;
-      networked.syncDirty();
-
-      var called = naf.connection.broadcastData.calledWithExactly('u', expected);
-      assert.isTrue(called);
-    }));
-
-    test('syncs compressed data that has changed (some components changed)', sinon.test(function() {
-      this.stub(naf.utils, 'createNetworkId').returns('network1');
-      this.stub(naf.connection, 'broadcastData');
-      naf.options.compressSyncPackets = true;
-      var oldData = {
-        position: { x: 1, y: 2, z: 3 },
-        rotation: { x: 4, y: 2 /* changed */, z: 2 }
-      };
-      var expected = [1, 'network1', 'owner1', null, '#t1', { 1: { x: 4, y: 3, z: 2 } }];
-
-      networked.init();
-      networked.updateCache(oldData);
-      document.body.dispatchEvent(new Event('loggedIn'));
-      networked.hasSentFirstSync = true;
-      networked.syncDirty();
-
-      var called = naf.connection.broadcastData.calledWithExactly('u', expected);
-      assert.isTrue(called);
+      assert.isTrue(called, `called with ${JSON.stringify(naf.connection.broadcastData.getCall(0).args[1])}, expected ${JSON.stringify(expected)}`);
     }));
 
     test('updates cache', sinon.test(function() {
-      var oldData = {
-        position: { x: 1, y: 2, z: 5 /* changed */ },
-        rotation: { x: 4, y: 2 /* changed */, z: 2 }
-      };
-      networked.updateCache(oldData);
       this.stub(naf.connection, 'broadcastData');
-      this.spy(networked, 'updateCache');
+
+      networked.el.setAttribute("rotation", { x: 9, y: 8, z: 7 });
 
       networked.syncDirty();
 
-      assert.isTrue(networked.updateCache.calledOnce);
+      assert.deepEqual(networked.cachedData, [
+        { x: 1, y: 2, z: 3 },
+        { x: 9, y: 8, z: 7 }
+      ])
     }));
 
     test('sets next sync time', sinon.test(function() {
@@ -300,5 +255,36 @@ suite('networked', function() {
 
       assert.isTrue(networked.updateNextSyncTime.calledOnce);
     }));
+  });
+
+  suite('gatherComponentsData', function() {
+    test('get position and rotation on full sync of root', function () {
+      var result = networked.gatherComponentsData(true);
+
+      var expected = {
+        0: { x: 1, y: 2, z: 3 },
+        1: { x: 4, y: 3, z: 2 }
+      };
+
+      assert.deepEqual(result, expected);
+    });
+
+    test('get position and rotation on dirty sync of root', function () {
+
+      networked.cachedData = [
+        { x: 1, y: 2, z: 3 },
+        { x: 4, y: 3, z: 2 }
+      ];
+
+      networked.el.setAttribute("rotation", { x: 9, y: 8, z: 7 });
+
+      var result = networked.gatherComponentsData(false);
+
+      var expected = {
+        1: { x: 9, y: 8, z: 7 }
+      };
+
+      assert.deepEqual(result, expected);
+    });
   });
 });

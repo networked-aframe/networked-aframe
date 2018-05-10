@@ -69,19 +69,18 @@ suite('networked_withParent', function() {
 
   suite('syncAll', function() {
 
-    test('broadcasts uncompressed data with parent', sinon.test(function() {
+    test('broadcasts data with parent', sinon.test(function() {
       this.stub(naf.connection, 'broadcastDataGuaranteed');
 
       var expected = {
-        0: 0,
         networkId: 'network1',
         owner: 'owner1',
         lastOwnerTime: -1,
         parent: 'parentId',
         template: '#t1',
         components: {
-          position: { x: 1, y: 2, z: 3 },
-          rotation: { x: 4, y: 3, z: 2 }
+          0: { x: 1, y: 2, z: 3 },
+          1: { x: 4, y: 3, z: 2 }
         }
       };
       var networkIdStub = this.stub(naf.utils, 'createNetworkId').returns('parentId');
