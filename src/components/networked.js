@@ -307,9 +307,9 @@ AFRAME.registerComponent('networked', {
       if (fullSync || this.cachedData[i] === null || (this.cachedData[i] !== null && !deepEqual(this.cachedData[i], syncedComponentData))){
         componentsData = componentsData || {};
         componentsData[i] = syncedComponentData;
+        this.cachedData[i] = AFRAME.utils.clone(syncedComponentData);
       }
 
-      this.cachedData[i] = AFRAME.utils.clone(syncedComponentData);
     }
 
     return componentsData;
