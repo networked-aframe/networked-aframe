@@ -6,10 +6,7 @@ class NetworkEntities {
   constructor() {
     this.entities = {};
     this.childCache = new ChildEntityCache();
-
     this.onRemoteEntityCreatedEvent = new Event('remoteEntityCreated');
-    this.onNetworkUpdateEvent = {};
-    this.onSyncAllEvent = {};
   }
 
   registerEntity(networkId, entity) {
@@ -64,8 +61,7 @@ class NetworkEntities {
     var networkId = entityData.networkId;
 
     if (this.hasEntity(networkId)) {
-      this.onNetworkUpdateEvent.entityData = entityData;
-      this.entities[networkId].emit('networkUpdate', this.onNetworkUpdateEvent, false);
+      this.entities[networkId].components.networked.networkUpdate(entityData);
     } else if (this.isFullSync(entityData)) {
       this.receiveFirstUpdateFromEntity(entityData);
     }
@@ -137,12 +133,7 @@ class NetworkEntities {
   completeSync(targetClientId) {
     for (var id in this.entities) {
       if (this.entities.hasOwnProperty(id)) {
-        this.onSyncAllEvent.targetClientId = targetClientId;
-        this.entities[id].emit(
-          'syncAll',
-          this.onSyncAllEvent,
-          false
-        );
+        this.entities[id].components.networked.syncAll(targetClientId);
       }
     }
   }

@@ -29,10 +29,7 @@ AFRAME.registerComponent('networked', {
     var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
     this.onConnected = this.onConnected.bind(this);
-    this.onSyncAll = this.onSyncAll.bind(this);
-    this.syncDirty = this.syncDirty.bind(this);
-    this.networkUpdateHandler = this.networkUpdateHandler.bind(this);
-
+    
     this.syncData = {};
     this.componentSchemas =  NAF.schemas.getComponents(this.data.template);
     this.cachedElements = new Array(this.componentSchemas.length);
@@ -150,28 +147,6 @@ AFRAME.registerComponent('networked', {
     return this.data.owner === NAF.clientId;
   },
 
-  play: function() {
-    this.bindEvents();
-  },
-
-  bindEvents: function() {
-    var el = this.el;
-    el.addEventListener('sync', this.syncDirty);
-    el.addEventListener('syncAll', this.onSyncAll);
-    el.addEventListener('networkUpdate', this.networkUpdateHandler);
-  },
-
-  pause: function() {
-    this.unbindEvents();
-  },
-
-  unbindEvents: function() {
-    var el = this.el;
-    el.removeEventListener('sync', this.syncDirty);
-    el.removeEventListener('syncAll', this.onSyncAll);
-    el.removeEventListener('networkUpdate', this.networkUpdateHandler);
-  },
-
   tick: function() {
     if (this.isMine() && this.needsToSync()) {
       if (!this.el.parentElement){
@@ -209,11 +184,6 @@ AFRAME.registerComponent('networked', {
         scaleComp.el.object3D.scale.lerpVectors(scaleComp.start, scaleComp.target, scaleProgress);
       }
     }
-  },
-
-  onSyncAll: function(e) {
-    const { targetClientId } = e.detail;
-    this.syncAll(targetClientId);
   },
 
   /* Sending updates */
@@ -348,11 +318,6 @@ AFRAME.registerComponent('networked', {
   },
 
   /* Receiving updates */
-
-  networkUpdateHandler: function(received) {
-    var entityData = received.detail.entityData;
-    this.networkUpdate(entityData);
-  },
 
   networkUpdate: function(entityData) {
     // Avoid updating components if the entity data received did not come from the current owner.
