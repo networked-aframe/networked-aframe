@@ -102,3 +102,7 @@ module.exports.isMine = function(entity) {
 
   throw new Error("isMine() must be called on an entity or child of an entity with the [networked] component.");
 };
+
+module.exports.almostEqualVec3 = function(u, v, epsilon) {
+  return Math.abs(u.x-v.x)<epsilon && Math.abs(u.y-v.y)<epsilon && Math.abs(u.z-v.z)<epsilon;
+};

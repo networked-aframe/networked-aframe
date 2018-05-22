@@ -278,7 +278,15 @@ AFRAME.registerComponent('networked', {
 
       var syncedComponentData = componentSchema.property ? componentData[componentSchema.property] : componentData;
 
-      if (fullSync || this.cachedData[i] === null || (this.cachedData[i] !== null && !deepEqual(this.cachedData[i], syncedComponentData))){
+      if (
+        fullSync || // If this is a full sync get the component data.
+        this.cachedData[i] === null || // If there is no cached data to compare to (firstSync) get the component data.
+        (this.cachedData[i] !== null &&
+          // Use the requiresNetworkUpdate predicate when available.
+          ((componentSchema.requiresNetworkUpdate && componentSchema.requiresNetworkUpdate(this.cachedData[i], syncedComponentData)) ||
+          // Otherwise, use deepEqual to check if we should get the component data.
+          (componentSchema.requiresNetworkUpdate === undefined && !deepEqual(this.cachedData[i], syncedComponentData))))
+      ){
         componentsData = componentsData || {};
         componentsData[i] = syncedComponentData;
         this.cachedData[i] = AFRAME.utils.clone(syncedComponentData);
