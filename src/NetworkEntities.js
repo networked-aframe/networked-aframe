@@ -62,19 +62,9 @@ class NetworkEntities {
 
     if (this.hasEntity(networkId)) {
       this.entities[networkId].components.networked.networkUpdate(entityData);
-    } else if (this.isFullSync(entityData)) {
+    } else if (entityData.isFirstSync) {
       this.receiveFirstUpdateFromEntity(entityData);
     }
-  }
-
-  isFullSync(entityData) {
-    var numSentComps = 0;
-    // eslint-disable-next-line no-unused-vars
-    for (var componentIndex in entityData.components) {
-      numSentComps++;
-    }
-    var numTemplateComps = NAF.schemas.getComponents(entityData.template).length;
-    return numSentComps === numTemplateComps;
   }
 
   receiveFirstUpdateFromEntity(entityData) {
@@ -130,10 +120,10 @@ class NetworkEntities {
     scene.appendChild(el);
   }
 
-  completeSync(targetClientId) {
+  completeSync(targetClientId, isFirstSync) {
     for (var id in this.entities) {
       if (this.entities.hasOwnProperty(id)) {
-        this.entities[id].components.networked.syncAll(targetClientId);
+        this.entities[id].components.networked.syncAll(targetClientId, isFirstSync);
       }
     }
   }

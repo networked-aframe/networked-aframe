@@ -136,7 +136,7 @@ AFRAME.registerComponent('networked', {
           NAF.log.warn("Networked element was removed before ever getting the chance to syncAll");
           return;
         }
-        this.syncAll();
+        this.syncAll(undefined, true);
       }, 0);
     }
 
@@ -188,7 +188,7 @@ AFRAME.registerComponent('networked', {
 
   /* Sending updates */
 
-  syncAll: function(targetClientId) {
+  syncAll: function(targetClientId, isFirstSync) {
     if (!this.canSync()) {
       return;
     }
@@ -197,7 +197,7 @@ AFRAME.registerComponent('networked', {
 
     var components = this.gatherComponentsData(true);
 
-    var syncData = this.createSyncData(components);
+    var syncData = this.createSyncData(components, isFirstSync);
 
     if (targetClientId) {
       NAF.connection.sendDataGuaranteed(targetClientId, 'u', syncData);
@@ -285,7 +285,7 @@ AFRAME.registerComponent('networked', {
     return componentsData;
   },
 
-  createSyncData: function(components) {
+  createSyncData: function(components, isFirstSync) {
     var { syncData, data } = this;
     syncData.networkId = data.networkId;
     syncData.owner = data.owner;
@@ -293,6 +293,7 @@ AFRAME.registerComponent('networked', {
     syncData.template = data.template;
     syncData.parent = this.getParentId();
     syncData.components = components;
+    syncData.isFirstSync = !!isFirstSync;
     return syncData;
   },
 
