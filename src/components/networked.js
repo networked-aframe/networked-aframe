@@ -2,6 +2,19 @@
 var deepEqual = require('fast-deep-equal');
 var DEG2RAD = THREE.Math.DEG2RAD;
 
+function defaultNetworkUpdatePredicate() {
+  let cachedData = null;
+
+  return (newData) => {
+    if (cachedData === null || !deepEqual(cachedData, newData)) {
+      cachedData = AFRAME.utils.clone(newData);
+      return true;
+    }
+
+    return false;
+  };
+}
+
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
@@ -39,8 +52,15 @@ AFRAME.registerComponent('networked', {
     this.syncData = {};
     this.componentSchemas =  NAF.schemas.getComponents(this.data.template);
     this.cachedElements = new Array(this.componentSchemas.length);
-    this.cachedData = new Array(this.componentSchemas.length);
-    // Fill cachedData array with null elements
+    this.networkUpdatePredicates = this.componentSchemas.map((componentSchema) => {
+      if (componentSchema.requiresNetworkUpdate) {
+        return componentSchema.requiresNetworkUpdate();
+      }
+
+      return defaultNetworkUpdatePredicate();
+    });
+
+    // Fill cachedElements array with null elements
     this.invalidateCachedElements();
 
     this.initNetworkParent();
@@ -278,20 +298,12 @@ AFRAME.registerComponent('networked', {
 
       var syncedComponentData = componentSchema.property ? componentData[componentSchema.property] : componentData;
 
-      if (
-        fullSync || // If this is a full sync get the component data.
-        this.cachedData[i] === null || // If there is no cached data to compare to (firstSync) get the component data.
-        (this.cachedData[i] !== null &&
-          // Use the requiresNetworkUpdate predicate when available.
-          ((componentSchema.requiresNetworkUpdate && componentSchema.requiresNetworkUpdate(this.cachedData[i], syncedComponentData)) ||
-          // Otherwise, use deepEqual to check if we should get the component data.
-          (componentSchema.requiresNetworkUpdate === undefined && !deepEqual(this.cachedData[i], syncedComponentData))))
-      ){
+      // Use networkUpdatePredicate to check if the component needs to be updated.
+      // Call networkUpdatePredicate first so that it can update any cached values in the event of a fullSync.
+      if (this.networkUpdatePredicates[i](syncedComponentData) || fullSync) {
         componentsData = componentsData || {};
         componentsData[i] = syncedComponentData;
-        this.cachedData[i] = AFRAME.utils.clone(syncedComponentData);
       }
-
     }
 
     return componentsData;
