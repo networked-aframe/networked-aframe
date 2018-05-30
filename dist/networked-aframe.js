@@ -46,16 +46,13 @@
 
 	'use strict';
 
-	// Dependencies
+	// Global vars and functions
 	__webpack_require__(1);
 
-	// Global vars and functions
-	__webpack_require__(3);
-
 	// Network components
-	__webpack_require__(16);
-	__webpack_require__(17);
-	__webpack_require__(23);
+	__webpack_require__(14);
+	__webpack_require__(15);
+	__webpack_require__(22);
 
 /***/ }),
 /* 1 */
@@ -63,204 +60,13 @@
 
 	'use strict';
 
-	/* global AFRAME THREE */
-
-	if (typeof AFRAME === 'undefined') {
-	  throw new Error('Component attempted to register before AFRAME was available.');
-	}
-
-	var degToRad = THREE.Math.degToRad;
-	var almostEqual = __webpack_require__(2);
-	/**
-	 * Linear Interpolation component for A-Frame.
-	 */
-	AFRAME.registerComponent('lerp', {
-	  schema: {
-	    properties: { default: ['position', 'rotation', 'scale'] }
-	  },
-
-	  /**
-	   * Called once when component is attached. Generally for initial setup.
-	   */
-	  init: function init() {
-	    var el = this.el;
-	    this.lastPosition = el.getAttribute('position');
-	    this.lastRotation = el.getAttribute('rotation');
-	    this.lastScale = el.getAttribute('scale');
-
-	    this.lerpingPosition = false;
-	    this.lerpingRotation = false;
-	    this.lerpingScale = false;
-
-	    this.timeOfLastUpdate = 0;
-	  },
-
-	  /**
-	   * Called on each scene tick.
-	   */
-	  tick: function tick(time, deltaTime) {
-	    var progress;
-	    var now = this.now();
-	    var obj3d = this.el.object3D;
-
-	    this.checkForComponentChanged();
-
-	    // Lerp position
-	    if (this.lerpingPosition) {
-	      progress = (now - this.startLerpTimePosition) / this.duration;
-	      obj3d.position.lerpVectors(this.startPosition, this.targetPosition, progress);
-	      // console.log("new position", obj3d.position);
-	      if (progress >= 1) {
-	        this.lerpingPosition = false;
-	      }
-	    }
-
-	    // Slerp rotation
-	    if (this.lerpingRotation) {
-	      progress = (now - this.startLerpTimeRotation) / this.duration;
-	      THREE.Quaternion.slerp(this.startRotation, this.targetRotation, obj3d.quaternion, progress);
-	      if (progress >= 1) {
-	        this.lerpingRotation = false;
-	      }
-	    }
-
-	    // Lerp scale
-	    if (this.lerpingScale) {
-	      progress = (now - this.startLerpTimeScale) / this.duration;
-	      obj3d.scale.lerpVectors(this.startScale, this.targetScale, progress);
-	      if (progress >= 1) {
-	        this.lerpingScale = false;
-	      }
-	    }
-	  },
-
-	  checkForComponentChanged: function checkForComponentChanged() {
-	    var el = this.el;
-
-	    var hasChanged = false;
-
-	    var newPosition = el.getAttribute('position');
-	    if (this.isLerpable('position') && !this.almostEqualVec3(this.lastPosition, newPosition)) {
-	      this.toPosition(this.lastPosition, newPosition);
-	      this.lastPosition = newPosition;
-	      hasChanged = true;
-	    }
-
-	    var newRotation = el.getAttribute('rotation');
-	    if (this.isLerpable('rotation') && !this.almostEqualVec3(this.lastRotation, newRotation)) {
-	      this.toRotation(this.lastRotation, newRotation);
-	      this.lastRotation = newRotation;
-	      hasChanged = true;
-	    }
-
-	    var newScale = el.getAttribute('scale');
-	    if (this.isLerpable('scale') && !this.almostEqualVec3(this.lastScale, newScale)) {
-	      this.toScale(this.lastScale, newScale);
-	      this.lastScale = newScale;
-	      hasChanged = true;
-	    }
-
-	    if (hasChanged) {
-	      this.updateDuration();
-	    }
-	  },
-
-	  isLerpable: function isLerpable(name) {
-	    return this.data.properties.indexOf(name) != -1;
-	  },
-
-	  updateDuration: function updateDuration() {
-	    var now = this.now();
-	    this.duration = now - this.timeOfLastUpdate;
-	    this.timeOfLastUpdate = now;
-	  },
-
-	  /**
-	   * Start lerp to position (vec3)
-	   */
-	  toPosition: function toPosition(from, to) {
-	    this.lerpingPosition = true;
-	    this.startLerpTimePosition = this.now();
-	    this.startPosition = new THREE.Vector3(from.x, from.y, from.z);
-	    this.targetPosition = new THREE.Vector3(to.x, to.y, to.z);
-	  },
-
-	  /**
-	   * Start lerp to euler rotation (vec3,'YXZ')
-	   */
-	  toRotation: function toRotation(from, to) {
-	    this.lerpingRotation = true;
-	    this.startLerpTimeRotation = this.now();
-	    this.startRotation = new THREE.Quaternion();
-	    this.startRotation.setFromEuler(new THREE.Euler(degToRad(from.x), degToRad(from.y), degToRad(from.z), 'YXZ'));
-	    this.targetRotation = new THREE.Quaternion();
-	    this.targetRotation.setFromEuler(new THREE.Euler(degToRad(to.x), degToRad(to.y), degToRad(to.z), 'YXZ'));
-	  },
-
-	  /**
-	   * Start lerp to scale (vec3)
-	   */
-	  toScale: function toScale(from, to) {
-	    this.lerpingScale = true;
-	    this.startLerpTimeScale = this.now();
-	    this.startScale = new THREE.Vector3(from.x, from.y, from.z);
-	    this.targetScale = new THREE.Vector3(to.x, to.y, to.z);
-	  },
-
-	  almostEqualVec3: function almostEqualVec3(a, b) {
-	    return almostEqual(a.x, b.x) && almostEqual(a.y, b.y) && almostEqual(a.z, b.z);
-	  },
-
-	  /**
-	   * Returns the current time in milliseconds (ms)
-	   */
-	  now: function now() {
-	    return Date.now();
-	  }
-	});
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports) {
-
-	"use strict";
-
-	var abs = Math.abs,
-	    min = Math.min;
-
-	function almostEqual(a, b, absoluteError, relativeError) {
-	  var d = abs(a - b);
-
-	  if (absoluteError == null) absoluteError = almostEqual.DBL_EPSILON;
-	  if (relativeError == null) relativeError = absoluteError;
-
-	  if (d <= absoluteError) {
-	    return true;
-	  }
-	  if (d <= relativeError * min(abs(a), abs(b))) {
-	    return true;
-	  }
-	  return a === b;
-	}
-
-	almostEqual.FLT_EPSILON = 1.19209290e-7;
-	almostEqual.DBL_EPSILON = 2.2204460492503131e-16;
-
-	module.exports = almostEqual;
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var options = __webpack_require__(4);
-	var utils = __webpack_require__(5);
-	var NafLogger = __webpack_require__(6);
-	var Schemas = __webpack_require__(7);
-	var NetworkEntities = __webpack_require__(8);
-	var NetworkConnection = __webpack_require__(10);
-	var AdapterFactory = __webpack_require__(11);
+	var options = __webpack_require__(2);
+	var utils = __webpack_require__(3);
+	var NafLogger = __webpack_require__(4);
+	var Schemas = __webpack_require__(5);
+	var NetworkEntities = __webpack_require__(6);
+	var NetworkConnection = __webpack_require__(8);
+	var AdapterFactory = __webpack_require__(9);
 
 	var naf = {};
 	naf.app = '';
@@ -281,7 +87,7 @@
 	module.exports = window.NAF = naf;
 
 /***/ }),
-/* 4 */
+/* 2 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -290,12 +96,12 @@
 	  debug: false,
 	  updateRate: 15, // How often network components call `sync`
 	  compressSyncPackets: false, // compress network component sync packet json
-	  useLerp: true // when networked entities are created the aframe-lerp-component is attached to the root
+	  useLerp: true // lerp position, rotation, and scale components on networked entities.
 	};
 	module.exports = options;
 
 /***/ }),
-/* 5 */
+/* 3 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -329,7 +135,7 @@
 	module.exports.getNetworkId = function (el) {
 	  var components = el.components;
 	  if (components.hasOwnProperty('networked')) {
-	    return components['networked'].networkId;
+	    return components['networked'].data.networkId;
 	  }
 	  return null;
 	};
@@ -427,8 +233,12 @@
 	  throw new Error("isMine() must be called on an entity or child of an entity with the [networked] component.");
 	};
 
+	module.exports.almostEqualVec3 = function (u, v, epsilon) {
+	  return Math.abs(u.x - v.x) < epsilon && Math.abs(u.y - v.y) < epsilon && Math.abs(u.z - v.z) < epsilon;
+	};
+
 /***/ }),
-/* 6 */
+/* 4 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -476,7 +286,7 @@
 	module.exports = NafLogger;
 
 /***/ }),
-/* 7 */
+/* 5 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -605,7 +415,7 @@
 	module.exports = Schemas;
 
 /***/ }),
-/* 8 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -615,7 +425,7 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	/* global NAF */
-	var ChildEntityCache = __webpack_require__(9);
+	var ChildEntityCache = __webpack_require__(7);
 
 	var NetworkEntities = function () {
 	  function NetworkEntities() {
@@ -784,12 +594,18 @@
 	    value: function removeEntity(id) {
 	      if (this.hasEntity(id)) {
 	        var entity = this.entities[id];
-	        delete this.entities[id];
+	        this.forgetEntity(id);
 	        entity.parentNode.removeChild(entity);
 	        return entity;
 	      } else {
+	        NAF.log.error("Tried to remove entity I don't have.");
 	        return null;
 	      }
+	    }
+	  }, {
+	    key: 'forgetEntity',
+	    value: function forgetEntity(id) {
+	      delete this.entities[id];
 	    }
 	  }, {
 	    key: 'getEntity',
@@ -824,7 +640,7 @@
 	module.exports = NetworkEntities;
 
 /***/ }),
-/* 9 */
+/* 7 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -874,7 +690,7 @@
 	module.exports = ChildEntityCache;
 
 /***/ }),
-/* 10 */
+/* 8 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -934,7 +750,7 @@
 	      this.adapter.setDataChannelListeners(this.dataChannelOpen.bind(this), this.dataChannelClosed.bind(this), this.receivedData.bind(this));
 	      this.adapter.setRoomOccupantListener(this.occupantsReceived.bind(this));
 
-	      this.adapter.connect();
+	      return this.adapter.connect();
 	    }
 	  }, {
 	    key: 'onConnect',
@@ -1134,7 +950,7 @@
 	module.exports = NetworkConnection;
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1143,8 +959,8 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var WsEasyRtcAdapter = __webpack_require__(12);
-	var EasyRtcAdapter = __webpack_require__(15);
+	var WsEasyRtcAdapter = __webpack_require__(10);
+	var EasyRtcAdapter = __webpack_require__(13);
 
 	var AdapterFactory = function () {
 	  function AdapterFactory() {
@@ -1188,7 +1004,7 @@
 	module.exports = AdapterFactory;
 
 /***/ }),
-/* 12 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1204,7 +1020,7 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	/* global NAF */
-	var NoOpAdapter = __webpack_require__(13);
+	var NoOpAdapter = __webpack_require__(11);
 
 	var WsEasyRtcInterface = function (_NoOpAdapter) {
 	  _inherits(WsEasyRtcInterface, _NoOpAdapter);
@@ -1388,7 +1204,7 @@
 	module.exports = WsEasyRtcInterface;
 
 /***/ }),
-/* 13 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1401,7 +1217,7 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var NafInterface = __webpack_require__(14);
+	var NafInterface = __webpack_require__(12);
 
 	var NoOpAdapter = function (_NafInterface) {
 	  _inherits(NoOpAdapter, _NafInterface);
@@ -1519,7 +1335,7 @@
 	module.exports = NoOpAdapter;
 
 /***/ }),
-/* 14 */
+/* 12 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -1548,7 +1364,7 @@
 	module.exports = NafInterface;
 
 /***/ }),
-/* 15 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1564,7 +1380,7 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	/* global NAF */
-	var NoOpAdapter = __webpack_require__(13);
+	var NoOpAdapter = __webpack_require__(11);
 
 	var EasyRtcAdapter = function (_NoOpAdapter) {
 	  _inherits(EasyRtcAdapter, _NoOpAdapter);
@@ -1833,7 +1649,7 @@
 	module.exports = EasyRtcAdapter;
 
 /***/ }),
-/* 16 */
+/* 14 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -1874,7 +1690,7 @@
 	    if (this.hasOnConnectFunction()) {
 	      this.callOnConnect();
 	    }
-	    NAF.connection.connect(this.data.serverURL, this.data.app, this.data.room, this.data.audio);
+	    return NAF.connection.connect(this.data.serverURL, this.data.app, this.data.room, this.data.audio);
 	  },
 
 	  checkDeprecatedProperties: function checkDeprecatedProperties() {
@@ -1903,15 +1719,16 @@
 	});
 
 /***/ }),
-/* 17 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	/* global AFRAME, NAF */
-	var componentHelper = __webpack_require__(18);
-	var Compressor = __webpack_require__(22);
-	var bind = AFRAME.utils.bind;
+	/* global AFRAME, NAF, THREE */
+	var componentHelper = __webpack_require__(16);
+	var Compressor = __webpack_require__(20);
+	var InterpolationBuffer = __webpack_require__(21);
+	var DEG2RAD = THREE.Math.DEG2RAD;
 
 	AFRAME.registerComponent('networked', {
 	  schema: {
@@ -1927,12 +1744,16 @@
 	    this.OWNERSHIP_CHANGED = 'ownership-changed';
 	    this.OWNERSHIP_LOST = 'ownership-lost';
 
+	    this.conversionEuler = new THREE.Euler();
+	    this.conversionEuler.order = "YXZ";
+	    this.interpolationBuffers = [];
+
 	    var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
-	    this.onConnected = bind(this.onConnected, this);
-	    this.onSyncAll = bind(this.onSyncAll, this);
-	    this.syncDirty = bind(this.syncDirty, this);
-	    this.networkUpdateHandler = bind(this.networkUpdateHandler, this);
+	    this.onConnected = this.onConnected.bind(this);
+	    this.onSyncAll = this.onSyncAll.bind(this);
+	    this.syncDirty = this.syncDirty.bind(this);
+	    this.networkUpdateHandler = this.networkUpdateHandler.bind(this);
 
 	    this.cachedData = {};
 	    this.initNetworkParent();
@@ -1943,7 +1764,6 @@
 
 	    if (wasCreatedByNetwork) {
 	      this.firstUpdate();
-	      this.attachLerp();
 	    } else {
 	      if (this.data.attachTemplateToLocal) {
 	        this.attachTemplateToLocal();
@@ -2008,18 +1828,6 @@
 	    }
 	  },
 
-	  attachLerp: function attachLerp() {
-	    if (NAF.options.useLerp) {
-	      this.el.setAttribute('lerp', '');
-	    }
-	  },
-
-	  removeLerp: function removeLerp() {
-	    if (NAF.options.useLerp) {
-	      this.el.removeAttribute('lerp');
-	    }
-	  },
-
 	  registerEntity: function registerEntity(networkId) {
 	    NAF.entities.registerEntity(networkId, this.el);
 	  },
@@ -2037,6 +1845,10 @@
 	      this.el.setAttribute(this.name, { owner: NAF.clientId });
 	      setTimeout(function () {
 	        //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
+	        if (!_this.el.parentNode) {
+	          NAF.log.warn("Networked element was removed before ever getting the chance to syncAll");
+	          return;
+	        }
 	        _this.syncAll();
 	      }, 0);
 	    }
@@ -2070,9 +1882,25 @@
 	    el.removeEventListener('networkUpdate', this.networkUpdateHandler);
 	  },
 
-	  tick: function tick() {
+	  tick: function tick(time, dt) {
 	    if (this.isMine() && this.needsToSync()) {
+	      if (!this.el.parentElement) {
+	        NAF.log.error("tick called on an entity that seems to have been removed");
+	        //TODO: Find out why tick is still being called
+	        return;
+	      }
 	      this.syncDirty();
+	    }
+
+	    if (NAF.options.useLerp && !this.isMine()) {
+	      for (var i = 0; i < this.interpolationBuffers.length; i++) {
+	        var interpolationBuffer = this.interpolationBuffers[i].buffer;
+	        var el = this.interpolationBuffers[i].el;
+	        interpolationBuffer.update(dt);
+	        el.object3D.position.copy(interpolationBuffer.getPosition());
+	        el.object3D.quaternion.copy(interpolationBuffer.getQuaternion());
+	        el.object3D.scale.copy(interpolationBuffer.getScale());
+	      }
 	    }
 	  },
 
@@ -2186,7 +2014,6 @@
 	    if (this.data.owner !== entityData.owner) {
 	      var wasMine = this.isMine();
 	      this.lastOwnerTime = entityData.lastOwnerTime;
-	      this.attachLerp();
 
 	      var oldOwner = this.data.owner;
 	      var newOwner = entityData.owner;
@@ -2202,6 +2029,7 @@
 
 	  updateComponents: function updateComponents(components) {
 	    var el = this.el;
+	    var syncedComponents = NAF.schemas.getComponents(this.data.template);
 
 	    for (var key in components) {
 	      if (this.isSyncableComponent(key)) {
@@ -2214,14 +2042,54 @@
 	            if (schema.property) {
 	              childEl.setAttribute(schema.component, schema.property, data);
 	            } else {
-	              childEl.setAttribute(schema.component, data);
+	              this.updateComponent(childEl, schema.component, data);
 	            }
 	          }
 	        } else {
-	          el.setAttribute(key, data);
+	          this.updateComponent(el, key, data);
 	        }
 	      }
 	    }
+	  },
+
+	  updateComponent: function updateComponent(el, key, data) {
+	    if (!NAF.options.useLerp) {
+	      el.setAttribute(key, data);
+	      return;
+	    }
+
+	    var buffer = null;
+	    var interpolationBuffer = this.interpolationBuffers.find(function (item) {
+	      return item.el === el;
+	    });
+	    if (!interpolationBuffer) {
+	      buffer = new InterpolationBuffer();
+	      this.interpolationBuffers.push({ buffer: buffer, el: el });
+	    } else {
+	      buffer = this.interpolationBuffers.find(function (item) {
+	        return item.el === el;
+	      }).buffer;
+	    }
+
+	    switch (key) {
+	      case "position":
+	        buffer.setPosition(new THREE.Vector3(data.x, data.y, data.z));
+	        break;
+	      case "rotation":
+	        this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
+	        buffer.setQuaternion(new THREE.Quaternion().setFromEuler(this.conversionEuler));
+	        break;
+	      case "scale":
+	        buffer.setScale(new THREE.Vector3(data.x, data.y, data.z));
+	        break;
+	      default:
+	        el.setAttribute(key, data);
+	        break;
+	    }
+	  },
+
+	  removeLerp: function removeLerp() {
+	    this.interpolationBuffers = [];
 	  },
 
 	  isSyncableComponent: function isSyncableComponent(key) {
@@ -2247,7 +2115,12 @@
 	  remove: function remove() {
 	    if (this.isMine() && NAF.connection.isConnected()) {
 	      var syncData = { networkId: this.data.networkId };
-	      NAF.connection.broadcastDataGuaranteed('r', syncData);
+	      if (NAF.entities.hasEntity(this.data.networkId)) {
+	        NAF.connection.broadcastDataGuaranteed('r', syncData);
+	        NAF.entities.forgetEntity(this.data.networkId);
+	      } else {
+	        NAF.log.error("Removing networked entity that is not in entities array.");
+	      }
 	    }
 	    document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
 	  },
@@ -2261,13 +2134,13 @@
 	});
 
 /***/ }),
-/* 18 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	/* global AFRAME, NAF */
-	var deepEqual = __webpack_require__(19);
+	var deepEqual = __webpack_require__(17);
 
 	module.exports.gatherComponentsData = function (el, schemaComponents) {
 	  var compsData = {};
@@ -2276,16 +2149,17 @@
 	    var element = schemaComponents[i];
 
 	    if (typeof element === 'string') {
-	      if (el.components.hasOwnProperty(element)) {
-	        compsData[element] = AFRAME.utils.clone(el.getAttribute(element));
+	      var rootComponentData = el.getAttribute(element);
+	      if (rootComponentData !== null) {
+	        compsData[element] = AFRAME.utils.clone(rootComponentData);
 	      }
 	    } else {
 	      var childKey = NAF.utils.childSchemaToKey(element);
 	      var child = element.selector ? el.querySelector(element.selector) : el;
 	      if (child) {
-	        if (child.components.hasOwnProperty(element.component)) {
-	          var attributeData = child.getAttribute(element.component);
-	          var data = element.property ? attributeData[element.property] : attributeData;
+	        var childComponentData = child.getAttribute(element.component);
+	        if (childComponentData !== null) {
+	          var data = element.property ? childComponentData[element.property] : childComponentData;
 	          compsData[childKey] = AFRAME.utils.clone(data);
 	        } else {
 	          // NAF.log.write('ComponentHelper.gatherComponentsData: Could not find component ' + element.component + ' on child ', child, child.components);
@@ -2306,24 +2180,31 @@
 
 	    var isRoot = typeof schema === 'string';
 	    if (isRoot) {
-	      var hasComponent = el.components.hasOwnProperty(schema);
-	      if (!hasComponent) {
+	      var rootComponentData = el.getAttribute(schema);
+	      if (rootComponentData === null) {
 	        continue;
 	      }
+
 	      compKey = schema;
-	      newCompData = el.getAttribute(schema);
+	      newCompData = rootComponentData;
 	    } else {
 	      // is child
 	      var selector = schema.selector;
 	      var compName = schema.component;
 	      var propName = schema.property;
+
 	      var childEl = selector ? el.querySelector(selector) : el;
-	      var hasComp = childEl && childEl.components.hasOwnProperty(compName);
-	      if (!hasComp) {
+	      if (!childEl) {
 	        continue;
 	      }
+
+	      var childComponentData = childEl.getAttribute(compName);
+	      if (childComponentData === null) {
+	        continue;
+	      }
+
 	      compKey = NAF.utils.childSchemaToKey(schema);
-	      newCompData = childEl.getAttribute(compName);
+	      newCompData = childComponentData;
 	      if (propName) {
 	        newCompData = newCompData[propName];
 	      }
@@ -2336,7 +2217,10 @@
 	    }
 
 	    var oldCompData = cachedData[compKey];
-	    if (!deepEqual(oldCompData, newCompData)) {
+
+	    if (schema.requiresNetworkUpdate && schema.requiresNetworkUpdate(oldCompData, newCompData)) {
+	      dirtyComps.push(schema);
+	    } else if (!schema.requiresNetworkUpdate && !deepEqual(oldCompData, newCompData)) {
 	      dirtyComps.push(schema);
 	    }
 	  }
@@ -2344,7 +2228,7 @@
 	};
 
 /***/ }),
-/* 19 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2352,8 +2236,8 @@
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	var pSlice = Array.prototype.slice;
-	var objectKeys = __webpack_require__(20);
-	var isArguments = __webpack_require__(21);
+	var objectKeys = __webpack_require__(18);
+	var isArguments = __webpack_require__(19);
 
 	var deepEqual = module.exports = function (actual, expected, opts) {
 	  if (!opts) opts = {};
@@ -2444,7 +2328,7 @@
 	}
 
 /***/ }),
-/* 20 */
+/* 18 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -2460,7 +2344,7 @@
 	}
 
 /***/ }),
-/* 21 */
+/* 19 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -2484,7 +2368,7 @@
 	};
 
 /***/ }),
-/* 22 */
+/* 20 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -2582,13 +2466,249 @@
 	};
 
 /***/ }),
-/* 23 */
+/* 21 */
+/***/ (function(module, exports) {
+
+	"use strict";
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var BUFFERING = 0;
+	var PLAYING = 1;
+
+	var MODE_LERP = 0;
+	var MODE_HERMITE = 1;
+
+	var InterpolationBuffer = function () {
+	  function InterpolationBuffer() {
+	    var mode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : MODE_LERP;
+	    var bufferTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.15;
+
+	    _classCallCheck(this, InterpolationBuffer);
+
+	    this.initialized = false;
+	    this.set = false;
+	    this.state = BUFFERING;
+	    this.buffer = [];
+	    this.bufferTime = bufferTime;
+	    this.time = 0;
+	    this.mark = 0;
+	    this.lastTime = 0.0;
+
+	    this.mode = mode;
+
+	    this.lastPosition = new THREE.Vector3();
+	    this.lastVelocity = new THREE.Vector3();
+	    this.lastQuaternion = new THREE.Quaternion();
+	    this.lastScale = new THREE.Vector3(1, 1, 1);
+
+	    this.position = new THREE.Vector3();
+	    this.quaternion = new THREE.Quaternion();
+	    this.scale = new THREE.Vector3(1, 1, 1);
+	  }
+
+	  _createClass(InterpolationBuffer, [{
+	    key: "hermite",
+	    value: function hermite(target, t, p1, p2, v1, v2) {
+	      var t2 = t * t;
+	      var t3 = t * t * t;
+	      var a = 2 * t3 - 3 * t2 + 1;
+	      var b = -2 * t3 + 3 * t2;
+	      var c = t3 - 2 * t2 + t;
+	      var d = t3 - t2;
+
+	      target.copy(p1.multiplyScalar(a));
+	      target.add(p2.multiplyScalar(b));
+	      target.add(v1.multiplyScalar(c));
+	      target.add(v2.multiplyScalar(d));
+	    }
+	  }, {
+	    key: "lerp",
+	    value: function lerp(target, v1, v2, alpha) {
+	      target.lerpVectors(v1, v2, alpha);
+	    }
+	  }, {
+	    key: "slerp",
+	    value: function slerp(target, r1, r2, alpha) {
+	      THREE.Quaternion.slerp(r1, r2, target, alpha);
+	    }
+	  }, {
+	    key: "appendBuffer",
+	    value: function appendBuffer(position, velocity, quaternion, scale) {
+	      var tail = this.buffer.length - 1;
+
+	      //update the last entry in the buffer if this is the same frame
+	      if (this.buffer.length > 0 && this.buffer[tail].time === this.time) {
+	        if (position) {
+	          this.buffer[tail].position.copy(position);
+	        }
+
+	        if (velocity) {
+	          this.buffer[tail].velocity.copy(velocity);
+	        }
+
+	        if (quaternion) {
+	          this.buffer[tail].quaternion.copy(quaternion);
+	        }
+
+	        if (scale) {
+	          this.buffer[tail].scale.copy(scale);
+	        }
+	      } else {
+	        if (position) {
+	          position = position.clone();
+	        } else {
+	          position = this.buffer.length > 0 ? this.buffer[tail].position.clone() : this.lastPosition.clone();
+	        }
+
+	        if (velocity) {
+	          velocity = velocity.clone();
+	        } else {
+	          velocity = this.buffer.length > 0 ? this.buffer[tail].velocity.clone() : this.lastVelocity.clone();
+	        }
+
+	        if (quaternion) {
+	          quaternion = quaternion.clone();
+	        } else {
+	          quaternion = this.buffer.length > 0 ? this.buffer[tail].quaternion.clone() : this.lastQuaternion.clone();
+	        }
+
+	        if (scale) {
+	          scale = scale.clone();
+	        } else {
+	          scale = this.buffer.length > 0 ? this.buffer[tail].scale.clone() : this.lastScale.clone();
+	        }
+
+	        this.buffer.push({
+	          position: position,
+	          velocity: velocity,
+	          quaternion: quaternion,
+	          scale: scale,
+	          time: this.time
+	        });
+	      }
+	    }
+	  }, {
+	    key: "isSet",
+	    value: function isSet() {
+	      return this.set;
+	    }
+	  }, {
+	    key: "setTarget",
+	    value: function setTarget(position, velocity, quaternion, scale) {
+	      this.appendBuffer(position, velocity, quaternion, scale);
+	    }
+	  }, {
+	    key: "setPosition",
+	    value: function setPosition(position, velocity) {
+	      this.appendBuffer(position, velocity, null, null);
+	    }
+	  }, {
+	    key: "setQuaternion",
+	    value: function setQuaternion(quaternion) {
+	      this.appendBuffer(null, null, quaternion, null);
+	    }
+	  }, {
+	    key: "setScale",
+	    value: function setScale(scale) {
+	      this.appendBuffer(null, null, null, scale);
+	    }
+	  }, {
+	    key: "update",
+	    value: function update(delta) {
+	      if (this.state === BUFFERING) {
+	        if (this.buffer.length > 0 && !this.initialized) {
+	          this.lastPosition.copy(this.buffer[0].position);
+	          this.lastVelocity.copy(this.buffer[0].velocity);
+	          this.lastQuaternion.copy(this.buffer[0].quaternion);
+	          this.lastScale.copy(this.buffer[0].scale);
+	          this.lastTime = this.buffer[0].time;
+	          this.initialized = true;
+	          this.buffer.shift();
+
+	          this.position.copy(this.lastPosition);
+	          this.quaternion.copy(this.lastQuaternion);
+	          this.scale.copy(this.lastScale);
+	        }
+
+	        if (this.buffer.length > 0 && this.initialized && this.time > this.bufferTime) {
+	          this.mark = this.time - this.bufferTime * 1000;
+	          this.state = PLAYING;
+	        }
+	      } else if (this.state == PLAYING) {
+	        //Purge this.buffer of expired frames
+	        while (this.buffer.length > 0 && this.mark > this.buffer[0].time) {
+	          this.lastPosition.copy(this.buffer[0].position);
+	          this.lastVelocity.copy(this.buffer[0].velocity);
+	          this.lastQuaternion.copy(this.buffer[0].quaternion);
+	          this.lastScale.copy(this.buffer[0].scale);
+	          this.lastTime = this.buffer[0].time;
+
+	          //if this is the last frame in the buffer, just update the time and reuse it
+	          if (this.buffer.length > 1) {
+	            this.buffer.shift();
+	          } else {
+	            this.buffer[0].time = this.time + delta;
+	          }
+	        }
+	        if (this.buffer.length > 0 && this.buffer[0].time > 0) {
+	          var delta_time = this.buffer[0].time - this.lastTime;
+	          var alpha = (this.mark - this.lastTime) / delta_time;
+
+	          if (this.mode === MODE_LERP) {
+	            this.lerp(this.position, this.lastPosition, this.buffer[0].position, alpha);
+	          } else if (this.mode === MODE_HERMITE) {
+	            this.hermite(this.position, alpha, this.lastPosition, this.buffer[0].position, this.lastVelocity.multiplyScalar(delta_time), this.buffer[0].velocity.multiplyScalar(delta_time));
+	          }
+
+	          this.slerp(this.quaternion, this.lastQuaternion, this.buffer[0].quaternion, alpha);
+
+	          this.lerp(this.scale, this.lastScale, this.buffer[0].scale, alpha);
+
+	          this.set = true;
+	        }
+
+	        this.mark += delta;
+	      }
+
+	      if (this.initialized) {
+	        this.time += delta;
+	      }
+	    }
+	  }, {
+	    key: "getPosition",
+	    value: function getPosition() {
+	      return this.position;
+	    }
+	  }, {
+	    key: "getQuaternion",
+	    value: function getQuaternion() {
+	      return this.quaternion;
+	    }
+	  }, {
+	    key: "getScale",
+	    value: function getScale() {
+	      return this.scale;
+	    }
+	  }]);
+
+	  return InterpolationBuffer;
+	}();
+
+	if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
+	  module.exports = InterpolationBuffer;
+	}
+
+/***/ }),
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	/* global AFRAME, NAF, THREE */
-	var naf = __webpack_require__(3);
+	var naf = __webpack_require__(1);
 
 	AFRAME.registerComponent('networked-audio-source', {
 	  schema: {
@@ -2637,13 +2757,19 @@
 	      }
 	      if (newStream) {
 	        // Chrome seems to require a MediaStream be attached to an AudioElement before AudioNodes work correctly
-	        this.audioEl = new Audio();
-	        this.audioEl.setAttribute("autoplay", "autoplay");
-	        this.audioEl.setAttribute("playsinline", "playsinline");
-	        this.audioEl.srcObject = newStream;
-	        this.audioEl.volume = 0; // we don't actually want to hear audio from this element
+	        // We don't want to do this in other browsers, particularly in Safari, which actually plays the audio despite
+	        // setting the volume to 0.
+	        if (/chrome/i.test(navigator.userAgent)) {
+	          this.audioEl = new Audio();
+	          this.audioEl.setAttribute("autoplay", "autoplay");
+	          this.audioEl.setAttribute("playsinline", "playsinline");
+	          this.audioEl.srcObject = newStream;
+	          this.audioEl.volume = 0; // we don't actually want to hear audio from this element
+	        }
 
-	        this.sound.setNodeSource(this.sound.context.createMediaStreamSource(newStream));
+	        var soundSource = this.sound.context.createMediaStreamSource(newStream);
+	        this.sound.setNodeSource(soundSource);
+	        this.el.emit('sound-source-set', { soundSource: soundSource });
 	      }
 	      this.stream = newStream;
 	    }

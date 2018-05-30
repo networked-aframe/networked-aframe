@@ -1,4 +1,4 @@
-/* global AFRAME, NAF */
+/* global AFRAME, NAF, THREE */
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 var InterpolationBuffer = require('buffered-interpolation');
@@ -117,6 +117,10 @@ AFRAME.registerComponent('networked', {
       this.el.setAttribute(this.name, {owner: NAF.clientId});
       setTimeout(() => {
         //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
+        if (!this.el.parentNode){
+          NAF.log.warn("Networked element was removed before ever getting the chance to syncAll");
+          return;
+        }
         this.syncAll();
       }, 0);
     }
@@ -152,6 +156,11 @@ AFRAME.registerComponent('networked', {
 
   tick: function(time, dt) {
     if (this.isMine() && this.needsToSync()) {
+      if (!this.el.parentElement){
+        NAF.log.error("tick called on an entity that seems to have been removed");
+        //TODO: Find out why tick is still being called
+        return;
+      }
       this.syncDirty();
     }
 
@@ -292,6 +301,7 @@ AFRAME.registerComponent('networked', {
 
   updateComponents: function(components) {
     var el = this.el;
+    var syncedComponents = NAF.schemas.getComponents(this.data.template);
 
     for (var key in components) {
       if (this.isSyncableComponent(key)) {
@@ -372,7 +382,12 @@ AFRAME.registerComponent('networked', {
   remove: function () {
     if (this.isMine() && NAF.connection.isConnected()) {
       var syncData = { networkId: this.data.networkId };
-      NAF.connection.broadcastDataGuaranteed('r', syncData);
+      if (NAF.entities.hasEntity(this.data.networkId)) {
+        NAF.connection.broadcastDataGuaranteed('r', syncData);
+        NAF.entities.forgetEntity(this.data.networkId);
+      } else {
+        NAF.log.error("Removing networked entity that is not in entities array.");
+      }
     }
     document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
   },
