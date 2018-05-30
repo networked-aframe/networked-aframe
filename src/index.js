@@ -1,6 +1,3 @@
-// Dependencies
-require('aframe-lerp-component');
-
 // Global vars and functions
 require('./NafIndex.js');
 

@@ -1,7 +1,8 @@
 /* global AFRAME, NAF */
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
-var bind = AFRAME.utils.bind;
+var InterpolationBuffer = require('buffered-interpolation');
+var DEG2RAD = THREE.Math.DEG2RAD;
 
 AFRAME.registerComponent('networked', {
   schema: {
@@ -17,12 +18,16 @@ AFRAME.registerComponent('networked', {
     this.OWNERSHIP_CHANGED = 'ownership-changed';
     this.OWNERSHIP_LOST = 'ownership-lost';
 
+    this.conversionEuler = new THREE.Euler();
+    this.conversionEuler.order = "YXZ";
+    this.interpolationBuffers = [];
+
     var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
-    this.onConnected = bind(this.onConnected, this);
-    this.onSyncAll = bind(this.onSyncAll, this);
-    this.syncDirty = bind(this.syncDirty, this);
-    this.networkUpdateHandler = bind(this.networkUpdateHandler, this);
+    this.onConnected = this.onConnected.bind(this);
+    this.onSyncAll = this.onSyncAll.bind(this);
+    this.syncDirty = this.syncDirty.bind(this);
+    this.networkUpdateHandler = this.networkUpdateHandler.bind(this);
 
     this.cachedData = {};
     this.initNetworkParent();
@@ -33,7 +38,6 @@ AFRAME.registerComponent('networked', {
 
     if (wasCreatedByNetwork) {
       this.firstUpdate();
-      this.attachLerp();
     } else {
       if (this.data.attachTemplateToLocal) {
         this.attachTemplateToLocal();
@@ -98,18 +102,6 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  attachLerp: function() {
-    if (NAF.options.useLerp) {
-      this.el.setAttribute('lerp', '');
-    }
-  },
-
-  removeLerp: function() {
-    if (NAF.options.useLerp) {
-      this.el.removeAttribute('lerp');
-    }
-  },
-
   registerEntity: function(networkId) {
     NAF.entities.registerEntity(networkId, this.el);
   },
@@ -158,9 +150,20 @@ AFRAME.registerComponent('networked', {
     el.removeEventListener('networkUpdate', this.networkUpdateHandler);
   },
 
-  tick: function() {
+  tick: function(time, dt) {
     if (this.isMine() && this.needsToSync()) {
       this.syncDirty();
+    }
+
+    if(NAF.options.useLerp && !this.isMine()) {
+      for (var i = 0; i < this.interpolationBuffers.length; i++) {
+        var interpolationBuffer = this.interpolationBuffers[i].buffer;
+        var el = this.interpolationBuffers[i].el;
+        interpolationBuffer.update(dt);
+        el.object3D.position.copy(interpolationBuffer.getPosition());
+        el.object3D.quaternion.copy(interpolationBuffer.getQuaternion());
+        el.object3D.scale.copy(interpolationBuffer.getScale());
+      }
     }
   },
 
@@ -274,7 +277,6 @@ AFRAME.registerComponent('networked', {
     if (this.data.owner !== entityData.owner) {
       var wasMine = this.isMine();
       this.lastOwnerTime = entityData.lastOwnerTime;
-      this.attachLerp();
 
       const oldOwner = this.data.owner;
       const newOwner = entityData.owner;
@@ -300,16 +302,51 @@ AFRAME.registerComponent('networked', {
           if (childEl) { // Is false when first called in init
             if (schema.property) {
               childEl.setAttribute(schema.component, schema.property, data);
-            }
-            else {
-              childEl.setAttribute(schema.component, data);
+            } else {
+              this.updateComponent(childEl, schema.component, data);
             }
           }
         } else {
-          el.setAttribute(key, data);
+          this.updateComponent(el, key, data);
         }
       }
     }
+  },
+
+  updateComponent: function (el, key, data) {
+    if(!NAF.options.useLerp) {
+      el.setAttribute(key, data);
+      return;
+    }
+
+    var buffer = null;
+    var interpolationBuffer = this.interpolationBuffers.find((item) => item.el === el);
+    if (!interpolationBuffer) {
+      buffer = new InterpolationBuffer();
+      this.interpolationBuffers.push({ buffer: buffer, el: el });
+    } else {
+      buffer = this.interpolationBuffers.find((item) => item.el === el).buffer;
+    }
+
+    switch(key) {
+      case "position":
+        buffer.setPosition(new THREE.Vector3(data.x, data.y, data.z));
+        break;
+      case "rotation":
+        this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
+        buffer.setQuaternion(new THREE.Quaternion().setFromEuler(this.conversionEuler));
+        break;
+      case "scale":
+        buffer.setScale(new THREE.Vector3(data.x, data.y, data.z));
+        break;
+      default:
+        el.setAttribute(key, data);
+        break;
+    }
+  },
+
+  removeLerp: function() {
+    this.interpolationBuffers = [];
   },
 
   isSyncableComponent: function(key) {
