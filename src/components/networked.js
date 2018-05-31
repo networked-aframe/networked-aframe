@@ -21,6 +21,9 @@ AFRAME.registerComponent('networked', {
     this.conversionEuler = new THREE.Euler();
     this.conversionEuler.order = "YXZ";
     this.interpolationBuffers = [];
+    this.bufferPosition = new THREE.Vector3();
+    this.bufferQuaternion = new THREE.Quaternion();
+    this.bufferScale = new THREE.Vector3();
 
     var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
@@ -340,14 +343,14 @@ AFRAME.registerComponent('networked', {
 
     switch(key) {
       case "position":
-        buffer.setPosition(new THREE.Vector3(data.x, data.y, data.z));
+        buffer.setPosition(this.bufferPosition.set(data.x, data.y, data.z));
         break;
       case "rotation":
         this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
-        buffer.setQuaternion(new THREE.Quaternion().setFromEuler(this.conversionEuler));
+        buffer.setQuaternion(this.bufferQuaternion.setFromEuler(this.conversionEuler));
         break;
       case "scale":
-        buffer.setScale(new THREE.Vector3(data.x, data.y, data.z));
+        buffer.setScale(this.bufferScale.set(data.x, data.y, data.z));
         break;
       default:
         el.setAttribute(key, data);
