@@ -325,7 +325,7 @@ AFRAME.registerComponent('networked', {
     var buffer = null;
     var interpolationBuffer = this.interpolationBuffers.find((item) => item.el === el);
     if (!interpolationBuffer) {
-      buffer = new InterpolationBuffer();
+      buffer = new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1);
       this.interpolationBuffers.push({ buffer: buffer, el: el });
     } else {
       buffer = this.interpolationBuffers.find((item) => item.el === el).buffer;
