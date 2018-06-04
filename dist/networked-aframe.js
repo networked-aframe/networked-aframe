@@ -52,7 +52,7 @@
 	// Network components
 	__webpack_require__(14);
 	__webpack_require__(15);
-	__webpack_require__(22);
+	__webpack_require__(24);
 
 /***/ }),
 /* 1 */
@@ -1747,6 +1747,9 @@
 	    this.conversionEuler = new THREE.Euler();
 	    this.conversionEuler.order = "YXZ";
 	    this.interpolationBuffers = [];
+	    this.bufferPosition = new THREE.Vector3();
+	    this.bufferQuaternion = new THREE.Quaternion();
+	    this.bufferScale = new THREE.Vector3();
 
 	    var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
@@ -2063,7 +2066,7 @@
 	      return item.el === el;
 	    });
 	    if (!interpolationBuffer) {
-	      buffer = new InterpolationBuffer();
+	      buffer = new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1);
 	      this.interpolationBuffers.push({ buffer: buffer, el: el });
 	    } else {
 	      buffer = this.interpolationBuffers.find(function (item) {
@@ -2073,14 +2076,14 @@
 
 	    switch (key) {
 	      case "position":
-	        buffer.setPosition(new THREE.Vector3(data.x, data.y, data.z));
+	        buffer.setPosition(this.bufferPosition.set(data.x, data.y, data.z));
 	        break;
 	      case "rotation":
 	        this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
-	        buffer.setQuaternion(new THREE.Quaternion().setFromEuler(this.conversionEuler));
+	        buffer.setQuaternion(this.bufferQuaternion.setFromEuler(this.conversionEuler));
 	        break;
 	      case "scale":
-	        buffer.setScale(new THREE.Vector3(data.x, data.y, data.z));
+	        buffer.setScale(this.bufferScale.set(data.x, data.y, data.z));
 	        break;
 	      default:
 	        el.setAttribute(key, data);
@@ -2467,242 +2470,457 @@
 
 /***/ }),
 /* 21 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-	"use strict";
+	var require;var __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
 
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	// modules are defined as an array
+	// [ module function, map of requires ]
+	//
+	// map of requires is short require name -> numeric require
+	//
+	// anything defined in a previous bundle is accessed via the
+	// orig method which is the require for previous bundles
 
-	var BUFFERING = 0;
-	var PLAYING = 1;
+	// eslint-disable-next-line no-global-assign
+	parcelRequire = function (modules, cache, entry, globalName) {
+	  // Save the require from previous bundle to this closure if any
+	  var previousRequire = typeof parcelRequire === 'function' && parcelRequire;
+	  var nodeRequire = typeof require === 'function' && require;
 
-	var MODE_LERP = 0;
-	var MODE_HERMITE = 1;
+	  function newRequire(name, jumped) {
+	    if (!cache[name]) {
+	      if (!modules[name]) {
+	        // if we cannot find the module within our internal map or
+	        // cache jump to the current global require ie. the last bundle
+	        // that was added to the page.
+	        var currentRequire = typeof parcelRequire === 'function' && parcelRequire;
+	        if (!jumped && currentRequire) {
+	          return currentRequire(name, true);
+	        }
 
-	var InterpolationBuffer = function () {
-	  function InterpolationBuffer() {
-	    var mode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : MODE_LERP;
-	    var bufferTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.15;
+	        // If there are other bundles on this page the require from the
+	        // previous one is saved to 'previousRequire'. Repeat this as
+	        // many times as there are bundles until the module is found or
+	        // we exhaust the require chain.
+	        if (previousRequire) {
+	          return previousRequire(name, true);
+	        }
 
-	    _classCallCheck(this, InterpolationBuffer);
+	        // Try the node require function if it exists.
+	        if (__webpack_require__(22) && typeof name === 'string') {
+	          return __webpack_require__(22)(name);
+	        }
 
-	    this.initialized = false;
-	    this.set = false;
-	    this.state = BUFFERING;
-	    this.buffer = [];
-	    this.bufferTime = bufferTime;
-	    this.time = 0;
-	    this.mark = 0;
-	    this.lastTime = 0.0;
+	        var err = new Error('Cannot find module \'' + name + '\'');
+	        err.code = 'MODULE_NOT_FOUND';
+	        throw err;
+	      }
 
-	    this.mode = mode;
+	      localRequire.resolve = resolve;
 
-	    this.lastPosition = new THREE.Vector3();
-	    this.lastVelocity = new THREE.Vector3();
-	    this.lastQuaternion = new THREE.Quaternion();
-	    this.lastScale = new THREE.Vector3(1, 1, 1);
+	      var module = cache[name] = new newRequire.Module(name);
 
-	    this.position = new THREE.Vector3();
-	    this.quaternion = new THREE.Quaternion();
-	    this.scale = new THREE.Vector3(1, 1, 1);
+	      modules[name][0].call(module.exports, localRequire, module, module.exports, this);
+	    }
+
+	    return cache[name].exports;
+
+	    function localRequire(x) {
+	      return newRequire(localRequire.resolve(x));
+	    }
+
+	    function resolve(x) {
+	      return modules[name][1][x] || x;
+	    }
 	  }
 
-	  _createClass(InterpolationBuffer, [{
-	    key: "hermite",
-	    value: function hermite(target, t, p1, p2, v1, v2) {
-	      var t2 = t * t;
-	      var t3 = t * t * t;
-	      var a = 2 * t3 - 3 * t2 + 1;
-	      var b = -2 * t3 + 3 * t2;
-	      var c = t3 - 2 * t2 + t;
-	      var d = t3 - t2;
+	  function Module(moduleName) {
+	    this.id = moduleName;
+	    this.bundle = newRequire;
+	    this.exports = {};
+	  }
 
-	      target.copy(p1.multiplyScalar(a));
-	      target.add(p2.multiplyScalar(b));
-	      target.add(v1.multiplyScalar(c));
-	      target.add(v2.multiplyScalar(d));
+	  newRequire.isParcelRequire = true;
+	  newRequire.Module = Module;
+	  newRequire.modules = modules;
+	  newRequire.cache = cache;
+	  newRequire.parent = previousRequire;
+
+	  for (var i = 0; i < entry.length; i++) {
+	    newRequire(entry[i]);
+	  }
+
+	  if (entry.length) {
+	    // Expose entry point to Node, AMD or browser globals
+	    // Based on https://github.com/ForbesLindesay/umd/blob/master/template.js
+	    var mainExports = newRequire(entry[entry.length - 1]);
+
+	    // CommonJS
+	    if (( false ? 'undefined' : _typeof(exports)) === "object" && typeof module !== "undefined") {
+	      module.exports = mainExports;
+
+	      // RequireJS
+	    } else if (true) {
+	      !(__WEBPACK_AMD_DEFINE_RESULT__ = function () {
+	        return mainExports;
+	      }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+
+	      // <script>
+	    } else if (globalName) {
+	      this[globalName] = mainExports;
 	    }
-	  }, {
-	    key: "lerp",
-	    value: function lerp(target, v1, v2, alpha) {
-	      target.lerpVectors(v1, v2, alpha);
-	    }
-	  }, {
-	    key: "slerp",
-	    value: function slerp(target, r1, r2, alpha) {
-	      THREE.Quaternion.slerp(r1, r2, target, alpha);
-	    }
-	  }, {
-	    key: "appendBuffer",
-	    value: function appendBuffer(position, velocity, quaternion, scale) {
-	      var tail = this.buffer.length - 1;
+	  }
 
-	      //update the last entry in the buffer if this is the same frame
-	      if (this.buffer.length > 0 && this.buffer[tail].time === this.time) {
-	        if (position) {
-	          this.buffer[tail].position.copy(position);
+	  // Override the current require with this new one
+	  return newRequire;
+	}({ 1: [function (require, module, exports) {
+	    var _createClass = function () {
+	      function defineProperties(target, props) {
+	        for (var i = 0; i < props.length; i++) {
+	          var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
 	        }
+	      }return function (Constructor, protoProps, staticProps) {
+	        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	      };
+	    }();
 
-	        if (velocity) {
-	          this.buffer[tail].velocity.copy(velocity);
-	        }
-
-	        if (quaternion) {
-	          this.buffer[tail].quaternion.copy(quaternion);
-	        }
-
-	        if (scale) {
-	          this.buffer[tail].scale.copy(scale);
-	        }
-	      } else {
-	        if (position) {
-	          position = position.clone();
-	        } else {
-	          position = this.buffer.length > 0 ? this.buffer[tail].position.clone() : this.lastPosition.clone();
-	        }
-
-	        if (velocity) {
-	          velocity = velocity.clone();
-	        } else {
-	          velocity = this.buffer.length > 0 ? this.buffer[tail].velocity.clone() : this.lastVelocity.clone();
-	        }
-
-	        if (quaternion) {
-	          quaternion = quaternion.clone();
-	        } else {
-	          quaternion = this.buffer.length > 0 ? this.buffer[tail].quaternion.clone() : this.lastQuaternion.clone();
-	        }
-
-	        if (scale) {
-	          scale = scale.clone();
-	        } else {
-	          scale = this.buffer.length > 0 ? this.buffer[tail].scale.clone() : this.lastScale.clone();
-	        }
-
-	        this.buffer.push({
-	          position: position,
-	          velocity: velocity,
-	          quaternion: quaternion,
-	          scale: scale,
-	          time: this.time
-	        });
+	    function _classCallCheck(instance, Constructor) {
+	      if (!(instance instanceof Constructor)) {
+	        throw new TypeError("Cannot call a class as a function");
 	      }
 	    }
-	  }, {
-	    key: "isSet",
-	    value: function isSet() {
-	      return this.set;
-	    }
-	  }, {
-	    key: "setTarget",
-	    value: function setTarget(position, velocity, quaternion, scale) {
-	      this.appendBuffer(position, velocity, quaternion, scale);
-	    }
-	  }, {
-	    key: "setPosition",
-	    value: function setPosition(position, velocity) {
-	      this.appendBuffer(position, velocity, null, null);
-	    }
-	  }, {
-	    key: "setQuaternion",
-	    value: function setQuaternion(quaternion) {
-	      this.appendBuffer(null, null, quaternion, null);
-	    }
-	  }, {
-	    key: "setScale",
-	    value: function setScale(scale) {
-	      this.appendBuffer(null, null, null, scale);
-	    }
-	  }, {
-	    key: "update",
-	    value: function update(delta) {
-	      if (this.state === BUFFERING) {
-	        if (this.buffer.length > 0 && !this.initialized) {
-	          this.lastPosition.copy(this.buffer[0].position);
-	          this.lastVelocity.copy(this.buffer[0].velocity);
-	          this.lastQuaternion.copy(this.buffer[0].quaternion);
-	          this.lastScale.copy(this.buffer[0].scale);
-	          this.lastTime = this.buffer[0].time;
-	          this.initialized = true;
-	          this.buffer.shift();
 
-	          this.position.copy(this.lastPosition);
-	          this.quaternion.copy(this.lastQuaternion);
-	          this.scale.copy(this.lastScale);
+	    var BUFFERING = 0;
+	    var PLAYING = 1;
+
+	    var MODE_LERP = 0;
+	    var MODE_HERMITE = 1;
+
+	    var InterpolationBuffer = function () {
+	      function InterpolationBuffer() {
+	        var mode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : MODE_LERP;
+	        var bufferTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.15;
+
+	        _classCallCheck(this, InterpolationBuffer);
+
+	        this.initialized = false;
+	        this.state = BUFFERING;
+	        this.buffer = [];
+	        this.bufferTime = bufferTime * 1000;
+	        this.time = 0;
+	        this.mode = mode;
+
+	        this.lastBufferFrame = {
+	          position: new THREE.Vector3(),
+	          velocity: new THREE.Vector3(),
+	          quaternion: new THREE.Quaternion(),
+	          scale: new THREE.Vector3(1, 1, 1)
+	        };
+
+	        this.position = new THREE.Vector3();
+	        this.quaternion = new THREE.Quaternion();
+	        this.scale = new THREE.Vector3(1, 1, 1);
+	      }
+
+	      _createClass(InterpolationBuffer, [{
+	        key: "hermite",
+	        value: function hermite(target, t, p1, p2, v1, v2) {
+	          var t2 = t * t;
+	          var t3 = t * t * t;
+	          var a = 2 * t3 - 3 * t2 + 1;
+	          var b = -2 * t3 + 3 * t2;
+	          var c = t3 - 2 * t2 + t;
+	          var d = t3 - t2;
+
+	          target.copy(p1.multiplyScalar(a));
+	          target.add(p2.multiplyScalar(b));
+	          target.add(v1.multiplyScalar(c));
+	          target.add(v2.multiplyScalar(d));
 	        }
-
-	        if (this.buffer.length > 0 && this.initialized && this.time > this.bufferTime) {
-	          this.mark = this.time - this.bufferTime * 1000;
-	          this.state = PLAYING;
+	      }, {
+	        key: "lerp",
+	        value: function lerp(target, v1, v2, alpha) {
+	          target.lerpVectors(v1, v2, alpha);
 	        }
-	      } else if (this.state == PLAYING) {
-	        //Purge this.buffer of expired frames
-	        while (this.buffer.length > 0 && this.mark > this.buffer[0].time) {
-	          this.lastPosition.copy(this.buffer[0].position);
-	          this.lastVelocity.copy(this.buffer[0].velocity);
-	          this.lastQuaternion.copy(this.buffer[0].quaternion);
-	          this.lastScale.copy(this.buffer[0].scale);
-	          this.lastTime = this.buffer[0].time;
+	      }, {
+	        key: "slerp",
+	        value: function slerp(target, r1, r2, alpha) {
+	          THREE.Quaternion.slerp(r1, r2, target, alpha);
+	        }
+	      }, {
+	        key: "appendBuffer",
+	        value: function appendBuffer(position, velocity, quaternion, scale) {
+	          var tail = this.buffer.length - 1;
 
-	          //if this is the last frame in the buffer, just update the time and reuse it
-	          if (this.buffer.length > 1) {
-	            this.buffer.shift();
+	          //update the last entry in the buffer if this is the same frame
+	          if (this.buffer.length > 0 && this.buffer[tail].time === this.time) {
+	            if (position) {
+	              this.buffer[tail].position.copy(position);
+	            }
+
+	            if (velocity) {
+	              this.buffer[tail].velocity.copy(velocity);
+	            }
+
+	            if (quaternion) {
+	              this.buffer[tail].quaternion.copy(quaternion);
+	            }
+
+	            if (scale) {
+	              this.buffer[tail].scale.copy(scale);
+	            }
 	          } else {
-	            this.buffer[0].time = this.time + delta;
+	            if (position) {
+	              position = position.clone();
+	            } else {
+	              position = this.buffer.length > 0 ? this.buffer[tail].position.clone() : this.lastBufferFrame.position.clone();
+	            }
+
+	            if (velocity) {
+	              velocity = velocity.clone();
+	            } else {
+	              velocity = this.buffer.length > 0 ? this.buffer[tail].velocity.clone() : this.lastBufferFrame.velocity.clone();
+	            }
+
+	            if (quaternion) {
+	              quaternion = quaternion.clone();
+	            } else {
+	              quaternion = this.buffer.length > 0 ? this.buffer[tail].quaternion.clone() : this.lastBufferFrame.quaternion.clone();
+	            }
+
+	            if (scale) {
+	              scale = scale.clone();
+	            } else {
+	              scale = this.buffer.length > 0 ? this.buffer[tail].scale.clone() : this.lastBufferFrame.scale.clone();
+	            }
+
+	            this.buffer.push({
+	              position: position,
+	              velocity: velocity,
+	              quaternion: quaternion,
+	              scale: scale,
+	              time: this.time
+	            });
 	          }
 	        }
-	        if (this.buffer.length > 0 && this.buffer[0].time > 0) {
-	          var delta_time = this.buffer[0].time - this.lastTime;
-	          var alpha = (this.mark - this.lastTime) / delta_time;
+	      }, {
+	        key: "setTarget",
+	        value: function setTarget(position, velocity, quaternion, scale) {
+	          this.appendBuffer(position, velocity, quaternion, scale);
+	        }
+	      }, {
+	        key: "setPosition",
+	        value: function setPosition(position, velocity) {
+	          this.appendBuffer(position, velocity, null, null);
+	        }
+	      }, {
+	        key: "setQuaternion",
+	        value: function setQuaternion(quaternion) {
+	          this.appendBuffer(null, null, quaternion, null);
+	        }
+	      }, {
+	        key: "setScale",
+	        value: function setScale(scale) {
+	          this.appendBuffer(null, null, null, scale);
+	        }
+	      }, {
+	        key: "update",
+	        value: function update(delta) {
+	          if (this.state === BUFFERING) {
+	            if (this.buffer.length > 0 && !this.initialized) {
+	              this.lastBufferFrame = this.buffer.shift();
+	              this.initialized = true;
 
-	          if (this.mode === MODE_LERP) {
-	            this.lerp(this.position, this.lastPosition, this.buffer[0].position, alpha);
-	          } else if (this.mode === MODE_HERMITE) {
-	            this.hermite(this.position, alpha, this.lastPosition, this.buffer[0].position, this.lastVelocity.multiplyScalar(delta_time), this.buffer[0].velocity.multiplyScalar(delta_time));
+	              this.position.copy(this.lastBufferFrame.position);
+	              this.quaternion.copy(this.lastBufferFrame.quaternion);
+	              this.scale.copy(this.lastBufferFrame.scale);
+	            }
+
+	            if (this.buffer.length > 0 && this.initialized && this.time > this.bufferTime) {
+	              this.state = PLAYING;
+	            }
 	          }
 
-	          this.slerp(this.quaternion, this.lastQuaternion, this.buffer[0].quaternion, alpha);
+	          if (this.state == PLAYING) {
+	            var mark = this.time - this.bufferTime;
+	            //Purge this.buffer of expired frames
+	            while (this.buffer.length > 0 && mark > this.buffer[0].time) {
+	              //if this is the last frame in the buffer, just update the time and reuse it
+	              if (this.buffer.length > 1) {
+	                this.lastBufferFrame = this.buffer.shift();
+	              } else {
+	                this.lastBufferFrame.position.copy(this.buffer[0].position);
+	                this.lastBufferFrame.velocity.copy(this.buffer[0].velocity);
+	                this.lastBufferFrame.quaternion.copy(this.buffer[0].quaternion);
+	                this.lastBufferFrame.scale.copy(this.buffer[0].scale);
+	                this.lastBufferFrame.time = this.buffer[0].time;
+	                this.buffer[0].time = this.time + delta;
+	              }
+	            }
+	            if (this.buffer.length > 0 && this.buffer[0].time > 0) {
+	              var currentBufferFrame = this.buffer[0];
+	              var delta_time = currentBufferFrame.time - this.lastBufferFrame.time;
+	              var alpha = (mark - this.lastBufferFrame.time) / delta_time;
 
-	          this.lerp(this.scale, this.lastScale, this.buffer[0].scale, alpha);
+	              if (this.mode === MODE_LERP) {
+	                this.lerp(this.position, this.lastBufferFrame.position, currentBufferFrame.position, alpha);
+	              } else if (this.mode === MODE_HERMITE) {
+	                this.hermite(this.position, alpha, this.lastBufferFrame.position, currentBufferFrame.position, this.lastBufferFrame.velocity.multiplyScalar(delta_time), currentBufferFrame.velocity.multiplyScalar(delta_time));
+	              }
 
-	          this.set = true;
+	              this.slerp(this.quaternion, this.lastBufferFrame.quaternion, currentBufferFrame.quaternion, alpha);
+
+	              this.lerp(this.scale, this.lastBufferFrame.scale, currentBufferFrame.scale, alpha);
+	            }
+	          }
+
+	          if (this.initialized) {
+	            this.time += delta;
+	          }
 	        }
+	      }, {
+	        key: "getPosition",
+	        value: function getPosition() {
+	          return this.position;
+	        }
+	      }, {
+	        key: "getQuaternion",
+	        value: function getQuaternion() {
+	          return this.quaternion;
+	        }
+	      }, {
+	        key: "getScale",
+	        value: function getScale() {
+	          return this.scale;
+	        }
+	      }]);
 
-	        this.mark += delta;
-	      }
+	      return InterpolationBuffer;
+	    }();
 
-	      if (this.initialized) {
-	        this.time += delta;
-	      }
+	    if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
+	      module.exports = InterpolationBuffer;
 	    }
-	  }, {
-	    key: "getPosition",
-	    value: function getPosition() {
-	      return this.position;
-	    }
-	  }, {
-	    key: "getQuaternion",
-	    value: function getQuaternion() {
-	      return this.quaternion;
-	    }
-	  }, {
-	    key: "getScale",
-	    value: function getScale() {
-	      return this.scale;
-	    }
-	  }]);
-
-	  return InterpolationBuffer;
-	}();
-
-	if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
-	  module.exports = InterpolationBuffer;
-	}
+	  }, {}] }, {}, [1], null);
 
 /***/ }),
 /* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var map = {
+		"./buffered-interpolation": 21,
+		"./buffered-interpolation.js": 21,
+		"./buffered-interpolation.min": 23,
+		"./buffered-interpolation.min.js": 23
+	};
+	function webpackContext(req) {
+		return __webpack_require__(webpackContextResolve(req));
+	};
+	function webpackContextResolve(req) {
+		return map[req] || (function() { throw new Error("Cannot find module '" + req + "'.") }());
+	};
+	webpackContext.keys = function webpackContextKeys() {
+		return Object.keys(map);
+	};
+	webpackContext.resolve = webpackContextResolve;
+	module.exports = webpackContext;
+	webpackContext.id = 22;
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var require;var __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	parcelRequire = function (e, r, n, t) {
+	  function i(n, t) {
+	    function o(e) {
+	      return i(o.resolve(e));
+	    }function c(r) {
+	      return e[n][1][r] || r;
+	    }if (!r[n]) {
+	      if (!e[n]) {
+	        var l = "function" == typeof parcelRequire && parcelRequire;if (!t && l) return l(n, !0);if (u) return u(n, !0);if (f && "string" == typeof n) return f(n);var p = new Error("Cannot find module '" + n + "'");throw p.code = "MODULE_NOT_FOUND", p;
+	      }o.resolve = c;var a = r[n] = new i.Module(n);e[n][0].call(a.exports, o, a, a.exports, this);
+	    }return r[n].exports;
+	  }function o(e) {
+	    this.id = e, this.bundle = i, this.exports = {};
+	  }var u = "function" == typeof parcelRequire && parcelRequire,
+	      f = "function" == typeof require && require;i.isParcelRequire = !0, i.Module = o, i.modules = e, i.cache = r, i.parent = u;for (var c = 0; c < n.length; c++) {
+	    i(n[c]);
+	  }if (n.length) {
+	    var l = i(n[n.length - 1]);"object" == ( false ? "undefined" : _typeof(exports)) && "undefined" != typeof module ? module.exports = l :  true ? !(__WEBPACK_AMD_DEFINE_RESULT__ = function () {
+	      return l;
+	    }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : t && (this[t] = l);
+	  }return i;
+	}({ 1: [function (require, module, exports) {
+	    var e = function () {
+	      function e(e, t) {
+	        for (var i = 0; i < t.length; i++) {
+	          var s = t[i];s.enumerable = s.enumerable || !1, s.configurable = !0, "value" in s && (s.writable = !0), Object.defineProperty(e, s.key, s);
+	        }
+	      }return function (t, i, s) {
+	        return i && e(t.prototype, i), s && e(t, s), t;
+	      };
+	    }();function t(e, t) {
+	      if (!(e instanceof t)) throw new TypeError("Cannot call a class as a function");
+	    }var i = 0,
+	        s = 1,
+	        n = 0,
+	        r = 1,
+	        f = function () {
+	      function f() {
+	        var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : n,
+	            s = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : .15;t(this, f), this.initialized = !1, this.state = i, this.buffer = [], this.bufferTime = 1e3 * s, this.time = 0, this.mode = e, this.lastBufferFrame = { position: new THREE.Vector3(), velocity: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: new THREE.Vector3(1, 1, 1) }, this.position = new THREE.Vector3(), this.quaternion = new THREE.Quaternion(), this.scale = new THREE.Vector3(1, 1, 1);
+	      }return e(f, [{ key: "hermite", value: function value(e, t, i, s, n, r) {
+	          var f = t * t,
+	              a = t * t * t,
+	              u = 2 * a - 3 * f + 1,
+	              l = -2 * a + 3 * f,
+	              o = a - 2 * f + t,
+	              h = a - f;e.copy(i.multiplyScalar(u)), e.add(s.multiplyScalar(l)), e.add(n.multiplyScalar(o)), e.add(r.multiplyScalar(h));
+	        } }, { key: "lerp", value: function value(e, t, i, s) {
+	          e.lerpVectors(t, i, s);
+	        } }, { key: "slerp", value: function value(e, t, i, s) {
+	          THREE.Quaternion.slerp(t, i, e, s);
+	        } }, { key: "appendBuffer", value: function value(e, t, i, s) {
+	          var n = this.buffer.length - 1;this.buffer.length > 0 && this.buffer[n].time === this.time ? (e && this.buffer[n].position.copy(e), t && this.buffer[n].velocity.copy(t), i && this.buffer[n].quaternion.copy(i), s && this.buffer[n].scale.copy(s)) : (e = e ? e.clone() : this.buffer.length > 0 ? this.buffer[n].position.clone() : this.lastBufferFrame.position.clone(), t = t ? t.clone() : this.buffer.length > 0 ? this.buffer[n].velocity.clone() : this.lastBufferFrame.velocity.clone(), i = i ? i.clone() : this.buffer.length > 0 ? this.buffer[n].quaternion.clone() : this.lastBufferFrame.quaternion.clone(), s = s ? s.clone() : this.buffer.length > 0 ? this.buffer[n].scale.clone() : this.lastBufferFrame.scale.clone(), this.buffer.push({ position: e, velocity: t, quaternion: i, scale: s, time: this.time }));
+	        } }, { key: "setTarget", value: function value(e, t, i, s) {
+	          this.appendBuffer(e, t, i, s);
+	        } }, { key: "setPosition", value: function value(e, t) {
+	          this.appendBuffer(e, t, null, null);
+	        } }, { key: "setQuaternion", value: function value(e) {
+	          this.appendBuffer(null, null, e, null);
+	        } }, { key: "setScale", value: function value(e) {
+	          this.appendBuffer(null, null, null, e);
+	        } }, { key: "update", value: function value(e) {
+	          if (this.state === i && (this.buffer.length > 0 && !this.initialized && (this.lastBufferFrame = this.buffer.shift(), this.initialized = !0, this.position.copy(this.lastBufferFrame.position), this.quaternion.copy(this.lastBufferFrame.quaternion), this.scale.copy(this.lastBufferFrame.scale)), this.buffer.length > 0 && this.initialized && this.time > this.bufferTime && (this.state = s)), this.state == s) {
+	            for (var t = this.time - this.bufferTime; this.buffer.length > 0 && t > this.buffer[0].time;) {
+	              this.buffer.length > 1 ? this.lastBufferFrame = this.buffer.shift() : (this.lastBufferFrame.position.copy(this.buffer[0].position), this.lastBufferFrame.velocity.copy(this.buffer[0].velocity), this.lastBufferFrame.quaternion.copy(this.buffer[0].quaternion), this.lastBufferFrame.scale.copy(this.buffer[0].scale), this.lastBufferFrame.time = this.buffer[0].time, this.buffer[0].time = this.time + e);
+	            }if (this.buffer.length > 0 && this.buffer[0].time > 0) {
+	              var f = this.buffer[0],
+	                  a = f.time - this.lastBufferFrame.time,
+	                  u = (t - this.lastBufferFrame.time) / a;this.mode === n ? this.lerp(this.position, this.lastBufferFrame.position, f.position, u) : this.mode === r && this.hermite(this.position, u, this.lastBufferFrame.position, f.position, this.lastBufferFrame.velocity.multiplyScalar(a), f.velocity.multiplyScalar(a)), this.slerp(this.quaternion, this.lastBufferFrame.quaternion, f.quaternion, u), this.lerp(this.scale, this.lastBufferFrame.scale, f.scale, u);
+	            }
+	          }this.initialized && (this.time += e);
+	        } }, { key: "getPosition", value: function value() {
+	          return this.position;
+	        } }, { key: "getQuaternion", value: function value() {
+	          return this.quaternion;
+	        } }, { key: "getScale", value: function value() {
+	          return this.scale;
+	        } }]), f;
+	    }();"undefined" != typeof module && void 0 !== module.exports && (module.exports = f);
+	  }, {}] }, {}, [1], null);
+
+/***/ }),
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
