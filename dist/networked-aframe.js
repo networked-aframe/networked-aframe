@@ -52,7 +52,7 @@
 	// Network components
 	__webpack_require__(14);
 	__webpack_require__(15);
-	__webpack_require__(24);
+	__webpack_require__(25);
 
 /***/ }),
 /* 1 */
@@ -2472,11 +2472,7 @@
 /* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var require;var __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-	// modules are defined as an array
+	var require;// modules are defined as an array
 	// [ module function, map of requires ]
 	//
 	// map of requires is short require name -> numeric require
@@ -2559,14 +2555,14 @@
 	    var mainExports = newRequire(entry[entry.length - 1]);
 
 	    // CommonJS
-	    if (( false ? 'undefined' : _typeof(exports)) === "object" && typeof module !== "undefined") {
+	    if (true) {
 	      module.exports = mainExports;
 
 	      // RequireJS
-	    } else if (true) {
-	      !(__WEBPACK_AMD_DEFINE_RESULT__ = function () {
+	    } else if (typeof define === "function" && define.amd) {
+	      define(function () {
 	        return mainExports;
-	      }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	      });
 
 	      // <script>
 	    } else if (globalName) {
@@ -2810,12 +2806,7 @@
 /* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var map = {
-		"./buffered-interpolation": 21,
-		"./buffered-interpolation.js": 21,
-		"./buffered-interpolation.min": 23,
-		"./buffered-interpolation.min.js": 23
-	};
+	var map = {};
 	function webpackContext(req) {
 		return __webpack_require__(webpackContextResolve(req));
 	};
@@ -2831,96 +2822,9 @@
 
 
 /***/ }),
-/* 23 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var require;var __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-	parcelRequire = function (e, r, n, t) {
-	  function i(n, t) {
-	    function o(e) {
-	      return i(o.resolve(e));
-	    }function c(r) {
-	      return e[n][1][r] || r;
-	    }if (!r[n]) {
-	      if (!e[n]) {
-	        var l = "function" == typeof parcelRequire && parcelRequire;if (!t && l) return l(n, !0);if (u) return u(n, !0);if (f && "string" == typeof n) return f(n);var p = new Error("Cannot find module '" + n + "'");throw p.code = "MODULE_NOT_FOUND", p;
-	      }o.resolve = c;var a = r[n] = new i.Module(n);e[n][0].call(a.exports, o, a, a.exports, this);
-	    }return r[n].exports;
-	  }function o(e) {
-	    this.id = e, this.bundle = i, this.exports = {};
-	  }var u = "function" == typeof parcelRequire && parcelRequire,
-	      f = "function" == typeof require && require;i.isParcelRequire = !0, i.Module = o, i.modules = e, i.cache = r, i.parent = u;for (var c = 0; c < n.length; c++) {
-	    i(n[c]);
-	  }if (n.length) {
-	    var l = i(n[n.length - 1]);"object" == ( false ? "undefined" : _typeof(exports)) && "undefined" != typeof module ? module.exports = l :  true ? !(__WEBPACK_AMD_DEFINE_RESULT__ = function () {
-	      return l;
-	    }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : t && (this[t] = l);
-	  }return i;
-	}({ 1: [function (require, module, exports) {
-	    var e = function () {
-	      function e(e, t) {
-	        for (var i = 0; i < t.length; i++) {
-	          var s = t[i];s.enumerable = s.enumerable || !1, s.configurable = !0, "value" in s && (s.writable = !0), Object.defineProperty(e, s.key, s);
-	        }
-	      }return function (t, i, s) {
-	        return i && e(t.prototype, i), s && e(t, s), t;
-	      };
-	    }();function t(e, t) {
-	      if (!(e instanceof t)) throw new TypeError("Cannot call a class as a function");
-	    }var i = 0,
-	        s = 1,
-	        n = 0,
-	        r = 1,
-	        f = function () {
-	      function f() {
-	        var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : n,
-	            s = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : .15;t(this, f), this.initialized = !1, this.state = i, this.buffer = [], this.bufferTime = 1e3 * s, this.time = 0, this.mode = e, this.lastBufferFrame = { position: new THREE.Vector3(), velocity: new THREE.Vector3(), quaternion: new THREE.Quaternion(), scale: new THREE.Vector3(1, 1, 1) }, this.position = new THREE.Vector3(), this.quaternion = new THREE.Quaternion(), this.scale = new THREE.Vector3(1, 1, 1);
-	      }return e(f, [{ key: "hermite", value: function value(e, t, i, s, n, r) {
-	          var f = t * t,
-	              a = t * t * t,
-	              u = 2 * a - 3 * f + 1,
-	              l = -2 * a + 3 * f,
-	              o = a - 2 * f + t,
-	              h = a - f;e.copy(i.multiplyScalar(u)), e.add(s.multiplyScalar(l)), e.add(n.multiplyScalar(o)), e.add(r.multiplyScalar(h));
-	        } }, { key: "lerp", value: function value(e, t, i, s) {
-	          e.lerpVectors(t, i, s);
-	        } }, { key: "slerp", value: function value(e, t, i, s) {
-	          THREE.Quaternion.slerp(t, i, e, s);
-	        } }, { key: "appendBuffer", value: function value(e, t, i, s) {
-	          var n = this.buffer.length - 1;this.buffer.length > 0 && this.buffer[n].time === this.time ? (e && this.buffer[n].position.copy(e), t && this.buffer[n].velocity.copy(t), i && this.buffer[n].quaternion.copy(i), s && this.buffer[n].scale.copy(s)) : (e = e ? e.clone() : this.buffer.length > 0 ? this.buffer[n].position.clone() : this.lastBufferFrame.position.clone(), t = t ? t.clone() : this.buffer.length > 0 ? this.buffer[n].velocity.clone() : this.lastBufferFrame.velocity.clone(), i = i ? i.clone() : this.buffer.length > 0 ? this.buffer[n].quaternion.clone() : this.lastBufferFrame.quaternion.clone(), s = s ? s.clone() : this.buffer.length > 0 ? this.buffer[n].scale.clone() : this.lastBufferFrame.scale.clone(), this.buffer.push({ position: e, velocity: t, quaternion: i, scale: s, time: this.time }));
-	        } }, { key: "setTarget", value: function value(e, t, i, s) {
-	          this.appendBuffer(e, t, i, s);
-	        } }, { key: "setPosition", value: function value(e, t) {
-	          this.appendBuffer(e, t, null, null);
-	        } }, { key: "setQuaternion", value: function value(e) {
-	          this.appendBuffer(null, null, e, null);
-	        } }, { key: "setScale", value: function value(e) {
-	          this.appendBuffer(null, null, null, e);
-	        } }, { key: "update", value: function value(e) {
-	          if (this.state === i && (this.buffer.length > 0 && !this.initialized && (this.lastBufferFrame = this.buffer.shift(), this.initialized = !0, this.position.copy(this.lastBufferFrame.position), this.quaternion.copy(this.lastBufferFrame.quaternion), this.scale.copy(this.lastBufferFrame.scale)), this.buffer.length > 0 && this.initialized && this.time > this.bufferTime && (this.state = s)), this.state == s) {
-	            for (var t = this.time - this.bufferTime; this.buffer.length > 0 && t > this.buffer[0].time;) {
-	              this.buffer.length > 1 ? this.lastBufferFrame = this.buffer.shift() : (this.lastBufferFrame.position.copy(this.buffer[0].position), this.lastBufferFrame.velocity.copy(this.buffer[0].velocity), this.lastBufferFrame.quaternion.copy(this.buffer[0].quaternion), this.lastBufferFrame.scale.copy(this.buffer[0].scale), this.lastBufferFrame.time = this.buffer[0].time, this.buffer[0].time = this.time + e);
-	            }if (this.buffer.length > 0 && this.buffer[0].time > 0) {
-	              var f = this.buffer[0],
-	                  a = f.time - this.lastBufferFrame.time,
-	                  u = (t - this.lastBufferFrame.time) / a;this.mode === n ? this.lerp(this.position, this.lastBufferFrame.position, f.position, u) : this.mode === r && this.hermite(this.position, u, this.lastBufferFrame.position, f.position, this.lastBufferFrame.velocity.multiplyScalar(a), f.velocity.multiplyScalar(a)), this.slerp(this.quaternion, this.lastBufferFrame.quaternion, f.quaternion, u), this.lerp(this.scale, this.lastBufferFrame.scale, f.scale, u);
-	            }
-	          }this.initialized && (this.time += e);
-	        } }, { key: "getPosition", value: function value() {
-	          return this.position;
-	        } }, { key: "getQuaternion", value: function value() {
-	          return this.quaternion;
-	        } }, { key: "getScale", value: function value() {
-	          return this.scale;
-	        } }]), f;
-	    }();"undefined" != typeof module && void 0 !== module.exports && (module.exports = f);
-	  }, {}] }, {}, [1], null);
-
-/***/ }),
-/* 24 */
+/* 23 */,
+/* 24 */,
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
