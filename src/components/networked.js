@@ -1,4 +1,4 @@
-/* global AFRAME, NAF */
+/* global AFRAME, NAF, THREE */
 var componentHelper = require('../ComponentHelper');
 var Compressor = require('../Compressor');
 var InterpolationBuffer = require('buffered-interpolation');
