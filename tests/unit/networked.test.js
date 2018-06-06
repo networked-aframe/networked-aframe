@@ -103,34 +103,6 @@ suite('networked', function() {
     });
   });
 
-  suite('bindEvents', function() {
-
-    test('binds sync and sync all', sinon.test(function() {
-      this.spy(entity, 'addEventListener');
-
-      networked.bindEvents();
-
-      assert.isTrue(entity.addEventListener.calledWith('sync'), 'sync');
-      assert.isTrue(entity.addEventListener.calledWith('syncAll'), 'syncAll');
-      assert.isTrue(entity.addEventListener.calledWith('networkUpdate'), 'networkUpdate');
-      assert.equal(entity.addEventListener.callCount, 3, 'called thrice');
-    }));
-  });
-
-  suite('unbindEvents', function() {
-
-    test('unbinds sync and syncAll', sinon.test(function() {
-      this.spy(entity, 'removeEventListener');
-
-      networked.unbindEvents();
-
-      assert.isTrue(entity.removeEventListener.calledWith('sync'), 'sync');
-      assert.isTrue(entity.removeEventListener.calledWith('syncAll'), 'syncAll');
-      assert.isTrue(entity.removeEventListener.calledWith('networkUpdate'), 'networkUpdate');
-      assert.equal(entity.removeEventListener.callCount, 3, 'called thrice');
-    }));
-  });
-
   suite('tick', function() {
 
     test('syncs if need to', sinon.test(function() {
@@ -169,7 +141,8 @@ suite('networked', function() {
         components: {
           0: { x: 1, y: 2, z: 3 },
           1: { x: 4, y: 3, z: 2 }
-        }
+        },
+        isFirstSync: false
       };
 
       networked.init();
@@ -177,21 +150,8 @@ suite('networked', function() {
       networked.syncAll();
 
       var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('u', expected);
+      
       assert.isTrue(called);
-    }));
-
-    test('updates cache', sinon.test(function() {
-      this.stub(naf.connection, 'broadcastDataGuaranteed');
-
-      networked.el.setAttribute('position', { x: 1, y: 2, z: 5 });
-      networked.el.setAttribute('rotation', { x: 4, y: 2, z: 2 });
-
-      networked.syncAll();
-
-      assert.deepEqual(networked.cachedData, [
-        { x: 1, y: 2, z: 5 /* changed */ },
-        { x: 4, y: 2 /* changed */, z: 2 }
-      ]);
     }));
 
     test('sets next sync time', sinon.test(function() {
@@ -218,7 +178,8 @@ suite('networked', function() {
         template: '#t1',
         components: {
           1: { x: 9, y: 8, z: 7 }
-        }
+        },
+        isFirstSync: false
       };
 
       networked.init();
@@ -232,19 +193,6 @@ suite('networked', function() {
 
       var called = naf.connection.broadcastData.calledWithExactly('u', expected);
       assert.isTrue(called, `called with ${JSON.stringify(naf.connection.broadcastData.getCall(0).args[1])}, expected ${JSON.stringify(expected)}`);
-    }));
-
-    test('updates cache', sinon.test(function() {
-      this.stub(naf.connection, 'broadcastData');
-
-      networked.el.setAttribute("rotation", { x: 9, y: 8, z: 7 });
-
-      networked.syncDirty();
-
-      assert.deepEqual(networked.cachedData, [
-        { x: 1, y: 2, z: 3 },
-        { x: 9, y: 8, z: 7 }
-      ])
     }));
 
     test('sets next sync time', sinon.test(function() {

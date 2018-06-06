@@ -76,18 +76,6 @@ suite('networked_remote', function() {
     }));
   });
 
-  suite('networkUpdateHandler', function() {
-
-    test('Network handler works', sinon.test(function() {
-      this.spy(component, 'networkUpdate');
-      var data = { detail: { entityData: {test: true}}};
-
-      component.networkUpdateHandler(data);
-
-      assert.isTrue(component.networkUpdate.calledWith({test: true}));
-    }));
-  });
-
   suite('networkUpdate', function() {
 
     test('sets correct data', sinon.test(function() {
