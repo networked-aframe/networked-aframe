@@ -104,23 +104,26 @@ suite('networked_remote', function() {
         }
       }
       component.networkUpdate(entityData);
+      component.tick(15, 15);
 
-      var position = el.getAttribute('position');
-      assert.equal(position.x, 10, 'Position');
-      assert.equal(position.y, 20, 'Position');
-      assert.equal(position.z, 30, 'Position');
+      setTimeout(()=> {        
+        var position = el.getAttribute('position');
+        assert.equal(position.x, 10, 'Position');
+        assert.equal(position.y, 20, 'Position');
+        assert.equal(position.z, 30, 'Position');
 
-      var rotation = el.getAttribute('rotation');
-      assert.equal(rotation.x, 40, 'Rotation');
-      assert.equal(rotation.y, 30, 'Rotation');
-      assert.equal(rotation.z, 20, 'Rotation');
+        var rotation = el.getAttribute('rotation');
+        assert.equal(rotation.x, 40, 'Rotation');
+        assert.equal(rotation.y, 30, 'Rotation');
+        assert.equal(rotation.z, 20, 'Rotation');
 
-      var scale = el.getAttribute('scale');
-      assert.equal(scale.x, 5, 'Scale');
-      assert.equal(scale.y, 12, 'Scale');
-      assert.equal(scale.z, 1, 'Scale');
+        var scale = el.getAttribute('scale');
+        assert.equal(scale.x, 1, 'Scale');
+        assert.equal(scale.y, 1, 'Scale');
+        assert.equal(scale.z, 1, 'Scale');
 
-      assert.equal(el.getAttribute('visible'), false, 'Visible');
+        assert.equal(el.getAttribute('visible'), false, 'Visible');
+      }, 1);
     }));
 
     test('sets correct data with child components', sinon.test(function() {

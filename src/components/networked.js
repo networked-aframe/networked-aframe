@@ -1,5 +1,6 @@
 /* global AFRAME, NAF, THREE */
 var deepEqual = require('fast-deep-equal');
+var InterpolationBuffer = require('buffered-interpolation');
 var DEG2RAD = THREE.Math.DEG2RAD;
 
 function defaultNetworkUpdatePredicate() {
@@ -41,9 +42,10 @@ AFRAME.registerComponent('networked', {
 
     this.conversionEuler = new THREE.Euler();
     this.conversionEuler.order = "YXZ";
-    this.positionComponents = [];
-    this.scaleComponents = [];
-    this.rotationComponents = [];
+    this.interpolationBuffers = [];
+    this.bufferPosition = new THREE.Vector3();
+    this.bufferQuaternion = new THREE.Quaternion();
+    this.bufferScale = new THREE.Vector3();
 
     var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
@@ -170,8 +172,8 @@ AFRAME.registerComponent('networked', {
   isMine: function() {
     return this.data.owner === NAF.clientId;
   },
-
-  tick: function() {
+  
+  tick: function(time, dt) {
     if (this.isMine() && this.needsToSync()) {
       if (!this.el.parentElement){
         NAF.log.error("tick called on an entity that seems to have been removed");
@@ -181,31 +183,14 @@ AFRAME.registerComponent('networked', {
       this.syncDirty();
     }
 
-    var now = Date.now();
-
-    if (!this.isMine()) {
-      for (var i = 0; i < this.positionComponents.length; i++) {
-        var posComp = this.positionComponents[i];
-        var posElapsed = now - posComp.lastUpdated;
-        var posProgress = posComp.duration === 0 ? 1 : posElapsed / posComp.duration;
-        posProgress = THREE.Math.clamp(posProgress, 0, 1);
-        posComp.el.object3D.position.lerpVectors(posComp.start, posComp.target, posProgress);
-      }
-
-      for (var j = 0; j < this.rotationComponents.length; j++) {
-        var rotComp = this.rotationComponents[j];
-        var rotElapsed = now - rotComp.lastUpdated;
-        var rotProgress = rotComp.duration === 0 ? 1 : rotElapsed / rotComp.duration;
-        rotProgress = THREE.Math.clamp(rotProgress, 0, 1);
-        THREE.Quaternion.slerp(rotComp.start, rotComp.target, rotComp.el.object3D.quaternion, rotProgress);
-      }
-
-      for (var k = 0; k < this.scaleComponents.length; k++) {
-        var scaleComp = this.scaleComponents[k];
-        var scaleElapsed = now - scaleComp.lastUpdated;
-        var scaleProgress = scaleComp.duration === 0 ? 1 : scaleElapsed / scaleComp.duration;
-        scaleProgress = THREE.Math.clamp(scaleProgress, 0, 1);
-        scaleComp.el.object3D.scale.lerpVectors(scaleComp.start, scaleComp.target, scaleProgress);
+    if(NAF.options.useLerp && !this.isMine()) {
+      for (var i = 0; i < this.interpolationBuffers.length; i++) {
+        var interpolationBuffer = this.interpolationBuffers[i].buffer;
+        var el = this.interpolationBuffers[i].el;
+        interpolationBuffer.update(dt);
+        el.object3D.position.copy(interpolationBuffer.getPosition());
+        el.object3D.quaternion.copy(interpolationBuffer.getQuaternion());
+        el.object3D.scale.copy(interpolationBuffer.getScale());
       }
     }
   },
@@ -381,85 +366,43 @@ AFRAME.registerComponent('networked', {
       }
 
       if (componentSchema.component) {
-        var shouldLerp = componentSchema.lerp !== false;
-
         if (componentSchema.property) {
-          var singlePropertyData = {
-            [componentSchema.property]: componentData
-          };
-          this.updateComponent(componentElement, componentSchema.component, singlePropertyData, shouldLerp);
+          var singlePropertyData = { [componentSchema.property]: componentData };
+          this.updateComponent(componentElement, componentSchema.component, singlePropertyData);
         } else {
-          this.updateComponent(componentElement, componentSchema.component, componentData, shouldLerp);
-          }
-        } else {
-        this.updateComponent(componentElement, componentSchema, componentData, true);
+          this.updateComponent(componentElement, componentSchema.component, componentData);
+        }
+      } else {
+        this.updateComponent(componentElement, componentSchema, componentData);
       }
     }
   },
 
-  updateComponent: function (el, componentName, data, lerp) {
-    if (!NAF.options.useLerp || !lerp) {
-      return el.setAttribute(componentName, data);
+  updateComponent: function (el, componentName, data) {
+    if(!NAF.options.useLerp) {
+      el.setAttribute(componentName, data);
+      return;
     }
 
-    var now = Date.now();
+    var buffer = null;
+    var interpolationBuffer = this.interpolationBuffers.find((item) => item.el === el);
+    if (!interpolationBuffer) {
+      buffer = new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1);
+      this.interpolationBuffers.push({ buffer: buffer, el: el });
+    } else {
+      buffer = this.interpolationBuffers.find((item) => item.el === el).buffer;
+    }
 
     switch(componentName) {
       case "position":
-        var posComp = this.positionComponents.find((item) => item.el === el);
-
-        if (!posComp) {
-          posComp = {};
-          posComp.el = el;
-          posComp.start = new THREE.Vector3(data.x, data.y, data.z);
-          posComp.target = new THREE.Vector3(data.x, data.y, data.z);
-          posComp.lastUpdated = Date.now();
-          posComp.duration = 1;
-          this.positionComponents.push(posComp);
-        } else {
-          posComp.start.copy(posComp.target);
-          posComp.target.set(data.x, data.y, data.z);
-          posComp.duration = now - posComp.lastUpdated;
-          posComp.lastUpdated = now;
-        }
+        buffer.setPosition(this.bufferPosition.set(data.x, data.y, data.z));
         break;
       case "rotation":
-        var rotComp = this.rotationComponents.find((item) => item.el === el);
-
-        if (!rotComp) {
-          rotComp = {};
-          rotComp.el = el;
-          this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
-          rotComp.start = new THREE.Quaternion().setFromEuler(this.conversionEuler);
-          rotComp.target = new THREE.Quaternion().setFromEuler(this.conversionEuler);
-          rotComp.lastUpdated = Date.now();
-          rotComp.duration = 1;
-          this.rotationComponents.push(rotComp);
-        } else {
-          rotComp.start.copy(rotComp.target);
-          this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
-          rotComp.target.setFromEuler(this.conversionEuler);
-          rotComp.duration = now - rotComp.lastUpdated;
-          rotComp.lastUpdated = now;
-        }
+        this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
+        buffer.setQuaternion(this.bufferQuaternion.setFromEuler(this.conversionEuler));
         break;
       case "scale":
-        var scaleComp = this.scaleComponents.find((item) => item.el === el);
-
-        if (!scaleComp) {
-          scaleComp = {};
-          scaleComp.el = el;
-          scaleComp.start = new THREE.Vector3(data.x, data.y, data.z);
-          scaleComp.target = new THREE.Vector3(data.x, data.y, data.z);
-          scaleComp.lastUpdated = Date.now();
-          scaleComp.duration = 1;
-          this.scaleComponents.push(scaleComp);
-        } else {
-          scaleComp.start.copy(scaleComp.target);
-          scaleComp.target.set(data.x, data.y, data.z);
-          scaleComp.duration = now - scaleComp.lastUpdated;
-          scaleComp.lastUpdated = now;
-        }
+        buffer.setScale(this.bufferScale.set(data.x, data.y, data.z));
         break;
       default:
         el.setAttribute(componentName, data);
@@ -468,9 +411,7 @@ AFRAME.registerComponent('networked', {
   },
 
   removeLerp: function() {
-    this.positionComponents = [];
-    this.rotationComponents = [];
-    this.scaleComponents = [];
+    this.interpolationBuffers = [];
   },
 
   remove: function () {

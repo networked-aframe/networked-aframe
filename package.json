@@ -3,7 +3,7 @@
   "version": "0.6.1",
   "description": "A web framework for building multi-user virtual reality experiences.",
   "homepage": "",
-  "main": "dist/networked-aframe.js",
+  "main": "src/index.js",
   "author": "Hayden Lee <haydenjameslee@gmail.com>",
   "license": "MIT",
   "bugs": {
@@ -26,6 +26,7 @@
   },
   "repository": "networked-aframe/networked-aframe",
   "dependencies": {
+    "buffered-interpolation": "^0.2.3",
     "easyrtc": "1.1.0",
     "express": "^4.10.7",
     "fast-deep-equal": "^2.0.1",
