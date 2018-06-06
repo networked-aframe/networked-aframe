@@ -99,21 +99,24 @@ suite('networked_remote', function() {
       }
 
       component.networkUpdate(entityData);
+      component.tick(15, 15);
 
-      var components = el.components;
-      assert.equal(components['position'].data.x, 10, 'Position');
-      assert.equal(components['position'].data.y, 20, 'Position');
-      assert.equal(components['position'].data.z, 30, 'Position');
+      setTimeout(()=> {
+        var components = el.components;
+        assert.equal(components['position'].data.x, 10, 'Position');
+        assert.equal(components['position'].data.y, 20, 'Position');
+        assert.equal(components['position'].data.z, 30, 'Position');
 
-      assert.equal(components['rotation'].data.x, 40, 'Rotation');
-      assert.equal(components['rotation'].data.y, 30, 'Rotation');
-      assert.equal(components['rotation'].data.z, 20, 'Rotation');
+        assert.equal(components['rotation'].data.x, 40, 'Rotation');
+        assert.equal(components['rotation'].data.y, 30, 'Rotation');
+        assert.equal(components['rotation'].data.z, 20, 'Rotation');
 
-      assert.equal(components['scale'].data.x, 1, 'Scale');
-      assert.equal(components['scale'].data.y, 1, 'Scale');
-      assert.equal(components['scale'].data.z, 1, 'Scale');
+        assert.equal(components['scale'].data.x, 1, 'Scale');
+        assert.equal(components['scale'].data.y, 1, 'Scale');
+        assert.equal(components['scale'].data.z, 1, 'Scale');
 
-      assert.equal(components['visible'].data, true, 'Visible');
+        assert.equal(components['visible'].data, true, 'Visible');
+      }, 1);
     }));
 
     test('sets correct uncompressed data with child components', sinon.test(function() {
@@ -184,21 +187,24 @@ suite('networked_remote', function() {
       ];
 
       component.networkUpdate(compressed);
+      component.tick(15, 15);
 
-      var components = el.components;
-      assert.equal(components['position'].data.x, 10, 'Position');
-      assert.equal(components['position'].data.y, 20, 'Position');
-      assert.equal(components['position'].data.z, 30, 'Position');
+      setTimeout(()=> {
+        var components = el.components;
+        assert.equal(components['position'].data.x, 10, 'Position');
+        assert.equal(components['position'].data.y, 20, 'Position');
+        assert.equal(components['position'].data.z, 30, 'Position');
 
-      assert.equal(components['rotation'].data.x, 40, 'Rotation');
-      assert.equal(components['rotation'].data.y, 30, 'Rotation');
-      assert.equal(components['rotation'].data.z, 20, 'Rotation');
+        assert.equal(components['rotation'].data.x, 40, 'Rotation');
+        assert.equal(components['rotation'].data.y, 30, 'Rotation');
+        assert.equal(components['rotation'].data.z, 20, 'Rotation');
 
-      assert.equal(components['scale'].data.x, 1, 'Scale');
-      assert.equal(components['scale'].data.y, 1, 'Scale');
-      assert.equal(components['scale'].data.z, 1, 'Scale');
+        assert.equal(components['scale'].data.x, 1, 'Scale');
+        assert.equal(components['scale'].data.y, 1, 'Scale');
+        assert.equal(components['scale'].data.z, 1, 'Scale');
 
-      assert.equal(components['visible'].data, true, 'Visible');
+        assert.equal(components['visible'].data, true, 'Visible');
+      }, 1);
     }));
   });
 });

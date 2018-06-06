@@ -77,9 +77,10 @@ module.exports.findDirtyComponents = function(el, syncedComps, cachedData) {
     }
 
     var oldCompData = cachedData[compKey];
+
     if (schema.requiresNetworkUpdate && schema.requiresNetworkUpdate(oldCompData, newCompData)){
       dirtyComps.push(schema);
-    } else if (!deepEqual(oldCompData, newCompData)) {
+    } else if (!schema.requiresNetworkUpdate && !deepEqual(oldCompData, newCompData)) {
       dirtyComps.push(schema);
     }
   }
