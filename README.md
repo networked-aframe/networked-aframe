@@ -102,7 +102,7 @@ Open in two tabs if nobody else is online.
 * [Minecraft Clone](https://uxvirtual.com/demo/blocks/)
 * [More...](http://haydenlee.io/networked-aframe/)
 
-Made something awesome with Networked-Aframe? [Let me know](https://twitter.com/haydenlee37) and I'll include it here!
+Made something awesome with Networked-Aframe? [Let us know](https://github.com/networked-aframe/networked-aframe/issues) and we'll include it here.
 
 
 Documentation
@@ -358,7 +358,7 @@ NAF can be used with multiple network libraries and services. An adapter is a cl
 - Do you need custom server-side logic?
 - Do you want a WebSocket (client-server) network architecture or WebRTC (peer-to-peer)?
 
-I'll write up a post on the answers to these questions soon (please [bug me](https://twitter.com/haydenlee37) about it if you're interested).
+I'll write up a post on the answers to these questions soon (please [bug me](https://github.com/networked-aframe/networked-aframe/issues) about it if you're interested).
 
 By default the `wsEasyRtc` adapter is used, which is an implementation of the open source [EasyRTC](https://github.com/priologic/easyrtc) library that only uses the WebSocket connection. To quickly try WebRTC instead of WebSockets, change the adapter to `easyrtc`, which also supports audio. If you're interested in contributing to NAF a great opportunity is to add support for more adapters and send a pull request.
 
@@ -418,9 +418,8 @@ To measure bandwidth usage, run two clients on Chrome and visit chrome://webrtc-
 Stay in Touch
 -------------
 
-- Follow Hayden on [Twitter](https://twitter.com/haydenlee37)
-- Follow changes on [GitHub](https://github.com/networked-aframe/networked-aframe/subscription)
 - Join the [A-Frame Slack](https://aframevr-slack.herokuapp.com) and add the #networked-aframe channel
+- Follow changes on [GitHub](https://github.com/networked-aframe/networked-aframe/subscription)
 - Let us know if you've made something with Networked-Aframe. We'd love to see it!
 
 
@@ -460,7 +459,7 @@ Roadmap
 * [Roadmap](https://github.com/networked-aframe/networked-aframe/projects/1)
 * [Add your suggestions](https://github.com/networked-aframe/networked-aframe/issues)
 
-Interested in contributing? [Shoot me a message](https://twitter.com/haydenlee37) or send a pull request.
+Interested in contributing? [Open an issue](https://github.com/networked-aframe/networked-aframe/issues) or send a pull request.
 
 
 Warning
