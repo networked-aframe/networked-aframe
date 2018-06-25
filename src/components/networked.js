@@ -304,7 +304,6 @@ AFRAME.registerComponent('networked', {
 
   updateComponents: function(components) {
     var el = this.el;
-    var syncedComponents = NAF.schemas.getComponents(this.data.template);
 
     for (var key in components) {
       if (this.isSyncableComponent(key)) {
