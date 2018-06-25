@@ -26,7 +26,7 @@
   },
   "repository": "networked-aframe/networked-aframe",
   "dependencies": {
-    "buffered-interpolation": "^0.2.3",
+    "buffered-interpolation": "^0.2.4",
     "easyrtc": "1.1.0",
     "express": "^4.10.7",
     "serve-static": "^1.8.0",
