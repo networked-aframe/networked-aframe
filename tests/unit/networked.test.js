@@ -106,8 +106,8 @@ suite('networked', function() {
   suite('tick', function() {
 
     test('syncs if need to', sinon.test(function() {
-      this.stub(naf.utils, 'now').returns(4);
       this.stub(networked, 'syncDirty');
+      networked.el.sceneEl.clock.elapsedTime = 4;
       networked.nextSyncTime = 4;
 
       networked.tick();
@@ -116,8 +116,8 @@ suite('networked', function() {
     }));
 
     test('does not sync if does not need to', sinon.test(function() {
-      this.stub(naf.utils, 'now').returns(3.9);
       this.stub(networked, 'syncDirty');
+      networked.el.sceneEl.clock.elapsedTime = 3.9;
       networked.nextSyncTime = 4;
 
       networked.tick();
@@ -150,7 +150,7 @@ suite('networked', function() {
       networked.syncAll();
 
       var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('u', expected);
-      
+
       assert.isTrue(called);
     }));
 

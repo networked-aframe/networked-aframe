@@ -50,7 +50,7 @@ AFRAME.registerComponent('networked', {
     var wasCreatedByNetwork = this.wasCreatedByNetwork();
 
     this.onConnected = this.onConnected.bind(this);
-    
+
     this.syncData = {};
     this.componentSchemas =  NAF.schemas.getComponents(this.data.template);
     this.cachedElements = new Array(this.componentSchemas.length);
@@ -172,7 +172,7 @@ AFRAME.registerComponent('networked', {
   isMine: function() {
     return this.data.owner === NAF.clientId;
   },
-  
+
   tick: function(time, dt) {
     if (this.isMine() && this.needsToSync()) {
       if (!this.el.parentElement){
@@ -221,7 +221,7 @@ AFRAME.registerComponent('networked', {
     }
 
     this.updateNextSyncTime();
-    
+
     var components = this.gatherComponentsData(false);
 
     if (components === null) {
@@ -311,11 +311,11 @@ AFRAME.registerComponent('networked', {
   },
 
   needsToSync: function() {
-    return NAF.utils.now() >= this.nextSyncTime;
+    return this.el.sceneEl.clock.elapsedTime >= this.nextSyncTime;
   },
 
   updateNextSyncTime: function() {
-    this.nextSyncTime = NAF.utils.now() + 1000 / NAF.options.updateRate;
+    this.nextSyncTime = this.el.sceneEl.clock.elapsedTime + 1 / NAF.options.updateRate;
   },
 
   getParentId: function() {
@@ -351,7 +351,7 @@ AFRAME.registerComponent('networked', {
       this.el.emit(this.OWNERSHIP_CHANGED, this.onOwnershipChangedEvent);
 
       this.el.setAttribute('networked', { owner: entityData.owner });
-    }    
+    }
     this.updateComponents(entityData.components);
   },
 
