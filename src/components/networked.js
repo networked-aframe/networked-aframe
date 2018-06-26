@@ -3,7 +3,7 @@ var deepEqual = require('fast-deep-equal');
 var InterpolationBuffer = require('buffered-interpolation');
 var DEG2RAD = THREE.Math.DEG2RAD;
 
-function defaultNetworkUpdatePredicate() {
+function defaultRequiresUpdate() {
   let cachedData = null;
 
   return (newData) => {
@@ -54,13 +54,7 @@ AFRAME.registerComponent('networked', {
     this.syncData = {};
     this.componentSchemas =  NAF.schemas.getComponents(this.data.template);
     this.cachedElements = new Array(this.componentSchemas.length);
-    this.networkUpdatePredicates = this.componentSchemas.map((componentSchema) => {
-      if (componentSchema.requiresNetworkUpdate) {
-        return componentSchema.requiresNetworkUpdate();
-      }
-
-      return defaultNetworkUpdatePredicate();
-    });
+    this.networkUpdatePredicates = this.componentSchemas.map(x => x.requiresNetworkUpdate || defaultRequiresUpdate());
 
     // Fill cachedElements array with null elements
     this.invalidateCachedElements();
