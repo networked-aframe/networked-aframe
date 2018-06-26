@@ -174,16 +174,16 @@ AFRAME.registerComponent('networked', {
   },
 
   tick: function(time, dt) {
-    if (this.isMine() && this.needsToSync()) {
-      if (!this.el.parentElement){
-        NAF.log.error("tick called on an entity that seems to have been removed");
-        //TODO: Find out why tick is still being called
-        return;
+    if (this.isMine()) {
+      if (this.needsToSync()) {
+        if (!this.el.parentElement) {
+          NAF.log.error("tick called on an entity that seems to have been removed");
+          //TODO: Find out why tick is still being called
+          return;
+        }
+        this.syncDirty();
       }
-      this.syncDirty();
-    }
-
-    if(NAF.options.useLerp && !this.isMine()) {
+    } else if (NAF.options.useLerp) {
       for (var i = 0; i < this.interpolationBuffers.length; i++) {
         var interpolationBuffer = this.interpolationBuffers[i].buffer;
         var el = this.interpolationBuffers[i].el;
