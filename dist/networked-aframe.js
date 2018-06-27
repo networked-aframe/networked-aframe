@@ -1701,7 +1701,7 @@
 	var InterpolationBuffer = __webpack_require__(17);
 	var DEG2RAD = THREE.Math.DEG2RAD;
 
-	function defaultNetworkUpdatePredicate() {
+	function defaultRequiresUpdate() {
 	  var cachedData = null;
 
 	  return function (newData) {
@@ -1752,12 +1752,8 @@
 	    this.syncData = {};
 	    this.componentSchemas = NAF.schemas.getComponents(this.data.template);
 	    this.cachedElements = new Array(this.componentSchemas.length);
-	    this.networkUpdatePredicates = this.componentSchemas.map(function (componentSchema) {
-	      if (componentSchema.requiresNetworkUpdate) {
-	        return componentSchema.requiresNetworkUpdate();
-	      }
-
-	      return defaultNetworkUpdatePredicate();
+	    this.networkUpdatePredicates = this.componentSchemas.map(function (x) {
+	      return x.requiresNetworkUpdate || defaultRequiresUpdate();
 	    });
 
 	    // Fill cachedElements array with null elements
