@@ -22,9 +22,16 @@ suite('networked_remote', function() {
       template: '#t1',
       components: [
         'position',
-        'rotation'
+        'rotation',
+        'scale',
+        'visible',
+        {
+          component: 'visible',
+          selector: '.head'
+        }
       ]
     });
+    naf.options.useLerp = false;
     naf.utils.whenEntityLoaded(scene, done);
   }
 
@@ -69,73 +76,59 @@ suite('networked_remote', function() {
     }));
   });
 
-  suite('networkUpdateHandler', function() {
-
-    test('Network handler works', sinon.test(function() {
-      this.spy(component, 'networkUpdate');
-      var data = { detail: { entityData: {test: true}}};
-
-      component.networkUpdateHandler(data);
-
-      assert.isTrue(component.networkUpdate.calledWith({test: true}));
-    }));
-  });
-
   suite('networkUpdate', function() {
 
-    test('sets correct uncompressed data', sinon.test(function() {
+    test('sets correct data', sinon.test(function() {
       var entityData = {
-        0: 0,
-        networkId: 'network1',
-        owner: 'owner1',
+        networkId: 'nid1',
+        owner: 'network1',
         parent: null,
         template: '',
         components: {
-          position: { x: 10, y: 20, z: 30 },
-          rotation: { x: 40, y: 30, z: 20 },
-          scale: { x: 5, y: 12, z: 1 },
-          visible: false
+          0: { x: 10, y: 20, z: 30 },
+          1: { x: 40, y: 30, z: 20 },
+          2: { x: 5, y: 12, z: 1 },
+          3: false
         }
       }
-
       component.networkUpdate(entityData);
       component.tick(15, 15);
 
-      setTimeout(()=> {
-        var components = el.components;
-        assert.equal(components['position'].data.x, 10, 'Position');
-        assert.equal(components['position'].data.y, 20, 'Position');
-        assert.equal(components['position'].data.z, 30, 'Position');
+      setTimeout(()=> {        
+        var position = el.getAttribute('position');
+        assert.equal(position.x, 10, 'Position');
+        assert.equal(position.y, 20, 'Position');
+        assert.equal(position.z, 30, 'Position');
 
-        assert.equal(components['rotation'].data.x, 40, 'Rotation');
-        assert.equal(components['rotation'].data.y, 30, 'Rotation');
-        assert.equal(components['rotation'].data.z, 20, 'Rotation');
+        var rotation = el.getAttribute('rotation');
+        assert.equal(rotation.x, 40, 'Rotation');
+        assert.equal(rotation.y, 30, 'Rotation');
+        assert.equal(rotation.z, 20, 'Rotation');
 
-        assert.equal(components['scale'].data.x, 1, 'Scale');
-        assert.equal(components['scale'].data.y, 1, 'Scale');
-        assert.equal(components['scale'].data.z, 1, 'Scale');
+        var scale = el.getAttribute('scale');
+        assert.equal(scale.x, 1, 'Scale');
+        assert.equal(scale.y, 1, 'Scale');
+        assert.equal(scale.z, 1, 'Scale');
 
-        assert.equal(components['visible'].data, true, 'Visible');
+        assert.equal(el.getAttribute('visible'), false, 'Visible');
       }, 1);
     }));
 
-    test('sets correct uncompressed data with child components', sinon.test(function() {
+    test('sets correct data with child components', sinon.test(function() {
       // Setup
       var entityData = {
-        0: 0,
         networkId: 'network1',
         owner: 'owner1',
         parent: null,
         template: '',
         components: {
-          position: { x: 10, y: 20, z: 30 },
-          rotation: { x: 40, y: 30, z: 20 },
-          scale: { x: 5, y: 12, z: 1 },
-          visible: false
+          0: { x: 10, y: 20, z: 30 },
+          1: { x: 40, y: 30, z: 20 },
+          2: { x: 5, y: 12, z: 1 },
+          3: false,
+          4: true
         }
       };
-      var childKey = '.head'+naf.utils.delimiter+'visible';
-      entityData.components[childKey] = true;
 
       // SUT
       component.networkUpdate(entityData);
@@ -145,23 +138,22 @@ suite('networked_remote', function() {
       assert.equal(visible, true);
     }));
 
-    test('sets correct uncompressed data with before child components exist', sinon.test(function() {
+    test('sets correct data with before child components exist', sinon.test(function() {
       // Setup
       var entityData = {
-        0: 0,
         networkId: 'network2',
         owner: 'owner1',
         parent: null,
         template: '',
         components: {
-          position: { x: 10, y: 20, z: 30 },
-          rotation: { x: 40, y: 30, z: 20 },
-          scale: { x: 5, y: 12, z: 1 },
-          visible: false
+          0: { x: 10, y: 20, z: 30 },
+          1: { x: 40, y: 30, z: 20 },
+          2: { x: 5, y: 12, z: 1 },
+          3: false,
+          4: true
         }
       };
-      var childKey = '.head'+naf.utils.delimiter+'visible';
-      entityData.components[childKey] = true;
+
       while (el.firstChild) { // Remove children
         el.removeChild(el.firstChild);
       }
@@ -171,40 +163,6 @@ suite('networked_remote', function() {
 
       // Assert
       // Just checking for error
-    }));
-
-    test('sets correct compressed data', sinon.test(function() {
-      var compressed = [
-        1,
-        'network1',
-        'owner1',
-        null,
-        '',
-        {
-          0: { x: 10, y: 20, z: 30 },
-          1: { x: 40, y: 30, z: 20 }
-        }
-      ];
-
-      component.networkUpdate(compressed);
-      component.tick(15, 15);
-
-      setTimeout(()=> {
-        var components = el.components;
-        assert.equal(components['position'].data.x, 10, 'Position');
-        assert.equal(components['position'].data.y, 20, 'Position');
-        assert.equal(components['position'].data.z, 30, 'Position');
-
-        assert.equal(components['rotation'].data.x, 40, 'Rotation');
-        assert.equal(components['rotation'].data.y, 30, 'Rotation');
-        assert.equal(components['rotation'].data.z, 20, 'Rotation');
-
-        assert.equal(components['scale'].data.x, 1, 'Scale');
-        assert.equal(components['scale'].data.y, 1, 'Scale');
-        assert.equal(components['scale'].data.z, 1, 'Scale');
-
-        assert.equal(components['visible'].data, true, 'Visible');
-      }, 1);
     }));
   });
 });

@@ -22,7 +22,6 @@ suite('networked attachTemplateToLocal:false', function() {
   }
 
   setup(function(done) {
-    naf.options.compressSyncPackets = false;
     naf.connection.setNetworkAdapter(new helpers.MockNetworkAdapter());
     initScene(function() {
       entity = document.querySelector('#test-entity');
