@@ -57,7 +57,7 @@ You'll notice a new folder called `node_modules` which contains all the dependen
 Let's copy the example server that comes with networked-aframe into our project. From your project's root, run the respective command for your OS:
 
 ```sh
-# MacOS
+# MacOS & Linux
 cp -r ./node_modules/networked-aframe/server/ ./server/
 
 # Windows
