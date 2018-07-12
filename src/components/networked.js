@@ -24,6 +24,8 @@ AFRAME.registerComponent('networked', {
     this.syncDirty = bind(this.syncDirty, this);
     this.networkUpdateHandler = bind(this.networkUpdateHandler, this);
 
+    this.unappliedComponentUpdates = [];
+    this.updateNextPendingUpdateTime();
     this.cachedData = {};
     this.initNetworkParent();
 
@@ -162,6 +164,26 @@ AFRAME.registerComponent('networked', {
     if (this.isMine() && this.needsToSync()) {
       this.syncDirty();
     }
+
+    if (this.needsToApplyPendingUpdates()){
+      const el = this.el;
+      let unsuccessfulComponentUpdates = [];
+      for (let {schema, data} of this.unappliedComponentUpdates){
+        var childEl = schema.selector ? el.querySelector(schema.selector) : el;
+        if (childEl) {
+          if (schema.property) {
+            childEl.setAttribute(schema.component, schema.property, data);
+          }
+          else {
+            childEl.setAttribute(schema.component, data);
+          }
+        } else {
+          unsuccessfulComponentUpdates.push({schema, data});
+        }
+      }
+      this.unappliedComponentUpdates = unsuccessfulComponentUpdates;
+      this.updateNextPendingUpdateTime();
+    }
   },
 
   onSyncAll: function(e) {
@@ -214,6 +236,17 @@ AFRAME.registerComponent('networked', {
 
   needsToSync: function() {
     return NAF.utils.now() >= this.nextSyncTime;
+  },
+
+  // In the case that components on child elements are added at runtime,
+  // updates may not immediately be able to be applied immediately. Thus,
+  // we save updates for those components and apply the updates once possible.
+  needsToApplyPendingUpdates: function() {
+    return !this.isMine() && this.unappliedComponentUpdates.length > 0 && NAF.utils.now() >= this.nextPendingUpdateTime;
+  },
+
+  updateNextPendingUpdateTime: function() {
+    this.nextPendingUpdateTime = NAF.utils.now() + 5000;
   },
 
   updateNextSyncTime: function() {
@@ -304,6 +337,8 @@ AFRAME.registerComponent('networked', {
             else {
               childEl.setAttribute(schema.component, data);
             }
+          } else {
+            this.unappliedComponentUpdates.push({schema, data});
           }
         } else {
           el.setAttribute(key, data);
