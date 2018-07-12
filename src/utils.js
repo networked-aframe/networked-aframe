@@ -47,11 +47,11 @@ function getNetworkedEntity(entity) {
   return new Promise((resolve, reject) => {
     let curEntity = entity;
 
-    while(curEntity && !curEntity.hasAttribute("networked")) {
+    while(curEntity && curEntity.components && !curEntity.components.networked) {
       curEntity = curEntity.parentNode;
     }
 
-    if (!curEntity) {
+    if (!curEntity || !curEntity.components || !curEntity.components.networked) {
       return reject("Entity does not have and is not a child of an entity with the [networked] component ");
     }
 
