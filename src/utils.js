@@ -70,37 +70,29 @@ module.exports.getNetworkedEntity = getNetworkedEntity;
 module.exports.takeOwnership = function(entity) {
   let curEntity = entity;
 
-  while(curEntity && !curEntity.hasAttribute("networked")) {
+  while(curEntity && curEntity.components && !curEntity.components.networked) {
     curEntity = curEntity.parentNode;
   }
 
-  if (curEntity) {
-    if (!curEntity.components.networked) {
-      throw new Error("Entity with [networked] component not initialized.");
-    }
-
-    return curEntity.components.networked.takeOwnership();
+  if (!curEntity || !curEntity.components || !curEntity.components.networked) {
+    throw new Error("Entity does not have and is not a child of an entity with the [networked] component ");
   }
 
-  throw new Error("takeOwnership() must be called on an entity or child of an entity with the [networked] component.");
+  return curEntity.components.networked.takeOwnership();
 };
 
 module.exports.isMine = function(entity) {
   let curEntity = entity;
 
-  while(curEntity && !curEntity.hasAttribute("networked")) {
+  while(curEntity && curEntity.components && !curEntity.components.networked) {
     curEntity = curEntity.parentNode;
   }
 
-  if (curEntity) {
-    if (!curEntity.components.networked) {
-      throw new Error("Entity with [networked] component not initialized.");
-    }
-
-    return curEntity.components.networked.data.owner === NAF.clientId;
+  if (!curEntity || !curEntity.components || !curEntity.components.networked) {
+    throw new Error("Entity does not have and is not a child of an entity with the [networked] component ");
   }
 
-  throw new Error("isMine() must be called on an entity or child of an entity with the [networked] component.");
+  return curEntity.components.networked.data.owner === NAF.clientId;
 };
 
 module.exports.almostEqualVec3 = function(u, v, epsilon) {
