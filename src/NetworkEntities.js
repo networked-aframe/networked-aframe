@@ -6,7 +6,6 @@ class NetworkEntities {
   constructor() {
     this.entities = {};
     this.childCache = new ChildEntityCache();
-
     this.onRemoteEntityCreatedEvent = new Event('remoteEntityCreated');
   }
 
@@ -59,20 +58,13 @@ class NetworkEntities {
   }
 
   updateEntity(client, dataType, entityData) {
-    var isCompressed = entityData[0] == 1;
-    var networkId = isCompressed ? entityData[1] : entityData.networkId;
+    var networkId = entityData.networkId;
 
     if (this.hasEntity(networkId)) {
-      this.entities[networkId].emit('networkUpdate', {entityData: entityData}, false);
-    } else if (!isCompressed && this.isFullSync(entityData)) {
+      this.entities[networkId].components.networked.networkUpdate(entityData);
+    } else if (entityData.isFirstSync) {
       this.receiveFirstUpdateFromEntity(entityData);
     }
-  }
-
-  isFullSync(entityData) {
-    var numSentComps = Object.keys(entityData.components).length;
-    var numTemplateComps = NAF.schemas.getComponents(entityData.template).length;
-    return numSentComps === numTemplateComps;
   }
 
   receiveFirstUpdateFromEntity(entityData) {
@@ -128,14 +120,10 @@ class NetworkEntities {
     scene.appendChild(el);
   }
 
-  completeSync(targetClientId) {
+  completeSync(targetClientId, isFirstSync) {
     for (var id in this.entities) {
       if (this.entities.hasOwnProperty(id)) {
-        this.entities[id].emit(
-          'syncAll',
-          { targetClientId },
-          false
-        );
+        this.entities[id].components.networked.syncAll(targetClientId, isFirstSync);
       }
     }
   }
@@ -160,12 +148,17 @@ class NetworkEntities {
   removeEntity(id) {
     if (this.hasEntity(id)) {
       var entity = this.entities[id];
-      delete this.entities[id];
+      this.forgetEntity(id);
       entity.parentNode.removeChild(entity);
       return entity;
     } else {
+      NAF.log.error("Tried to remove entity I don't have.");
       return null;
     }
+  }
+
+  forgetEntity(id){
+    delete this.entities[id];
   }
 
   getEntity(id) {

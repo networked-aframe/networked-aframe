@@ -34,7 +34,7 @@ Features
 * Includes everything you need to create multi-user WebVR apps and games.
 * Support for WebRTC and/or WebSocket connections.
 * Voice chat. Audio streaming to let your users talk in-app (WebRTC only).
-* Bandwidth sensitive. Only send network updates when things change. Option to further compress network packets.
+* Bandwidth sensitive. Only send network updates when things change.
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
 * Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard + Daydream support.
 * Firebase WebRTC signalling support
@@ -406,14 +406,6 @@ NAF.options.useLerp
 ```
 
 By default when an entity is created the [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is attached to smooth out position and rotation network updates. Set this to false if you don't want the lerp component to be attached on creation.
-
-```javascript
-NAF.options.compressSyncPackets
-```
-
-Compress each sync packet into a minimized but harder to read JSON object for saving bandwidth. Default is `false`.
-
-To measure bandwidth usage, run two clients on Chrome and visit chrome://webrtc-internals
 
 Stay in Touch
 -------------
