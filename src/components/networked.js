@@ -182,9 +182,16 @@ AFRAME.registerComponent('networked', {
         var interpolationBuffer = this.interpolationBuffers[i].buffer;
         var el = this.interpolationBuffers[i].el;
         interpolationBuffer.update(dt);
-        el.object3D.position.copy(interpolationBuffer.getPosition());
-        el.object3D.quaternion.copy(interpolationBuffer.getQuaternion());
-        el.object3D.scale.copy(interpolationBuffer.getScale());
+        var componentName = interpolationBuffer.componentName;
+        if (componentName === "position"){
+          el.object3D.position.copy(interpolationBuffer.getPosition());
+        }
+        else if (componentName === "rotation"){
+          el.object3D.quaternion.copy(interpolationBuffer.getQuaternion());
+        }
+        else if (componentName === "scale"){
+          el.object3D.scale.copy(interpolationBuffer.getScale());
+        }
       }
     }
   },
@@ -373,18 +380,19 @@ AFRAME.registerComponent('networked', {
   },
 
   updateComponent: function (el, componentName, data) {
-    if(!NAF.options.useLerp) {
+    const transformComponents = ["position", "rotation", "scale"]
+    if(!NAF.options.useLerp || !transformComponents.includes(componentName)) {
       el.setAttribute(componentName, data);
       return;
     }
 
     var buffer = null;
-    var interpolationBuffer = this.interpolationBuffers.find((item) => item.el === el);
+    var interpolationBuffer = this.interpolationBuffers.find((item) => item.el === el && item.componentName===componentName);
     if (!interpolationBuffer) {
       buffer = new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1);
-      this.interpolationBuffers.push({ buffer: buffer, el: el });
+      this.interpolationBuffers.push({ buffer: buffer, componentName: componentName, el: el });
     } else {
-      buffer = this.interpolationBuffers.find((item) => item.el === el).buffer;
+      buffer = interpolationBuffer.buffer;
     }
 
     switch(componentName) {
