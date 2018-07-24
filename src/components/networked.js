@@ -2,7 +2,7 @@
 var deepEqual = require('fast-deep-equal');
 var InterpolationBuffer = require('buffered-interpolation');
 var DEG2RAD = THREE.Math.DEG2RAD;
-var OBJECT3D_COMPONENTS = ["position", "rotation", "scale"];
+var OBJECT3D_COMPONENTS = ['position', 'rotation', 'scale'];
 
 function defaultRequiresUpdate() {
   let cachedData = null;
@@ -185,13 +185,13 @@ AFRAME.registerComponent('networked', {
         var object3D = bufferInfo.object3D;
         var componentNames = bufferInfo.componentNames;
         buffer.update(dt);
-        if (componentNames.includes("position")){
+        if (componentNames.includes('position')) {
           object3D.position.copy(buffer.getPosition());
         }
-        if (componentNames.includes("rotation")){
+        if (componentNames.includes('rotation')) {
           object3D.quaternion.copy(buffer.getQuaternion());
         }
-        if (componentNames.includes("scale")){
+        if (componentNames.includes('scale')) {
           object3D.scale.copy(buffer.getScale());
         }
       }
@@ -395,25 +395,25 @@ AFRAME.registerComponent('networked', {
       this.bufferInfos.push(bufferInfo);
     } else {
       var componentNames = bufferInfo.componentNames;
-      if (!componentNames.includes(componentName)){
+      if (!componentNames.includes(componentName)) {
         componentNames.push(componentName);
       }
     }
     var buffer = bufferInfo.buffer;
 
     switch(componentName) {
-      case "position":
+      case 'position':
         buffer.setPosition(this.bufferPosition.set(data.x, data.y, data.z));
         return;
-      case "rotation":
+      case 'rotation':
         this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
         buffer.setQuaternion(this.bufferQuaternion.setFromEuler(this.conversionEuler));
         return;
-      case "scale":
+      case 'scale':
         buffer.setScale(this.bufferScale.set(data.x, data.y, data.z));
         return;
     }
-    NAF.log.error("Could not set value in interpolation buffer.", el, componentName, data, bufferInfo);
+    NAF.log.error('Could not set value in interpolation buffer.', el, componentName, data, bufferInfo);
   },
 
   removeLerp: function() {
