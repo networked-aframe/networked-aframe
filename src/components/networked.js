@@ -2,6 +2,7 @@
 var deepEqual = require('fast-deep-equal');
 var InterpolationBuffer = require('buffered-interpolation');
 var DEG2RAD = THREE.Math.DEG2RAD;
+var OBJECT3D_COMPONENTS = ["position", "rotation", "scale"];
 
 function defaultRequiresUpdate() {
   let cachedData = null;
@@ -381,8 +382,7 @@ AFRAME.registerComponent('networked', {
   },
 
   updateComponent: function (el, componentName, data) {
-    const transformComponents = ["position", "rotation", "scale"]
-    if(!NAF.options.useLerp || !transformComponents.includes(componentName)) {
+    if(!NAF.options.useLerp || !OBJECT3D_COMPONENTS.includes(componentName)) {
       el.setAttribute(componentName, data);
       return;
     }
