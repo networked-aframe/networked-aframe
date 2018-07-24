@@ -412,7 +412,7 @@ AFRAME.registerComponent('networked', {
         buffer.setScale(this.bufferScale.set(data.x, data.y, data.z));
         return;
     }
-    console.error("Could not set value in interpolation buffer.", el, componentName, data, bufferInfo);
+    NAF.log.error("Could not set value in interpolation buffer.", el, componentName, data, bufferInfo);
   },
 
   removeLerp: function() {
