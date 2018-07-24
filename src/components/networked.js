@@ -393,12 +393,13 @@ AFRAME.registerComponent('networked', {
                      object3D: el.object3D,
                      componentNames: [componentName] };
       this.bufferInfos.push(bufferInfo);
+    } else {
+      var componentNames = bufferInfo.componentNames;
+      if (!componentNames.includes(componentName)){
+        componentNames.push(componentName);
+      }
     }
     var buffer = bufferInfo.buffer;
-    var componentNames = bufferInfo.componentNames;
-    if (!componentNames.includes(componentName)){
-      componentNames.push(componentName);
-    }
 
     switch(componentName) {
       case "position":
