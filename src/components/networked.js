@@ -2,6 +2,7 @@
 var deepEqual = require('fast-deep-equal');
 var InterpolationBuffer = require('buffered-interpolation');
 var DEG2RAD = THREE.Math.DEG2RAD;
+var OBJECT3D_COMPONENTS = ['position', 'rotation', 'scale'];
 
 function defaultRequiresUpdate() {
   let cachedData = null;
@@ -42,7 +43,7 @@ AFRAME.registerComponent('networked', {
 
     this.conversionEuler = new THREE.Euler();
     this.conversionEuler.order = "YXZ";
-    this.interpolationBuffers = [];
+    this.bufferInfos = [];
     this.bufferPosition = new THREE.Vector3();
     this.bufferQuaternion = new THREE.Quaternion();
     this.bufferScale = new THREE.Vector3();
@@ -178,13 +179,21 @@ AFRAME.registerComponent('networked', {
         this.syncDirty();
       }
     } else if (NAF.options.useLerp) {
-      for (var i = 0; i < this.interpolationBuffers.length; i++) {
-        var interpolationBuffer = this.interpolationBuffers[i].buffer;
-        var el = this.interpolationBuffers[i].el;
-        interpolationBuffer.update(dt);
-        el.object3D.position.copy(interpolationBuffer.getPosition());
-        el.object3D.quaternion.copy(interpolationBuffer.getQuaternion());
-        el.object3D.scale.copy(interpolationBuffer.getScale());
+      for (var i = 0; i < this.bufferInfos.length; i++) {
+        var bufferInfo = this.bufferInfos[i];
+        var buffer = bufferInfo.buffer;
+        var object3D = bufferInfo.object3D;
+        var componentNames = bufferInfo.componentNames;
+        buffer.update(dt);
+        if (componentNames.includes('position')) {
+          object3D.position.copy(buffer.getPosition());
+        }
+        if (componentNames.includes('rotation')) {
+          object3D.quaternion.copy(buffer.getQuaternion());
+        }
+        if (componentNames.includes('scale')) {
+          object3D.scale.copy(buffer.getScale());
+        }
       }
     }
   },
@@ -373,39 +382,42 @@ AFRAME.registerComponent('networked', {
   },
 
   updateComponent: function (el, componentName, data) {
-    if(!NAF.options.useLerp) {
+    if(!NAF.options.useLerp || !OBJECT3D_COMPONENTS.includes(componentName)) {
       el.setAttribute(componentName, data);
       return;
     }
 
-    var buffer = null;
-    var interpolationBuffer = this.interpolationBuffers.find((item) => item.el === el);
-    if (!interpolationBuffer) {
-      buffer = new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1);
-      this.interpolationBuffers.push({ buffer: buffer, el: el });
+    var bufferInfo = this.bufferInfos.find((info) => info.object3D === el.object3D);
+    if (!bufferInfo) {
+      bufferInfo = { buffer: new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1),
+                     object3D: el.object3D,
+                     componentNames: [componentName] };
+      this.bufferInfos.push(bufferInfo);
     } else {
-      buffer = this.interpolationBuffers.find((item) => item.el === el).buffer;
+      var componentNames = bufferInfo.componentNames;
+      if (!componentNames.includes(componentName)) {
+        componentNames.push(componentName);
+      }
     }
+    var buffer = bufferInfo.buffer;
 
     switch(componentName) {
-      case "position":
+      case 'position':
         buffer.setPosition(this.bufferPosition.set(data.x, data.y, data.z));
-        break;
-      case "rotation":
+        return;
+      case 'rotation':
         this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
         buffer.setQuaternion(this.bufferQuaternion.setFromEuler(this.conversionEuler));
-        break;
-      case "scale":
+        return;
+      case 'scale':
         buffer.setScale(this.bufferScale.set(data.x, data.y, data.z));
-        break;
-      default:
-        el.setAttribute(componentName, data);
-        break;
+        return;
     }
+    NAF.log.error('Could not set value in interpolation buffer.', el, componentName, data, bufferInfo);
   },
 
   removeLerp: function() {
-    this.interpolationBuffers = [];
+    this.bufferInfos = [];
   },
 
   remove: function () {
