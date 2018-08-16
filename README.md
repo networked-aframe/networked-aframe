@@ -332,7 +332,7 @@ List of events:
 | clientConnected | Fired when another client connects to you | `evt.detail.clientId` - ClientId of connecting client |
 | clientDisconnected | Fired when another client disconnects from you | `evt.detail.clientId` - ClientId of disconnecting client |
 | entityCreated | Fired when a networked entity is created | `evt.detail.el` - new entity |
-| entityDeleted | Fired when a networked entity is deleted | `evt.detail.networkId` - networkId of deleted entity |
+| entityRemoved | Fired when a networked entity is deleted | `evt.detail.networkId` - networkId of deleted entity |
 
 The following events are fired on the `networked` component. See the [toggle-ownership component](./server/static/js/toggle-ownership.component.js) for examples.
 
