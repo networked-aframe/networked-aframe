@@ -156,11 +156,11 @@
 	  return new Promise(function (resolve, reject) {
 	    var curEntity = entity;
 
-	    while (curEntity && !curEntity.hasAttribute("networked")) {
+	    while (curEntity && curEntity.components && !curEntity.components.networked) {
 	      curEntity = curEntity.parentNode;
 	    }
 
-	    if (!curEntity) {
+	    if (!curEntity || !curEntity.components || !curEntity.components.networked) {
 	      return reject("Entity does not have and is not a child of an entity with the [networked] component ");
 	    }
 
@@ -179,37 +179,29 @@
 	module.exports.takeOwnership = function (entity) {
 	  var curEntity = entity;
 
-	  while (curEntity && !curEntity.hasAttribute("networked")) {
+	  while (curEntity && curEntity.components && !curEntity.components.networked) {
 	    curEntity = curEntity.parentNode;
 	  }
 
-	  if (curEntity) {
-	    if (!curEntity.components.networked) {
-	      throw new Error("Entity with [networked] component not initialized.");
-	    }
-
-	    return curEntity.components.networked.takeOwnership();
+	  if (!curEntity || !curEntity.components || !curEntity.components.networked) {
+	    throw new Error("Entity does not have and is not a child of an entity with the [networked] component ");
 	  }
 
-	  throw new Error("takeOwnership() must be called on an entity or child of an entity with the [networked] component.");
+	  return curEntity.components.networked.takeOwnership();
 	};
 
 	module.exports.isMine = function (entity) {
 	  var curEntity = entity;
 
-	  while (curEntity && !curEntity.hasAttribute("networked")) {
+	  while (curEntity && curEntity.components && !curEntity.components.networked) {
 	    curEntity = curEntity.parentNode;
 	  }
 
-	  if (curEntity) {
-	    if (!curEntity.components.networked) {
-	      throw new Error("Entity with [networked] component not initialized.");
-	    }
-
-	    return curEntity.components.networked.data.owner === NAF.clientId;
+	  if (!curEntity || !curEntity.components || !curEntity.components.networked) {
+	    throw new Error("Entity does not have and is not a child of an entity with the [networked] component ");
 	  }
 
-	  throw new Error("isMine() must be called on an entity or child of an entity with the [networked] component.");
+	  return curEntity.components.networked.data.owner === NAF.clientId;
 	};
 
 	module.exports.almostEqualVec3 = function (u, v, epsilon) {
@@ -1700,6 +1692,7 @@
 	var deepEqual = __webpack_require__(16);
 	var InterpolationBuffer = __webpack_require__(17);
 	var DEG2RAD = THREE.Math.DEG2RAD;
+	var OBJECT3D_COMPONENTS = ['position', 'rotation', 'scale'];
 
 	function defaultRequiresUpdate() {
 	  var cachedData = null;
@@ -1740,7 +1733,7 @@
 
 	    this.conversionEuler = new THREE.Euler();
 	    this.conversionEuler.order = "YXZ";
-	    this.interpolationBuffers = [];
+	    this.bufferInfos = [];
 	    this.bufferPosition = new THREE.Vector3();
 	    this.bufferQuaternion = new THREE.Quaternion();
 	    this.bufferScale = new THREE.Vector3();
@@ -1880,13 +1873,21 @@
 	        this.syncDirty();
 	      }
 	    } else if (NAF.options.useLerp) {
-	      for (var i = 0; i < this.interpolationBuffers.length; i++) {
-	        var interpolationBuffer = this.interpolationBuffers[i].buffer;
-	        var el = this.interpolationBuffers[i].el;
-	        interpolationBuffer.update(dt);
-	        el.object3D.position.copy(interpolationBuffer.getPosition());
-	        el.object3D.quaternion.copy(interpolationBuffer.getQuaternion());
-	        el.object3D.scale.copy(interpolationBuffer.getScale());
+	      for (var i = 0; i < this.bufferInfos.length; i++) {
+	        var bufferInfo = this.bufferInfos[i];
+	        var buffer = bufferInfo.buffer;
+	        var object3D = bufferInfo.object3D;
+	        var componentNames = bufferInfo.componentNames;
+	        buffer.update(dt);
+	        if (componentNames.includes('position')) {
+	          object3D.position.copy(buffer.getPosition());
+	        }
+	        if (componentNames.includes('rotation')) {
+	          object3D.quaternion.copy(buffer.getQuaternion());
+	        }
+	        if (componentNames.includes('scale')) {
+	          object3D.scale.copy(buffer.getScale());
+	        }
 	      }
 	    }
 	  },
@@ -2076,43 +2077,44 @@
 	  },
 
 	  updateComponent: function updateComponent(el, componentName, data) {
-	    if (!NAF.options.useLerp) {
+	    if (!NAF.options.useLerp || !OBJECT3D_COMPONENTS.includes(componentName)) {
 	      el.setAttribute(componentName, data);
 	      return;
 	    }
 
-	    var buffer = null;
-	    var interpolationBuffer = this.interpolationBuffers.find(function (item) {
-	      return item.el === el;
+	    var bufferInfo = this.bufferInfos.find(function (info) {
+	      return info.object3D === el.object3D;
 	    });
-	    if (!interpolationBuffer) {
-	      buffer = new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1);
-	      this.interpolationBuffers.push({ buffer: buffer, el: el });
+	    if (!bufferInfo) {
+	      bufferInfo = { buffer: new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1),
+	        object3D: el.object3D,
+	        componentNames: [componentName] };
+	      this.bufferInfos.push(bufferInfo);
 	    } else {
-	      buffer = this.interpolationBuffers.find(function (item) {
-	        return item.el === el;
-	      }).buffer;
+	      var componentNames = bufferInfo.componentNames;
+	      if (!componentNames.includes(componentName)) {
+	        componentNames.push(componentName);
+	      }
 	    }
+	    var buffer = bufferInfo.buffer;
 
 	    switch (componentName) {
-	      case "position":
+	      case 'position':
 	        buffer.setPosition(this.bufferPosition.set(data.x, data.y, data.z));
-	        break;
-	      case "rotation":
+	        return;
+	      case 'rotation':
 	        this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
 	        buffer.setQuaternion(this.bufferQuaternion.setFromEuler(this.conversionEuler));
-	        break;
-	      case "scale":
+	        return;
+	      case 'scale':
 	        buffer.setScale(this.bufferScale.set(data.x, data.y, data.z));
-	        break;
-	      default:
-	        el.setAttribute(componentName, data);
-	        break;
+	        return;
 	    }
+	    NAF.log.error('Could not set value in interpolation buffer.', el, componentName, data, bufferInfo);
 	  },
 
 	  removeLerp: function removeLerp() {
-	    this.interpolationBuffers = [];
+	    this.bufferInfos = [];
 	  },
 
 	  remove: function remove() {
@@ -2144,44 +2146,56 @@
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+	var isArray = Array.isArray;
+	var keyList = Object.keys;
+	var hasProp = Object.prototype.hasOwnProperty;
+
 	module.exports = function equal(a, b) {
 	  if (a === b) return true;
 
-	  var arrA = Array.isArray(a),
-	      arrB = Array.isArray(b),
-	      i;
+	  if (a && b && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) == 'object' && (typeof b === 'undefined' ? 'undefined' : _typeof(b)) == 'object') {
+	    var arrA = isArray(a),
+	        arrB = isArray(b),
+	        i,
+	        length,
+	        key;
 
-	  if (arrA && arrB) {
-	    if (a.length != b.length) return false;
-	    for (i = 0; i < a.length; i++) {
-	      if (!equal(a[i], b[i])) return false;
-	    }return true;
-	  }
+	    if (arrA && arrB) {
+	      length = a.length;
+	      if (length != b.length) return false;
+	      for (i = length; i-- !== 0;) {
+	        if (!equal(a[i], b[i])) return false;
+	      }return true;
+	    }
 
-	  if (arrA != arrB) return false;
-
-	  if (a && b && (typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' && (typeof b === 'undefined' ? 'undefined' : _typeof(b)) === 'object') {
-	    var keys = Object.keys(a);
-	    if (keys.length !== Object.keys(b).length) return false;
+	    if (arrA != arrB) return false;
 
 	    var dateA = a instanceof Date,
 	        dateB = b instanceof Date;
-	    if (dateA && dateB) return a.getTime() == b.getTime();
 	    if (dateA != dateB) return false;
+	    if (dateA && dateB) return a.getTime() == b.getTime();
 
 	    var regexpA = a instanceof RegExp,
 	        regexpB = b instanceof RegExp;
-	    if (regexpA && regexpB) return a.toString() == b.toString();
 	    if (regexpA != regexpB) return false;
+	    if (regexpA && regexpB) return a.toString() == b.toString();
 
-	    for (i = 0; i < keys.length; i++) {
-	      if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false;
-	    }for (i = 0; i < keys.length; i++) {
-	      if (!equal(a[keys[i]], b[keys[i]])) return false;
-	    }return true;
+	    var keys = keyList(a);
+	    length = keys.length;
+
+	    if (length !== keyList(b).length) return false;
+
+	    for (i = length; i-- !== 0;) {
+	      if (!hasProp.call(b, keys[i])) return false;
+	    }for (i = length; i-- !== 0;) {
+	      key = keys[i];
+	      if (!equal(a[key], b[key])) return false;
+	    }
+
+	    return true;
 	  }
 
-	  return false;
+	  return a !== a && b !== b;
 	};
 
 /***/ }),
@@ -2190,6 +2204,24 @@
 
 	"use strict";
 
+	var _createClass = function () {
+	  function defineProperties(target, props) {
+	    for (var i = 0; i < props.length; i++) {
+	      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+	    }
+	  }return function (Constructor, protoProps, staticProps) {
+	    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	  };
+	}();
+
+	function _classCallCheck(instance, Constructor) {
+	  if (!(instance instanceof Constructor)) {
+	    throw new TypeError("Cannot call a class as a function");
+	  }
+	}
+
+	/* global THREE */
+
 	var INITIALIZING = 0;
 	var BUFFERING = 1;
 	var PLAYING = 2;
@@ -2197,164 +2229,185 @@
 	var MODE_LERP = 0;
 	var MODE_HERMITE = 1;
 
-	function hermite(target, t, p1, p2, v1, v2) {
-	  var t2 = t * t;
-	  var t3 = t * t * t;
-	  var a = 2 * t3 - 3 * t2 + 1;
-	  var b = -2 * t3 + 3 * t2;
-	  var c = t3 - 2 * t2 + t;
-	  var d = t3 - t2;
+	var InterpolationBuffer = function () {
+	  function InterpolationBuffer() {
+	    var mode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : MODE_LERP;
+	    var bufferTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.15;
 
-	  target.copy(p1.multiplyScalar(a));
-	  target.add(p2.multiplyScalar(b));
-	  target.add(v1.multiplyScalar(c));
-	  target.add(v2.multiplyScalar(d));
-	}
+	    _classCallCheck(this, InterpolationBuffer);
 
-	function lerp(target, v1, v2, alpha) {
-	  target.lerpVectors(v1, v2, alpha);
-	};
+	    this.state = INITIALIZING;
+	    this.buffer = [];
+	    this.bufferTime = bufferTime * 1000;
+	    this.time = 0;
+	    this.mode = mode;
 
-	function slerp(target, r1, r2, alpha) {
-	  THREE.Quaternion.slerp(r1, r2, target, alpha);
-	};
+	    this.originFrame = {
+	      position: new THREE.Vector3(),
+	      velocity: new THREE.Vector3(),
+	      quaternion: new THREE.Quaternion(),
+	      scale: new THREE.Vector3(1, 1, 1)
+	    };
 
-	function InterpolationBuffer(mode, bufferTime) {
-	  this.state = INITIALIZING;
-	  this.buffer = [];
-	  this.time = 0;
-	  this.mode = mode != null ? mode : MODE_LERP;
-	  this.bufferTime = bufferTime != null ? bufferTime * 1000 : 1.5;
-
-	  this.originFrame = {
-	    position: new THREE.Vector3(),
-	    velocity: new THREE.Vector3(),
-	    quaternion: new THREE.Quaternion(),
-	    scale: new THREE.Vector3(1, 1, 1)
-	  };
-
-	  this.position = new THREE.Vector3();
-	  this.quaternion = new THREE.Quaternion();
-	  this.scale = new THREE.Vector3(1, 1, 1);
-	}
-
-	InterpolationBuffer.prototype.appendBuffer = function (position, velocity, quaternion, scale) {
-	  var tail = this.buffer.length > 0 ? this.buffer[this.buffer.length - 1] : null;
-	  // update the last entry in the buffer if this is the same frame
-	  if (tail && tail.time === this.time) {
-	    if (position) {
-	      tail.position.copy(position);
-	    }
-
-	    if (velocity) {
-	      tail.velocity.copy(velocity);
-	    }
-
-	    if (quaternion) {
-	      tail.quaternion.copy(quaternion);
-	    }
-
-	    if (scale) {
-	      tail.scale.copy(scale);
-	    }
-	  } else {
-	    var priorFrame = tail || this.originFrame;
-	    this.buffer.push({
-	      position: position ? position.clone() : priorFrame.position.clone(),
-	      velocity: velocity ? velocity.clone() : priorFrame.velocity.clone(),
-	      quaternion: quaternion ? quaternion.clone() : priorFrame.quaternion.clone(),
-	      scale: scale ? scale.clone() : priorFrame.scale.clone(),
-	      time: this.time
-	    });
-	  }
-	};
-
-	InterpolationBuffer.prototype.setTarget = function (position, velocity, quaternion, scale) {
-	  this.appendBuffer(position, velocity, quaternion, scale);
-	};
-
-	InterpolationBuffer.prototype.setPosition = function (position, velocity) {
-	  this.appendBuffer(position, velocity, null, null);
-	};
-
-	InterpolationBuffer.prototype.setQuaternion = function (quaternion) {
-	  this.appendBuffer(null, null, quaternion, null);
-	};
-
-	InterpolationBuffer.prototype.setScale = function (scale) {
-	  this.appendBuffer(null, null, null, scale);
-	};
-
-	InterpolationBuffer.prototype.update = function (delta) {
-	  if (this.state === INITIALIZING) {
-	    if (this.buffer.length > 0) {
-	      this.originFrame = this.buffer.shift();
-	      this.position.copy(this.originFrame.position);
-	      this.quaternion.copy(this.originFrame.quaternion);
-	      this.scale.copy(this.originFrame.scale);
-	      this.state = BUFFERING;
-	    }
+	    this.position = new THREE.Vector3();
+	    this.quaternion = new THREE.Quaternion();
+	    this.scale = new THREE.Vector3(1, 1, 1);
 	  }
 
-	  if (this.state === BUFFERING) {
-	    if (this.buffer.length > 0 && this.time > this.bufferTime) {
-	      this.state = PLAYING;
-	    }
-	  }
+	  _createClass(InterpolationBuffer, [{
+	    key: "hermite",
+	    value: function hermite(target, t, p1, p2, v1, v2) {
+	      var t2 = t * t;
+	      var t3 = t * t * t;
+	      var a = 2 * t3 - 3 * t2 + 1;
+	      var b = -2 * t3 + 3 * t2;
+	      var c = t3 - 2 * t2 + t;
+	      var d = t3 - t2;
 
-	  if (this.state === PLAYING) {
-	    var mark = this.time - this.bufferTime;
-	    //Purge this.buffer of expired frames
-	    while (this.buffer.length > 0 && mark > this.buffer[0].time) {
-	      //if this is the last frame in the buffer, just update the time and reuse it
-	      if (this.buffer.length > 1) {
-	        this.originFrame = this.buffer.shift();
+	      target.copy(p1.multiplyScalar(a));
+	      target.add(p2.multiplyScalar(b));
+	      target.add(v1.multiplyScalar(c));
+	      target.add(v2.multiplyScalar(d));
+	    }
+	  }, {
+	    key: "lerp",
+	    value: function lerp(target, v1, v2, alpha) {
+	      target.lerpVectors(v1, v2, alpha);
+	    }
+	  }, {
+	    key: "slerp",
+	    value: function slerp(target, r1, r2, alpha) {
+	      THREE.Quaternion.slerp(r1, r2, target, alpha);
+	    }
+	  }, {
+	    key: "appendBuffer",
+	    value: function appendBuffer(position, velocity, quaternion, scale) {
+	      var tail = this.buffer.length > 0 ? this.buffer[this.buffer.length - 1] : null;
+	      // update the last entry in the buffer if this is the same frame
+	      if (tail && tail.time === this.time) {
+	        if (position) {
+	          tail.position.copy(position);
+	        }
+
+	        if (velocity) {
+	          tail.velocity.copy(velocity);
+	        }
+
+	        if (quaternion) {
+	          tail.quaternion.copy(quaternion);
+	        }
+
+	        if (scale) {
+	          tail.scale.copy(scale);
+	        }
 	      } else {
-	        this.originFrame.position.copy(this.buffer[0].position);
-	        this.originFrame.velocity.copy(this.buffer[0].velocity);
-	        this.originFrame.quaternion.copy(this.buffer[0].quaternion);
-	        this.originFrame.scale.copy(this.buffer[0].scale);
-	        this.originFrame.time = this.buffer[0].time;
-	        this.buffer[0].time = this.time + delta;
+	        var priorFrame = tail || this.originFrame;
+	        this.buffer.push({
+	          position: position ? position.clone() : priorFrame.position.clone(),
+	          velocity: velocity ? velocity.clone() : priorFrame.velocity.clone(),
+	          quaternion: quaternion ? quaternion.clone() : priorFrame.quaternion.clone(),
+	          scale: scale ? scale.clone() : priorFrame.scale.clone(),
+	          time: this.time
+	        });
 	      }
 	    }
-	    if (this.buffer.length > 0 && this.buffer[0].time > 0) {
-	      var targetFrame = this.buffer[0];
-	      var delta_time = targetFrame.time - this.originFrame.time;
-	      var alpha = (mark - this.originFrame.time) / delta_time;
-
-	      if (this.mode === MODE_LERP) {
-	        lerp(this.position, this.originFrame.position, targetFrame.position, alpha);
-	      } else if (this.mode === MODE_HERMITE) {
-	        hermite(this.position, alpha, this.originFrame.position, targetFrame.position, this.originFrame.velocity.multiplyScalar(delta_time), targetFrame.velocity.multiplyScalar(delta_time));
+	  }, {
+	    key: "setTarget",
+	    value: function setTarget(position, velocity, quaternion, scale) {
+	      this.appendBuffer(position, velocity, quaternion, scale);
+	    }
+	  }, {
+	    key: "setPosition",
+	    value: function setPosition(position, velocity) {
+	      this.appendBuffer(position, velocity, null, null);
+	    }
+	  }, {
+	    key: "setQuaternion",
+	    value: function setQuaternion(quaternion) {
+	      this.appendBuffer(null, null, quaternion, null);
+	    }
+	  }, {
+	    key: "setScale",
+	    value: function setScale(scale) {
+	      this.appendBuffer(null, null, null, scale);
+	    }
+	  }, {
+	    key: "update",
+	    value: function update(delta) {
+	      if (this.state === INITIALIZING) {
+	        if (this.buffer.length > 0) {
+	          this.originFrame = this.buffer.shift();
+	          this.position.copy(this.originFrame.position);
+	          this.quaternion.copy(this.originFrame.quaternion);
+	          this.scale.copy(this.originFrame.scale);
+	          this.state = BUFFERING;
+	        }
 	      }
 
-	      slerp(this.quaternion, this.originFrame.quaternion, targetFrame.quaternion, alpha);
+	      if (this.state === BUFFERING) {
+	        if (this.buffer.length > 0 && this.time > this.bufferTime) {
+	          this.state = PLAYING;
+	        }
+	      }
 
-	      lerp(this.scale, this.originFrame.scale, targetFrame.scale, alpha);
+	      if (this.state === PLAYING) {
+	        var mark = this.time - this.bufferTime;
+	        //Purge this.buffer of expired frames
+	        while (this.buffer.length > 0 && mark > this.buffer[0].time) {
+	          //if this is the last frame in the buffer, just update the time and reuse it
+	          if (this.buffer.length > 1) {
+	            this.originFrame = this.buffer.shift();
+	          } else {
+	            this.originFrame.position.copy(this.buffer[0].position);
+	            this.originFrame.velocity.copy(this.buffer[0].velocity);
+	            this.originFrame.quaternion.copy(this.buffer[0].quaternion);
+	            this.originFrame.scale.copy(this.buffer[0].scale);
+	            this.originFrame.time = this.buffer[0].time;
+	            this.buffer[0].time = this.time + delta;
+	          }
+	        }
+	        if (this.buffer.length > 0 && this.buffer[0].time > 0) {
+	          var targetFrame = this.buffer[0];
+	          var delta_time = targetFrame.time - this.originFrame.time;
+	          var alpha = (mark - this.originFrame.time) / delta_time;
+
+	          if (this.mode === MODE_LERP) {
+	            this.lerp(this.position, this.originFrame.position, targetFrame.position, alpha);
+	          } else if (this.mode === MODE_HERMITE) {
+	            this.hermite(this.position, alpha, this.originFrame.position, targetFrame.position, this.originFrame.velocity.multiplyScalar(delta_time), targetFrame.velocity.multiplyScalar(delta_time));
+	          }
+
+	          this.slerp(this.quaternion, this.originFrame.quaternion, targetFrame.quaternion, alpha);
+
+	          this.lerp(this.scale, this.originFrame.scale, targetFrame.scale, alpha);
+	        }
+	      }
+
+	      if (this.state !== INITIALIZING) {
+	        this.time += delta;
+	      }
 	    }
-	  }
+	  }, {
+	    key: "getPosition",
+	    value: function getPosition() {
+	      return this.position;
+	    }
+	  }, {
+	    key: "getQuaternion",
+	    value: function getQuaternion() {
+	      return this.quaternion;
+	    }
+	  }, {
+	    key: "getScale",
+	    value: function getScale() {
+	      return this.scale;
+	    }
+	  }]);
 
-	  if (this.state !== INITIALIZING) {
-	    this.time += delta;
-	  }
-	};
+	  return InterpolationBuffer;
+	}();
 
-	InterpolationBuffer.prototype.getPosition = function () {
-	  return this.position;
-	};
-
-	InterpolationBuffer.prototype.getQuaternion = function () {
-	  return this.quaternion;
-	};
-
-	InterpolationBuffer.prototype.getScale = function () {
-	  return this.scale;
-	};
-
-	if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
-	  module.exports = InterpolationBuffer;
-	}
+	module.exports = InterpolationBuffer;
 
 /***/ }),
 /* 18 */
