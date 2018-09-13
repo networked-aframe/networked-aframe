@@ -304,6 +304,7 @@ AFRAME.registerComponent('networked', {
     syncData.owner = data.owner;
     syncData.lastOwnerTime = this.lastOwnerTime;
     syncData.template = data.template;
+    syncData.persistent = data.persistent;
     syncData.parent = this.getParentId();
     syncData.components = components;
     syncData.isFirstSync = !!isFirstSync;
@@ -355,6 +356,9 @@ AFRAME.registerComponent('networked', {
       this.el.emit(this.OWNERSHIP_CHANGED, this.onOwnershipChangedEvent);
 
       this.el.setAttribute('networked', { owner: entityData.owner });
+    }
+    if (this.data.persistent !== entityData.persistent) {
+      this.el.setAttribute('networked', 'persistent', entityData.persistent);
     }
     this.updateComponents(entityData.components);
   },

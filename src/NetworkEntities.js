@@ -50,7 +50,8 @@ class NetworkEntities {
     var networkData = {
       template: entityData.template,
       owner: entityData.owner,
-      networkId: entityData.networkId
+      networkId: entityData.networkId,
+      persistent: entityData.persistent
     };
 
     entity.setAttribute('networked', networkData);
