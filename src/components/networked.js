@@ -4,19 +4,6 @@ var InterpolationBuffer = require('buffered-interpolation');
 var DEG2RAD = THREE.Math.DEG2RAD;
 var OBJECT3D_COMPONENTS = ['position', 'rotation', 'scale'];
 
-function defaultRequiresUpdate() {
-  let cachedData = null;
-
-  return (newData) => {
-    if (cachedData === null || !deepEqual(cachedData, newData)) {
-      cachedData = AFRAME.utils.clone(newData);
-      return true;
-    }
-
-    return false;
-  };
-}
-
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
@@ -55,7 +42,8 @@ AFRAME.registerComponent('networked', {
     this.syncData = {};
     this.componentSchemas =  NAF.schemas.getComponents(this.data.template);
     this.cachedElements = new Array(this.componentSchemas.length);
-    this.networkUpdatePredicates = this.componentSchemas.map(x => x.requiresNetworkUpdate || defaultRequiresUpdate());
+    this.previousSyncedComponentData = new Array(this.componentSchemas.length).fill(null);
+    this.networkUpdatePredicates = this.componentSchemas.map(x => x.requiresNetworkUpdate || ((p, c) => !deepEqual(p, c)));
 
     // Fill cachedElements array with null elements
     this.invalidateCachedElements();
@@ -287,8 +275,14 @@ AFRAME.registerComponent('networked', {
       var syncedComponentData = componentSchema.property ? componentData[componentSchema.property] : componentData;
 
       // Use networkUpdatePredicate to check if the component needs to be updated.
-      // Call networkUpdatePredicate first so that it can update any cached values in the event of a fullSync.
-      if (this.networkUpdatePredicates[i](syncedComponentData) || fullSync) {
+      const previousData = this.previousSyncedComponentData[i];
+      const hasChanged = previousData === null || this.networkUpdatePredicates[i](previousData, syncedComponentData);
+
+      if (hasChanged) {
+        this.previousSyncedComponentData[i] = AFRAME.utils.clone(syncedComponentData);
+      }
+
+      if (hasChanged || fullSync) {
         componentsData = componentsData || {};
         componentsData[i] = syncedComponentData;
       }
