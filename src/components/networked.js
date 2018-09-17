@@ -55,7 +55,7 @@ AFRAME.registerComponent('networked', {
     this.syncData = {};
     this.componentSchemas =  NAF.schemas.getComponents(this.data.template);
     this.cachedElements = new Array(this.componentSchemas.length);
-    this.networkUpdatePredicates = this.componentSchemas.map(x => x.requiresNetworkUpdate || defaultRequiresUpdate());
+    this.networkUpdatePredicates = this.componentSchemas.map(x => (x.requiresNetworkUpdate && x.requiresNetworkUpdate()) || defaultRequiresUpdate());
 
     // Fill cachedElements array with null elements
     this.invalidateCachedElements();
