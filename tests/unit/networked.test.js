@@ -136,6 +136,7 @@ suite('networked', function() {
         networkId: 'network1',
         owner: 'owner1',
         lastOwnerTime: -1,
+        persistent: false,
         parent: null,
         template: '#t1',
         components: {
@@ -174,6 +175,7 @@ suite('networked', function() {
         networkId: 'network1',
         owner: 'owner1',
         lastOwnerTime: -1,
+        persistent: false,
         parent: null,
         template: '#t1',
         components: {
