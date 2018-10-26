@@ -358,7 +358,7 @@ AFRAME.registerComponent('networked', {
       this.el.setAttribute('networked', { owner: entityData.owner });
     }
     if (this.data.persistent !== entityData.persistent) {
-      this.el.setAttribute('networked', 'persistent', entityData.persistent);
+      this.el.setAttribute('networked', { persistent: entityData.persistent });
     }
     this.updateComponents(entityData.components);
   },
