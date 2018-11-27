@@ -454,7 +454,8 @@
 	      var networkData = {
 	        template: entityData.template,
 	        owner: entityData.owner,
-	        networkId: entityData.networkId
+	        networkId: entityData.networkId,
+	        persistent: entityData.persistent
 	      };
 
 	      entity.setAttribute('networked', networkData);
@@ -545,8 +546,15 @@
 	      for (var id in this.entities) {
 	        var entityOwner = NAF.utils.getNetworkOwner(this.entities[id]);
 	        if (entityOwner == clientId) {
-	          var entity = this.removeEntity(id);
-	          entityList.push(entity);
+	          var persists = void 0;
+	          var component = this.entities[id].getAttribute('networked');
+	          if (component && component.persistent) {
+	            persists = NAF.utils.takeOwnership(this.entities[id]);
+	          }
+	          if (!persists) {
+	            var entity = this.removeEntity(id);
+	            entityList.push(entity);
+	          }
 	        }
 	      }
 	      return entityList;
@@ -1711,6 +1719,7 @@
 	  schema: {
 	    template: { default: '' },
 	    attachTemplateToLocal: { default: true },
+	    persistent: { default: false },
 
 	    networkId: { default: '' },
 	    owner: { default: '' }
@@ -1746,7 +1755,7 @@
 	    this.componentSchemas = NAF.schemas.getComponents(this.data.template);
 	    this.cachedElements = new Array(this.componentSchemas.length);
 	    this.networkUpdatePredicates = this.componentSchemas.map(function (x) {
-	      return x.requiresNetworkUpdate || defaultRequiresUpdate();
+	      return x.requiresNetworkUpdate && x.requiresNetworkUpdate() || defaultRequiresUpdate();
 	    });
 
 	    // Fill cachedElements array with null elements
@@ -1999,6 +2008,7 @@
 	    syncData.owner = data.owner;
 	    syncData.lastOwnerTime = this.lastOwnerTime;
 	    syncData.template = data.template;
+	    syncData.persistent = data.persistent;
 	    syncData.parent = this.getParentId();
 	    syncData.components = components;
 	    syncData.isFirstSync = !!isFirstSync;
@@ -2050,10 +2060,13 @@
 
 	      this.el.setAttribute('networked', { owner: entityData.owner });
 	    }
-	    this.updateComponents(entityData.components);
+	    if (this.data.persistent !== entityData.persistent) {
+	      this.el.setAttribute('networked', { persistent: entityData.persistent });
+	    }
+	    this.updateNetworkedComponents(entityData.components);
 	  },
 
-	  updateComponents: function updateComponents(components) {
+	  updateNetworkedComponents: function updateNetworkedComponents(components) {
 	    for (var componentIndex in components) {
 	      var componentData = components[componentIndex];
 	      var componentSchema = this.componentSchemas[componentIndex];
@@ -2066,17 +2079,17 @@
 	      if (componentSchema.component) {
 	        if (componentSchema.property) {
 	          var singlePropertyData = _defineProperty({}, componentSchema.property, componentData);
-	          this.updateComponent(componentElement, componentSchema.component, singlePropertyData);
+	          this.updateNetworkedComponent(componentElement, componentSchema.component, singlePropertyData);
 	        } else {
-	          this.updateComponent(componentElement, componentSchema.component, componentData);
+	          this.updateNetworkedComponent(componentElement, componentSchema.component, componentData);
 	        }
 	      } else {
-	        this.updateComponent(componentElement, componentSchema, componentData);
+	        this.updateNetworkedComponent(componentElement, componentSchema, componentData);
 	      }
 	    }
 	  },
 
-	  updateComponent: function updateComponent(el, componentName, data) {
+	  updateNetworkedComponent: function updateNetworkedComponent(el, componentName, data) {
 	    if (!NAF.options.useLerp || !OBJECT3D_COMPONENTS.includes(componentName)) {
 	      el.setAttribute(componentName, data);
 	      return;
