@@ -347,6 +347,9 @@ AFRAME.registerComponent('networked', {
 
       const oldOwner = this.data.owner;
       const newOwner = entityData.owner;
+
+      this.el.setAttribute('networked', { owner: entityData.owner });
+
       if (wasMine) {
         this.onOwnershipLostEvent.newOwner = newOwner;
         this.el.emit(this.OWNERSHIP_LOST, this.onOwnershipLostEvent);
@@ -354,8 +357,6 @@ AFRAME.registerComponent('networked', {
       this.onOwnershipChangedEvent.oldOwner = oldOwner;
       this.onOwnershipChangedEvent.newOwner = newOwner;
       this.el.emit(this.OWNERSHIP_CHANGED, this.onOwnershipChangedEvent);
-
-      this.el.setAttribute('networked', { owner: entityData.owner });
     }
     if (this.data.persistent !== entityData.persistent) {
       this.el.setAttribute('networked', { persistent: entityData.persistent });
