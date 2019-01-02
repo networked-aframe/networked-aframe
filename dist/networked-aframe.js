@@ -2073,7 +2073,7 @@
 	      var componentSchema = this.componentSchemas[componentIndex];
 	      var componentElement = this.getCachedElement(componentIndex);
 
-	      if (componentElement === null) {
+	      if (componentElement === null || componentData === null) {
 	        continue;
 	      }
 
