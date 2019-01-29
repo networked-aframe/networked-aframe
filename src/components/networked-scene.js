@@ -45,6 +45,7 @@ AFRAME.registerComponent('networked-scene', {
     var adapterName = this.data.adapter;
     var adapter = NAF.adapters.make(adapterName);
     NAF.connection.setNetworkAdapter(adapter);
+    this.el.emit('adapter-ready', adapter, false);
   },
 
   hasOnConnectFunction: function() {
