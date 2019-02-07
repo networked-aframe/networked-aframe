@@ -28,6 +28,7 @@ AFRAME.registerComponent('networked', {
   },
 
   init: function() {
+    this.creator = null;
     this.OWNERSHIP_GAINED = 'ownership-gained';
     this.OWNERSHIP_CHANGED = 'ownership-changed';
     this.OWNERSHIP_LOST = 'ownership-lost';
@@ -167,6 +168,12 @@ AFRAME.registerComponent('networked', {
 
   isMine: function() {
     return this.data.owner === NAF.clientId;
+  },
+
+  update: function(oldData) {
+    if (this.creator === null && this.data.owner) {
+      this.creator = this.data.owner;
+    }
   },
 
   tick: function(time, dt) {

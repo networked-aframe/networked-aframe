@@ -137,8 +137,8 @@ class NetworkEntities {
   removeEntitiesOfClient(clientId) {
     var entityList = [];
     for (var id in this.entities) {
-      var entityOwner = NAF.utils.getNetworkOwner(this.entities[id]);
-      if (entityOwner == clientId) {
+      var entityCreator = NAF.utils.getCreator(this.entities[id]);
+      if (entityCreator === clientId) {
         let persists;
         const component = this.entities[id].getAttribute('networked');
         if (component && component.persistent) {
