@@ -337,7 +337,7 @@ suite('NetworkEntities', function() {
         scene.appendChild(el);
         entityList.push(el);
       }
-      this.stub(naf.utils, 'getNetworkOwner').returns(entityData.owner);
+      this.stub(naf.utils, 'getCreator').returns(entityData.owner);
 
       var removedEntities = entities.removeEntitiesOfClient(entityData.owner);
 
