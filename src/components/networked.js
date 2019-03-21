@@ -25,6 +25,7 @@ AFRAME.registerComponent('networked', {
 
     networkId: {default: ''},
     owner: {default: ''},
+    creator: {default: ''}
   },
 
   init: function() {
@@ -152,7 +153,7 @@ AFRAME.registerComponent('networked', {
   onConnected: function() {
     if (this.data.owner === '') {
       this.lastOwnerTime = NAF.connection.getServerTime();
-      this.el.setAttribute(this.name, {owner: NAF.clientId});
+      this.el.setAttribute(this.name, {owner: NAF.clientId, creator: NAF.clientId });
       setTimeout(() => {
         //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
         if (!this.el.parentNode){
@@ -170,10 +171,8 @@ AFRAME.registerComponent('networked', {
     return this.data.owner === NAF.clientId;
   },
 
-  update: function(oldData) {
-    if (this.creator === null && this.data.owner) {
-      this.creator = this.data.owner;
-    }
+  createdByMe: function() {
+    return this.data.creator === NAF.clientId;
   },
 
   tick: function(time, dt) {
@@ -319,7 +318,24 @@ AFRAME.registerComponent('networked', {
   },
 
   canSync: function() {
-    return this.data.owner && this.isMine();
+    // This client will send a sync if:
+    //
+    // - The client is the owner
+    // - The client is the creator, and the owner is not in the room.
+    //
+    // The reason for the latter case is so the object will still be
+    // properly instantiated if the owner leaves. (Since the object lifetime
+    // is tied to the creator.)
+    if (this.data.owner && this.isMine()) return true;
+    if (!this.createdByMe()) return false;
+
+    const clients = NAF.connection.getConnectedClients();
+
+    for (let clientId in clients) {
+      if (clientId === this.data.owner) return false;
+    }
+
+    return true;
   },
 
   needsToSync: function() {

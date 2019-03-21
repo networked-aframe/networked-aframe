@@ -123,6 +123,14 @@
 	  return child;
 	};
 
+	module.exports.getCreator = function (el) {
+	  var components = el.components;
+	  if (components.hasOwnProperty('networked')) {
+	    return components['networked'].creator;
+	  }
+	  return null;
+	};
+
 	module.exports.getNetworkOwner = function (el) {
 	  var components = el.components;
 	  if (components.hasOwnProperty('networked')) {
@@ -544,8 +552,8 @@
 	    value: function removeEntitiesOfClient(clientId) {
 	      var entityList = [];
 	      for (var id in this.entities) {
-	        var entityOwner = NAF.utils.getNetworkOwner(this.entities[id]);
-	        if (entityOwner == clientId) {
+	        var entityCreator = NAF.utils.getCreator(this.entities[id]);
+	        if (entityCreator === clientId) {
 	          var persists = void 0;
 	          var component = this.entities[id].getAttribute('networked');
 	          if (component && component.persistent) {
@@ -1671,6 +1679,7 @@
 	    var adapterName = this.data.adapter;
 	    var adapter = NAF.adapters.make(adapterName);
 	    NAF.connection.setNetworkAdapter(adapter);
+	    this.el.emit('adapter-ready', adapter, false);
 	  },
 
 	  hasOnConnectFunction: function hasOnConnectFunction() {
@@ -1726,6 +1735,7 @@
 	  },
 
 	  init: function init() {
+	    this.creator = null;
 	    this.OWNERSHIP_GAINED = 'ownership-gained';
 	    this.OWNERSHIP_CHANGED = 'ownership-changed';
 	    this.OWNERSHIP_LOST = 'ownership-lost';
@@ -1869,6 +1879,12 @@
 
 	  isMine: function isMine() {
 	    return this.data.owner === NAF.clientId;
+	  },
+
+	  update: function update(oldData) {
+	    if (this.creator === null && this.data.owner) {
+	      this.creator = this.data.owner;
+	    }
 	  },
 
 	  tick: function tick(time, dt) {
