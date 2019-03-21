@@ -134,6 +134,7 @@ suite('networked', function() {
 
       var expected = {
         networkId: 'network1',
+        creator: 'owner1',
         owner: 'owner1',
         lastOwnerTime: -1,
         persistent: false,
@@ -173,6 +174,7 @@ suite('networked', function() {
 
       var expected = {
         networkId: 'network1',
+        creator: 'owner1',
         owner: 'owner1',
         lastOwnerTime: -1,
         persistent: false,

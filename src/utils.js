@@ -17,7 +17,7 @@ module.exports.createHtmlNodeFromString = function(str) {
 module.exports.getCreator = function(el) {
   var components = el.components;
   if (components.hasOwnProperty('networked')) {
-    return components['networked'].creator;
+    return components['networked'].data.creator;
   }
   return null;
 }
