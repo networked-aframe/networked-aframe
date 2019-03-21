@@ -152,7 +152,7 @@ AFRAME.registerComponent('networked', {
   onConnected: function() {
     if (this.data.owner === '') {
       this.lastOwnerTime = NAF.connection.getServerTime();
-      this.el.setAttribute(this.name, {owner: NAF.clientId, creator: NAF.clientId });
+      this.el.setAttribute(this.name, { owner: NAF.clientId, creator: NAF.clientId });
       setTimeout(() => {
         //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
         if (!this.el.parentNode){
@@ -307,6 +307,7 @@ AFRAME.registerComponent('networked', {
     var { syncData, data } = this;
     syncData.networkId = data.networkId;
     syncData.owner = data.owner;
+    syncData.creator = data.creator;
     syncData.lastOwnerTime = this.lastOwnerTime;
     syncData.template = data.template;
     syncData.persistent = data.persistent;
