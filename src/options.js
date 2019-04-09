@@ -2,6 +2,6 @@ var options = {
   debug: false,
   updateRate: 15, // How often network components call `sync`
   useLerp: true, // lerp position, rotation, and scale components on networked entities.
-  ignoreUnreliableFirstSyncs: false, // Set to true if you want to ignore first sync updates from unreliable channels.
+  firstSyncSource: null, // If specified, only allow first syncs from this source.
 };
 module.exports = options;

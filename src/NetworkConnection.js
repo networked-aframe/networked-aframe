@@ -191,7 +191,7 @@ class NetworkConnection {
         || dataType == ReservedDataType.Remove;
   }
 
-  receivedData(fromClientId, dataSource, dataType, data, source) {
+  receivedData(fromClientId, dataType, data, source) {
     if (this.dataChannelSubs.hasOwnProperty(dataType)) {
       this.dataChannelSubs[dataType](fromClientId, dataType, data, source);
     } else {
