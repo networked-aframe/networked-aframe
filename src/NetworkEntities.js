@@ -59,13 +59,17 @@ class NetworkEntities {
     entity.firstUpdateData = entityData;
   }
 
-  updateEntity(client, dataType, entityData) {
+  updateEntity(client, dataType, entityData, source) {
     var networkId = entityData.networkId;
 
     if (this.hasEntity(networkId)) {
       this.entities[networkId].components.networked.networkUpdate(entityData);
     } else if (entityData.isFirstSync) {
-      this.receiveFirstUpdateFromEntity(entityData);
+      if (NAF.options.ignoreUnreliableFirstSyncs && source !== "reliable") {
+        NAF.log.write('Ignoring first sync from unreliable source', source);
+      } else {
+        this.receiveFirstUpdateFromEntity(entityData);
+      }
     }
   }
 
