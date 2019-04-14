@@ -416,7 +416,17 @@ AFRAME.registerComponent('networked', {
       return;
     }
 
-    var bufferInfo = this.bufferInfos.find((info) => info.object3D === el.object3D);
+    let bufferInfo;
+
+    for (let i = 0, l = this.bufferInfos.length; i < l; i++) {
+      const info = this.bufferInfos[i];
+
+      if (info.object3D === el.object3D) {
+        bufferInfo = info;
+        break;
+      }
+    }
+
     if (!bufferInfo) {
       bufferInfo = { buffer: new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1),
                      object3D: el.object3D,
