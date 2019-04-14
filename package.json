@@ -27,8 +27,7 @@
   "repository": "networked-aframe/networked-aframe",
   "dependencies": {
     "buffered-interpolation": "^0.2.4",
-    "easyrtc": "1.1.0",
-    "fast-deep-equal": "^2.0.1"
+    "easyrtc": "1.1.0"
   },
   "devDependencies": {
     "aframe": "0.7.0",
