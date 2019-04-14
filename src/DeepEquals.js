@@ -3,8 +3,7 @@
 const isArray = Array.isArray;
 const hasProp = Object.prototype.hasOwnProperty;
 
-const keysA = [];
-const keysB = [];
+const keys = [];
 
 module.exports = function equal(a, b) {
   if (a === b) return true;
@@ -36,26 +35,26 @@ module.exports = function equal(a, b) {
     if (regexpA != regexpB) return false;
     if (regexpA && regexpB) return a.toString() == b.toString();
 
-    keysA.length = 0;
+    keys.length = 0;
     for (let k in a) {
-      keysA.push(k);
+      keys.push(k);
     }
 
-    length = keysA.length;
+    length = keys.length;
 
-    keysB.length = 0;
-    for (let k in b) {
-      keysB.push(k);
+    let c = 0;
+    for (let _ in b) { // eslint-disable-line no-unused-vars
+      c++;
     }
 
-    if (length !== keysB.length)
+    if (length !== c)
       return false;
 
     for (i = length; i-- !== 0;)
-      if (!hasProp.call(b, keysA[i])) return false;
+      if (!hasProp.call(b, keys[i])) return false;
 
     for (i = length; i-- !== 0;) {
-      key = keysA[i];
+      key = keys[i];
       if (!equal(a[key], b[key])) return false;
     }
 
