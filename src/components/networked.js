@@ -388,19 +388,18 @@ AFRAME.registerComponent('networked', {
   },
 
   updateNetworkedComponents: function(components) {
-    for (var componentIndex in components) {
+    for (var componentIndex = 0, l = this.componentSchemas.length; componentIndex < l; componentIndex++) {
       var componentData = components[componentIndex];
       var componentSchema = this.componentSchemas[componentIndex];
       var componentElement = this.getCachedElement(componentIndex);
 
-      if (componentElement === null || componentData === null ) {
+      if (componentElement === null || componentData === undefined ) {
         continue;
       }
 
       if (componentSchema.component) {
         if (componentSchema.property) {
-          var singlePropertyData = { [componentSchema.property]: componentData };
-          this.updateNetworkedComponent(componentElement, componentSchema.component, singlePropertyData);
+          this.updateNetworkedComponent(componentElement, componentSchema.component, componentSchema.property, componentData);
         } else {
           this.updateNetworkedComponent(componentElement, componentSchema.component, componentData);
         }
@@ -410,9 +409,13 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  updateNetworkedComponent: function (el, componentName, data) {
+  updateNetworkedComponent: function (el, componentName, data, value) {
     if(!NAF.options.useLerp || !OBJECT3D_COMPONENTS.includes(componentName)) {
-      el.setAttribute(componentName, data);
+      if (value === undefined) {
+        el.setAttribute(componentName, data);
+      } else {
+        el.setAttribute(componentName, data, value);
+      }
       return;
     }
 
