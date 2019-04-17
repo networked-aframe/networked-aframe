@@ -1,5 +1,7 @@
 // Patched version of fast-deep-equal which does not
 // allocate memory via calling Object.keys
+//
+// https://github.com/epoberezkin/fast-deep-equal/blob/master/index.js
 const isArray = Array.isArray;
 const hasProp = Object.prototype.hasOwnProperty;
 

@@ -393,7 +393,7 @@ AFRAME.registerComponent('networked', {
       var componentSchema = this.componentSchemas[componentIndex];
       var componentElement = this.getCachedElement(componentIndex);
 
-      if (componentElement === null || componentData === undefined ) {
+      if (componentElement === null || componentData === null || componentData === undefined ) {
         continue;
       }
 
