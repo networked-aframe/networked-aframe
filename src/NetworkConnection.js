@@ -191,9 +191,9 @@ class NetworkConnection {
         || dataType == ReservedDataType.Remove;
   }
 
-  receivedData(fromClientId, dataType, data) {
+  receivedData(fromClientId, dataType, data, source) {
     if (this.dataChannelSubs.hasOwnProperty(dataType)) {
-      this.dataChannelSubs[dataType](fromClientId, dataType, data);
+      this.dataChannelSubs[dataType](fromClientId, dataType, data, source);
     } else {
       NAF.log.error('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
     }
