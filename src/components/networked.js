@@ -1,5 +1,5 @@
 /* global AFRAME, NAF, THREE */
-var deepEqual = require('fast-deep-equal');
+var deepEqual = require('../DeepEquals');
 var InterpolationBuffer = require('buffered-interpolation');
 var DEG2RAD = THREE.Math.DEG2RAD;
 var OBJECT3D_COMPONENTS = ['position', 'rotation', 'scale'];
@@ -388,19 +388,18 @@ AFRAME.registerComponent('networked', {
   },
 
   updateNetworkedComponents: function(components) {
-    for (var componentIndex in components) {
+    for (var componentIndex = 0, l = this.componentSchemas.length; componentIndex < l; componentIndex++) {
       var componentData = components[componentIndex];
       var componentSchema = this.componentSchemas[componentIndex];
       var componentElement = this.getCachedElement(componentIndex);
 
-      if (componentElement === null || componentData === null ) {
+      if (componentElement === null || componentData === null || componentData === undefined ) {
         continue;
       }
 
       if (componentSchema.component) {
         if (componentSchema.property) {
-          var singlePropertyData = { [componentSchema.property]: componentData };
-          this.updateNetworkedComponent(componentElement, componentSchema.component, singlePropertyData);
+          this.updateNetworkedComponent(componentElement, componentSchema.component, componentSchema.property, componentData);
         } else {
           this.updateNetworkedComponent(componentElement, componentSchema.component, componentData);
         }
@@ -410,13 +409,27 @@ AFRAME.registerComponent('networked', {
     }
   },
 
-  updateNetworkedComponent: function (el, componentName, data) {
+  updateNetworkedComponent: function (el, componentName, data, value) {
     if(!NAF.options.useLerp || !OBJECT3D_COMPONENTS.includes(componentName)) {
-      el.setAttribute(componentName, data);
+      if (value === undefined) {
+        el.setAttribute(componentName, data);
+      } else {
+        el.setAttribute(componentName, data, value);
+      }
       return;
     }
 
-    var bufferInfo = this.bufferInfos.find((info) => info.object3D === el.object3D);
+    let bufferInfo;
+
+    for (let i = 0, l = this.bufferInfos.length; i < l; i++) {
+      const info = this.bufferInfos[i];
+
+      if (info.object3D === el.object3D) {
+        bufferInfo = info;
+        break;
+      }
+    }
+
     if (!bufferInfo) {
       bufferInfo = { buffer: new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1),
                      object3D: el.object3D,

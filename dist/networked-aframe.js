@@ -126,7 +126,7 @@
 	module.exports.getCreator = function (el) {
 	  var components = el.components;
 	  if (components.hasOwnProperty('networked')) {
-	    return components['networked'].creator;
+	    return components['networked'].data.creator;
 	  }
 	  return null;
 	};
@@ -461,6 +461,7 @@
 	    value: function addNetworkComponent(entity, entityData) {
 	      var networkData = {
 	        template: entityData.template,
+	        creator: entityData.creator,
 	        owner: entityData.owner,
 	        networkId: entityData.networkId,
 	        persistent: entityData.persistent
@@ -1703,8 +1704,6 @@
 
 	'use strict';
 
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 	/* global AFRAME, NAF, THREE */
 	var deepEqual = __webpack_require__(16);
 	var InterpolationBuffer = __webpack_require__(17);
@@ -1731,11 +1730,11 @@
 	    persistent: { default: false },
 
 	    networkId: { default: '' },
-	    owner: { default: '' }
+	    owner: { default: '' },
+	    creator: { default: '' }
 	  },
 
 	  init: function init() {
-	    this.creator = null;
 	    this.OWNERSHIP_GAINED = 'ownership-gained';
 	    this.OWNERSHIP_CHANGED = 'ownership-changed';
 	    this.OWNERSHIP_LOST = 'ownership-lost';
@@ -1863,7 +1862,7 @@
 
 	    if (this.data.owner === '') {
 	      this.lastOwnerTime = NAF.connection.getServerTime();
-	      this.el.setAttribute(this.name, { owner: NAF.clientId });
+	      this.el.setAttribute(this.name, { owner: NAF.clientId, creator: NAF.clientId });
 	      setTimeout(function () {
 	        //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
 	        if (!_this.el.parentNode) {
@@ -1881,10 +1880,8 @@
 	    return this.data.owner === NAF.clientId;
 	  },
 
-	  update: function update(oldData) {
-	    if (this.creator === null && this.data.owner) {
-	      this.creator = this.data.owner;
-	    }
+	  createdByMe: function createdByMe() {
+	    return this.data.creator === NAF.clientId;
 	  },
 
 	  tick: function tick(time, dt) {
@@ -2022,6 +2019,7 @@
 
 	    syncData.networkId = data.networkId;
 	    syncData.owner = data.owner;
+	    syncData.creator = data.creator;
 	    syncData.lastOwnerTime = this.lastOwnerTime;
 	    syncData.template = data.template;
 	    syncData.persistent = data.persistent;
@@ -2032,7 +2030,24 @@
 	  },
 
 	  canSync: function canSync() {
-	    return this.data.owner && this.isMine();
+	    // This client will send a sync if:
+	    //
+	    // - The client is the owner
+	    // - The client is the creator, and the owner is not in the room.
+	    //
+	    // The reason for the latter case is so the object will still be
+	    // properly instantiated if the owner leaves. (Since the object lifetime
+	    // is tied to the creator.)
+	    if (this.data.owner && this.isMine()) return true;
+	    if (!this.createdByMe()) return false;
+
+	    var clients = NAF.connection.getConnectedClients();
+
+	    for (var clientId in clients) {
+	      if (clientId === this.data.owner) return false;
+	    }
+
+	    return true;
 	  },
 
 	  needsToSync: function needsToSync() {
@@ -2084,19 +2099,18 @@
 	  },
 
 	  updateNetworkedComponents: function updateNetworkedComponents(components) {
-	    for (var componentIndex in components) {
+	    for (var componentIndex = 0, l = this.componentSchemas.length; componentIndex < l; componentIndex++) {
 	      var componentData = components[componentIndex];
 	      var componentSchema = this.componentSchemas[componentIndex];
 	      var componentElement = this.getCachedElement(componentIndex);
 
-	      if (componentElement === null || componentData === null) {
+	      if (componentElement === null || componentData === null || componentData === undefined) {
 	        continue;
 	      }
 
 	      if (componentSchema.component) {
 	        if (componentSchema.property) {
-	          var singlePropertyData = _defineProperty({}, componentSchema.property, componentData);
-	          this.updateNetworkedComponent(componentElement, componentSchema.component, singlePropertyData);
+	          this.updateNetworkedComponent(componentElement, componentSchema.component, componentSchema.property, componentData);
 	        } else {
 	          this.updateNetworkedComponent(componentElement, componentSchema.component, componentData);
 	        }
@@ -2106,15 +2120,27 @@
 	    }
 	  },
 
-	  updateNetworkedComponent: function updateNetworkedComponent(el, componentName, data) {
+	  updateNetworkedComponent: function updateNetworkedComponent(el, componentName, data, value) {
 	    if (!NAF.options.useLerp || !OBJECT3D_COMPONENTS.includes(componentName)) {
-	      el.setAttribute(componentName, data);
+	      if (value === undefined) {
+	        el.setAttribute(componentName, data);
+	      } else {
+	        el.setAttribute(componentName, data, value);
+	      }
 	      return;
 	    }
 
-	    var bufferInfo = this.bufferInfos.find(function (info) {
-	      return info.object3D === el.object3D;
-	    });
+	    var bufferInfo = void 0;
+
+	    for (var i = 0, l = this.bufferInfos.length; i < l; i++) {
+	      var info = this.bufferInfos[i];
+
+	      if (info.object3D === el.object3D) {
+	        bufferInfo = info;
+	        break;
+	      }
+	    }
+
 	    if (!bufferInfo) {
 	      bufferInfo = { buffer: new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1),
 	        object3D: el.object3D,
@@ -2176,9 +2202,14 @@
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+	// Patched version of fast-deep-equal which does not
+	// allocate memory via calling Object.keys
+	//
+	// https://github.com/epoberezkin/fast-deep-equal/blob/master/index.js
 	var isArray = Array.isArray;
-	var keyList = Object.keys;
 	var hasProp = Object.prototype.hasOwnProperty;
+
+	var keys = [];
 
 	module.exports = function equal(a, b) {
 	  if (a === b) return true;
@@ -2210,10 +2241,20 @@
 	    if (regexpA != regexpB) return false;
 	    if (regexpA && regexpB) return a.toString() == b.toString();
 
-	    var keys = keyList(a);
+	    keys.length = 0;
+	    for (var k in a) {
+	      keys.push(k);
+	    }
+
 	    length = keys.length;
 
-	    if (length !== keyList(b).length) return false;
+	    var c = 0;
+	    for (var _ in b) {
+	      // eslint-disable-line no-unused-vars
+	      c++;
+	    }
+
+	    if (length !== c) return false;
 
 	    for (i = length; i-- !== 0;) {
 	      if (!hasProp.call(b, keys[i])) return false;
