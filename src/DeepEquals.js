@@ -2,10 +2,11 @@
 // allocate memory via calling Object.keys
 //
 // https://github.com/epoberezkin/fast-deep-equal/blob/master/index.js
-const isArray = Array.isArray;
-const hasProp = Object.prototype.hasOwnProperty;
+'use strict';
 
-const keys = [];
+var isArray = Array.isArray;
+var keyList = Object.keys;
+var hasProp = Object.prototype.hasOwnProperty;
 
 module.exports = function equal(a, b) {
   if (a === b) return true;
@@ -37,19 +38,10 @@ module.exports = function equal(a, b) {
     if (regexpA != regexpB) return false;
     if (regexpA && regexpB) return a.toString() == b.toString();
 
-    keys.length = 0;
-    for (let k in a) {
-      keys.push(k);
-    }
-
+    var keys = keyList(a);
     length = keys.length;
 
-    let c = 0;
-    for (let _ in b) { // eslint-disable-line no-unused-vars
-      c++;
-    }
-
-    if (length !== c)
+    if (length !== keyList(b).length)
       return false;
 
     for (i = length; i-- !== 0;)
