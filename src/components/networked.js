@@ -19,8 +19,8 @@ function defaultRequiresUpdate() {
 
 AFRAME.registerSystem("networked", {
   init() {
-    this.updateNextSyncTime();
     this.components = [];
+    this.nextSyncTime = 0;
   },
 
   register(component) {

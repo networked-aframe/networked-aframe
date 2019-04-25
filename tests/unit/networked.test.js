@@ -9,6 +9,7 @@ suite('networked', function() {
   var scene;
   var entity;
   var networked;
+  var networkedSystem;
 
   function initScene(done) {
     var opts = {
@@ -26,6 +27,7 @@ suite('networked', function() {
     initScene(function() {
       entity = document.querySelector('#test-entity');
       networked = entity.components['networked'];
+      networkedSystem = scene.systems['networked'];
       networked.data.networkId = '';
       done();
     });
@@ -107,10 +109,10 @@ suite('networked', function() {
 
     test('syncs if need to', sinon.test(function() {
       this.stub(networked, 'syncDirty');
-      networked.el.sceneEl.clock.elapsedTime = 4;
-      networked.nextSyncTime = 4;
+      networkedSystem.el.clock.elapsedTime = 4;
+      networkedSystem.nextSyncTime = 4;
 
-      networked.tick();
+      networkedSystem.tick();
 
       assert.isTrue(networked.syncDirty.calledOnce);
     }));
@@ -154,15 +156,6 @@ suite('networked', function() {
       var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('u', expected);
 
       assert.isTrue(called);
-    }));
-
-    test('sets next sync time', sinon.test(function() {
-      this.stub(naf.connection, 'broadcastDataGuaranteed');
-      this.spy(networked, 'updateNextSyncTime');
-
-      networked.syncAll();
-
-      assert.isTrue(networked.updateNextSyncTime.calledOnce);
     }));
   });
 
