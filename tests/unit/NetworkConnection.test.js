@@ -12,6 +12,7 @@ suite('NetworkConnection', function() {
     this.completeSync = sinon.stub();
     this.removeEntitiesOfClient = sinon.stub();
     this.updateEntity = sinon.stub();
+    this.updateEntityMulti = sinon.stub();
     this.removeRemoteEntity = sinon.stub();
     this.removeEntity = sinon.stub();
   }

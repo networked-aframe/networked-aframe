@@ -17,6 +17,60 @@ function defaultRequiresUpdate() {
   };
 }
 
+AFRAME.registerSystem("networked", {
+  init() {
+    this.components = [];
+    this.nextSyncTime = 0;
+  },
+
+  register(component) {
+    this.components.push(component);
+  },
+
+  deregister(component) {
+    const idx = this.components.indexOf(component);
+
+    if (idx > -1) {
+      this.components.splice(idx, 1);
+    }
+  },
+
+  tick: (function() {
+
+    return function() {
+      if (!NAF.connection.adapter) return;
+      if (this.el.clock.elapsedTime < this.nextSyncTime) return;
+
+      const data = { d: [] };
+
+      for (let i = 0, l = this.components.length; i < l; i++) {
+        const c = this.components[i];
+        if (!c.isMine()) continue;
+        if (!c.el.parentElement) {
+          NAF.log.error("entity registered with system despite being removed");
+          //TODO: Find out why tick is still being called
+          return;
+        }
+
+        const syncData = this.components[i].syncDirty();
+        if (!syncData) continue;
+
+        data.d.push(syncData);
+      }
+
+      if (data.d.length > 0) {
+        NAF.connection.broadcastData('um', data);
+      }
+
+      this.updateNextSyncTime();
+    };
+  })(),
+
+  updateNextSyncTime() {
+    this.nextSyncTime = this.el.clock.elapsedTime + 1 / NAF.options.updateRate;
+  }
+});
+
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
@@ -88,6 +142,7 @@ AFRAME.registerComponent('networked', {
 
     document.body.dispatchEvent(this.entityCreatedEvent());
     this.el.dispatchEvent(new CustomEvent('instantiated', {detail: {el: this.el}}));
+    this.el.sceneEl.systems.networked.register(this);
   },
 
   attachTemplateToLocal: function() {
@@ -175,16 +230,7 @@ AFRAME.registerComponent('networked', {
   },
 
   tick: function(time, dt) {
-    if (this.isMine()) {
-      if (this.needsToSync()) {
-        if (!this.el.parentElement) {
-          NAF.log.error("tick called on an entity that seems to have been removed");
-          //TODO: Find out why tick is still being called
-          return;
-        }
-        this.syncDirty();
-      }
-    } else if (NAF.options.useLerp) {
+    if (!this.isMine() && NAF.options.useLerp) {
       for (var i = 0; i < this.bufferInfos.length; i++) {
         var bufferInfo = this.bufferInfos[i];
         var buffer = bufferInfo.buffer;
@@ -211,8 +257,6 @@ AFRAME.registerComponent('networked', {
       return;
     }
 
-    this.updateNextSyncTime();
-
     var components = this.gatherComponentsData(true);
 
     var syncData = this.createSyncData(components, isFirstSync);
@@ -229,17 +273,13 @@ AFRAME.registerComponent('networked', {
       return;
     }
 
-    this.updateNextSyncTime();
-
     var components = this.gatherComponentsData(false);
 
     if (components === null) {
       return;
     }
 
-    var syncData = this.createSyncData(components);
-
-    NAF.connection.broadcastData('u', syncData);
+    return this.createSyncData(components);
   },
 
   getCachedElement(componentSchemaIndex) {
@@ -336,14 +376,6 @@ AFRAME.registerComponent('networked', {
     }
 
     return true;
-  },
-
-  needsToSync: function() {
-    return this.el.sceneEl.clock.elapsedTime >= this.nextSyncTime;
-  },
-
-  updateNextSyncTime: function() {
-    this.nextSyncTime = this.el.sceneEl.clock.elapsedTime + 1 / NAF.options.updateRate;
   },
 
   getParentId: function() {
@@ -473,6 +505,7 @@ AFRAME.registerComponent('networked', {
       }
     }
     document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
+    this.el.sceneEl.systems.networked.deregister(this);
   },
 
   entityCreatedEvent() {
