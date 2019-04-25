@@ -39,25 +39,26 @@ AFRAME.registerSystem("networked", {
     const data = { d: [] };
 
     return function() {
-      if (this.needsToSync() && NAF.connection.adapter) {
-        for (let i = 0, l = this.components.length; i < l; i++) {
-          const c = this.components[i];
-          if (!c.isMine()) continue;
-          if (!c.el.parentElement) continue;
+      if (!NAF.connection.adapter) return;
+      if (!this.needsToSync()) return;
 
-          const syncData = this.components[i].syncDirty();
-          if (!syncData) continue;
+      for (let i = 0, l = this.components.length; i < l; i++) {
+        const c = this.components[i];
+        if (!c.isMine()) continue;
+        if (!c.el.parentElement) continue;
 
-          data.d.unshift(syncData);
-        }
+        const syncData = this.components[i].syncDirty();
+        if (!syncData) continue;
 
-        if (data.d.length > 0) {
-          NAF.connection.broadcastData('um', data);
-          data.d.length = 0;
-        }
-
-        this.updateNextSyncTime();
+        data.d.unshift(syncData);
       }
+
+      if (data.d.length > 0) {
+        NAF.connection.broadcastData('um', data);
+        data.d.length = 0;
+      }
+
+      this.updateNextSyncTime();
     };
   })(),
 
