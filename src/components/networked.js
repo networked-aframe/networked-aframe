@@ -40,17 +40,21 @@ AFRAME.registerSystem("networked", {
 
     return function() {
       if (!NAF.connection.adapter) return;
-      if (!this.needsToSync()) return;
+      if (this.el.clock.elapsedTime < this.nextSyncTime) return;
 
       for (let i = 0, l = this.components.length; i < l; i++) {
         const c = this.components[i];
         if (!c.isMine()) continue;
-        if (!c.el.parentElement) continue;
+        if (!c.el.parentElement) {
+          NAF.log.error("entity registered with system despite being removed");
+          //TODO: Find out why tick is still being called
+          return;
+        }
 
         const syncData = this.components[i].syncDirty();
         if (!syncData) continue;
 
-        data.d.unshift(syncData);
+        data.d.push(syncData);
       }
 
       if (data.d.length > 0) {
@@ -64,10 +68,6 @@ AFRAME.registerSystem("networked", {
 
   updateNextSyncTime() {
     this.nextSyncTime = this.el.clock.elapsedTime + 1 / NAF.options.updateRate;
-  },
-
-  needsToSync() {
-    return this.el.clock.elapsedTime >= this.nextSyncTime;
   }
 });
 
@@ -142,7 +142,7 @@ AFRAME.registerComponent('networked', {
 
     document.body.dispatchEvent(this.entityCreatedEvent());
     this.el.dispatchEvent(new CustomEvent('instantiated', {detail: {el: this.el}}));
-    this.el.sceneEl.systems.networked.register(this);
+    this.el.system.register(this);
   },
 
   attachTemplateToLocal: function() {
@@ -505,7 +505,7 @@ AFRAME.registerComponent('networked', {
       }
     }
     document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
-    this.el.sceneEl.systems.networked.deregister(this);
+    this.el.system.deregister(this);
   },
 
   entityCreatedEvent() {
