@@ -59,6 +59,12 @@ class NetworkEntities {
     entity.firstUpdateData = entityData;
   }
 
+  updateEntityMulti(client, dataType, entityDatas, source) {
+    for (let i = 0, l = entityDatas.d.length; i < l; i++) {
+      this.updateEntity(client, 'u', entityDatas.d[i], source);
+    }
+  }
+
   updateEntity(client, dataType, entityData, source) {
     var networkId = entityData.networkId;
 

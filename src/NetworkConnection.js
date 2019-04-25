@@ -1,5 +1,5 @@
 /* global NAF */
-var ReservedDataType = { Update: 'u', Remove: 'r' };
+var ReservedDataType = { Update: 'u', UpdateMulti: 'um', Remove: 'r' };
 
 class NetworkConnection {
 
@@ -20,6 +20,9 @@ class NetworkConnection {
 
     this.dataChannelSubs[ReservedDataType.Update]
         = this.entities.updateEntity.bind(this.entities);
+
+    this.dataChannelSubs[ReservedDataType.UpdateMulti]
+        = this.entities.updateEntityMulti.bind(this.entities);
 
     this.dataChannelSubs[ReservedDataType.Remove]
         = this.entities.removeRemoteEntity.bind(this.entities);
