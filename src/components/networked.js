@@ -142,7 +142,7 @@ AFRAME.registerComponent('networked', {
 
     document.body.dispatchEvent(this.entityCreatedEvent());
     this.el.dispatchEvent(new CustomEvent('instantiated', {detail: {el: this.el}}));
-    this.el.system.register(this);
+    this.el.sceneEl.systems.networked.register(this);
   },
 
   attachTemplateToLocal: function() {
@@ -505,7 +505,7 @@ AFRAME.registerComponent('networked', {
       }
     }
     document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
-    this.el.system.deregister(this);
+    this.el.sceneEl.systems.networked.deregister(this);
   },
 
   entityCreatedEvent() {
