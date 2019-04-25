@@ -63,11 +63,11 @@ AFRAME.registerSystem("networked", {
   })(),
 
   updateNextSyncTime() {
-    this.nextSyncTime = this.el.sceneEl.clock.elapsedTime + 1 / NAF.options.updateRate;
+    this.nextSyncTime = this.el.clock.elapsedTime + 1 / NAF.options.updateRate;
   },
 
   needsToSync() {
-    return this.el.sceneEl.clock.elapsedTime >= this.nextSyncTime;
+    return this.el.clock.elapsedTime >= this.nextSyncTime;
   }
 });
 
