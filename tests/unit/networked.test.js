@@ -196,7 +196,7 @@ suite('networked', function() {
       this.stub(naf.connection, 'broadcastData');
       this.spy(networkedSystem, 'updateNextSyncTime');
 
-      networked.syncDirty();
+      networkedSystem.tick();
 
       assert.isTrue(networked.updateNextSyncTime.calledOnce);
     }));
