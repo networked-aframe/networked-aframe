@@ -165,7 +165,7 @@ suite('networked', function() {
       this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastData');
 
-      var expected = {
+      var expected = { d: [{
         networkId: 'network1',
         creator: 'owner1',
         owner: 'owner1',
@@ -177,7 +177,7 @@ suite('networked', function() {
           1: { x: 9, y: 8, z: 7 }
         },
         isFirstSync: false
-      };
+      }] };
 
       networked.init();
 
@@ -186,15 +186,15 @@ suite('networked', function() {
 
       networked.el.setAttribute("rotation", { x: 9, y: 8, z: 7 });
 
-      networked.syncDirty();
+      networkedSystem.tick();
 
-      var called = naf.connection.broadcastData.calledWithExactly('u', expected);
+      var called = naf.connection.broadcastData.calledWithExactly('um', expected);
       assert.isTrue(called, `called with ${JSON.stringify(naf.connection.broadcastData.getCall(0).args[1])}, expected ${JSON.stringify(expected)}`);
     }));
 
     test('sets next sync time', sinon.test(function() {
       this.stub(naf.connection, 'broadcastData');
-      this.spy(networked, 'updateNextSyncTime');
+      this.spy(networkedSystem, 'updateNextSyncTime');
 
       networked.syncDirty();
 
