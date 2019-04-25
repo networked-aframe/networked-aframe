@@ -36,11 +36,12 @@ AFRAME.registerSystem("networked", {
   },
 
   tick: (function() {
-    const data = { d: [] };
 
     return function() {
       if (!NAF.connection.adapter) return;
       if (this.el.clock.elapsedTime < this.nextSyncTime) return;
+
+      const data = { d: [] };
 
       for (let i = 0, l = this.components.length; i < l; i++) {
         const c = this.components[i];
@@ -59,7 +60,6 @@ AFRAME.registerSystem("networked", {
 
       if (data.d.length > 0) {
         NAF.connection.broadcastData('um', data);
-        data.d.length = 0;
       }
 
       this.updateNextSyncTime();

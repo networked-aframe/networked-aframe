@@ -179,14 +179,15 @@ suite('networked', function() {
         isFirstSync: false
       }] };
 
-      networked.init();
       networkedSystem.init();
+      networked.init();
 
       // Force initial sync instead of waiting on onConnected
       networked.syncAll();
 
       networked.el.setAttribute("rotation", { x: 9, y: 8, z: 7 });
 
+      networkedSystem.el.clock.elapsedTime = 4;
       networkedSystem.tick();
 
       var called = naf.connection.broadcastData.calledWithExactly('um', expected);
@@ -197,6 +198,7 @@ suite('networked', function() {
       this.stub(naf.connection, 'broadcastData');
       this.spy(networkedSystem, 'updateNextSyncTime');
 
+      networkedSystem.init();
       networkedSystem.tick();
 
       assert.isTrue(networkedSystem.updateNextSyncTime.calledOnce);
