@@ -180,6 +180,7 @@ suite('networked', function() {
       }] };
 
       networked.init();
+      networkedSystem.init();
 
       // Force initial sync instead of waiting on onConnected
       networked.syncAll();
@@ -198,7 +199,7 @@ suite('networked', function() {
 
       networkedSystem.tick();
 
-      assert.isTrue(networked.updateNextSyncTime.calledOnce);
+      assert.isTrue(networkedSystem.updateNextSyncTime.calledOnce);
     }));
   });
 
