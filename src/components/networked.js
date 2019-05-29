@@ -499,11 +499,11 @@ AFRAME.registerComponent('networked', {
       var syncData = { networkId: this.data.networkId };
       if (NAF.entities.hasEntity(this.data.networkId)) {
         NAF.connection.broadcastDataGuaranteed('r', syncData);
-        NAF.entities.forgetEntity(this.data.networkId);
       } else {
         NAF.log.error("Removing networked entity that is not in entities array.");
       }
     }
+    NAF.entities.forgetEntity(this.data.networkId);
     document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
     this.el.sceneEl.systems.networked.deregister(this);
   },

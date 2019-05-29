@@ -134,7 +134,7 @@ class NetworkEntities {
 
   completeSync(targetClientId, isFirstSync) {
     for (var id in this.entities) {
-      if (this.entities.hasOwnProperty(id) && this.entities[id].components.networked) {
+      if (this.entities.hasOwnProperty(id)) {
         this.entities[id].components.networked.syncAll(targetClientId, isFirstSync);
       }
     }
