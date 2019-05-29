@@ -95,7 +95,8 @@
 	var options = {
 	  debug: false,
 	  updateRate: 15, // How often network components call `sync`
-	  useLerp: true // lerp position, rotation, and scale components on networked entities.
+	  useLerp: true, // lerp position, rotation, and scale components on networked entities.
+	  firstSyncSource: null // If specified, only allow first syncs from this source.
 	};
 	module.exports = options;
 
@@ -471,14 +472,25 @@
 	      entity.firstUpdateData = entityData;
 	    }
 	  }, {
+	    key: 'updateEntityMulti',
+	    value: function updateEntityMulti(client, dataType, entityDatas, source) {
+	      for (var i = 0, l = entityDatas.d.length; i < l; i++) {
+	        this.updateEntity(client, 'u', entityDatas.d[i], source);
+	      }
+	    }
+	  }, {
 	    key: 'updateEntity',
-	    value: function updateEntity(client, dataType, entityData) {
+	    value: function updateEntity(client, dataType, entityData, source) {
 	      var networkId = entityData.networkId;
 
 	      if (this.hasEntity(networkId)) {
 	        this.entities[networkId].components.networked.networkUpdate(entityData);
 	      } else if (entityData.isFirstSync) {
-	        this.receiveFirstUpdateFromEntity(entityData);
+	        if (NAF.options.firstSyncSource && source !== NAF.options.firstSyncSource) {
+	          NAF.log.write('Ignoring first sync from disallowed source', source);
+	        } else {
+	          this.receiveFirstUpdateFromEntity(entityData);
+	        }
 	      }
 	    }
 	  }, {
@@ -537,7 +549,7 @@
 	    key: 'completeSync',
 	    value: function completeSync(targetClientId, isFirstSync) {
 	      for (var id in this.entities) {
-	        if (this.entities.hasOwnProperty(id)) {
+	        if (this.entities.hasOwnProperty(id) && this.entities[id].components.networked) {
 	          this.entities[id].components.networked.syncAll(targetClientId, isFirstSync);
 	        }
 	      }
@@ -679,7 +691,7 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	/* global NAF */
-	var ReservedDataType = { Update: 'u', Remove: 'r' };
+	var ReservedDataType = { Update: 'u', UpdateMulti: 'um', Remove: 'r' };
 
 	var NetworkConnection = function () {
 	  function NetworkConnection(networkEntities) {
@@ -703,6 +715,8 @@
 	      this.dataChannelSubs = {};
 
 	      this.dataChannelSubs[ReservedDataType.Update] = this.entities.updateEntity.bind(this.entities);
+
+	      this.dataChannelSubs[ReservedDataType.UpdateMulti] = this.entities.updateEntityMulti.bind(this.entities);
 
 	      this.dataChannelSubs[ReservedDataType.Remove] = this.entities.removeRemoteEntity.bind(this.entities);
 	    }
@@ -892,9 +906,9 @@
 	    }
 	  }, {
 	    key: 'receivedData',
-	    value: function receivedData(fromClientId, dataType, data) {
+	    value: function receivedData(fromClientId, dataType, data, source) {
 	      if (this.dataChannelSubs.hasOwnProperty(dataType)) {
-	        this.dataChannelSubs[dataType](fromClientId, dataType, data);
+	        this.dataChannelSubs[dataType](fromClientId, dataType, data, source);
 	      } else {
 	        NAF.log.error('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
 	      }
@@ -1723,6 +1737,59 @@
 	  };
 	}
 
+	AFRAME.registerSystem("networked", {
+	  init: function init() {
+	    this.components = [];
+	    this.nextSyncTime = 0;
+	  },
+	  register: function register(component) {
+	    this.components.push(component);
+	  },
+	  deregister: function deregister(component) {
+	    var idx = this.components.indexOf(component);
+
+	    if (idx > -1) {
+	      this.components.splice(idx, 1);
+	    }
+	  },
+
+
+	  tick: function () {
+
+	    return function () {
+	      if (!NAF.connection.adapter) return;
+	      if (this.el.clock.elapsedTime < this.nextSyncTime) return;
+
+	      var data = { d: [] };
+
+	      for (var i = 0, l = this.components.length; i < l; i++) {
+	        var c = this.components[i];
+	        if (!c.isMine()) continue;
+	        if (!c.el.parentElement) {
+	          NAF.log.error("entity registered with system despite being removed");
+	          //TODO: Find out why tick is still being called
+	          return;
+	        }
+
+	        var syncData = this.components[i].syncDirty();
+	        if (!syncData) continue;
+
+	        data.d.push(syncData);
+	      }
+
+	      if (data.d.length > 0) {
+	        NAF.connection.broadcastData('um', data);
+	      }
+
+	      this.updateNextSyncTime();
+	    };
+	  }(),
+
+	  updateNextSyncTime: function updateNextSyncTime() {
+	    this.nextSyncTime = this.el.clock.elapsedTime + 1 / NAF.options.updateRate;
+	  }
+	});
+
 	AFRAME.registerComponent('networked', {
 	  schema: {
 	    template: { default: '' },
@@ -1796,6 +1863,7 @@
 
 	    document.body.dispatchEvent(this.entityCreatedEvent());
 	    this.el.dispatchEvent(new CustomEvent('instantiated', { detail: { el: this.el } }));
+	    this.el.sceneEl.systems.networked.register(this);
 	  },
 
 	  attachTemplateToLocal: function attachTemplateToLocal() {
@@ -1885,16 +1953,7 @@
 	  },
 
 	  tick: function tick(time, dt) {
-	    if (this.isMine()) {
-	      if (this.needsToSync()) {
-	        if (!this.el.parentElement) {
-	          NAF.log.error("tick called on an entity that seems to have been removed");
-	          //TODO: Find out why tick is still being called
-	          return;
-	        }
-	        this.syncDirty();
-	      }
-	    } else if (NAF.options.useLerp) {
+	    if (!this.isMine() && NAF.options.useLerp) {
 	      for (var i = 0; i < this.bufferInfos.length; i++) {
 	        var bufferInfo = this.bufferInfos[i];
 	        var buffer = bufferInfo.buffer;
@@ -1921,8 +1980,6 @@
 	      return;
 	    }
 
-	    this.updateNextSyncTime();
-
 	    var components = this.gatherComponentsData(true);
 
 	    var syncData = this.createSyncData(components, isFirstSync);
@@ -1939,17 +1996,13 @@
 	      return;
 	    }
 
-	    this.updateNextSyncTime();
-
 	    var components = this.gatherComponentsData(false);
 
 	    if (components === null) {
 	      return;
 	    }
 
-	    var syncData = this.createSyncData(components);
-
-	    NAF.connection.broadcastData('u', syncData);
+	    return this.createSyncData(components);
 	  },
 
 	  getCachedElement: function getCachedElement(componentSchemaIndex) {
@@ -2048,14 +2101,6 @@
 	    }
 
 	    return true;
-	  },
-
-	  needsToSync: function needsToSync() {
-	    return this.el.sceneEl.clock.elapsedTime >= this.nextSyncTime;
-	  },
-
-	  updateNextSyncTime: function updateNextSyncTime() {
-	    this.nextSyncTime = this.el.sceneEl.clock.elapsedTime + 1 / NAF.options.updateRate;
 	  },
 
 	  getParentId: function getParentId() {
@@ -2184,6 +2229,7 @@
 	      }
 	    }
 	    document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
+	    this.el.sceneEl.systems.networked.deregister(this);
 	  },
 
 	  entityCreatedEvent: function entityCreatedEvent() {
@@ -2198,18 +2244,17 @@
 /* 16 */
 /***/ (function(module, exports) {
 
-	'use strict';
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 	// Patched version of fast-deep-equal which does not
 	// allocate memory via calling Object.keys
 	//
 	// https://github.com/epoberezkin/fast-deep-equal/blob/master/index.js
-	var isArray = Array.isArray;
-	var hasProp = Object.prototype.hasOwnProperty;
+	'use strict';
 
-	var keys = [];
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	var isArray = Array.isArray;
+	var keyList = Object.keys;
+	var hasProp = Object.prototype.hasOwnProperty;
 
 	module.exports = function equal(a, b) {
 	  if (a === b) return true;
@@ -2241,20 +2286,10 @@
 	    if (regexpA != regexpB) return false;
 	    if (regexpA && regexpB) return a.toString() == b.toString();
 
-	    keys.length = 0;
-	    for (var k in a) {
-	      keys.push(k);
-	    }
-
+	    var keys = keyList(a);
 	    length = keys.length;
 
-	    var c = 0;
-	    for (var _ in b) {
-	      // eslint-disable-line no-unused-vars
-	      c++;
-	    }
-
-	    if (length !== c) return false;
+	    if (length !== keyList(b).length) return false;
 
 	    for (i = length; i-- !== 0;) {
 	      if (!hasProp.call(b, keys[i])) return false;
@@ -2300,6 +2335,31 @@
 	var MODE_LERP = 0;
 	var MODE_HERMITE = 1;
 
+	var vectorPool = [];
+	var quatPool = [];
+	var framePool = [];
+
+	var getPooledVector = function getPooledVector() {
+	  return vectorPool.shift() || new THREE.Vector3();
+	};
+	var getPooledQuaternion = function getPooledQuaternion() {
+	  return quatPool.shift() || new THREE.Quaternion();
+	};
+
+	var getPooledFrame = function getPooledFrame() {
+	  var frame = framePool.pop();
+
+	  if (!frame) {
+	    frame = { position: new THREE.Vector3(), velocity: new THREE.Vector3(), scale: new THREE.Vector3(), quaternion: new THREE.Quaternion(), time: 0 };
+	  }
+
+	  return frame;
+	};
+
+	var freeFrame = function freeFrame(f) {
+	  return framePool.push(f);
+	};
+
 	var InterpolationBuffer = function () {
 	  function InterpolationBuffer() {
 	    var mode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : MODE_LERP;
@@ -2313,13 +2373,7 @@
 	    this.time = 0;
 	    this.mode = mode;
 
-	    this.originFrame = {
-	      position: new THREE.Vector3(),
-	      velocity: new THREE.Vector3(),
-	      quaternion: new THREE.Quaternion(),
-	      scale: new THREE.Vector3(1, 1, 1)
-	    };
-
+	    this.originFrame = getPooledFrame();
 	    this.position = new THREE.Vector3();
 	    this.quaternion = new THREE.Quaternion();
 	    this.scale = new THREE.Vector3(1, 1, 1);
@@ -2351,6 +2405,12 @@
 	      THREE.Quaternion.slerp(r1, r2, target, alpha);
 	    }
 	  }, {
+	    key: "updateOriginFrameToBufferTail",
+	    value: function updateOriginFrameToBufferTail() {
+	      freeFrame(this.originFrame);
+	      this.originFrame = this.buffer.shift();
+	    }
+	  }, {
 	    key: "appendBuffer",
 	    value: function appendBuffer(position, velocity, quaternion, scale) {
 	      var tail = this.buffer.length > 0 ? this.buffer[this.buffer.length - 1] : null;
@@ -2373,13 +2433,14 @@
 	        }
 	      } else {
 	        var priorFrame = tail || this.originFrame;
-	        this.buffer.push({
-	          position: position ? position.clone() : priorFrame.position.clone(),
-	          velocity: velocity ? velocity.clone() : priorFrame.velocity.clone(),
-	          quaternion: quaternion ? quaternion.clone() : priorFrame.quaternion.clone(),
-	          scale: scale ? scale.clone() : priorFrame.scale.clone(),
-	          time: this.time
-	        });
+	        var newFrame = getPooledFrame();
+	        newFrame.position.copy(position || priorFrame.position);
+	        newFrame.velocity.copy(velocity || priorFrame.velocity);
+	        newFrame.quaternion.copy(quaternion || priorFrame.quaternion);
+	        newFrame.scale.copy(scale || priorFrame.scale);
+	        newFrame.time = this.time;
+
+	        this.buffer.push(newFrame);
 	      }
 	    }
 	  }, {
@@ -2407,7 +2468,7 @@
 	    value: function update(delta) {
 	      if (this.state === INITIALIZING) {
 	        if (this.buffer.length > 0) {
-	          this.originFrame = this.buffer.shift();
+	          this.updateOriginFrameToBufferTail();
 	          this.position.copy(this.originFrame.position);
 	          this.quaternion.copy(this.originFrame.quaternion);
 	          this.scale.copy(this.originFrame.scale);
@@ -2427,7 +2488,7 @@
 	        while (this.buffer.length > 0 && mark > this.buffer[0].time) {
 	          //if this is the last frame in the buffer, just update the time and reuse it
 	          if (this.buffer.length > 1) {
-	            this.originFrame = this.buffer.shift();
+	            this.updateOriginFrameToBufferTail();
 	          } else {
 	            this.originFrame.position.copy(this.buffer[0].position);
 	            this.originFrame.velocity.copy(this.buffer[0].velocity);
