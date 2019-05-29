@@ -235,4 +235,32 @@ suite('networked', function() {
       assert.deepEqual(result, expected);
     });
   });
+
+  suite('removal', function() {
+
+    test('deregisters when owned', sinon.test(function() {
+      this.stub(naf.utils, 'createNetworkId').returns('nid1');
+      naf.clientId = 'owner1';
+
+      networked.init();
+      document.body.dispatchEvent(new Event('loggedIn'));
+      assert.isTrue(naf.utils.isMine(entity));
+      entity.parentNode.removeChild(entity);
+
+      assert.isFalse(naf.connection.entities.hasEntity('nid1'));
+    }));
+
+    test('deregisters when un-owned', sinon.test(function() {
+      this.stub(naf.utils, 'createNetworkId').returns('nid1');
+      naf.clientId = 'owner1';
+
+      networked.init();
+      document.body.dispatchEvent(new Event('loggedIn'));
+      naf.clientId = 'owner2';
+      assert.isFalse(naf.utils.isMine(entity));
+      entity.parentNode.removeChild(entity);
+
+      assert.isFalse(naf.connection.entities.hasEntity('nid1'));
+    }));
+  });
 });
