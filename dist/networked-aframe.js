@@ -1457,11 +1457,7 @@
 	      var _this3 = this;
 
 	      Promise.all([this.updateTimeOffset(), new Promise(function (resolve, reject) {
-	        if (_this3.easyrtc.audioEnabled) {
-	          _this3._connectWithAudio(resolve, reject);
-	        } else {
-	          _this3.easyrtc.connect(_this3.app, resolve, reject);
-	        }
+	        _this3._connect(_this3.easyrtc.audioEnabled, resolve, reject);
 	      })]).then(function (_ref) {
 	        var _ref2 = _slicedToArray(_ref, 2),
 	            _ = _ref2[0],
@@ -1575,8 +1571,8 @@
 	      }
 	    }
 	  }, {
-	    key: "_connectWithAudio",
-	    value: function _connectWithAudio(connectSuccess, connectFailure) {
+	    key: "_connect",
+	    value: function _connect(audioEnabled, connectSuccess, connectFailure) {
 	      var that = this;
 
 	      this.easyrtc.setStreamAcceptor(this._storeAudioStream.bind(this));
@@ -1585,11 +1581,15 @@
 	        delete that.audioStreams[easyrtcid];
 	      });
 
-	      this.easyrtc.initMediaSource(function () {
+	      if (audioEnabled) {
+	        this.easyrtc.initMediaSource(function () {
+	          that.easyrtc.connect(that.app, connectSuccess, connectFailure);
+	        }, function (errorCode, errmesg) {
+	          NAF.log.error(errorCode, errmesg);
+	        });
+	      } else {
 	        that.easyrtc.connect(that.app, connectSuccess, connectFailure);
-	      }, function (errorCode, errmesg) {
-	        NAF.log.error(errorCode, errmesg);
-	      });
+	      }
 	    }
 	  }, {
 	    key: "_getRoomJoinTime",
