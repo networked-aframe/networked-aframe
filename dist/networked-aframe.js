@@ -914,7 +914,7 @@
 	      if (this.dataChannelSubs.hasOwnProperty(dataType)) {
 	        this.dataChannelSubs[dataType](fromClientId, dataType, data, source);
 	      } else {
-	        NAF.log.error('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
+	        NAF.log.write('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
 	      }
 	    }
 	  }, {
