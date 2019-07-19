@@ -60,12 +60,14 @@ class NetworkEntities {
   }
 
   updateEntityMulti(client, dataType, entityDatas, source) {
+    if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
     for (let i = 0, l = entityDatas.d.length; i < l; i++) {
       this.updateEntity(client, 'u', entityDatas.d[i], source);
     }
   }
 
   updateEntity(client, dataType, entityData, source) {
+    if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
     var networkId = entityData.networkId;
 
     if (this.hasEntity(networkId)) {
@@ -140,7 +142,8 @@ class NetworkEntities {
     }
   }
 
-  removeRemoteEntity(toClient, dataType, data) {
+  removeRemoteEntity(toClient, dataType, data, source) {
+    if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
     var id = data.networkId;
     return this.removeEntity(id);
   }

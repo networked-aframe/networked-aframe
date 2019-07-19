@@ -353,7 +353,7 @@ AFRAME.registerComponent('networked', {
     syncData.persistent = data.persistent;
     syncData.parent = this.getParentId();
     syncData.components = components;
-    syncData.isFirstSync = !!isFirstSync;
+    syncData.isFirstSync = !data.persistent && !!isFirstSync;
     return syncData;
   },
 

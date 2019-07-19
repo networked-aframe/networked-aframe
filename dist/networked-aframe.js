@@ -96,7 +96,8 @@
 	  debug: false,
 	  updateRate: 15, // How often network components call `sync`
 	  useLerp: true, // lerp position, rotation, and scale components on networked entities.
-	  firstSyncSource: null // If specified, only allow first syncs from this source.
+	  firstSyncSource: null, // If specified, only allow first syncs from this source.
+	  syncSource: null // If specified, only allow syncs from this source.
 	};
 	module.exports = options;
 
@@ -474,6 +475,7 @@
 	  }, {
 	    key: 'updateEntityMulti',
 	    value: function updateEntityMulti(client, dataType, entityDatas, source) {
+	      if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
 	      for (var i = 0, l = entityDatas.d.length; i < l; i++) {
 	        this.updateEntity(client, 'u', entityDatas.d[i], source);
 	      }
@@ -481,6 +483,7 @@
 	  }, {
 	    key: 'updateEntity',
 	    value: function updateEntity(client, dataType, entityData, source) {
+	      if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
 	      var networkId = entityData.networkId;
 
 	      if (this.hasEntity(networkId)) {
@@ -556,7 +559,8 @@
 	    }
 	  }, {
 	    key: 'removeRemoteEntity',
-	    value: function removeRemoteEntity(toClient, dataType, data) {
+	    value: function removeRemoteEntity(toClient, dataType, data, source) {
+	      if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
 	      var id = data.networkId;
 	      return this.removeEntity(id);
 	    }
@@ -910,7 +914,7 @@
 	      if (this.dataChannelSubs.hasOwnProperty(dataType)) {
 	        this.dataChannelSubs[dataType](fromClientId, dataType, data, source);
 	      } else {
-	        NAF.log.error('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
+	        NAF.log.write('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
 	      }
 	    }
 	  }, {
@@ -2078,7 +2082,7 @@
 	    syncData.persistent = data.persistent;
 	    syncData.parent = this.getParentId();
 	    syncData.components = components;
-	    syncData.isFirstSync = !!isFirstSync;
+	    syncData.isFirstSync = !data.persistent && !!isFirstSync;
 	    return syncData;
 	  },
 
