@@ -415,6 +415,7 @@
 	    this.entities = {};
 	    this.childCache = new ChildEntityCache();
 	    this.onRemoteEntityCreatedEvent = new Event('remoteEntityCreated');
+	    this._persistentFirstSyncs = {};
 	  }
 
 	  _createClass(NetworkEntities, [{
@@ -492,7 +493,13 @@
 	        if (NAF.options.firstSyncSource && source !== NAF.options.firstSyncSource) {
 	          NAF.log.write('Ignoring first sync from disallowed source', source);
 	        } else {
-	          this.receiveFirstUpdateFromEntity(entityData);
+	          if (entityData.persistent) {
+	            // If we receive a firstSync for a persistent entity that we don't have yet,
+	            // we assume the scene will create it at some point, so stash the update for later use.
+	            this._persistentFirstSyncs[networkId] = entityData;
+	          } else {
+	            this.receiveFirstUpdateFromEntity(entityData);
+	          }
 	        }
 	      }
 	    }
@@ -587,6 +594,8 @@
 	  }, {
 	    key: 'removeEntity',
 	    value: function removeEntity(id) {
+	      this.forgetPersistentFirstSync(id);
+
 	      if (this.hasEntity(id)) {
 	        var entity = this.entities[id];
 	        this.forgetEntity(id);
@@ -601,6 +610,17 @@
 	    key: 'forgetEntity',
 	    value: function forgetEntity(id) {
 	      delete this.entities[id];
+	      this.forgetPersistentFirstSync(id);
+	    }
+	  }, {
+	    key: 'getPersistentFirstSync',
+	    value: function getPersistentFirstSync(id) {
+	      return this._persistentFirstSyncs[id];
+	    }
+	  }, {
+	    key: 'forgetPersistentFirstSync',
+	    value: function forgetPersistentFirstSync(id) {
+	      delete this._persistentFirstSyncs[id];
 	    }
 	  }, {
 	    key: 'getEntity',
@@ -1924,6 +1944,16 @@
 	    NAF.entities.registerEntity(networkId, this.el);
 	  },
 
+	  applyPersistentFirstSync: function applyPersistentFirstSync() {
+	    var networkId = this.data.networkId;
+
+	    var persistentFirstSync = NAF.entities.getPersistentFirstSync(networkId);
+	    if (persistentFirstSync) {
+	      this.networkUpdate(persistentFirstSync);
+	      NAF.entities.forgetPersistentFirstSync(networkId);
+	    }
+	  },
+
 	  firstUpdate: function firstUpdate() {
 	    var entityData = this.el.firstUpdateData;
 	    this.networkUpdate(entityData);
@@ -2082,7 +2112,7 @@
 	    syncData.persistent = data.persistent;
 	    syncData.parent = this.getParentId();
 	    syncData.components = components;
-	    syncData.isFirstSync = !data.persistent && !!isFirstSync;
+	    syncData.isFirstSync = !!isFirstSync;
 	    return syncData;
 	  },
 
