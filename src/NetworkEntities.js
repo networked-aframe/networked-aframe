@@ -7,6 +7,7 @@ class NetworkEntities {
     this.entities = {};
     this.childCache = new ChildEntityCache();
     this.onRemoteEntityCreatedEvent = new Event('remoteEntityCreated');
+    this._persistentFirstSyncs = {};
   }
 
   registerEntity(networkId, entity) {
@@ -76,7 +77,13 @@ class NetworkEntities {
       if (NAF.options.firstSyncSource && source !== NAF.options.firstSyncSource) {
         NAF.log.write('Ignoring first sync from disallowed source', source);
       } else {
-        this.receiveFirstUpdateFromEntity(entityData);
+        if (entityData.persistent) {
+          // If we receive a firstSync for a persistent entity that we don't have yet,
+          // we assume the scene will create it at some point, so stash the update for later use.
+          this._persistentFirstSyncs[networkId] = entityData;
+        } else {
+          this.receiveFirstUpdateFromEntity(entityData);
+        }
       }
     }
   }
@@ -168,6 +175,8 @@ class NetworkEntities {
   }
 
   removeEntity(id) {
+    this.forgetPersistentFirstSync(id);
+
     if (this.hasEntity(id)) {
       var entity = this.entities[id];
       this.forgetEntity(id);
@@ -181,6 +190,15 @@ class NetworkEntities {
 
   forgetEntity(id){
     delete this.entities[id];
+    this.forgetPersistentFirstSync(id);
+  }
+
+  getPersistentFirstSync(id){
+    return this._persistentFirstSyncs[id];
+  }
+
+  forgetPersistentFirstSync(id){
+    delete this._persistentFirstSyncs[id];
   }
 
   getEntity(id) {
