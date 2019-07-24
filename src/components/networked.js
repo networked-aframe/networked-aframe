@@ -199,6 +199,15 @@ AFRAME.registerComponent('networked', {
     NAF.entities.registerEntity(networkId, this.el);
   },
 
+  applyPersistentFirstSync: function() {
+    const { networkId } = this.data;
+    const persistentFirstSync = NAF.entities.getPersistentFirstSync(networkId);
+    if (persistentFirstSync) {
+      this.networkUpdate(persistentFirstSync);
+      NAF.entities.forgetPersistentFirstSync(networkId);
+    }
+  },
+
   firstUpdate: function() {
     var entityData = this.el.firstUpdateData;
     this.networkUpdate(entityData);
@@ -353,7 +362,7 @@ AFRAME.registerComponent('networked', {
     syncData.persistent = data.persistent;
     syncData.parent = this.getParentId();
     syncData.components = components;
-    syncData.isFirstSync = !data.persistent && !!isFirstSync;
+    syncData.isFirstSync = !!isFirstSync;
     return syncData;
   },
 
