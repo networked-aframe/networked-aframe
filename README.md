@@ -36,7 +36,7 @@ Features
 * Voice chat. Audio streaming to let your users talk in-app (WebRTC only).
 * Bandwidth sensitive. Only send network updates when things change.
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
-* Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, HTC Vive and Google Cardboard + Daydream support.
+* Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, Oculus Quest, HTC Vive and Google Cardboard + Daydream support.
 * Firebase WebRTC signalling support
 
 
