@@ -14,6 +14,14 @@ module.exports.createHtmlNodeFromString = function(str) {
   return child;
 }
 
+module.exports.getCreator = function(el) {
+  var components = el.components;
+  if (components.hasOwnProperty('networked')) {
+    return components['networked'].data.creator;
+  }
+  return null;
+}
+
 module.exports.getNetworkOwner = function(el) {
   var components = el.components;
   if (components.hasOwnProperty('networked')) {

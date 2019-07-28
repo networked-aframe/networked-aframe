@@ -95,7 +95,9 @@
 	var options = {
 	  debug: false,
 	  updateRate: 15, // How often network components call `sync`
-	  useLerp: true // lerp position, rotation, and scale components on networked entities.
+	  useLerp: true, // lerp position, rotation, and scale components on networked entities.
+	  firstSyncSource: null, // If specified, only allow first syncs from this source.
+	  syncSource: null // If specified, only allow syncs from this source.
 	};
 	module.exports = options;
 
@@ -121,6 +123,14 @@
 	  div.innerHTML = str;
 	  var child = div.firstChild;
 	  return child;
+	};
+
+	module.exports.getCreator = function (el) {
+	  var components = el.components;
+	  if (components.hasOwnProperty('networked')) {
+	    return components['networked'].data.creator;
+	  }
+	  return null;
 	};
 
 	module.exports.getNetworkOwner = function (el) {
@@ -405,6 +415,7 @@
 	    this.entities = {};
 	    this.childCache = new ChildEntityCache();
 	    this.onRemoteEntityCreatedEvent = new Event('remoteEntityCreated');
+	    this._persistentFirstSyncs = {};
 	  }
 
 	  _createClass(NetworkEntities, [{
@@ -453,22 +464,43 @@
 	    value: function addNetworkComponent(entity, entityData) {
 	      var networkData = {
 	        template: entityData.template,
+	        creator: entityData.creator,
 	        owner: entityData.owner,
-	        networkId: entityData.networkId
+	        networkId: entityData.networkId,
+	        persistent: entityData.persistent
 	      };
 
 	      entity.setAttribute('networked', networkData);
 	      entity.firstUpdateData = entityData;
 	    }
 	  }, {
+	    key: 'updateEntityMulti',
+	    value: function updateEntityMulti(client, dataType, entityDatas, source) {
+	      if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
+	      for (var i = 0, l = entityDatas.d.length; i < l; i++) {
+	        this.updateEntity(client, 'u', entityDatas.d[i], source);
+	      }
+	    }
+	  }, {
 	    key: 'updateEntity',
-	    value: function updateEntity(client, dataType, entityData) {
+	    value: function updateEntity(client, dataType, entityData, source) {
+	      if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
 	      var networkId = entityData.networkId;
 
 	      if (this.hasEntity(networkId)) {
 	        this.entities[networkId].components.networked.networkUpdate(entityData);
 	      } else if (entityData.isFirstSync) {
-	        this.receiveFirstUpdateFromEntity(entityData);
+	        if (NAF.options.firstSyncSource && source !== NAF.options.firstSyncSource) {
+	          NAF.log.write('Ignoring first sync from disallowed source', source);
+	        } else {
+	          if (entityData.persistent) {
+	            // If we receive a firstSync for a persistent entity that we don't have yet,
+	            // we assume the scene will create it at some point, so stash the update for later use.
+	            this._persistentFirstSyncs[networkId] = entityData;
+	          } else {
+	            this.receiveFirstUpdateFromEntity(entityData);
+	          }
+	        }
 	      }
 	    }
 	  }, {
@@ -534,7 +566,8 @@
 	    }
 	  }, {
 	    key: 'removeRemoteEntity',
-	    value: function removeRemoteEntity(toClient, dataType, data) {
+	    value: function removeRemoteEntity(toClient, dataType, data, source) {
+	      if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
 	      var id = data.networkId;
 	      return this.removeEntity(id);
 	    }
@@ -543,10 +576,17 @@
 	    value: function removeEntitiesOfClient(clientId) {
 	      var entityList = [];
 	      for (var id in this.entities) {
-	        var entityOwner = NAF.utils.getNetworkOwner(this.entities[id]);
-	        if (entityOwner == clientId) {
-	          var entity = this.removeEntity(id);
-	          entityList.push(entity);
+	        var entityCreator = NAF.utils.getCreator(this.entities[id]);
+	        if (entityCreator === clientId) {
+	          var persists = void 0;
+	          var component = this.entities[id].getAttribute('networked');
+	          if (component && component.persistent) {
+	            persists = NAF.utils.takeOwnership(this.entities[id]);
+	          }
+	          if (!persists) {
+	            var entity = this.removeEntity(id);
+	            entityList.push(entity);
+	          }
 	        }
 	      }
 	      return entityList;
@@ -554,6 +594,8 @@
 	  }, {
 	    key: 'removeEntity',
 	    value: function removeEntity(id) {
+	      this.forgetPersistentFirstSync(id);
+
 	      if (this.hasEntity(id)) {
 	        var entity = this.entities[id];
 	        this.forgetEntity(id);
@@ -568,6 +610,17 @@
 	    key: 'forgetEntity',
 	    value: function forgetEntity(id) {
 	      delete this.entities[id];
+	      this.forgetPersistentFirstSync(id);
+	    }
+	  }, {
+	    key: 'getPersistentFirstSync',
+	    value: function getPersistentFirstSync(id) {
+	      return this._persistentFirstSyncs[id];
+	    }
+	  }, {
+	    key: 'forgetPersistentFirstSync',
+	    value: function forgetPersistentFirstSync(id) {
+	      delete this._persistentFirstSyncs[id];
 	    }
 	  }, {
 	    key: 'getEntity',
@@ -662,7 +715,7 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	/* global NAF */
-	var ReservedDataType = { Update: 'u', Remove: 'r' };
+	var ReservedDataType = { Update: 'u', UpdateMulti: 'um', Remove: 'r' };
 
 	var NetworkConnection = function () {
 	  function NetworkConnection(networkEntities) {
@@ -686,6 +739,8 @@
 	      this.dataChannelSubs = {};
 
 	      this.dataChannelSubs[ReservedDataType.Update] = this.entities.updateEntity.bind(this.entities);
+
+	      this.dataChannelSubs[ReservedDataType.UpdateMulti] = this.entities.updateEntityMulti.bind(this.entities);
 
 	      this.dataChannelSubs[ReservedDataType.Remove] = this.entities.removeRemoteEntity.bind(this.entities);
 	    }
@@ -875,11 +930,11 @@
 	    }
 	  }, {
 	    key: 'receivedData',
-	    value: function receivedData(fromClientId, dataType, data) {
+	    value: function receivedData(fromClientId, dataType, data, source) {
 	      if (this.dataChannelSubs.hasOwnProperty(dataType)) {
-	        this.dataChannelSubs[dataType](fromClientId, dataType, data);
+	        this.dataChannelSubs[dataType](fromClientId, dataType, data, source);
 	      } else {
-	        NAF.log.error('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
+	        NAF.log.write('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
 	      }
 	    }
 	  }, {
@@ -1663,6 +1718,7 @@
 	    var adapterName = this.data.adapter;
 	    var adapter = NAF.adapters.make(adapterName);
 	    NAF.connection.setNetworkAdapter(adapter);
+	    this.el.emit('adapter-ready', adapter, false);
 	  },
 
 	  hasOnConnectFunction: function hasOnConnectFunction() {
@@ -1686,8 +1742,6 @@
 
 	'use strict';
 
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 	/* global AFRAME, NAF, THREE */
 	var deepEqual = __webpack_require__(16);
 	var InterpolationBuffer = __webpack_require__(17);
@@ -1707,13 +1761,68 @@
 	  };
 	}
 
+	AFRAME.registerSystem("networked", {
+	  init: function init() {
+	    this.components = [];
+	    this.nextSyncTime = 0;
+	  },
+	  register: function register(component) {
+	    this.components.push(component);
+	  },
+	  deregister: function deregister(component) {
+	    var idx = this.components.indexOf(component);
+
+	    if (idx > -1) {
+	      this.components.splice(idx, 1);
+	    }
+	  },
+
+
+	  tick: function () {
+
+	    return function () {
+	      if (!NAF.connection.adapter) return;
+	      if (this.el.clock.elapsedTime < this.nextSyncTime) return;
+
+	      var data = { d: [] };
+
+	      for (var i = 0, l = this.components.length; i < l; i++) {
+	        var c = this.components[i];
+	        if (!c.isMine()) continue;
+	        if (!c.el.parentElement) {
+	          NAF.log.error("entity registered with system despite being removed");
+	          //TODO: Find out why tick is still being called
+	          return;
+	        }
+
+	        var syncData = this.components[i].syncDirty();
+	        if (!syncData) continue;
+
+	        data.d.push(syncData);
+	      }
+
+	      if (data.d.length > 0) {
+	        NAF.connection.broadcastData('um', data);
+	      }
+
+	      this.updateNextSyncTime();
+	    };
+	  }(),
+
+	  updateNextSyncTime: function updateNextSyncTime() {
+	    this.nextSyncTime = this.el.clock.elapsedTime + 1 / NAF.options.updateRate;
+	  }
+	});
+
 	AFRAME.registerComponent('networked', {
 	  schema: {
 	    template: { default: '' },
 	    attachTemplateToLocal: { default: true },
+	    persistent: { default: false },
 
 	    networkId: { default: '' },
-	    owner: { default: '' }
+	    owner: { default: '' },
+	    creator: { default: '' }
 	  },
 
 	  init: function init() {
@@ -1746,7 +1855,7 @@
 	    this.componentSchemas = NAF.schemas.getComponents(this.data.template);
 	    this.cachedElements = new Array(this.componentSchemas.length);
 	    this.networkUpdatePredicates = this.componentSchemas.map(function (x) {
-	      return x.requiresNetworkUpdate || defaultRequiresUpdate();
+	      return x.requiresNetworkUpdate && x.requiresNetworkUpdate() || defaultRequiresUpdate();
 	    });
 
 	    // Fill cachedElements array with null elements
@@ -1778,6 +1887,7 @@
 
 	    document.body.dispatchEvent(this.entityCreatedEvent());
 	    this.el.dispatchEvent(new CustomEvent('instantiated', { detail: { el: this.el } }));
+	    this.el.sceneEl.systems.networked.register(this);
 	  },
 
 	  attachTemplateToLocal: function attachTemplateToLocal() {
@@ -1834,6 +1944,16 @@
 	    NAF.entities.registerEntity(networkId, this.el);
 	  },
 
+	  applyPersistentFirstSync: function applyPersistentFirstSync() {
+	    var networkId = this.data.networkId;
+
+	    var persistentFirstSync = NAF.entities.getPersistentFirstSync(networkId);
+	    if (persistentFirstSync) {
+	      this.networkUpdate(persistentFirstSync);
+	      NAF.entities.forgetPersistentFirstSync(networkId);
+	    }
+	  },
+
 	  firstUpdate: function firstUpdate() {
 	    var entityData = this.el.firstUpdateData;
 	    this.networkUpdate(entityData);
@@ -1844,7 +1964,7 @@
 
 	    if (this.data.owner === '') {
 	      this.lastOwnerTime = NAF.connection.getServerTime();
-	      this.el.setAttribute(this.name, { owner: NAF.clientId });
+	      this.el.setAttribute(this.name, { owner: NAF.clientId, creator: NAF.clientId });
 	      setTimeout(function () {
 	        //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
 	        if (!_this.el.parentNode) {
@@ -1862,17 +1982,12 @@
 	    return this.data.owner === NAF.clientId;
 	  },
 
+	  createdByMe: function createdByMe() {
+	    return this.data.creator === NAF.clientId;
+	  },
+
 	  tick: function tick(time, dt) {
-	    if (this.isMine()) {
-	      if (this.needsToSync()) {
-	        if (!this.el.parentElement) {
-	          NAF.log.error("tick called on an entity that seems to have been removed");
-	          //TODO: Find out why tick is still being called
-	          return;
-	        }
-	        this.syncDirty();
-	      }
-	    } else if (NAF.options.useLerp) {
+	    if (!this.isMine() && NAF.options.useLerp) {
 	      for (var i = 0; i < this.bufferInfos.length; i++) {
 	        var bufferInfo = this.bufferInfos[i];
 	        var buffer = bufferInfo.buffer;
@@ -1899,8 +2014,6 @@
 	      return;
 	    }
 
-	    this.updateNextSyncTime();
-
 	    var components = this.gatherComponentsData(true);
 
 	    var syncData = this.createSyncData(components, isFirstSync);
@@ -1917,17 +2030,13 @@
 	      return;
 	    }
 
-	    this.updateNextSyncTime();
-
 	    var components = this.gatherComponentsData(false);
 
 	    if (components === null) {
 	      return;
 	    }
 
-	    var syncData = this.createSyncData(components);
-
-	    NAF.connection.broadcastData('u', syncData);
+	    return this.createSyncData(components);
 	  },
 
 	  getCachedElement: function getCachedElement(componentSchemaIndex) {
@@ -1997,8 +2106,10 @@
 
 	    syncData.networkId = data.networkId;
 	    syncData.owner = data.owner;
+	    syncData.creator = data.creator;
 	    syncData.lastOwnerTime = this.lastOwnerTime;
 	    syncData.template = data.template;
+	    syncData.persistent = data.persistent;
 	    syncData.parent = this.getParentId();
 	    syncData.components = components;
 	    syncData.isFirstSync = !!isFirstSync;
@@ -2006,15 +2117,24 @@
 	  },
 
 	  canSync: function canSync() {
-	    return this.data.owner && this.isMine();
-	  },
+	    // This client will send a sync if:
+	    //
+	    // - The client is the owner
+	    // - The client is the creator, and the owner is not in the room.
+	    //
+	    // The reason for the latter case is so the object will still be
+	    // properly instantiated if the owner leaves. (Since the object lifetime
+	    // is tied to the creator.)
+	    if (this.data.owner && this.isMine()) return true;
+	    if (!this.createdByMe()) return false;
 
-	  needsToSync: function needsToSync() {
-	    return this.el.sceneEl.clock.elapsedTime >= this.nextSyncTime;
-	  },
+	    var clients = NAF.connection.getConnectedClients();
 
-	  updateNextSyncTime: function updateNextSyncTime() {
-	    this.nextSyncTime = this.el.sceneEl.clock.elapsedTime + 1 / NAF.options.updateRate;
+	    for (var clientId in clients) {
+	      if (clientId === this.data.owner) return false;
+	    }
+
+	    return true;
 	  },
 
 	  getParentId: function getParentId() {
@@ -2040,6 +2160,9 @@
 
 	      var oldOwner = this.data.owner;
 	      var newOwner = entityData.owner;
+
+	      this.el.setAttribute('networked', { owner: entityData.owner });
+
 	      if (wasMine) {
 	        this.onOwnershipLostEvent.newOwner = newOwner;
 	        this.el.emit(this.OWNERSHIP_LOST, this.onOwnershipLostEvent);
@@ -2047,44 +2170,56 @@
 	      this.onOwnershipChangedEvent.oldOwner = oldOwner;
 	      this.onOwnershipChangedEvent.newOwner = newOwner;
 	      this.el.emit(this.OWNERSHIP_CHANGED, this.onOwnershipChangedEvent);
-
-	      this.el.setAttribute('networked', { owner: entityData.owner });
 	    }
-	    this.updateComponents(entityData.components);
+	    if (this.data.persistent !== entityData.persistent) {
+	      this.el.setAttribute('networked', { persistent: entityData.persistent });
+	    }
+	    this.updateNetworkedComponents(entityData.components);
 	  },
 
-	  updateComponents: function updateComponents(components) {
-	    for (var componentIndex in components) {
+	  updateNetworkedComponents: function updateNetworkedComponents(components) {
+	    for (var componentIndex = 0, l = this.componentSchemas.length; componentIndex < l; componentIndex++) {
 	      var componentData = components[componentIndex];
 	      var componentSchema = this.componentSchemas[componentIndex];
 	      var componentElement = this.getCachedElement(componentIndex);
 
-	      if (componentElement === null) {
+	      if (componentElement === null || componentData === null || componentData === undefined) {
 	        continue;
 	      }
 
 	      if (componentSchema.component) {
 	        if (componentSchema.property) {
-	          var singlePropertyData = _defineProperty({}, componentSchema.property, componentData);
-	          this.updateComponent(componentElement, componentSchema.component, singlePropertyData);
+	          this.updateNetworkedComponent(componentElement, componentSchema.component, componentSchema.property, componentData);
 	        } else {
-	          this.updateComponent(componentElement, componentSchema.component, componentData);
+	          this.updateNetworkedComponent(componentElement, componentSchema.component, componentData);
 	        }
 	      } else {
-	        this.updateComponent(componentElement, componentSchema, componentData);
+	        this.updateNetworkedComponent(componentElement, componentSchema, componentData);
 	      }
 	    }
 	  },
 
-	  updateComponent: function updateComponent(el, componentName, data) {
+	  updateNetworkedComponent: function updateNetworkedComponent(el, componentName, data, value) {
 	    if (!NAF.options.useLerp || !OBJECT3D_COMPONENTS.includes(componentName)) {
-	      el.setAttribute(componentName, data);
+	      if (value === undefined) {
+	        el.setAttribute(componentName, data);
+	      } else {
+	        el.setAttribute(componentName, data, value);
+	      }
 	      return;
 	    }
 
-	    var bufferInfo = this.bufferInfos.find(function (info) {
-	      return info.object3D === el.object3D;
-	    });
+	    var bufferInfo = void 0;
+
+	    for (var i = 0, l = this.bufferInfos.length; i < l; i++) {
+	      var info = this.bufferInfos[i];
+
+	      if (info.object3D === el.object3D) {
+	        bufferInfo = info;
+	        break;
+	      }
+	    }
+
 	    if (!bufferInfo) {
 	      bufferInfo = { buffer: new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1),
 	        object3D: el.object3D,
@@ -2122,12 +2257,13 @@
 	      var syncData = { networkId: this.data.networkId };
 	      if (NAF.entities.hasEntity(this.data.networkId)) {
 	        NAF.connection.broadcastDataGuaranteed('r', syncData);
-	        NAF.entities.forgetEntity(this.data.networkId);
 	      } else {
 	        NAF.log.error("Removing networked entity that is not in entities array.");
 	      }
 	    }
+	    NAF.entities.forgetEntity(this.data.networkId);
 	    document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
+	    this.el.sceneEl.systems.networked.deregister(this);
 	  },
 
 	  entityCreatedEvent: function entityCreatedEvent() {
@@ -2142,6 +2278,10 @@
 /* 16 */
 /***/ (function(module, exports) {
 
+	// Patched version of fast-deep-equal which does not
+	// allocate memory via calling Object.keys
+	//
+	// https://github.com/epoberezkin/fast-deep-equal/blob/master/index.js
 	'use strict';
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -2229,6 +2369,31 @@
 	var MODE_LERP = 0;
 	var MODE_HERMITE = 1;
 
+	var vectorPool = [];
+	var quatPool = [];
+	var framePool = [];
+
+	var getPooledVector = function getPooledVector() {
+	  return vectorPool.shift() || new THREE.Vector3();
+	};
+	var getPooledQuaternion = function getPooledQuaternion() {
+	  return quatPool.shift() || new THREE.Quaternion();
+	};
+
+	var getPooledFrame = function getPooledFrame() {
+	  var frame = framePool.pop();
+
+	  if (!frame) {
+	    frame = { position: new THREE.Vector3(), velocity: new THREE.Vector3(), scale: new THREE.Vector3(), quaternion: new THREE.Quaternion(), time: 0 };
+	  }
+
+	  return frame;
+	};
+
+	var freeFrame = function freeFrame(f) {
+	  return framePool.push(f);
+	};
+
 	var InterpolationBuffer = function () {
 	  function InterpolationBuffer() {
 	    var mode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : MODE_LERP;
@@ -2242,13 +2407,7 @@
 	    this.time = 0;
 	    this.mode = mode;
 
-	    this.originFrame = {
-	      position: new THREE.Vector3(),
-	      velocity: new THREE.Vector3(),
-	      quaternion: new THREE.Quaternion(),
-	      scale: new THREE.Vector3(1, 1, 1)
-	    };
-
+	    this.originFrame = getPooledFrame();
 	    this.position = new THREE.Vector3();
 	    this.quaternion = new THREE.Quaternion();
 	    this.scale = new THREE.Vector3(1, 1, 1);
@@ -2280,6 +2439,12 @@
 	      THREE.Quaternion.slerp(r1, r2, target, alpha);
 	    }
 	  }, {
+	    key: "updateOriginFrameToBufferTail",
+	    value: function updateOriginFrameToBufferTail() {
+	      freeFrame(this.originFrame);
+	      this.originFrame = this.buffer.shift();
+	    }
+	  }, {
 	    key: "appendBuffer",
 	    value: function appendBuffer(position, velocity, quaternion, scale) {
 	      var tail = this.buffer.length > 0 ? this.buffer[this.buffer.length - 1] : null;
@@ -2302,13 +2467,14 @@
 	        }
 	      } else {
 	        var priorFrame = tail || this.originFrame;
-	        this.buffer.push({
-	          position: position ? position.clone() : priorFrame.position.clone(),
-	          velocity: velocity ? velocity.clone() : priorFrame.velocity.clone(),
-	          quaternion: quaternion ? quaternion.clone() : priorFrame.quaternion.clone(),
-	          scale: scale ? scale.clone() : priorFrame.scale.clone(),
-	          time: this.time
-	        });
+	        var newFrame = getPooledFrame();
+	        newFrame.position.copy(position || priorFrame.position);
+	        newFrame.velocity.copy(velocity || priorFrame.velocity);
+	        newFrame.quaternion.copy(quaternion || priorFrame.quaternion);
+	        newFrame.scale.copy(scale || priorFrame.scale);
+	        newFrame.time = this.time;
+
+	        this.buffer.push(newFrame);
 	      }
 	    }
 	  }, {
@@ -2336,7 +2502,7 @@
 	    value: function update(delta) {
 	      if (this.state === INITIALIZING) {
 	        if (this.buffer.length > 0) {
-	          this.originFrame = this.buffer.shift();
+	          this.updateOriginFrameToBufferTail();
 	          this.position.copy(this.originFrame.position);
 	          this.quaternion.copy(this.originFrame.quaternion);
 	          this.scale.copy(this.originFrame.scale);
@@ -2356,7 +2522,7 @@
 	        while (this.buffer.length > 0 && mark > this.buffer[0].time) {
 	          //if this is the last frame in the buffer, just update the time and reuse it
 	          if (this.buffer.length > 1) {
-	            this.originFrame = this.buffer.shift();
+	            this.updateOriginFrameToBufferTail();
 	          } else {
 	            this.originFrame.position.copy(this.buffer[0].position);
 	            this.originFrame.velocity.copy(this.buffer[0].velocity);

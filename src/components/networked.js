@@ -1,5 +1,5 @@
 /* global AFRAME, NAF, THREE */
-var deepEqual = require('fast-deep-equal');
+var deepEqual = require('../DeepEquals');
 var InterpolationBuffer = require('buffered-interpolation');
 var DEG2RAD = THREE.Math.DEG2RAD;
 var OBJECT3D_COMPONENTS = ['position', 'rotation', 'scale'];
@@ -17,13 +17,69 @@ function defaultRequiresUpdate() {
   };
 }
 
+AFRAME.registerSystem("networked", {
+  init() {
+    this.components = [];
+    this.nextSyncTime = 0;
+  },
+
+  register(component) {
+    this.components.push(component);
+  },
+
+  deregister(component) {
+    const idx = this.components.indexOf(component);
+
+    if (idx > -1) {
+      this.components.splice(idx, 1);
+    }
+  },
+
+  tick: (function() {
+
+    return function() {
+      if (!NAF.connection.adapter) return;
+      if (this.el.clock.elapsedTime < this.nextSyncTime) return;
+
+      const data = { d: [] };
+
+      for (let i = 0, l = this.components.length; i < l; i++) {
+        const c = this.components[i];
+        if (!c.isMine()) continue;
+        if (!c.el.parentElement) {
+          NAF.log.error("entity registered with system despite being removed");
+          //TODO: Find out why tick is still being called
+          return;
+        }
+
+        const syncData = this.components[i].syncDirty();
+        if (!syncData) continue;
+
+        data.d.push(syncData);
+      }
+
+      if (data.d.length > 0) {
+        NAF.connection.broadcastData('um', data);
+      }
+
+      this.updateNextSyncTime();
+    };
+  })(),
+
+  updateNextSyncTime() {
+    this.nextSyncTime = this.el.clock.elapsedTime + 1 / NAF.options.updateRate;
+  }
+});
+
 AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
     attachTemplateToLocal: { default: true },
+    persistent: { default: false },
 
     networkId: {default: ''},
     owner: {default: ''},
+    creator: {default: ''}
   },
 
   init: function() {
@@ -55,7 +111,7 @@ AFRAME.registerComponent('networked', {
     this.syncData = {};
     this.componentSchemas =  NAF.schemas.getComponents(this.data.template);
     this.cachedElements = new Array(this.componentSchemas.length);
-    this.networkUpdatePredicates = this.componentSchemas.map(x => x.requiresNetworkUpdate || defaultRequiresUpdate());
+    this.networkUpdatePredicates = this.componentSchemas.map(x => (x.requiresNetworkUpdate && x.requiresNetworkUpdate()) || defaultRequiresUpdate());
 
     // Fill cachedElements array with null elements
     this.invalidateCachedElements();
@@ -86,6 +142,7 @@ AFRAME.registerComponent('networked', {
 
     document.body.dispatchEvent(this.entityCreatedEvent());
     this.el.dispatchEvent(new CustomEvent('instantiated', {detail: {el: this.el}}));
+    this.el.sceneEl.systems.networked.register(this);
   },
 
   attachTemplateToLocal: function() {
@@ -142,6 +199,15 @@ AFRAME.registerComponent('networked', {
     NAF.entities.registerEntity(networkId, this.el);
   },
 
+  applyPersistentFirstSync: function() {
+    const { networkId } = this.data;
+    const persistentFirstSync = NAF.entities.getPersistentFirstSync(networkId);
+    if (persistentFirstSync) {
+      this.networkUpdate(persistentFirstSync);
+      NAF.entities.forgetPersistentFirstSync(networkId);
+    }
+  },
+
   firstUpdate: function() {
     var entityData = this.el.firstUpdateData;
     this.networkUpdate(entityData);
@@ -150,7 +216,7 @@ AFRAME.registerComponent('networked', {
   onConnected: function() {
     if (this.data.owner === '') {
       this.lastOwnerTime = NAF.connection.getServerTime();
-      this.el.setAttribute(this.name, {owner: NAF.clientId});
+      this.el.setAttribute(this.name, { owner: NAF.clientId, creator: NAF.clientId });
       setTimeout(() => {
         //a-primitives attach their components on the next frame; wait for components to be attached before calling syncAll
         if (!this.el.parentNode){
@@ -168,17 +234,12 @@ AFRAME.registerComponent('networked', {
     return this.data.owner === NAF.clientId;
   },
 
+  createdByMe: function() {
+    return this.data.creator === NAF.clientId;
+  },
+
   tick: function(time, dt) {
-    if (this.isMine()) {
-      if (this.needsToSync()) {
-        if (!this.el.parentElement) {
-          NAF.log.error("tick called on an entity that seems to have been removed");
-          //TODO: Find out why tick is still being called
-          return;
-        }
-        this.syncDirty();
-      }
-    } else if (NAF.options.useLerp) {
+    if (!this.isMine() && NAF.options.useLerp) {
       for (var i = 0; i < this.bufferInfos.length; i++) {
         var bufferInfo = this.bufferInfos[i];
         var buffer = bufferInfo.buffer;
@@ -205,8 +266,6 @@ AFRAME.registerComponent('networked', {
       return;
     }
 
-    this.updateNextSyncTime();
-
     var components = this.gatherComponentsData(true);
 
     var syncData = this.createSyncData(components, isFirstSync);
@@ -223,17 +282,13 @@ AFRAME.registerComponent('networked', {
       return;
     }
 
-    this.updateNextSyncTime();
-
     var components = this.gatherComponentsData(false);
 
     if (components === null) {
       return;
     }
 
-    var syncData = this.createSyncData(components);
-
-    NAF.connection.broadcastData('u', syncData);
+    return this.createSyncData(components);
   },
 
   getCachedElement(componentSchemaIndex) {
@@ -301,8 +356,10 @@ AFRAME.registerComponent('networked', {
     var { syncData, data } = this;
     syncData.networkId = data.networkId;
     syncData.owner = data.owner;
+    syncData.creator = data.creator;
     syncData.lastOwnerTime = this.lastOwnerTime;
     syncData.template = data.template;
+    syncData.persistent = data.persistent;
     syncData.parent = this.getParentId();
     syncData.components = components;
     syncData.isFirstSync = !!isFirstSync;
@@ -310,15 +367,24 @@ AFRAME.registerComponent('networked', {
   },
 
   canSync: function() {
-    return this.data.owner && this.isMine();
-  },
+    // This client will send a sync if:
+    //
+    // - The client is the owner
+    // - The client is the creator, and the owner is not in the room.
+    //
+    // The reason for the latter case is so the object will still be
+    // properly instantiated if the owner leaves. (Since the object lifetime
+    // is tied to the creator.)
+    if (this.data.owner && this.isMine()) return true;
+    if (!this.createdByMe()) return false;
 
-  needsToSync: function() {
-    return this.el.sceneEl.clock.elapsedTime >= this.nextSyncTime;
-  },
+    const clients = NAF.connection.getConnectedClients();
 
-  updateNextSyncTime: function() {
-    this.nextSyncTime = this.el.sceneEl.clock.elapsedTime + 1 / NAF.options.updateRate;
+    for (let clientId in clients) {
+      if (clientId === this.data.owner) return false;
+    }
+
+    return true;
   },
 
   getParentId: function() {
@@ -345,6 +411,9 @@ AFRAME.registerComponent('networked', {
 
       const oldOwner = this.data.owner;
       const newOwner = entityData.owner;
+
+      this.el.setAttribute('networked', { owner: entityData.owner });
+
       if (wasMine) {
         this.onOwnershipLostEvent.newOwner = newOwner;
         this.el.emit(this.OWNERSHIP_LOST, this.onOwnershipLostEvent);
@@ -352,42 +421,56 @@ AFRAME.registerComponent('networked', {
       this.onOwnershipChangedEvent.oldOwner = oldOwner;
       this.onOwnershipChangedEvent.newOwner = newOwner;
       this.el.emit(this.OWNERSHIP_CHANGED, this.onOwnershipChangedEvent);
-
-      this.el.setAttribute('networked', { owner: entityData.owner });
     }
-    this.updateComponents(entityData.components);
+    if (this.data.persistent !== entityData.persistent) {
+      this.el.setAttribute('networked', { persistent: entityData.persistent });
+    }
+    this.updateNetworkedComponents(entityData.components);
   },
 
-  updateComponents: function(components) {
-    for (var componentIndex in components) {
+  updateNetworkedComponents: function(components) {
+    for (var componentIndex = 0, l = this.componentSchemas.length; componentIndex < l; componentIndex++) {
       var componentData = components[componentIndex];
       var componentSchema = this.componentSchemas[componentIndex];
       var componentElement = this.getCachedElement(componentIndex);
 
-      if (componentElement === null) {
+      if (componentElement === null || componentData === null || componentData === undefined ) {
         continue;
       }
 
       if (componentSchema.component) {
         if (componentSchema.property) {
-          var singlePropertyData = { [componentSchema.property]: componentData };
-          this.updateComponent(componentElement, componentSchema.component, singlePropertyData);
+          this.updateNetworkedComponent(componentElement, componentSchema.component, componentSchema.property, componentData);
         } else {
-          this.updateComponent(componentElement, componentSchema.component, componentData);
+          this.updateNetworkedComponent(componentElement, componentSchema.component, componentData);
         }
       } else {
-        this.updateComponent(componentElement, componentSchema, componentData);
+        this.updateNetworkedComponent(componentElement, componentSchema, componentData);
       }
     }
   },
 
-  updateComponent: function (el, componentName, data) {
+  updateNetworkedComponent: function (el, componentName, data, value) {
     if(!NAF.options.useLerp || !OBJECT3D_COMPONENTS.includes(componentName)) {
-      el.setAttribute(componentName, data);
+      if (value === undefined) {
+        el.setAttribute(componentName, data);
+      } else {
+        el.setAttribute(componentName, data, value);
+      }
       return;
     }
 
-    var bufferInfo = this.bufferInfos.find((info) => info.object3D === el.object3D);
+    let bufferInfo;
+
+    for (let i = 0, l = this.bufferInfos.length; i < l; i++) {
+      const info = this.bufferInfos[i];
+
+      if (info.object3D === el.object3D) {
+        bufferInfo = info;
+        break;
+      }
+    }
+
     if (!bufferInfo) {
       bufferInfo = { buffer: new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1),
                      object3D: el.object3D,
@@ -425,12 +508,13 @@ AFRAME.registerComponent('networked', {
       var syncData = { networkId: this.data.networkId };
       if (NAF.entities.hasEntity(this.data.networkId)) {
         NAF.connection.broadcastDataGuaranteed('r', syncData);
-        NAF.entities.forgetEntity(this.data.networkId);
       } else {
         NAF.log.error("Removing networked entity that is not in entities array.");
       }
     }
+    NAF.entities.forgetEntity(this.data.networkId);
     document.body.dispatchEvent(this.entityRemovedEvent(this.data.networkId));
+    this.el.sceneEl.systems.networked.deregister(this);
   },
 
   entityCreatedEvent() {
