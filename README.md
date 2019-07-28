@@ -300,7 +300,7 @@ Subscribe and unsubscribe callbacks to network messages specified by `dataType`.
 
 ### Transfer Entity Ownership
 
-The owner of an entity is responsible for syncing its component data. When a user wants to modify another user's entity they must first take ownership of that entity. The [ownership transfer example](./server/static/ownership-transfer.html) and the [toggle-ownership component](./server/static/js/toggle-ownership.component.js) show how to take ownership of an entity and update it.
+The owner of an entity is responsible for syncing its component data. When a user wants to modify another user's entity they must first take ownership of that entity. The [ownership transfer example](./examples/ownership-transfer.html) and the [toggle-ownership component](./examples/js/toggle-ownership.component.js) show how to take ownership of an entity and update it.
 
 ```javascript
 NAF.utils.takeOwnership(entityEl)
@@ -324,7 +324,7 @@ document.body.addEventListener('clientConnected', function (evt) {
   console.error('clientConnected event. clientId =', evt.detail.clientId);
 });
 ```
-Events need to be subscribed after the document.body element has been created. This could be achieved by waiting for the document.body `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/networked-aframe/networked-aframe/blob/master/server/static/basic-events.html#L30) as an example.
+Events need to be subscribed after the document.body element has been created. This could be achieved by waiting for the document.body `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/networked-aframe/networked-aframe/blob/master/examples/basic-events.html#L30) as an example.
 
 List of events:
 
@@ -335,7 +335,7 @@ List of events:
 | entityCreated | Fired when a networked entity is created | `evt.detail.el` - new entity |
 | entityRemoved | Fired when a networked entity is deleted | `evt.detail.networkId` - networkId of deleted entity |
 
-The following events are fired on the `networked` component. See the [toggle-ownership component](./server/static/js/toggle-ownership.component.js) for examples.
+The following events are fired on the `networked` component. See the [toggle-ownership component](./examples/js/toggle-ownership.component.js) for examples.
 
 List of ownership transfer events:
 
@@ -437,8 +437,8 @@ Folder Structure
    * Packaged source code for deployment
  * `/server/`
    * Server code
- * `/server/static/`
-   * Examples
+ * `/examples/`
+   * Example experiences
  * `/src/`
    * Client source code
  * `/tests/`
