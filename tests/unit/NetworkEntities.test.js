@@ -62,7 +62,7 @@ suite('NetworkEntities', function() {
       template: '#template1',
       components: {
         0: '1 2 3',
-        1: '4 3 2'
+        1: '4 3.5 2'
       },
       isFirstSync: true
     };
@@ -73,7 +73,7 @@ suite('NetworkEntities', function() {
       template: '#template1',
       components: {
         0: '1 2 3',
-        1: '4 3 2'
+        1: '4 3.5 2'
       },
       isFirstSync: false
     };
@@ -117,8 +117,8 @@ suite('NetworkEntities', function() {
         var position = entity.getAttribute('position');
         var rotation = entity.getAttribute('rotation');
 
-        assert.deepEqual(position, {x: 1, y: 2, z: 3});
-        assert.deepEqual(rotation, {x: 4, y: 3, z: 2});
+        assert.deepEqual(position, new THREE.Vector3(1,2,3));
+        assert.deepEqual(rotation, {x: 4, y: 3.5, z: 2});
         done();
       });
     });
@@ -203,7 +203,7 @@ suite('NetworkEntities', function() {
         template: '#template1',
         components: {
           0: '1 2 3',
-          1: '4 3 2'
+          1: '4 3.5 2'
         },
         isFirstSync: true
       };
@@ -214,7 +214,7 @@ suite('NetworkEntities', function() {
         template: '#template1',
         components: {
           0: '1 2 3',
-          1: '4 3 2'
+          1: '4 3.5 2'
         },
         isFirstSync: true
       };

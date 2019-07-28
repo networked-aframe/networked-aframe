@@ -16,13 +16,14 @@ suite('networked', function() {
       assets: [
         "<template id='t1'><a-entity><a-entity class='template-child'></a-entity></a-entity></template>"
       ],
-      entity: '<a-entity id="test-entity" networked="template:#t1" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity>'
+      entity: '<a-entity id="test-entity" networked="template:#t1" position="1 2 3" rotation="4 3.5 2"><a-box></a-box></a-entity>'
     };
     scene = helpers.sceneFactory(opts);
     naf.utils.whenEntityLoaded(scene, done);
   }
 
   setup(function(done) {
+    naf.clientId = 'owner1';
     naf.connection.setNetworkAdapter(new helpers.MockNetworkAdapter());
     initScene(function() {
       entity = document.querySelector('#test-entity');
@@ -70,8 +71,6 @@ suite('networked', function() {
     }));
 
     test('sets owner', sinon.test(function() {
-      naf.clientId = 'owner1';
-
       networked.init();
       document.body.dispatchEvent(new Event('loggedIn'));
 
@@ -136,15 +135,15 @@ suite('networked', function() {
 
       var expected = {
         networkId: 'network1',
-        creator: 'owner1',
         owner: 'owner1',
+        creator: 'owner1',
         lastOwnerTime: -1,
+        template: '#t1',
         persistent: false,
         parent: null,
-        template: '#t1',
         components: {
-          0: { x: 1, y: 2, z: 3 },
-          1: { x: 4, y: 3, z: 2 }
+          0: new THREE.Vector3(1, 2, 3),
+          1: { x: 4, y: 3.5, z: 2 }
         },
         isFirstSync: false
       };
@@ -154,7 +153,6 @@ suite('networked', function() {
       networked.syncAll();
 
       var called = naf.connection.broadcastDataGuaranteed.calledWithExactly('u', expected);
-
       assert.isTrue(called);
     }));
   });
@@ -210,10 +208,12 @@ suite('networked', function() {
       var result = networked.gatherComponentsData(true);
 
       var expected = {
-        0: { x: 1, y: 2, z: 3 },
-        1: { x: 4, y: 3, z: 2 }
+        0: new THREE.Vector3(1,2,3),
+        1: { x: 4, y: 3.5, z: 2 }
       };
 
+      console.log('result', result);
+      console.log('expected', expected);
       assert.deepEqual(result, expected);
     });
 
@@ -221,7 +221,7 @@ suite('networked', function() {
 
       networked.cachedData = [
         { x: 1, y: 2, z: 3 },
-        { x: 4, y: 3, z: 2 }
+        { x: 4, y: 3.5, z: 2 }
       ];
 
       networked.el.setAttribute("rotation", { x: 9, y: 8, z: 7 });
