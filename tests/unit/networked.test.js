@@ -9,6 +9,7 @@ suite('networked', function() {
   var scene;
   var entity;
   var networked;
+  var networkedSystem;
 
   function initScene(done) {
     var opts = {
@@ -26,6 +27,7 @@ suite('networked', function() {
     initScene(function() {
       entity = document.querySelector('#test-entity');
       networked = entity.components['networked'];
+      networkedSystem = scene.systems['networked'];
       networked.data.networkId = '';
       done();
     });
@@ -107,10 +109,10 @@ suite('networked', function() {
 
     test('syncs if need to', sinon.test(function() {
       this.stub(networked, 'syncDirty');
-      networked.el.sceneEl.clock.elapsedTime = 4;
-      networked.nextSyncTime = 4;
+      networkedSystem.el.clock.elapsedTime = 4;
+      networkedSystem.nextSyncTime = 4;
 
-      networked.tick();
+      networkedSystem.tick();
 
       assert.isTrue(networked.syncDirty.calledOnce);
     }));
@@ -134,8 +136,10 @@ suite('networked', function() {
 
       var expected = {
         networkId: 'network1',
+        creator: 'owner1',
         owner: 'owner1',
         lastOwnerTime: -1,
+        persistent: false,
         parent: null,
         template: '#t1',
         components: {
@@ -153,15 +157,6 @@ suite('networked', function() {
 
       assert.isTrue(called);
     }));
-
-    test('sets next sync time', sinon.test(function() {
-      this.stub(naf.connection, 'broadcastDataGuaranteed');
-      this.spy(networked, 'updateNextSyncTime');
-
-      networked.syncAll();
-
-      assert.isTrue(networked.updateNextSyncTime.calledOnce);
-    }));
   });
 
   suite('syncDirty', function() {
@@ -170,18 +165,21 @@ suite('networked', function() {
       this.stub(naf.utils, 'createNetworkId').returns('network1');
       this.stub(naf.connection, 'broadcastData');
 
-      var expected = {
+      var expected = { d: [{
         networkId: 'network1',
+        creator: 'owner1',
         owner: 'owner1',
         lastOwnerTime: -1,
+        persistent: false,
         parent: null,
         template: '#t1',
         components: {
           1: { x: 9, y: 8, z: 7 }
         },
         isFirstSync: false
-      };
+      }] };
 
+      networkedSystem.init();
       networked.init();
 
       // Force initial sync instead of waiting on onConnected
@@ -189,19 +187,21 @@ suite('networked', function() {
 
       networked.el.setAttribute("rotation", { x: 9, y: 8, z: 7 });
 
-      networked.syncDirty();
+      networkedSystem.el.clock.elapsedTime = 4;
+      networkedSystem.tick();
 
-      var called = naf.connection.broadcastData.calledWithExactly('u', expected);
+      var called = naf.connection.broadcastData.calledWithExactly('um', expected);
       assert.isTrue(called, `called with ${JSON.stringify(naf.connection.broadcastData.getCall(0).args[1])}, expected ${JSON.stringify(expected)}`);
     }));
 
     test('sets next sync time', sinon.test(function() {
       this.stub(naf.connection, 'broadcastData');
-      this.spy(networked, 'updateNextSyncTime');
+      this.spy(networkedSystem, 'updateNextSyncTime');
 
-      networked.syncDirty();
+      networkedSystem.init();
+      networkedSystem.tick();
 
-      assert.isTrue(networked.updateNextSyncTime.calledOnce);
+      assert.isTrue(networkedSystem.updateNextSyncTime.calledOnce);
     }));
   });
 

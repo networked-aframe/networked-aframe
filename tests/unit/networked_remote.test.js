@@ -82,6 +82,7 @@ suite('networked_remote', function() {
       var entityData = {
         networkId: 'nid1',
         owner: 'network1',
+        persistent: false,
         parent: null,
         template: '',
         components: {
@@ -119,6 +120,7 @@ suite('networked_remote', function() {
       var entityData = {
         networkId: 'network1',
         owner: 'owner1',
+        persistent: false,
         parent: null,
         template: '',
         components: {
@@ -143,6 +145,7 @@ suite('networked_remote', function() {
       var entityData = {
         networkId: 'network2',
         owner: 'owner1',
+        persistent: false,
         parent: null,
         template: '',
         components: {

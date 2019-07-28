@@ -149,6 +149,9 @@ suite('NetworkEntities', function() {
   })
 
   suite('updateEntity', function() {
+    teardown(function() {
+      NAF.options.firstSyncSource = null;
+    });
 
     test('first update creates new entity', sinon.test(function() {
       var mockEl = document.createElement('a-entity');
@@ -176,6 +179,17 @@ suite('NetworkEntities', function() {
       entityData.parent = 'non-existent-parent';
 
       entities.updateEntity('client', 'u', entityData);
+
+      assert.isFalse(entities.createRemoteEntity.calledWith(entityData));
+    }));
+
+    test('first update ignored from disallowed source', sinon.test(function() {
+      var mockEl = document.createElement('a-entity');
+      this.stub(entities, 'createRemoteEntity').returns(mockEl);
+
+      NAF.options.firstSyncSource = 'allowed-source';
+
+      entities.updateEntity('client', 'u', entityData, 'disallowed-source');
 
       assert.isFalse(entities.createRemoteEntity.calledWith(entityData));
     }));
@@ -337,7 +351,7 @@ suite('NetworkEntities', function() {
         scene.appendChild(el);
         entityList.push(el);
       }
-      this.stub(naf.utils, 'getNetworkOwner').returns(entityData.owner);
+      this.stub(naf.utils, 'getCreator').returns(entityData.owner);
 
       var removedEntities = entities.removeEntitiesOfClient(entityData.owner);
 
