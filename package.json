@@ -54,7 +54,7 @@
     "karma-sinon-chai": "^1.2.4",
     "mocha": "^4.0.0",
     "node-fetch": "^1.6.3",
-    "semistandard": "^8.0.0",
+    "semistandard": "^13.0.1",
     "serve-static": "^1.13.0",
     "sinon": "^1.17.5",
     "sinon-chai": "^2.8.0",
