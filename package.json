@@ -61,7 +61,7 @@
     "snazzy": "^6.0.0",
     "socket.io": "^1.7.4",
     "socket.io-client": "^1.7.4",
-    "watchify": "^3.9.0",
+    "watchify": "^3.11.1",
     "webpack": "^1.13.0"
   },
   "keywords": [
