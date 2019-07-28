@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test, teardown, sinon */
+/* global assert, process, setup, suite, test, teardown, sinon, THREE */
 require('aframe');
 var helpers = require('./helpers');
 var naf = require('../../src/NafIndex');
@@ -212,8 +212,6 @@ suite('networked', function() {
         1: { x: 4, y: 3.5, z: 2 }
       };
 
-      console.log('result', result);
-      console.log('expected', expected);
       assert.deepEqual(result, expected);
     });
 
