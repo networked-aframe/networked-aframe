@@ -54,7 +54,7 @@ jspm_packages
 errorShots
 
 # Temp build file
-server/static/build.js
+examples/build.js
 
 # Webstorm
 /.idea/*
