@@ -19,6 +19,7 @@ function defaultRequiresUpdate() {
 
 AFRAME.registerSystem("networked", {
   init() {
+    // An array of "networked" component instances.
     this.components = [];
     this.nextSyncTime = 0;
   },
@@ -41,6 +42,7 @@ AFRAME.registerSystem("networked", {
       if (!NAF.connection.adapter) return;
       if (this.el.clock.elapsedTime < this.nextSyncTime) return;
 
+      // "d" is an array of entity datas per entity in this.components.
       const data = { d: [] };
 
       for (let i = 0, l = this.components.length; i < l; i++) {
