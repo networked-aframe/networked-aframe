@@ -118,8 +118,17 @@ AFRAME.registerComponent('networked', {
 
     this.initNetworkParent();
 
+    let networkId;
+
     if (this.data.networkId === '') {
-      this.el.setAttribute(this.name, {networkId: NAF.utils.createNetworkId()});
+      networkId = NAF.utils.createNetworkId()
+      this.el.setAttribute(this.name, {networkId});
+    } else {
+      networkId = this.data.networkId;
+    }
+
+    if (!this.el.id) {
+      this.el.setAttribute('id', 'naf-' + networkId);
     }
 
     if (wasCreatedByNetwork) {
