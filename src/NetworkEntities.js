@@ -20,8 +20,6 @@ class NetworkEntities {
     var networkId = entityData.networkId;
     var el = NAF.schemas.getCachedTemplate(entityData.template);
 
-    el.setAttribute('id', 'naf-' + networkId);
-
     this.initPosition(el, entityData.components);
     this.initRotation(el, entityData.components);
     this.addNetworkComponent(el, entityData);
@@ -132,8 +130,7 @@ class NetworkEntities {
   }
 
   addEntityToParent(entity, parentId) {
-    var parentEl = document.getElementById('naf-' + parentId);
-    parentEl.appendChild(entity);
+    this.entities[parentId].appendChild(entity);
   }
 
   addEntityToSceneRoot(el) {
