@@ -163,7 +163,7 @@ class NetworkEntities {
         let persists;
         const component = this.entities[id].getAttribute('networked');
         if (component && component.persistent) {
-          persists = NAF.utils.takeOwnership(this.entities[id]);
+          persists = NAF.utils.isMine(this.entities[id]) || NAF.utils.takeOwnership(this.entities[id]);
         }
         if (!persists) {
           var entity = this.removeEntity(id);
