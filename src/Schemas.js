@@ -68,7 +68,7 @@ class Schemas {
   }
 
   validateSchema(schema) {
-    return schema['template'] && schema['components'];
+    return !!(schema['template'] && schema['components']);
   }
 
   validateTemplate(schema, el) {

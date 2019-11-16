@@ -381,7 +381,7 @@ suite('NetworkConnection', function() {
 
       connection.unsubscribeToDataChannel(dataType);
 
-      assert.isFalse(connection.dataChannelSubs[dataType]);
+      assert.isTrue(!connection.dataChannelSubs[dataType]);
     });
   });
 
