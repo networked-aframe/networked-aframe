@@ -151,7 +151,7 @@ class EasyRtcAdapter extends NoOpAdapter {
     // getRoomOccupantsAsArray uses Object.keys which allocates memory.
     for (var roomOccupant in roomOccupants) {
       if (
-        roomOccupants.hasOwnProperty(roomOccupant) &&
+        roomOccupants[roomOccupant] &&
         roomOccupant !== this.easyrtc.myEasyrtcid
       ) {
         // send via webrtc otherwise fallback to websockets

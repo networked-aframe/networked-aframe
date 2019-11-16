@@ -188,7 +188,7 @@ AFRAME.registerComponent('networked', {
 
   initNetworkParent: function() {
     var parentEl = this.el.parentElement;
-    if (parentEl.hasOwnProperty('components') && parentEl.components.hasOwnProperty('networked')) {
+    if (parentEl['components'] && parentEl.components['networked']) {
       this.parent = parentEl;
     } else {
       this.parent = null;

@@ -88,7 +88,7 @@ class NetworkConnection {
 
   checkForDisconnectingClients(oldOccupantList, newOccupantList) {
     for (var id in oldOccupantList) {
-      var clientFound = newOccupantList.hasOwnProperty(id);
+      var clientFound = newOccupantList[id];
       if (!clientFound) {
         NAF.log.write('Closing stream to ', id);
         this.adapter.closeStreamConnection(id);
@@ -146,7 +146,7 @@ class NetworkConnection {
   }
 
   hasActiveDataChannel(clientId) {
-    return this.activeDataChannels.hasOwnProperty(clientId) && this.activeDataChannels[clientId];
+    return this.activeDataChannels[clientId] && this.activeDataChannels[clientId];
   }
 
   broadcastData(dataType, data) {
@@ -195,7 +195,7 @@ class NetworkConnection {
   }
 
   receivedData(fromClientId, dataType, data, source) {
-    if (this.dataChannelSubs.hasOwnProperty(dataType)) {
+    if (this.dataChannelSubs[dataType]) {
       this.dataChannelSubs[dataType](fromClientId, dataType, data, source);
     } else {
       NAF.log.write('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');

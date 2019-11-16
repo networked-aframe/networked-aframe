@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test, teardown */
+/* global assert, setup, suite, test, teardown */
 var Schemas = require('../../src/Schemas');
 var helpers = require('./helpers');
 require('../../src/NafIndex');
