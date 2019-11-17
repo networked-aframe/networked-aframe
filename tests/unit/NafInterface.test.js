@@ -1,4 +1,4 @@
-/* global process, suite, test */
+/* global suite, test */
 require('../../src/NafIndex');
 var NafInterface = require('../../src/NafInterface');
 

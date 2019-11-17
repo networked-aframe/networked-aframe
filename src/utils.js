@@ -16,7 +16,7 @@ module.exports.createHtmlNodeFromString = function(str) {
 
 module.exports.getCreator = function(el) {
   var components = el.components;
-  if (components.hasOwnProperty('networked')) {
+  if (components['networked']) {
     return components['networked'].data.creator;
   }
   return null;
@@ -24,7 +24,7 @@ module.exports.getCreator = function(el) {
 
 module.exports.getNetworkOwner = function(el) {
   var components = el.components;
-  if (components.hasOwnProperty('networked')) {
+  if (components['networked']) {
     return components['networked'].data.owner;
   }
   return null;
@@ -32,7 +32,7 @@ module.exports.getNetworkOwner = function(el) {
 
 module.exports.getNetworkId = function(el) {
   var components = el.components;
-  if (components.hasOwnProperty('networked')) {
+  if (components['networked']) {
     return components['networked'].data.networkId;
   }
   return null;

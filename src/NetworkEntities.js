@@ -32,7 +32,7 @@ class NetworkEntities {
   }
 
   initPosition(entity, componentData) {
-    var hasPosition = componentData.hasOwnProperty('position');
+    var hasPosition = componentData['position'];
     if (hasPosition) {
       var position = componentData.position;
       entity.setAttribute('position', position);
@@ -40,7 +40,7 @@ class NetworkEntities {
   }
 
   initRotation(entity, componentData) {
-    var hasRotation = componentData.hasOwnProperty('rotation');
+    var hasRotation = componentData['rotation'];
     if (hasRotation) {
       var rotation = componentData.rotation;
       entity.setAttribute('rotation', rotation);
@@ -143,7 +143,7 @@ class NetworkEntities {
 
   completeSync(targetClientId, isFirstSync) {
     for (var id in this.entities) {
-      if (this.entities.hasOwnProperty(id)) {
+      if (this.entities[id]) {
         this.entities[id].components.networked.syncAll(targetClientId, isFirstSync);
       }
     }
@@ -202,14 +202,14 @@ class NetworkEntities {
   }
 
   getEntity(id) {
-    if (this.entities.hasOwnProperty(id)) {
+    if (this.entities[id]) {
       return this.entities[id];
     }
     return null;
   }
 
   hasEntity(id) {
-    return this.entities.hasOwnProperty(id);
+    return !!this.entities[id];
   }
 
   removeRemoteEntities() {

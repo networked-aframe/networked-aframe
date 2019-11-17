@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test, teardown, sinon */
+/* global assert, setup, suite, test, teardown, sinon */
 require('aframe');
 var helpers = require('./helpers');
 var utils = require('../../src/utils');

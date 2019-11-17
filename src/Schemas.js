@@ -47,7 +47,7 @@ class Schemas {
   }
 
   templateIsCached(template) {
-    return this.templateCache.hasOwnProperty(template);
+    return !!this.templateCache[template];
   }
 
   getComponents(template) {
@@ -59,7 +59,7 @@ class Schemas {
   }
 
   hasTemplate(template) {
-    return this.schemaDict.hasOwnProperty(template);
+    return !!this.schemaDict[template];
   }
 
   templateExistsInScene(templateSelector) {
@@ -68,9 +68,7 @@ class Schemas {
   }
 
   validateSchema(schema) {
-    return schema.hasOwnProperty('template')
-      && schema.hasOwnProperty('components')
-      ;
+    return !!(schema['template'] && schema['components']);
   }
 
   validateTemplate(schema, el) {

@@ -1,4 +1,4 @@
-/* global assert, process, setup, suite, test, sinon */
+/* global assert, setup, suite, test, sinon */
 var NafLogger = require('../../src/NafLogger');
 
 /*eslint no-console: "off" */

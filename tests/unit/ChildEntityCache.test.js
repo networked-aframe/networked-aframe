@@ -1,4 +1,4 @@
-/* global assert, process, suite, test, sinon */
+/* global assert, suite, test, sinon */
 var ChildEntityCache = require('../../src/ChildEntityCache');
 
 suite('ChildEntityCache', function() {

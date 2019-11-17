@@ -22,7 +22,7 @@ class ChildEntityCache {
 
   /* Private */
   hasParent(parentId) {
-    return this.dict.hasOwnProperty(parentId)
+    return !!this.dict[parentId];
   }
 }
 module.exports = ChildEntityCache;
