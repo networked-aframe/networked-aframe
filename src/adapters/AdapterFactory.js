@@ -1,11 +1,9 @@
-var WsEasyRtcAdapter = require("./WsEasyRtcAdapter");
-var EasyRtcAdapter = require("./EasyRtcAdapter");
+const NativeWebRtcAdapter = require("./naf-native-webrtc-adapter");
 
 class AdapterFactory {
   constructor() {
     this.adapters = {
-      "wseasyrtc": WsEasyRtcAdapter,
-      "easyrtc": EasyRtcAdapter
+      "native-webrtc": NativeWebRtcAdapter,
     };
 
     this.IS_CONNECTED = AdapterFactory.IS_CONNECTED;
