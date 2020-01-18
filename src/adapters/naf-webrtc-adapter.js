@@ -1,3 +1,5 @@
+/* global NAF, io */
+
 class WebRtcPeer {
   constructor(localId, remoteId, sendSignalFunc) {
     this.localId = localId;
@@ -198,7 +200,6 @@ class WebRtcPeer {
   }
 
   handleCandidate(message) {
-    var self = this;
     var RTCIceCandidate =
       window.RTCIceCandidate ||
       window.webkitRTCIceCandidate ||
@@ -214,8 +215,6 @@ class WebRtcPeer {
   }
 
   handleSessionDescription(sdp) {
-    var self = this;
-
     this.pc.setLocalDescription(
       sdp,
       function() {},
@@ -233,7 +232,6 @@ class WebRtcPeer {
   }
 
   setRemoteDescription(message) {
-    var self = this;
     var RTCSessionDescription =
       window.RTCSessionDescription ||
       window.webkitRTCSessionDescription ||
@@ -272,17 +270,16 @@ WebRtcPeer.ICE_SERVERS = [
  * For use with uws-server.js
  * networked-scene: serverURL needs to be ws://localhost:8080 when running locally
  */
-class NativeWebRtcAdapter {
+class WebrtcAdapter {
   constructor() {
     if (io === undefined)
-      console.warn('It looks like socket.io has not been loaded before NativeWebRtcAdapter. Please do that.')
+      console.warn('It looks like socket.io has not been loaded before WebrtcAdapter. Please do that.')
 
     this.app = "default";
     this.room = "default";
     this.occupantListener = null;
     this.myRoomJoinTime = null;
     this.myId = null;
-    this.avgTimeOffset = 0;
 
     this.peers = {}; // id -> WebRtcPeer
     this.occupants = {}; // id -> joinTimestamp
@@ -310,14 +307,14 @@ class NativeWebRtcAdapter {
   setWebRtcOptions(options) {
     if (options.datachannel === false) {
       NAF.log.error(
-        "NativeWebRtcAdapter.setWebRtcOptions: datachannel must be true."
+        "WebrtcAdapter.setWebRtcOptions: datachannel must be true."
       );
     }
     if (options.audio === true) {
       this.sendAudio = true;
     }
     if (options.video === true) {
-      NAF.log.warn("NativeWebRtcAdapter does not support video yet.");
+      NAF.log.warn("WebrtcAdapter does not support video yet.");
     }
   }
 
@@ -405,8 +402,6 @@ class NativeWebRtcAdapter {
       socket.on("send", receiveData);
       socket.on("broadcast", receiveData);
     })
-
-
   }
 
   joinRoom() {
@@ -419,7 +414,6 @@ class NativeWebRtcAdapter {
 
     this.occupants = occupants;
 
-    NAF.log.write('occupants=', occupants);
     const self = this;
     const localId = this.myId;
 
@@ -592,6 +586,6 @@ class NativeWebRtcAdapter {
   }
 }
 
-// NAF.adapters.register("native-webrtc", NativeWebRtcAdapter);
+// NAF.adapters.register("native-webrtc", WebrtcAdapter);
 
-module.exports = NativeWebRtcAdapter;
+module.exports = WebrtcAdapter;

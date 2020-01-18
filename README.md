@@ -121,7 +121,7 @@ Required on the A-Frame `<a-scene>` component.
   room: <roomName>;
   connectOnLoad: true;
   onConnect: onConnect;
-  adapter: wseasyrtc;
+  adapter: socketio;
   audio: false;
   debug: false;
 ">
@@ -136,7 +136,7 @@ Required on the A-Frame `<a-scene>` component.
 | room  | Unique room name. Can be multiple per app. Spaces are not allowed. There can be multiple rooms per app and clients can only connect to clients in the same app & room. | default |
 | connectOnLoad  | Connect to the server as soon as the webpage loads. | true |
 | onConnect  | Function to be called when client has successfully connected to the server. | onConnect |
-| adapter | The network service that you wish to use, see [adapters](#adapters). | wseasyrtc |
+| adapter | The network service that you wish to use, see [adapters](#adapters). | socketio |
 | audio  | Turn on / off microphone audio streaming for your app. Only works if the chosen adapter supports it. | false |
 | debug  | Turn on / off Networked-Aframe debug logs. | false |
 
@@ -358,13 +358,16 @@ NAF can be used with multiple network libraries and services. An adapter is a cl
 
 I'll write up a post on the answers to these questions soon (please [bug me](https://github.com/networked-aframe/networked-aframe/issues) about it if you're interested).
 
-By default the `uws` adapter is used which uses WebSockets. To quickly try WebRTC instead of WebSockets, change the adapter to `native-webrtc`, which also supports audio. If you're interested in contributing to NAF a great opportunity is to add support for more adapters and send a pull request.
+By default the `socketio` adapter is used, which does not support audio and uses a TCP connection. This is not ideal for production deployments however due to inherent connection issues with WebRTC we've set it as the default. To use WebRTC instead of WebSockets, change the adapter to `webrtc`, which supports audio and uses a UDP.
+
+If you're interested in contributing to NAF a great opportunity is to add support for more adapters and send a pull request.
 
 List of the supported adapters:
 
 | Adapter | Description | Supports Audio | WebSockets or WebRTC | How to start |
 | -------- | ----------- | ------------- | ----------- | ---------- |
-| native-webrtc | Native WebRTC implementation | Yes | Both | `npm run start` |
+| socketio | DEFAULT - SocketIO implementation | No | WebSockets only | `npm run start` |
+| webrtc | Native WebRTC implementation | Yes | Both | `npm run start` |
 | Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
 | uWS | Implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
 | EasyRTC | [EasyRTC](https://github.com/priologic/easyrtc) | Yes | Both | See [naf-easyrtc-adapter](https://github.com/networked-aframe/naf-easyrtc-adapter) |
