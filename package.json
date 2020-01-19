@@ -1,6 +1,6 @@
 {
   "name": "networked-aframe",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "A web framework for building multi-user virtual reality experiences.",
   "homepage": "",
   "main": "src/index.js",
@@ -77,6 +77,8 @@
     "three",
     "three.js",
     "rift",
+    "quest",
+    "webrtc",
     "social",
     "vive",
     "vr",
