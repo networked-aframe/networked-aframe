@@ -6,9 +6,15 @@ module.exports = {
     },
     mode: 'production',
     module : {
-        loaders: [ {
-                test   : /.js$/,
-                loader : 'babel-loader'
+        rules: [
+            {
+                test: /.js$/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                      presets: ['@babel/preset-env']
+                    }
+                }
             }
         ]
     }
