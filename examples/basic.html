@@ -13,12 +13,11 @@
     <script src="/js/spawn-in-circle.component.js"></script>
   </head>
   <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
-    <script src="/easyrtc/easyrtc.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <a-scene networked-scene="
       room: dev;
       debug: true;
-      adapter: wseasyrtc;
+      adapter: webrtc;
     ">
       <a-assets>
 

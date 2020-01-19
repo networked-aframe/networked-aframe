@@ -4,6 +4,7 @@ module.exports = {
         path     : __dirname,
         filename : './dist/networked-aframe.js'
     },
+    mode: 'development',
     module : {
         loaders: [ {
                 test   : /.js$/,

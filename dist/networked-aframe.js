@@ -50,9 +50,9 @@
 	__webpack_require__(1);
 
 	// Network components
-	__webpack_require__(14);
+	__webpack_require__(11);
+	__webpack_require__(12);
 	__webpack_require__(15);
-	__webpack_require__(18);
 
 /***/ }),
 /* 1 */
@@ -127,7 +127,7 @@
 
 	module.exports.getCreator = function (el) {
 	  var components = el.components;
-	  if (components.hasOwnProperty('networked')) {
+	  if (components['networked']) {
 	    return components['networked'].data.creator;
 	  }
 	  return null;
@@ -135,7 +135,7 @@
 
 	module.exports.getNetworkOwner = function (el) {
 	  var components = el.components;
-	  if (components.hasOwnProperty('networked')) {
+	  if (components['networked']) {
 	    return components['networked'].data.owner;
 	  }
 	  return null;
@@ -143,7 +143,7 @@
 
 	module.exports.getNetworkId = function (el) {
 	  var components = el.components;
-	  if (components.hasOwnProperty('networked')) {
+	  if (components['networked']) {
 	    return components['networked'].data.networkId;
 	  }
 	  return null;
@@ -328,7 +328,7 @@
 	  }, {
 	    key: 'templateIsCached',
 	    value: function templateIsCached(template) {
-	      return this.templateCache.hasOwnProperty(template);
+	      return !!this.templateCache[template];
 	    }
 	  }, {
 	    key: 'getComponents',
@@ -342,7 +342,7 @@
 	  }, {
 	    key: 'hasTemplate',
 	    value: function hasTemplate(template) {
-	      return this.schemaDict.hasOwnProperty(template);
+	      return !!this.schemaDict[template];
 	    }
 	  }, {
 	    key: 'templateExistsInScene',
@@ -353,7 +353,7 @@
 	  }, {
 	    key: 'validateSchema',
 	    value: function validateSchema(schema) {
-	      return schema.hasOwnProperty('template') && schema.hasOwnProperty('components');
+	      return !!(schema['template'] && schema['components']);
 	    }
 	  }, {
 	    key: 'validateTemplate',
@@ -444,7 +444,7 @@
 	  }, {
 	    key: 'initPosition',
 	    value: function initPosition(entity, componentData) {
-	      var hasPosition = componentData.hasOwnProperty('position');
+	      var hasPosition = componentData['position'];
 	      if (hasPosition) {
 	        var position = componentData.position;
 	        entity.setAttribute('position', position);
@@ -453,7 +453,7 @@
 	  }, {
 	    key: 'initRotation',
 	    value: function initRotation(entity, componentData) {
-	      var hasRotation = componentData.hasOwnProperty('rotation');
+	      var hasRotation = componentData['rotation'];
 	      if (hasRotation) {
 	        var rotation = componentData.rotation;
 	        entity.setAttribute('rotation', rotation);
@@ -559,7 +559,7 @@
 	    key: 'completeSync',
 	    value: function completeSync(targetClientId, isFirstSync) {
 	      for (var id in this.entities) {
-	        if (this.entities.hasOwnProperty(id)) {
+	        if (this.entities[id]) {
 	          this.entities[id].components.networked.syncAll(targetClientId, isFirstSync);
 	        }
 	      }
@@ -625,7 +625,7 @@
 	  }, {
 	    key: 'getEntity',
 	    value: function getEntity(id) {
-	      if (this.entities.hasOwnProperty(id)) {
+	      if (this.entities[id]) {
 	        return this.entities[id];
 	      }
 	      return null;
@@ -633,7 +633,7 @@
 	  }, {
 	    key: 'hasEntity',
 	    value: function hasEntity(id) {
-	      return this.entities.hasOwnProperty(id);
+	      return !!this.entities[id];
 	    }
 	  }, {
 	    key: 'removeRemoteEntities',
@@ -695,7 +695,7 @@
 	  }, {
 	    key: "hasParent",
 	    value: function hasParent(parentId) {
-	      return this.dict.hasOwnProperty(parentId);
+	      return !!this.dict[parentId];
 	    }
 	  }]);
 
@@ -806,7 +806,7 @@
 	    key: 'checkForDisconnectingClients',
 	    value: function checkForDisconnectingClients(oldOccupantList, newOccupantList) {
 	      for (var id in oldOccupantList) {
-	        var clientFound = newOccupantList.hasOwnProperty(id);
+	        var clientFound = newOccupantList[id];
 	        if (!clientFound) {
 	          NAF.log.write('Closing stream to ', id);
 	          this.adapter.closeStreamConnection(id);
@@ -875,7 +875,7 @@
 	  }, {
 	    key: 'hasActiveDataChannel',
 	    value: function hasActiveDataChannel(clientId) {
-	      return this.activeDataChannels.hasOwnProperty(clientId) && this.activeDataChannels[clientId];
+	      return !!(this.activeDataChannels[clientId] && this.activeDataChannels[clientId]);
 	    }
 	  }, {
 	    key: 'broadcastData',
@@ -931,7 +931,7 @@
 	  }, {
 	    key: 'receivedData',
 	    value: function receivedData(fromClientId, dataType, data, source) {
-	      if (this.dataChannelSubs.hasOwnProperty(dataType)) {
+	      if (this.dataChannelSubs[dataType]) {
 	        this.dataChannelSubs[dataType](fromClientId, dataType, data, source);
 	      } else {
 	        NAF.log.write('NetworkConnection@receivedData: ' + dataType + ' has not been subscribed to yet. Call subscribeToDataChannel()');
@@ -976,16 +976,14 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var WsEasyRtcAdapter = __webpack_require__(10);
-	var EasyRtcAdapter = __webpack_require__(13);
+	var webrtcAdapter = __webpack_require__(10);
 
 	var AdapterFactory = function () {
 	  function AdapterFactory() {
 	    _classCallCheck(this, AdapterFactory);
 
 	    this.adapters = {
-	      "wseasyrtc": WsEasyRtcAdapter,
-	      "easyrtc": EasyRtcAdapter
+	      "native-webrtc": webrtcAdapter
 	    };
 
 	    this.IS_CONNECTED = AdapterFactory.IS_CONNECTED;
@@ -1022,651 +1020,791 @@
 
 /***/ }),
 /* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	/* global NAF */
-	var NoOpAdapter = __webpack_require__(11);
-
-	var WsEasyRtcInterface = function (_NoOpAdapter) {
-	  _inherits(WsEasyRtcInterface, _NoOpAdapter);
-
-	  function WsEasyRtcInterface(easyrtc) {
-	    _classCallCheck(this, WsEasyRtcInterface);
-
-	    var _this = _possibleConstructorReturn(this, (WsEasyRtcInterface.__proto__ || Object.getPrototypeOf(WsEasyRtcInterface)).call(this));
-
-	    _this.easyrtc = easyrtc || window.easyrtc;
-	    _this.app = 'default';
-	    _this.room = 'default';
-
-	    _this.connectedClients = [];
-
-	    _this.serverTimeRequests = 0;
-	    _this.timeOffsets = [];
-	    _this.avgTimeOffset = 0;
-	    return _this;
-	  }
-
-	  _createClass(WsEasyRtcInterface, [{
-	    key: 'setServerUrl',
-	    value: function setServerUrl(url) {
-	      this.serverUrl = url;
-	      this.easyrtc.setSocketUrl(url);
-	    }
-	  }, {
-	    key: 'setApp',
-	    value: function setApp(appName) {
-	      this.app = appName;
-	    }
-	  }, {
-	    key: 'setRoom',
-	    value: function setRoom(roomName) {
-	      this.room = roomName;
-	      this.easyrtc.joinRoom(roomName, null);
-	    }
-	  }, {
-	    key: 'setWebRtcOptions',
-	    value: function setWebRtcOptions(options) {
-	      // No webrtc support
-	    }
-	  }, {
-	    key: 'setServerConnectListeners',
-	    value: function setServerConnectListeners(successListener, failureListener) {
-	      this.connectSuccess = successListener;
-	      this.connectFailure = failureListener;
-	    }
-	  }, {
-	    key: 'setRoomOccupantListener',
-	    value: function setRoomOccupantListener(occupantListener) {
-	      this.easyrtc.setRoomOccupantListener(function (roomName, occupants, primary) {
-	        occupantListener(occupants);
-	      });
-	    }
-	  }, {
-	    key: 'setDataChannelListeners',
-	    value: function setDataChannelListeners(openListener, closedListener, messageListener) {
-	      this.openListener = openListener;
-	      this.closedListener = closedListener;
-	      this.easyrtc.setPeerListener(messageListener);
-	    }
-	  }, {
-	    key: 'updateTimeOffset',
-	    value: function updateTimeOffset() {
-	      var _this2 = this;
-
-	      var clientSentTime = Date.now() + this.avgTimeOffset;
-
-	      return fetch(document.location.href, { method: "HEAD", cache: "no-cache" }).then(function (res) {
-	        var precision = 1000;
-	        var serverReceivedTime = new Date(res.headers.get("Date")).getTime() + precision / 2;
-	        var clientReceivedTime = Date.now();
-	        var serverTime = serverReceivedTime + (clientReceivedTime - clientSentTime) / 2;
-	        var timeOffset = serverTime - clientReceivedTime;
-
-	        _this2.serverTimeRequests++;
-
-	        if (_this2.serverTimeRequests <= 10) {
-	          _this2.timeOffsets.push(timeOffset);
-	        } else {
-	          _this2.timeOffsets[_this2.serverTimeRequests % 10] = timeOffset;
-	        }
-
-	        _this2.avgTimeOffset = _this2.timeOffsets.reduce(function (acc, offset) {
-	          return acc += offset;
-	        }, 0) / _this2.timeOffsets.length;
-
-	        if (_this2.serverTimeRequests > 10) {
-	          setTimeout(function () {
-	            return _this2.updateTimeOffset();
-	          }, 5 * 60 * 1000); // Sync clock every 5 minutes.
-	        } else {
-	          _this2.updateTimeOffset();
-	        }
-	      });
-	    }
-	  }, {
-	    key: 'connect',
-	    value: function connect() {
-	      var _this3 = this;
-
-	      Promise.all([this.updateTimeOffset(), new Promise(function (resolve, reject) {
-	        _this3.easyrtc.connect(_this3.app, resolve, reject);
-	      })]).then(function (_ref) {
-	        var _ref2 = _slicedToArray(_ref, 2),
-	            _ = _ref2[0],
-	            clientId = _ref2[1];
-
-	        _this3.connectSuccess(clientId);
-	      }).catch(this.connectFailure);
-	    }
-	  }, {
-	    key: 'shouldStartConnectionTo',
-	    value: function shouldStartConnectionTo(clientId) {
-	      return true;
-	    }
-	  }, {
-	    key: 'startStreamConnection',
-	    value: function startStreamConnection(clientId) {
-	      this.connectedClients.push(clientId);
-	      this.openListener(clientId);
-	    }
-	  }, {
-	    key: 'closeStreamConnection',
-	    value: function closeStreamConnection(clientId) {
-	      var index = this.connectedClients.indexOf(clientId);
-	      if (index > -1) {
-	        this.connectedClients.splice(index, 1);
-	      }
-	      this.closedListener(clientId);
-	    }
-	  }, {
-	    key: 'sendData',
-	    value: function sendData(clientId, dataType, data) {
-	      this.easyrtc.sendDataWS(clientId, dataType, data);
-	    }
-	  }, {
-	    key: 'sendDataGuaranteed',
-	    value: function sendDataGuaranteed(clientId, dataType, data) {
-	      this.sendData(clientId, dataType, data);
-	    }
-	  }, {
-	    key: 'broadcastData',
-	    value: function broadcastData(dataType, data) {
-	      var destination = { targetRoom: this.room };
-	      this.easyrtc.sendDataWS(destination, dataType, data);
-	    }
-	  }, {
-	    key: 'broadcastDataGuaranteed',
-	    value: function broadcastDataGuaranteed(dataType, data) {
-	      this.broadcastData(dataType, data);
-	    }
-	  }, {
-	    key: 'getConnectStatus',
-	    value: function getConnectStatus(clientId) {
-	      var connected = this.connectedClients.indexOf(clientId) != -1;
-
-	      if (connected) {
-	        return NAF.adapters.IS_CONNECTED;
-	      } else {
-	        return NAF.adapters.NOT_CONNECTED;
-	      }
-	    }
-	  }, {
-	    key: 'getServerTime',
-	    value: function getServerTime() {
-	      return Date.now() + this.avgTimeOffset;
-	    }
-	  }, {
-	    key: 'disconnect',
-	    value: function disconnect() {
-	      this.easyrtc.disconnect();
-	    }
-	  }]);
-
-	  return WsEasyRtcInterface;
-	}(NoOpAdapter);
-
-	module.exports = WsEasyRtcInterface;
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var NafInterface = __webpack_require__(12);
-
-	var NoOpAdapter = function (_NafInterface) {
-	  _inherits(NoOpAdapter, _NafInterface);
-
-	  function NoOpAdapter() {
-	    _classCallCheck(this, NoOpAdapter);
-
-	    return _possibleConstructorReturn(this, (NoOpAdapter.__proto__ || Object.getPrototypeOf(NoOpAdapter)).apply(this, arguments));
-	  }
-
-	  _createClass(NoOpAdapter, [{
-	    key: 'setServerUrl',
-
-
-	    /* Pre-Connect setup methods - Call before `connect` */
-
-	    value: function setServerUrl(url) {
-	      this.notImplemented('setServerUrl');
-	    }
-	  }, {
-	    key: 'setApp',
-	    value: function setApp(app) {
-	      this.notImplemented('setApp');
-	    }
-	  }, {
-	    key: 'setRoom',
-	    value: function setRoom(roomName) {
-	      this.notImplemented('setRoom');
-	    }
-	  }, {
-	    key: 'setWebRtcOptions',
-	    value: function setWebRtcOptions(options) {
-	      this.notImplemented('setWebRtcOptions');
-	    }
-	  }, {
-	    key: 'setServerConnectListeners',
-	    value: function setServerConnectListeners(successListener, failureListener) {
-	      this.notImplemented('setServerConnectListeners');
-	    }
-	  }, {
-	    key: 'setRoomOccupantListener',
-	    value: function setRoomOccupantListener(occupantListener) {
-	      this.notImplemented('setRoomOccupantListener');
-	    }
-	  }, {
-	    key: 'setDataChannelListeners',
-	    value: function setDataChannelListeners(openListener, closedListener, messageListener) {
-	      this.notImplemented('setDataChannelListeners');
-	    }
-	  }, {
-	    key: 'connect',
-	    value: function connect() {
-	      this.notImplemented('connect');
-	    }
-	  }, {
-	    key: 'shouldStartConnectionTo',
-	    value: function shouldStartConnectionTo(clientId) {
-	      this.notImplemented('shouldStartConnectionTo');
-	    }
-	  }, {
-	    key: 'startStreamConnection',
-	    value: function startStreamConnection(clientId) {
-	      this.notImplemented('startStreamConnection');
-	    }
-	  }, {
-	    key: 'closeStreamConnection',
-	    value: function closeStreamConnection(clientId) {
-	      this.notImplemented('closeStreamConnection');
-	    }
-	  }, {
-	    key: 'getConnectStatus',
-	    value: function getConnectStatus(clientId) {
-	      this.notImplemented('getConnectStatus');
-	    }
-	  }, {
-	    key: 'getMediaStream',
-	    value: function getMediaStream(clientId) {
-	      return Promise.reject("Interface method not implemented: getMediaStream");
-	    }
-	  }, {
-	    key: 'getServerTime',
-	    value: function getServerTime() {
-	      this.notImplemented('getServerTime');
-	    }
-	  }, {
-	    key: 'sendData',
-	    value: function sendData(clientId, dataType, data) {
-	      this.notImplemented('sendData');
-	    }
-	  }, {
-	    key: 'sendDataGuaranteed',
-	    value: function sendDataGuaranteed(clientId, dataType, data) {
-	      this.notImplemented('sendDataGuaranteed');
-	    }
-	  }, {
-	    key: 'broadcastData',
-	    value: function broadcastData(dataType, data) {
-	      this.notImplemented('broadcastData');
-	    }
-	  }, {
-	    key: 'broadcastDataGuaranteed',
-	    value: function broadcastDataGuaranteed(dataType, data) {
-	      this.notImplemented('broadcastDataGuaranteed');
-	    }
-	  }, {
-	    key: 'disconnect',
-	    value: function disconnect() {
-	      this.notImplemented('disconnect');
-	    }
-	  }]);
-
-	  return NoOpAdapter;
-	}(NafInterface);
-
-	module.exports = NoOpAdapter;
-
-/***/ }),
-/* 12 */
 /***/ (function(module, exports) {
 
 	'use strict';
 
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	/* global NAF */
-
-	var NafInterface = function () {
-	  function NafInterface() {
-	    _classCallCheck(this, NafInterface);
+	/******/(function (modules) {
+	  // webpackBootstrap
+	  /******/ // The module cache
+	  /******/var installedModules = {};
+	  /******/
+	  /******/ // The require function
+	  /******/function __webpack_require__(moduleId) {
+	    /******/
+	    /******/ // Check if module is in cache
+	    /******/if (installedModules[moduleId]) {
+	      /******/return installedModules[moduleId].exports;
+	      /******/
+	    }
+	    /******/ // Create a new module (and put it into the cache)
+	    /******/var module = installedModules[moduleId] = {
+	      /******/i: moduleId,
+	      /******/l: false,
+	      /******/exports: {}
+	      /******/ };
+	    /******/
+	    /******/ // Execute the module function
+	    /******/modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+	    /******/
+	    /******/ // Flag the module as loaded
+	    /******/module.l = true;
+	    /******/
+	    /******/ // Return the exports of the module
+	    /******/return module.exports;
+	    /******/
 	  }
-
-	  _createClass(NafInterface, [{
-	    key: 'notImplemented',
-	    value: function notImplemented(name) {
-	      NAF.log.error('Interface method not implemented:', name);
+	  /******/
+	  /******/
+	  /******/ // expose the modules object (__webpack_modules__)
+	  /******/__webpack_require__.m = modules;
+	  /******/
+	  /******/ // expose the module cache
+	  /******/__webpack_require__.c = installedModules;
+	  /******/
+	  /******/ // define getter function for harmony exports
+	  /******/__webpack_require__.d = function (exports, name, getter) {
+	    /******/if (!__webpack_require__.o(exports, name)) {
+	      /******/Object.defineProperty(exports, name, { enumerable: true, get: getter });
+	      /******/
 	    }
-	  }]);
-
-	  return NafInterface;
-	}();
-
-	module.exports = NafInterface;
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	/* global NAF */
-	var NoOpAdapter = __webpack_require__(11);
-
-	var EasyRtcAdapter = function (_NoOpAdapter) {
-	  _inherits(EasyRtcAdapter, _NoOpAdapter);
-
-	  function EasyRtcAdapter(easyrtc) {
-	    _classCallCheck(this, EasyRtcAdapter);
-
-	    var _this = _possibleConstructorReturn(this, (EasyRtcAdapter.__proto__ || Object.getPrototypeOf(EasyRtcAdapter)).call(this));
-
-	    _this.easyrtc = easyrtc || window.easyrtc;
-	    _this.app = "default";
-	    _this.room = "default";
-
-	    _this.audioStreams = {};
-	    _this.pendingAudioRequest = {};
-
-	    _this.serverTimeRequests = 0;
-	    _this.timeOffsets = [];
-	    _this.avgTimeOffset = 0;
-	    return _this;
-	  }
-
-	  _createClass(EasyRtcAdapter, [{
-	    key: "setServerUrl",
-	    value: function setServerUrl(url) {
-	      this.easyrtc.setSocketUrl(url);
+	    /******/
+	  };
+	  /******/
+	  /******/ // define __esModule on exports
+	  /******/__webpack_require__.r = function (exports) {
+	    /******/if (typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+	      /******/Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+	      /******/
 	    }
-	  }, {
-	    key: "setApp",
-	    value: function setApp(appName) {
-	      this.app = appName;
-	    }
-	  }, {
-	    key: "setRoom",
-	    value: function setRoom(roomName) {
-	      this.room = roomName;
-	      this.easyrtc.joinRoom(roomName, null);
-	    }
+	    /******/Object.defineProperty(exports, '__esModule', { value: true });
+	    /******/
+	  };
+	  /******/
+	  /******/ // create a fake namespace object
+	  /******/ // mode & 1: value is a module id, require it
+	  /******/ // mode & 2: merge all properties of value into the ns
+	  /******/ // mode & 4: return value when already ns object
+	  /******/ // mode & 8|1: behave like require
+	  /******/__webpack_require__.t = function (value, mode) {
+	    /******/if (mode & 1) value = __webpack_require__(value);
+	    /******/if (mode & 8) return value;
+	    /******/if (mode & 4 && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && value && value.__esModule) return value;
+	    /******/var ns = Object.create(null);
+	    /******/__webpack_require__.r(ns);
+	    /******/Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+	    /******/if (mode & 2 && typeof value != 'string') for (var key in value) {
+	      __webpack_require__.d(ns, key, function (key) {
+	        return value[key];
+	      }.bind(null, key));
+	    } /******/return ns;
+	    /******/
+	  };
+	  /******/
+	  /******/ // getDefaultExport function for compatibility with non-harmony modules
+	  /******/__webpack_require__.n = function (module) {
+	    /******/var getter = module && module.__esModule ?
+	    /******/function getDefault() {
+	      return module['default'];
+	    } :
+	    /******/function getModuleExports() {
+	      return module;
+	    };
+	    /******/__webpack_require__.d(getter, 'a', getter);
+	    /******/return getter;
+	    /******/
+	  };
+	  /******/
+	  /******/ // Object.prototype.hasOwnProperty.call
+	  /******/__webpack_require__.o = function (object, property) {
+	    return Object.prototype.hasOwnProperty.call(object, property);
+	  };
+	  /******/
+	  /******/ // __webpack_public_path__
+	  /******/__webpack_require__.p = "";
+	  /******/
+	  /******/
+	  /******/ // Load entry module and return exports
+	  /******/return __webpack_require__(__webpack_require__.s = "./src/index.js");
+	  /******/
+	})(
+	/************************************************************************/
+	/******/{
 
-	    // options: { datachannel: bool, audio: bool }
+	  /***/"./src/WebRtcPeer.js":
+	  /*!***************************!*\
+	    !*** ./src/WebRtcPeer.js ***!
+	    \***************************/
+	  /*! no static exports found */
+	  /***/function srcWebRtcPeerJs(module, exports, __webpack_require__) {
 
-	  }, {
-	    key: "setWebRtcOptions",
-	    value: function setWebRtcOptions(options) {
-	      // this.easyrtc.enableDebug(true);
-	      this.easyrtc.enableDataChannels(options.datachannel);
+	    "use strict";
 
-	      this.easyrtc.enableVideo(false);
-	      this.easyrtc.enableAudio(options.audio);
-
-	      this.easyrtc.enableVideoReceive(false);
-	      this.easyrtc.enableAudioReceive(true);
-	    }
-	  }, {
-	    key: "setServerConnectListeners",
-	    value: function setServerConnectListeners(successListener, failureListener) {
-	      this.connectSuccess = successListener;
-	      this.connectFailure = failureListener;
-	    }
-	  }, {
-	    key: "setRoomOccupantListener",
-	    value: function setRoomOccupantListener(occupantListener) {
-	      this.easyrtc.setRoomOccupantListener(function (roomName, occupants, primary) {
-	        occupantListener(occupants);
-	      });
-	    }
-	  }, {
-	    key: "setDataChannelListeners",
-	    value: function setDataChannelListeners(openListener, closedListener, messageListener) {
-	      this.easyrtc.setDataChannelOpenListener(openListener);
-	      this.easyrtc.setDataChannelCloseListener(closedListener);
-	      this.easyrtc.setPeerListener(messageListener);
-	    }
-	  }, {
-	    key: "updateTimeOffset",
-	    value: function updateTimeOffset() {
-	      var _this2 = this;
-
-	      var clientSentTime = Date.now() + this.avgTimeOffset;
-
-	      return fetch(document.location.href, { method: "HEAD", cache: "no-cache" }).then(function (res) {
-	        var precision = 1000;
-	        var serverReceivedTime = new Date(res.headers.get("Date")).getTime() + precision / 2;
-	        var clientReceivedTime = Date.now();
-	        var serverTime = serverReceivedTime + (clientReceivedTime - clientSentTime) / 2;
-	        var timeOffset = serverTime - clientReceivedTime;
-
-	        _this2.serverTimeRequests++;
-
-	        if (_this2.serverTimeRequests <= 10) {
-	          _this2.timeOffsets.push(timeOffset);
-	        } else {
-	          _this2.timeOffsets[_this2.serverTimeRequests % 10] = timeOffset;
+	    var _createClass = function () {
+	      function defineProperties(target, props) {
+	        for (var i = 0; i < props.length; i++) {
+	          var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
 	        }
+	      }return function (Constructor, protoProps, staticProps) {
+	        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	      };
+	    }();
 
-	        _this2.avgTimeOffset = _this2.timeOffsets.reduce(function (acc, offset) {
-	          return acc += offset;
-	        }, 0) / _this2.timeOffsets.length;
-
-	        if (_this2.serverTimeRequests > 10) {
-	          setTimeout(function () {
-	            return _this2.updateTimeOffset();
-	          }, 5 * 60 * 1000); // Sync clock every 5 minutes.
-	        } else {
-	          _this2.updateTimeOffset();
-	        }
-	      });
-	    }
-	  }, {
-	    key: "connect",
-	    value: function connect() {
-	      var _this3 = this;
-
-	      Promise.all([this.updateTimeOffset(), new Promise(function (resolve, reject) {
-	        _this3._connect(_this3.easyrtc.audioEnabled, resolve, reject);
-	      })]).then(function (_ref) {
-	        var _ref2 = _slicedToArray(_ref, 2),
-	            _ = _ref2[0],
-	            clientId = _ref2[1];
-
-	        _this3._storeAudioStream(_this3.easyrtc.myEasyrtcid, _this3.easyrtc.getLocalStream());
-
-	        _this3._myRoomJoinTime = _this3._getRoomJoinTime(clientId);
-	        _this3.connectSuccess(clientId);
-	      }).catch(this.connectFailure);
-	    }
-	  }, {
-	    key: "shouldStartConnectionTo",
-	    value: function shouldStartConnectionTo(client) {
-	      return this._myRoomJoinTime <= client.roomJoinTime;
-	    }
-	  }, {
-	    key: "startStreamConnection",
-	    value: function startStreamConnection(clientId) {
-	      this.easyrtc.call(clientId, function (caller, media) {
-	        if (media === "datachannel") {
-	          NAF.log.write("Successfully started datachannel to ", caller);
-	        }
-	      }, function (errorCode, errorText) {
-	        NAF.log.error(errorCode, errorText);
-	      }, function (wasAccepted) {
-	        // console.log("was accepted=" + wasAccepted);
-	      });
-	    }
-	  }, {
-	    key: "closeStreamConnection",
-	    value: function closeStreamConnection(clientId) {
-	      // Handled by easyrtc
-	    }
-	  }, {
-	    key: "sendData",
-	    value: function sendData(clientId, dataType, data) {
-	      // send via webrtc otherwise fallback to websockets
-	      this.easyrtc.sendData(clientId, dataType, data);
-	    }
-	  }, {
-	    key: "sendDataGuaranteed",
-	    value: function sendDataGuaranteed(clientId, dataType, data) {
-	      this.easyrtc.sendDataWS(clientId, dataType, data);
-	    }
-	  }, {
-	    key: "broadcastData",
-	    value: function broadcastData(dataType, data) {
-	      var roomOccupants = this.easyrtc.getRoomOccupantsAsMap(this.room);
-
-	      // Iterate over the keys of the easyrtc room occupants map.
-	      // getRoomOccupantsAsArray uses Object.keys which allocates memory.
-	      for (var roomOccupant in roomOccupants) {
-	        if (roomOccupants.hasOwnProperty(roomOccupant) && roomOccupant !== this.easyrtc.myEasyrtcid) {
-	          // send via webrtc otherwise fallback to websockets
-	          this.easyrtc.sendData(roomOccupant, dataType, data);
-	        }
+	    function _classCallCheck(instance, Constructor) {
+	      if (!(instance instanceof Constructor)) {
+	        throw new TypeError("Cannot call a class as a function");
 	      }
 	    }
-	  }, {
-	    key: "broadcastDataGuaranteed",
-	    value: function broadcastDataGuaranteed(dataType, data) {
-	      var destination = { targetRoom: this.room };
-	      this.easyrtc.sendDataWS(destination, dataType, data);
-	    }
-	  }, {
-	    key: "getConnectStatus",
-	    value: function getConnectStatus(clientId) {
-	      var status = this.easyrtc.getConnectStatus(clientId);
 
-	      if (status == this.easyrtc.IS_CONNECTED) {
-	        return NAF.adapters.IS_CONNECTED;
-	      } else if (status == this.easyrtc.NOT_CONNECTED) {
-	        return NAF.adapters.NOT_CONNECTED;
-	      } else {
-	        return NAF.adapters.CONNECTING;
+	    var WebRtcPeer = function () {
+	      function WebRtcPeer(localId, remoteId, sendSignalFunc) {
+	        _classCallCheck(this, WebRtcPeer);
+
+	        this.localId = localId;
+	        this.remoteId = remoteId;
+	        this.sendSignalFunc = sendSignalFunc;
+	        this.open = false;
+	        this.channelLabel = "networked-aframe-channel";
+
+	        this.pc = this.createPeerConnection();
+	        this.channel = null;
+	      }
+
+	      _createClass(WebRtcPeer, [{
+	        key: "setDatachannelListeners",
+	        value: function setDatachannelListeners(openListener, closedListener, messageListener, trackListener) {
+	          this.openListener = openListener;
+	          this.closedListener = closedListener;
+	          this.messageListener = messageListener;
+	          this.trackListener = trackListener;
+	        }
+	      }, {
+	        key: "offer",
+	        value: function offer(options) {
+	          var self = this;
+	          // reliable: false - UDP
+	          this.setupChannel(this.pc.createDataChannel(this.channelLabel, { reliable: false }));
+
+	          // If there are errors with Safari implement this:
+	          // https://github.com/OpenVidu/openvidu/blob/master/openvidu-browser/src/OpenViduInternal/WebRtcPeer/WebRtcPeer.ts#L154
+
+	          if (options.sendAudio) {
+	            options.localAudioStream.getTracks().forEach(function (track) {
+	              return self.pc.addTrack(track, options.localAudioStream);
+	            });
+	          }
+
+	          this.pc.createOffer(function (sdp) {
+	            self.handleSessionDescription(sdp);
+	          }, function (error) {
+	            NAF.log.error("WebRtcPeer.offer: " + error);
+	          }, {
+	            offerToReceiveAudio: true,
+	            offerToReceiveVideo: false
+	          });
+	        }
+	      }, {
+	        key: "handleSignal",
+	        value: function handleSignal(signal) {
+	          // ignores signal if it isn't for me
+	          if (this.localId !== signal.to || this.remoteId !== signal.from) return;
+
+	          switch (signal.type) {
+	            case "offer":
+	              this.handleOffer(signal);
+	              break;
+
+	            case "answer":
+	              this.handleAnswer(signal);
+	              break;
+
+	            case "candidate":
+	              this.handleCandidate(signal);
+	              break;
+
+	            default:
+	              NAF.log.error("WebRtcPeer.handleSignal: Unknown signal type " + signal.type);
+	              break;
+	          }
+	        }
+	      }, {
+	        key: "send",
+	        value: function send(type, data) {
+	          if (this.channel === null || this.channel.readyState !== "open") {
+	            return;
+	          }
+
+	          this.channel.send(JSON.stringify({ type: type, data: data }));
+	        }
+	      }, {
+	        key: "getStatus",
+	        value: function getStatus() {
+	          if (this.channel === null) return WebRtcPeer.NOT_CONNECTED;
+
+	          switch (this.channel.readyState) {
+	            case "open":
+	              return WebRtcPeer.IS_CONNECTED;
+
+	            case "connecting":
+	              return WebRtcPeer.CONNECTING;
+
+	            case "closing":
+	            case "closed":
+	            default:
+	              return WebRtcPeer.NOT_CONNECTED;
+	          }
+	        }
+
+	        /*
+	         * Privates
+	         */
+
+	      }, {
+	        key: "createPeerConnection",
+	        value: function createPeerConnection() {
+	          var self = this;
+	          var RTCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection || window.msRTCPeerConnection;
+
+	          if (RTCPeerConnection === undefined) {
+	            throw new Error("WebRtcPeer.createPeerConnection: This browser does not seem to support WebRTC.");
+	          }
+
+	          var pc = new RTCPeerConnection({ iceServers: WebRtcPeer.ICE_SERVERS });
+
+	          pc.onicecandidate = function (event) {
+	            if (event.candidate) {
+	              self.sendSignalFunc({
+	                from: self.localId,
+	                to: self.remoteId,
+	                type: "candidate",
+	                sdpMLineIndex: event.candidate.sdpMLineIndex,
+	                candidate: event.candidate.candidate
+	              });
+	            }
+	          };
+
+	          // Note: seems like channel.onclose hander is unreliable on some platforms,
+	          //       so also tries to detect disconnection here.
+	          pc.oniceconnectionstatechange = function () {
+	            if (self.open && pc.iceConnectionState === "disconnected") {
+	              self.open = false;
+	              self.closedListener(self.remoteId);
+	            }
+	          };
+
+	          pc.ontrack = function (e) {
+	            self.trackListener(self.remoteId, e.streams[0]);
+	          };
+
+	          return pc;
+	        }
+	      }, {
+	        key: "setupChannel",
+	        value: function setupChannel(channel) {
+	          var self = this;
+
+	          this.channel = channel;
+
+	          // received data from a remote peer
+	          this.channel.onmessage = function (event) {
+	            var data = JSON.parse(event.data);
+	            self.messageListener(self.remoteId, data.type, data.data);
+	          };
+
+	          // connected with a remote peer
+	          this.channel.onopen = function (event) {
+	            self.open = true;
+	            self.openListener(self.remoteId);
+	          };
+
+	          // disconnected with a remote peer
+	          this.channel.onclose = function (event) {
+	            if (!self.open) return;
+	            self.open = false;
+	            self.closedListener(self.remoteId);
+	          };
+
+	          // error occurred with a remote peer
+	          this.channel.onerror = function (error) {
+	            NAF.log.error("WebRtcPeer.channel.onerror: " + error);
+	          };
+	        }
+	      }, {
+	        key: "handleOffer",
+	        value: function handleOffer(message) {
+	          var self = this;
+
+	          this.pc.ondatachannel = function (event) {
+	            self.setupChannel(event.channel);
+	          };
+
+	          this.setRemoteDescription(message);
+
+	          this.pc.createAnswer(function (sdp) {
+	            self.handleSessionDescription(sdp);
+	          }, function (error) {
+	            NAF.log.error("WebRtcPeer.handleOffer: " + error);
+	          });
+	        }
+	      }, {
+	        key: "handleAnswer",
+	        value: function handleAnswer(message) {
+	          this.setRemoteDescription(message);
+	        }
+	      }, {
+	        key: "handleCandidate",
+	        value: function handleCandidate(message) {
+	          var self = this;
+	          var RTCIceCandidate = window.RTCIceCandidate || window.webkitRTCIceCandidate || window.mozRTCIceCandidate;
+
+	          this.pc.addIceCandidate(new RTCIceCandidate(message), function () {}, function (error) {
+	            NAF.log.error("WebRtcPeer.handleCandidate: " + error);
+	          });
+	        }
+	      }, {
+	        key: "handleSessionDescription",
+	        value: function handleSessionDescription(sdp) {
+	          var self = this;
+
+	          this.pc.setLocalDescription(sdp, function () {}, function (error) {
+	            NAF.log.error("WebRtcPeer.handleSessionDescription: " + error);
+	          });
+
+	          this.sendSignalFunc({
+	            from: this.localId,
+	            to: this.remoteId,
+	            type: sdp.type,
+	            sdp: sdp.sdp
+	          });
+	        }
+	      }, {
+	        key: "setRemoteDescription",
+	        value: function setRemoteDescription(message) {
+	          var self = this;
+	          var RTCSessionDescription = window.RTCSessionDescription || window.webkitRTCSessionDescription || window.mozRTCSessionDescription || window.msRTCSessionDescription;
+
+	          this.pc.setRemoteDescription(new RTCSessionDescription(message), function () {}, function (error) {
+	            NAF.log.error("WebRtcPeer.setRemoteDescription: " + error);
+	          });
+	        }
+	      }, {
+	        key: "close",
+	        value: function close() {
+	          if (this.pc) {
+	            this.pc.close();
+	          }
+	        }
+	      }]);
+
+	      return WebRtcPeer;
+	    }();
+
+	    WebRtcPeer.IS_CONNECTED = "IS_CONNECTED";
+	    WebRtcPeer.CONNECTING = "CONNECTING";
+	    WebRtcPeer.NOT_CONNECTED = "NOT_CONNECTED";
+
+	    WebRtcPeer.ICE_SERVERS = [{ urls: "stun:stun1.l.google.com:19302" }, { urls: "stun:stun2.l.google.com:19302" }, { urls: "stun:stun3.l.google.com:19302" }, { urls: "stun:stun4.l.google.com:19302" }];
+
+	    module.exports = WebRtcPeer;
+
+	    /***/
+	  },
+
+	  /***/"./src/index.js":
+	  /*!**********************!*\
+	    !*** ./src/index.js ***!
+	    \**********************/
+	  /*! no static exports found */
+	  /***/function srcIndexJs(module, exports, __webpack_require__) {
+
+	    "use strict";
+
+	    var _createClass = function () {
+	      function defineProperties(target, props) {
+	        for (var i = 0; i < props.length; i++) {
+	          var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+	        }
+	      }return function (Constructor, protoProps, staticProps) {
+	        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	      };
+	    }();
+
+	    function _classCallCheck(instance, Constructor) {
+	      if (!(instance instanceof Constructor)) {
+	        throw new TypeError("Cannot call a class as a function");
 	      }
 	    }
-	  }, {
-	    key: "getMediaStream",
-	    value: function getMediaStream(clientId) {
-	      var that = this;
-	      if (this.audioStreams[clientId]) {
-	        NAF.log.write("Already had audio for " + clientId);
-	        return Promise.resolve(this.audioStreams[clientId]);
-	      } else {
-	        NAF.log.write("Waiting on audio for " + clientId);
-	        return new Promise(function (resolve) {
-	          that.pendingAudioRequest[clientId] = resolve;
-	        });
-	      }
-	    }
-	  }, {
-	    key: "disconnect",
-	    value: function disconnect() {
-	      this.easyrtc.disconnect();
-	    }
+
+	    var WebRtcPeer = __webpack_require__( /*! ./WebRtcPeer */"./src/WebRtcPeer.js");
 
 	    /**
-	     * Privates
+	     * Native WebRTC Adapter (native-webrtc)
+	     * For use with uws-server.js
+	     * networked-scene: serverURL needs to be ws://localhost:8080 when running locally
 	     */
 
-	  }, {
-	    key: "_storeAudioStream",
-	    value: function _storeAudioStream(easyrtcid, stream) {
-	      this.audioStreams[easyrtcid] = stream;
-	      if (this.pendingAudioRequest[easyrtcid]) {
-	        NAF.log.write("got pending audio for " + easyrtcid);
-	        this.pendingAudioRequest[easyrtcid](stream);
-	        delete this.pendingAudioRequest[easyrtcid](stream);
+	    var NativeWebRtcAdapter = function () {
+	      function NativeWebRtcAdapter() {
+	        _classCallCheck(this, NativeWebRtcAdapter);
+
+	        if (io === undefined) console.warn('It looks like socket.io has not been loaded before NativeWebRtcAdapter. Please do that.');
+
+	        this.app = "default";
+	        this.room = "default";
+	        this.occupantListener = null;
+	        this.myRoomJoinTime = null;
+	        this.myId = null;
+	        this.avgTimeOffset = 0;
+
+	        this.peers = {}; // id -> WebRtcPeer
+	        this.occupants = {}; // id -> joinTimestamp
+
+	        this.audioStreams = {};
+	        this.pendingAudioRequest = {};
+
+	        this.serverTimeRequests = 0;
+	        this.timeOffsets = [];
+	        this.avgTimeOffset = 0;
 	      }
-	    }
-	  }, {
-	    key: "_connect",
-	    value: function _connect(audioEnabled, connectSuccess, connectFailure) {
-	      var that = this;
 
-	      this.easyrtc.setStreamAcceptor(this._storeAudioStream.bind(this));
+	      _createClass(NativeWebRtcAdapter, [{
+	        key: "setServerUrl",
+	        value: function setServerUrl(wsUrl) {
+	          this.wsUrl = wsUrl;
+	        }
+	      }, {
+	        key: "setApp",
+	        value: function setApp(appName) {
+	          this.app = appName;
+	        }
+	      }, {
+	        key: "setRoom",
+	        value: function setRoom(roomName) {
+	          this.room = roomName;
+	        }
+	      }, {
+	        key: "setWebRtcOptions",
+	        value: function setWebRtcOptions(options) {
+	          if (options.datachannel === false) {
+	            NAF.log.error("NativeWebRtcAdapter.setWebRtcOptions: datachannel must be true.");
+	          }
+	          if (options.audio === true) {
+	            this.sendAudio = true;
+	          }
+	          if (options.video === true) {
+	            NAF.log.warn("NativeWebRtcAdapter does not support video yet.");
+	          }
+	        }
+	      }, {
+	        key: "setServerConnectListeners",
+	        value: function setServerConnectListeners(successListener, failureListener) {
+	          this.connectSuccess = successListener;
+	          this.connectFailure = failureListener;
+	        }
+	      }, {
+	        key: "setRoomOccupantListener",
+	        value: function setRoomOccupantListener(occupantListener) {
+	          this.occupantListener = occupantListener;
+	        }
+	      }, {
+	        key: "setDataChannelListeners",
+	        value: function setDataChannelListeners(openListener, closedListener, messageListener) {
+	          this.openListener = openListener;
+	          this.closedListener = closedListener;
+	          this.messageListener = messageListener;
+	        }
+	      }, {
+	        key: "connect",
+	        value: function connect() {
+	          var self = this;
 
-	      this.easyrtc.setOnStreamClosed(function (easyrtcid) {
-	        delete that.audioStreams[easyrtcid];
-	      });
+	          this.updateTimeOffset().then(function () {
+	            if (!self.wsUrl || self.wsUrl === "/") {
+	              if (location.protocol === "https:") {
+	                self.wsUrl = "wss://" + location.host;
+	              } else {
+	                self.wsUrl = "ws://" + location.host;
+	              }
+	            }
 
-	      if (audioEnabled) {
-	        this.easyrtc.initMediaSource(function () {
-	          that.easyrtc.connect(that.app, connectSuccess, connectFailure);
-	        }, function (errorCode, errmesg) {
-	          NAF.log.error(errorCode, errmesg);
-	        });
-	      } else {
-	        that.easyrtc.connect(that.app, connectSuccess, connectFailure);
-	      }
-	    }
-	  }, {
-	    key: "_getRoomJoinTime",
-	    value: function _getRoomJoinTime(clientId) {
-	      var myRoomId = NAF.room;
-	      var joinTime = this.easyrtc.getRoomOccupantsAsMap(myRoomId)[clientId].roomJoinTime;
-	      return joinTime;
-	    }
-	  }, {
-	    key: "getServerTime",
-	    value: function getServerTime() {
-	      return Date.now() + this.avgTimeOffset;
-	    }
-	  }]);
+	            NAF.log.write("Attempting to connect to socket.io");
+	            var socket = self.socket = io(self.wsUrl);
 
-	  return EasyRtcAdapter;
-	}(NoOpAdapter);
+	            socket.on("connect", function () {
+	              NAF.log.write("User connected", socket.id);
+	              self.myId = socket.id;
+	              self.joinRoom();
+	            });
 
-	module.exports = EasyRtcAdapter;
+	            socket.on("connectSuccess", function (data) {
+	              var joinedTime = data.joinedTime;
+
+	              self.myRoomJoinTime = joinedTime;
+	              NAF.log.write("Successfully joined room", self.room, "at server time", joinedTime);
+
+	              if (self.sendAudio) {
+	                var mediaConstraints = {
+	                  audio: true,
+	                  video: false
+	                };
+	                navigator.mediaDevices.getUserMedia(mediaConstraints).then(function (localStream) {
+	                  self.storeAudioStream(self.myId, localStream);
+	                  self.connectSuccess(self.myId);
+	                }).catch(function (e) {
+	                  return NAF.log.error(e);
+	                });
+	              } else {
+	                self.connectSuccess(self.myId);
+	              }
+	            });
+
+	            socket.on("error", function (err) {
+	              console.error("Socket connection failure", err);
+	              self.connectFailure();
+	            });
+
+	            socket.on("occupantsChanged", function (data) {
+	              var occupants = data.occupants;
+
+	              NAF.log.write('occupants changed', data);
+	              self.receivedOccupants(occupants);
+	            });
+
+	            function receiveData(packet) {
+	              var from = packet.from;
+	              var type = packet.type;
+	              var data = packet.data;
+	              if (type === 'ice-candidate') {
+	                self.peers[from].handleSignal(data);
+	                return;
+	              }
+	              self.messageListener(from, type, data);
+	            }
+
+	            socket.on("send", receiveData);
+	            socket.on("broadcast", receiveData);
+	          });
+	        }
+	      }, {
+	        key: "joinRoom",
+	        value: function joinRoom() {
+	          NAF.log.write("Joining room", this.room);
+	          this.socket.emit("joinRoom", { room: this.room });
+	        }
+	      }, {
+	        key: "receivedOccupants",
+	        value: function receivedOccupants(occupants) {
+	          var _this = this;
+
+	          delete occupants[this.myId];
+
+	          this.occupants = occupants;
+
+	          NAF.log.write('occupants=', occupants);
+	          var self = this;
+	          var localId = this.myId;
+
+	          var _loop = function _loop() {
+	            var remoteId = key;
+	            if (_this.peers[remoteId]) return "continue";
+
+	            var peer = new WebRtcPeer(localId, remoteId, function (data) {
+	              self.socket.emit('send', {
+	                from: localId,
+	                to: remoteId,
+	                type: 'ice-candidate',
+	                data: data,
+	                sending: true
+	              });
+	            });
+	            peer.setDatachannelListeners(self.openListener, self.closedListener, self.messageListener, self.trackListener.bind(self));
+
+	            self.peers[remoteId] = peer;
+	          };
+
+	          for (var key in occupants) {
+	            var _ret = _loop();
+
+	            if (_ret === "continue") continue;
+	          }
+
+	          this.occupantListener(occupants);
+	        }
+	      }, {
+	        key: "shouldStartConnectionTo",
+	        value: function shouldStartConnectionTo(client) {
+	          return (this.myRoomJoinTime || 0) <= (client || 0);
+	        }
+	      }, {
+	        key: "startStreamConnection",
+	        value: function startStreamConnection(remoteId) {
+	          var _this2 = this;
+
+	          NAF.log.write('starting offer process');
+
+	          if (this.sendAudio) {
+	            this.getMediaStream(this.myId).then(function (stream) {
+	              var options = {
+	                sendAudio: true,
+	                localAudioStream: stream
+	              };
+	              _this2.peers[remoteId].offer(options);
+	            });
+	          } else {
+	            this.peers[remoteId].offer({});
+	          }
+	        }
+	      }, {
+	        key: "closeStreamConnection",
+	        value: function closeStreamConnection(clientId) {
+	          NAF.log.write('closeStreamConnection', clientId, this.peers);
+	          this.peers[clientId].close();
+	          delete this.peers[clientId];
+	          delete this.occupants[clientId];
+	          this.closedListener(clientId);
+	        }
+	      }, {
+	        key: "getConnectStatus",
+	        value: function getConnectStatus(clientId) {
+	          var peer = this.peers[clientId];
+
+	          if (peer === undefined) return NAF.adapters.NOT_CONNECTED;
+
+	          switch (peer.getStatus()) {
+	            case WebRtcPeer.IS_CONNECTED:
+	              return NAF.adapters.IS_CONNECTED;
+
+	            case WebRtcPeer.CONNECTING:
+	              return NAF.adapters.CONNECTING;
+
+	            case WebRtcPeer.NOT_CONNECTED:
+	            default:
+	              return NAF.adapters.NOT_CONNECTED;
+	          }
+	        }
+	      }, {
+	        key: "sendData",
+	        value: function sendData(to, type, data) {
+	          this.peers[to].send(type, data);
+	        }
+	      }, {
+	        key: "sendDataGuaranteed",
+	        value: function sendDataGuaranteed(to, type, data) {
+	          var packet = {
+	            from: this.myId,
+	            to: to,
+	            type: type,
+	            data: data,
+	            sending: true
+	          };
+
+	          this.socket.emit("send", packet);
+	        }
+	      }, {
+	        key: "broadcastData",
+	        value: function broadcastData(type, data) {
+	          for (var clientId in this.peers) {
+	            this.sendData(clientId, type, data);
+	          }
+	        }
+	      }, {
+	        key: "broadcastDataGuaranteed",
+	        value: function broadcastDataGuaranteed(type, data) {
+	          var packet = {
+	            from: this.myId,
+	            type: type,
+	            data: data,
+	            broadcasting: true
+	          };
+	          this.socket.emit("broadcast", packet);
+	        }
+	      }, {
+	        key: "storeAudioStream",
+	        value: function storeAudioStream(clientId, stream) {
+	          this.audioStreams[clientId] = stream;
+	          if (this.pendingAudioRequest[clientId]) {
+	            NAF.log.write("Received pending audio for " + clientId);
+	            this.pendingAudioRequest[clientId](stream);
+	            delete this.pendingAudioRequest[clientId](stream);
+	          }
+	        }
+	      }, {
+	        key: "trackListener",
+	        value: function trackListener(clientId, stream) {
+	          this.storeAudioStream(clientId, stream);
+	        }
+	      }, {
+	        key: "getMediaStream",
+	        value: function getMediaStream(clientId) {
+	          var that = this;
+	          if (this.audioStreams[clientId]) {
+	            NAF.log.write("Already had audio for " + clientId);
+	            return Promise.resolve(this.audioStreams[clientId]);
+	          } else {
+	            NAF.log.write("Waiting on audio for " + clientId);
+	            return new Promise(function (resolve) {
+	              that.pendingAudioRequest[clientId] = resolve;
+	            });
+	          }
+	        }
+	      }, {
+	        key: "updateTimeOffset",
+	        value: function updateTimeOffset() {
+	          var _this3 = this;
+
+	          var clientSentTime = Date.now() + this.avgTimeOffset;
+
+	          return fetch(document.location.href, { method: "HEAD", cache: "no-cache" }).then(function (res) {
+	            var precision = 1000;
+	            var serverReceivedTime = new Date(res.headers.get("Date")).getTime() + precision / 2;
+	            var clientReceivedTime = Date.now();
+	            var serverTime = serverReceivedTime + (clientReceivedTime - clientSentTime) / 2;
+	            var timeOffset = serverTime - clientReceivedTime;
+
+	            _this3.serverTimeRequests++;
+
+	            if (_this3.serverTimeRequests <= 10) {
+	              _this3.timeOffsets.push(timeOffset);
+	            } else {
+	              _this3.timeOffsets[_this3.serverTimeRequests % 10] = timeOffset;
+	            }
+
+	            _this3.avgTimeOffset = _this3.timeOffsets.reduce(function (acc, offset) {
+	              return acc += offset;
+	            }, 0) / _this3.timeOffsets.length;
+
+	            if (_this3.serverTimeRequests > 10) {
+	              setTimeout(function () {
+	                return _this3.updateTimeOffset();
+	              }, 5 * 60 * 1000); // Sync clock every 5 minutes.
+	            } else {
+	              _this3.updateTimeOffset();
+	            }
+	          });
+	        }
+	      }, {
+	        key: "getServerTime",
+	        value: function getServerTime() {
+	          return -1; // TODO implement
+	        }
+	      }]);
+
+	      return NativeWebRtcAdapter;
+	    }();
+
+	    NAF.adapters.register("native-webrtc", NativeWebRtcAdapter);
+
+	    module.exports = NativeWebRtcAdapter;
+
+	    /***/
+	  }
+
+	  /******/ });
 
 /***/ }),
-/* 14 */
+/* 11 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -1722,7 +1860,7 @@
 	  },
 
 	  hasOnConnectFunction: function hasOnConnectFunction() {
-	    return this.data.onConnect != '' && window.hasOwnProperty(this.data.onConnect);
+	    return this.data.onConnect != '' && window[this.data.onConnect];
 	  },
 
 	  callOnConnect: function callOnConnect() {
@@ -1737,14 +1875,14 @@
 	});
 
 /***/ }),
-/* 15 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	/* global AFRAME, NAF, THREE */
-	var deepEqual = __webpack_require__(16);
-	var InterpolationBuffer = __webpack_require__(17);
+	var deepEqual = __webpack_require__(13);
+	var InterpolationBuffer = __webpack_require__(14);
 	var DEG2RAD = THREE.Math.DEG2RAD;
 	var OBJECT3D_COMPONENTS = ['position', 'rotation', 'scale'];
 
@@ -1933,7 +2071,7 @@
 
 	  initNetworkParent: function initNetworkParent() {
 	    var parentEl = this.el.parentElement;
-	    if (parentEl.hasOwnProperty('components') && parentEl.components.hasOwnProperty('networked')) {
+	    if (parentEl['components'] && parentEl.components['networked']) {
 	      this.parent = parentEl;
 	    } else {
 	      this.parent = null;
@@ -2275,7 +2413,7 @@
 	});
 
 /***/ }),
-/* 16 */
+/* 13 */
 /***/ (function(module, exports) {
 
 	// Patched version of fast-deep-equal which does not
@@ -2339,7 +2477,7 @@
 	};
 
 /***/ }),
-/* 17 */
+/* 14 */
 /***/ (function(module, exports) {
 
 	"use strict";
@@ -2576,7 +2714,7 @@
 	module.exports = InterpolationBuffer;
 
 /***/ }),
-/* 18 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';

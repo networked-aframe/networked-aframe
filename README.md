@@ -10,7 +10,7 @@ Networked-Aframe
 
 **Multi-user VR on the Web**
 
-Write full-featured multi-user VR experiences entirely in HTML.
+A framework for writing multi-user VR apps in HTML and JS.
 
 Built on top of the wonderful [A-Frame](https://aframe.io/).
 
@@ -31,13 +31,11 @@ Built on top of the wonderful [A-Frame](https://aframe.io/).
 
 Features
 --------
-* Includes everything you need to create multi-user WebVR apps and games.
 * Support for WebRTC and/or WebSocket connections.
 * Voice chat. Audio streaming to let your users talk in-app (WebRTC only).
 * Bandwidth sensitive. Only send network updates when things change.
+* Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, Oculus Quest, HTC Vive and Google Cardboard.
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
-* Cross-platform. Works on all modern Desktop and Mobile browsers. Oculus Rift, Oculus Quest, HTC Vive and Google Cardboard + Daydream support.
-* Firebase WebRTC signalling support
 
 
 Getting Started
@@ -52,7 +50,7 @@ To run the examples on your own PC:
  ```sh
 git clone https://github.com/networked-aframe/networked-aframe.git  # Clone the repository.
 cd networked-aframe
-npm install && npm run easyrtc-install  # Install dependencies.
+npm install  # Install dependencies.
 npm run dev  # Start the local development server.
 ```
 With the server running, browse the examples at `http://localhost:8080`. Open another browser tab and point it to the same URL to see the other client.
@@ -66,9 +64,8 @@ Basic Example
 <html>
   <head>
     <title>My Networked-Aframe Scene</title>
-    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
-    <script src="easyrtc/easyrtc.js"></script>
+    <script src="https://aframe.io/releases/1.0.3/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js"></script>
   </head>
   <body>
@@ -124,7 +121,7 @@ Required on the A-Frame `<a-scene>` component.
   room: <roomName>;
   connectOnLoad: true;
   onConnect: onConnect;
-  adapter: wseasyrtc;
+  adapter: socketio;
   audio: false;
   debug: false;
 ">
@@ -139,7 +136,7 @@ Required on the A-Frame `<a-scene>` component.
 | room  | Unique room name. Can be multiple per app. Spaces are not allowed. There can be multiple rooms per app and clients can only connect to clients in the same app & room. | default |
 | connectOnLoad  | Connect to the server as soon as the webpage loads. | true |
 | onConnect  | Function to be called when client has successfully connected to the server. | onConnect |
-| adapter | The network service that you wish to use, see [adapters](#adapters). | wseasyrtc |
+| adapter | The network service that you wish to use, see [adapters](#adapters). | socketio |
 | audio  | Turn on / off microphone audio streaming for your app. Only works if the chosen adapter supports it. | false |
 | debug  | Turn on / off Networked-Aframe debug logs. | false |
 
@@ -361,21 +358,24 @@ NAF can be used with multiple network libraries and services. An adapter is a cl
 
 I'll write up a post on the answers to these questions soon (please [bug me](https://github.com/networked-aframe/networked-aframe/issues) about it if you're interested).
 
-By default the `wsEasyRtc` adapter is used, which is an implementation of the open source [EasyRTC](https://github.com/priologic/easyrtc) library that only uses the WebSocket connection. To quickly try WebRTC instead of WebSockets, change the adapter to `easyrtc`, which also supports audio. If you're interested in contributing to NAF a great opportunity is to add support for more adapters and send a pull request.
+By default the `socketio` adapter is used, which does not support audio and uses a TCP connection. This is not ideal for production deployments however due to inherent connection issues with WebRTC we've set it as the default. To use WebRTC instead of WebSockets, change the adapter to `webrtc`, which supports audio and uses a UDP.
+
+If you're interested in contributing to NAF a great opportunity is to add support for more adapters and send a pull request.
 
 List of the supported adapters:
 
 | Adapter | Description | Supports Audio | WebSockets or WebRTC | How to start |
 | -------- | ----------- | ------------- | ----------- | ---------- |
-| wsEasyRTC | DEFAULT - [EasyRTC](https://github.com/priologic/easyrtc) that only uses the WebSocket connection | No | WebSockets | `npm run start` |
-| EasyRTC | [EasyRTC](https://github.com/priologic/easyrtc) | Yes | WebRTC | `npm run start` |
-| uWS | Custom implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
+| socketio | DEFAULT - SocketIO implementation | No | WebSockets only | `npm run start` |
+| webrtc | Native WebRTC implementation | Yes | Both | `npm run start` |
 | Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
+| uWS | Implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
+| EasyRTC | [EasyRTC](https://github.com/priologic/easyrtc) | Yes | Both | See [naf-easyrtc-adapter](https://github.com/networked-aframe/naf-easyrtc-adapter) |
 | Deepstream | [DeepstreamHub](https://deepstreamhub.com/) for WebRTC signalling | No | WebRTC | See [naf-deepstream-adapter](https://github.com/networked-aframe/naf-deepstream-adapter) |
 
 ### Audio
 
-After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3d space from that entities position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
+After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3D space from that entities position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
 
 To quickly get started, try the [Glitch NAF Audio Example](https://glitch.com/edit/#!/networked-aframe-audio?path=public/index.html).
 
@@ -422,9 +422,10 @@ Help and More Information
 * [Getting started tutorial](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md)
 * [Edit live example on glitch.com](https://glitch.com/~networked-aframe)
 * [Live demo site](http://haydenlee.io/networked-aframe)
+* [Networked-Aframe Adapters](https://github.com/networked-aframe)
 * [A-Frame](https://aframe.io/)
-* [WebVR](https://webvr.info/)
-* [EasyRTC WebRTC library](http://www.easyrtc.com/)
+* [WebXR](https://github.com/immersive-web/webxr)
+* [Hayden Lee, NAF Creator and Maintainer](https://twitter.com/haydenlee37)
 * Bugs and requests can be filed on [GitHub Issues](https://github.com/networked-aframe/networked-aframe/issues)
 
 
@@ -453,13 +454,6 @@ Roadmap
 * [Add your suggestions](https://github.com/networked-aframe/networked-aframe/issues)
 
 Interested in contributing? [Open an issue](https://github.com/networked-aframe/networked-aframe/issues) or send a pull request.
-
-
-Warning
---------
-
-NAF is not supported on nodejs version 7.2.0. Please use a different version of nodejs.
-
 
 
 License
