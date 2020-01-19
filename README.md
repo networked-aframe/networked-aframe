@@ -12,7 +12,7 @@ Networked-Aframe
 
 A framework for writing multi-user VR apps in HTML and JS.
 
-Built on top of the wonderful [A-Frame](https://aframe.io/).
+Built on top of [A-Frame](https://aframe.io/).
 
 <div>
   <a href="#features">Features</a>

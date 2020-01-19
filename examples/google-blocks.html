@@ -4,9 +4,8 @@
     <title>Basic Example — Networked-Aframe</title>
     <meta name="description" content="Basic Example — Networked-Aframe">
 
-    <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
-    <script src="/easyrtc/easyrtc.js"></script>
+    <script src="https://aframe.io/releases/1.0.3/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <script src="/build.js"></script>
     <script>window.NAF || document.write('<script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js">\x3C/script>')</script>
 
@@ -43,7 +42,7 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player" class="heads" networked="template:#avatar-template;attachTemplateToLocal:false;" camera="userHeight: 1.6" spawn-in-circle="radius:2;" wasd-controls look-controls></a-entity>
+      <a-entity id="player" class="heads" networked="template:#avatar-template;attachTemplateToLocal:false;" camera position="0 1.6 0" spawn-in-circle="radius:2;" wasd-controls look-controls></a-entity>
 
       <!-- <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity> -->
       <!-- <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity> -->
