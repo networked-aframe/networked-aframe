@@ -3,7 +3,7 @@
     <!-- Forked from MozillaVR's `A Saturday Night` demo: https://github.com/aframevr/a-saturday-night -->
 
     <script src="https://aframe.io/releases/1.0.3/aframe.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <script src="../build.js"></script>
 
     <script src="js/spawn-in-circle.component.js"></script>
@@ -30,7 +30,7 @@
     <a-scene networked-scene="
 		  app: club;
 		  room: default;
-		  debug: true;
+      debug: true;
 		">
 			<a-assets>
 				<template id="player-template">
