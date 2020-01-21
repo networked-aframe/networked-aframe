@@ -59,11 +59,11 @@ Let's copy the example server that comes with networked-aframe into our project.
 ```sh
 # MacOS & Linux
 cp -r ./node_modules/networked-aframe/server/ ./server/
-mkdir ./examples
+cp -r ./node_modules/networked-aframe/examples/ ./examples/
 
 # Windows
 robocopy .\node_modules\networked-aframe\server\ .\server\ /e
-mkdir ./examples
+robocopy .\node_modules\networked-aframe\examples\ .\examples\ /e
 ```
 
 You'll now see another new folder: `server/`. Inside it you'll see `index.js` which is the server code.
