@@ -582,7 +582,7 @@ class WebrtcAdapter {
   }
 
   getServerTime() {
-    return new Date() + this.avgTimeOffset;
+    return new Date().getTime() + this.avgTimeOffset;
   }
 }
 
