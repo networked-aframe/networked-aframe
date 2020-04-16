@@ -84,7 +84,7 @@ class Schemas {
   }
 
   isTemplateTag(el) {
-    return el.tagName.toLowerCase() === 'template';
+    return el.tagName.toLowerCase() === 'naf-template';
   }
 
   templateHasOneOrZeroChildren(el) {
