@@ -72,6 +72,9 @@ class Schemas {
   }
 
   validateTemplate(schema, el) {
+    if (this.deprecatedTemplateTag(el)) {
+      NAF.log.error(`The usage of ${el.tagName} is deprecated. We suggest using <naf-template> instead.`)
+    }
     if (!this.isTemplateTag(el)) {
       NAF.log.error(`Template for ${schema.template} is not a <naf-template> tag. Instead found: ${el.tagName}`);
       return false;
@@ -84,7 +87,7 @@ class Schemas {
   }
 
   isTemplateTag(el) {
-    return el.tagName.toLowerCase() === 'naf-template';
+    return ['naf-template', 'template'].indexOf(el.tagName.toLowerCase()) > -1
   }
 
   templateHasOneOrZeroChildren(el) {
@@ -97,6 +100,10 @@ class Schemas {
 
   clear() {
     this.schemaDict = {};
+  }
+
+  deprecatedTemplateTag(el) {
+    return el.tagName.toLowerCase() === 'template'
   }
 }
 
