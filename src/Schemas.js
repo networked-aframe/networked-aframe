@@ -28,7 +28,7 @@ class Schemas {
       if (!this.validateTemplate(schema, templateEl)) {
         return;
       }
-      this.templateCache[schema.template] = document.importNode(templateEl.content, true);
+      this.templateCache[schema.template] = document.importNode(templateEl.childNodes[0], true);
     } else {
       NAF.log.error('Schema not valid: ', schema);
       NAF.log.error('See https://github.com/haydenjameslee/networked-aframe#syncing-custom-components');
@@ -88,7 +88,7 @@ class Schemas {
   }
 
   templateHasOneOrZeroChildren(el) {
-    return el.content.childElementCount < 2;
+    return el.childNodes.length < 2
   }
 
   remove(template) {
