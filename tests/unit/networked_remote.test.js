@@ -13,7 +13,7 @@ suite('networked_remote', function() {
   function initScene(done) {
     var opts = {
       assets: [
-        "<template id='t1'><a-entity><a-entity class='template-child'></a-entity></a-entity></template>"
+        "<naf-template id='t1'><a-entity><a-entity class='template-child'></a-entity></a-entity></template>"
       ],
       entity: '<a-entity id="test-entity" networked="template:#t1;networkId:nid1;owner:network1;" position="1 2 3" rotation="4 3 2"><a-box class="head"></a-box></a-entity>'
     };
@@ -95,7 +95,7 @@ suite('networked_remote', function() {
       component.networkUpdate(entityData);
       component.tick(15, 15);
 
-      setTimeout(()=> {        
+      setTimeout(()=> {
         var position = el.getAttribute('position');
         assert.equal(position.x, 10, 'Position');
         assert.equal(position.y, 20, 'Position');

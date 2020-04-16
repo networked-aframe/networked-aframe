@@ -16,14 +16,14 @@ The release of version 0.6 brings a major change in how templates work, among a 
 
 #### Migration Guide
 
-1. Templates are defined in a `<template>` tag rather than `<script type="text/html">`. Change all your templates to use the `<template>` tag.
+1. Templates are defined in a `<naf-template>` tag rather than `<script type="text/html">`. Change all your templates to use the `<naf-template>` tag.
 
 2. Templates must not have more than one root element. Eg,
 
 This is good:
 
 ```html
-<template>
+<naf-template>
   <a-entity class="parent">
     <a-entity class="child"></a-entity>
   </a-entity>
@@ -34,7 +34,7 @@ This is bad:
 
 
 ```html
-<template>
+<naf-template>
   <a-entity class="brother"></a-entity>
   <a-entity class="sister"></a-entity>
 </template>
@@ -45,7 +45,7 @@ This is bad:
 Eg,
 
 ```html
-<template id="avatar-template">
+<naf-template id="avatar-template">
   <a-entity gltf-model="#avatar-model">
     <a-text position="0 1 0" value="Avatar Name"></a-text>
   </a-entity>

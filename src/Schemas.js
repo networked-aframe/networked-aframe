@@ -73,7 +73,7 @@ class Schemas {
 
   validateTemplate(schema, el) {
     if (!this.isTemplateTag(el)) {
-      NAF.log.error(`Template for ${schema.template} is not a <template> tag. Instead found: ${el.tagName}`);
+      NAF.log.error(`Template for ${schema.template} is not a <naf-template> tag. Instead found: ${el.tagName}`);
       return false;
     } else if (!this.templateHasOneOrZeroChildren(el)) {
       NAF.log.error(`Template for ${schema.template} has more than one child. Templates must have one direct child element, no more. Template found:`, el);

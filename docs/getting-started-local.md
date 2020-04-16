@@ -147,7 +147,7 @@ Templates are added in A-Frame's `<a-assets>` tag. Let's add the assets tag with
 
 ```html
 <a-assets>
-  <template id="avatar-template">
+  <naf-template id="avatar-template">
     <a-entity class="avatar">
       <a-sphere class="head"
         color="#5985ff"
