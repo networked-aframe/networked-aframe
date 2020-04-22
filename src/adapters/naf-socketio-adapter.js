@@ -68,8 +68,8 @@ class SocketioAdapter {
       }
   
       NAF.log.write("Attempting to connect to socket.io");
-      const socket = self.socket = io(self.wsUrl);
-  
+      const socket = self.socket = window.socket = io(self.wsUrl);
+      
       socket.on("connect", () => {
         NAF.log.write("User connected", socket.id);
         self.myId = socket.id;
