@@ -405,6 +405,10 @@ AFRAME.registerComponent('networked', {
       return;
     }
 
+    if (this.data === undefined) {
+      return;
+    }
+
     if (this.data.owner !== entityData.owner) {
       var wasMine = this.isMine();
       this.lastOwnerTime = entityData.lastOwnerTime;
