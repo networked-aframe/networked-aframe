@@ -405,6 +405,11 @@ AFRAME.registerComponent('networked', {
       return;
     }
 
+    // Hack to solve this bug: https://github.com/networked-aframe/networked-aframe/issues/200
+    if (this.data === undefined) {
+      return;
+    }
+
     if (this.data.owner !== entityData.owner) {
       var wasMine = this.isMine();
       this.lastOwnerTime = entityData.lastOwnerTime;
