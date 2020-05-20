@@ -405,6 +405,7 @@ AFRAME.registerComponent('networked', {
       return;
     }
 
+    // Hack to solve this bug: https://github.com/networked-aframe/networked-aframe/issues/200
     if (this.data === undefined) {
       return;
     }
