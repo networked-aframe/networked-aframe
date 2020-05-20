@@ -242,7 +242,7 @@ To spruce up your world add the following HTML tags:
 ```html
 <!-- Add to bottom of the a-assets tag -->
 <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
-<img id="sky" src="https://img.gs/bbdkhfbzkk/2048x2048,stretch/http://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+<img id="sky" src="https://img.gs/bbdkhfbzkk/2048x2048,stretch/https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
 
 <!-- Add to bottom of a-scene tag -->
 <a-entity position="0 0 0"
@@ -275,8 +275,19 @@ By default NAF uses WebSockets to send packets to other users. This follows a cl
 
 ### Voice Chat / Audio Streaming
 
-NAF has built in voice chat when you're using WebRTC. Change `adapter` and `audio` properties of the `networked-scene` component to `webrtc` and `true` respectively and your users will be able to speak to each other. This is a little hard to test locally because the audio feedback will destroy your ears, so try it with headphones and you'll hear your voice being echoed back to you without the feedback. Note: in order for audio streaming to work on a hosted server you'll need to be using HTTPS. I'm planning on writing a follow-up tutorial to this one that will explain how to deploy NAF to a live server, including how to setup HTTPS really easily using [Certbot](https://certbot.eff.org/).
+NAF has built in voice chat when you're using WebRTC. Change `adapter` and `audio` properties of the `networked-scene` component to `webrtc` and `true` respectively and your users will be able to speak to each other. This is a little hard to test locally because the audio feedback will destroy your ears, so try it with headphones and you'll hear your voice being echoed back to you without the feedback. Note: in order for audio streaming to work on a hosted server you'll need to be using HTTPS. 
 
+**Using HTTPS locally**:
+
+To serve the site over HTTPS locally, you can install and run [ngrok](https://ngrok.com/).
+ngrok allows you to expose a web server running on your local machine to the internet. Just tell ngrok what port your web server is listening on.
+
+```bash
+ngrok http 8080
+```
+You can then visit the outputted `https://<x>.ngrok.io` domain.
+
+I'm planning on writing a follow-up tutorial to this one that will explain how to deploy NAF to a live server, including how to setup HTTPS really easily using [Certbot](https://certbot.eff.org/).
 
 ### Syncing Custom Components
 
