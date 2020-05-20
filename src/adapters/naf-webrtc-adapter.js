@@ -371,7 +371,12 @@ class WebrtcAdapter {
             self.storeAudioStream(self.myId, localStream);
             self.connectSuccess(self.myId);
           })
-          .catch(e => NAF.log.error(e));
+          .catch(e => {
+            NAF.log.error(e);
+            console.error("Microphone is disabled due to lack of permissions");
+            self.sendAudio = false;
+            self.connectSuccess(self.myId);
+          });
         } else {
           self.connectSuccess(self.myId);
         }
