@@ -370,6 +370,7 @@ class WebrtcAdapter {
           .then(localStream => {
             self.storeAudioStream(self.myId, localStream);
             self.connectSuccess(self.myId);
+                  self.peers[peerId].pc.addTrack(track, localStream) 
           })
           .catch(e => {
             NAF.log.error(e);
