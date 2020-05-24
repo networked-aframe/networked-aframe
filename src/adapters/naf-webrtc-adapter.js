@@ -20,7 +20,7 @@ class WebRtcPeer {
   }
 
   offer(options) {
-    var self = this;
+    const self = this;
     // reliable: false - UDP
     this.setupChannel(
       this.pc.createDataChannel(this.channelLabel, { reliable: false })
@@ -103,8 +103,8 @@ class WebRtcPeer {
    */
 
   createPeerConnection() {
-    var self = this;
-    var RTCPeerConnection =
+    const self = this;
+    const RTCPeerConnection =
       window.RTCPeerConnection ||
       window.webkitRTCPeerConnection ||
       window.mozRTCPeerConnection ||
@@ -116,7 +116,7 @@ class WebRtcPeer {
       );
     }
 
-    var pc = new RTCPeerConnection({ iceServers: WebRtcPeer.ICE_SERVERS });
+    const pc = new RTCPeerConnection({ iceServers: WebRtcPeer.ICE_SERVERS });
 
     pc.onicecandidate = function(event) {
       if (event.candidate) {
@@ -147,24 +147,24 @@ class WebRtcPeer {
   }
 
   setupChannel(channel) {
-    var self = this;
+    const self = this;
 
     this.channel = channel;
 
     // received data from a remote peer
     this.channel.onmessage = function(event) {
-      var data = JSON.parse(event.data);
+      const data = JSON.parse(event.data);
       self.messageListener(self.remoteId, data.type, data.data);
     };
 
     // connected with a remote peer
-    this.channel.onopen = function(event) {
+    this.channel.onopen = function(_event) {
       self.open = true;
       self.openListener(self.remoteId);
     };
 
     // disconnected with a remote peer
-    this.channel.onclose = function(event) {
+    this.channel.onclose = function(_event) {
       if (!self.open) return;
       self.open = false;
       self.closedListener(self.remoteId);
@@ -177,7 +177,7 @@ class WebRtcPeer {
   }
 
   handleOffer(message) {
-    var self = this;
+    const self = this;
 
     this.pc.ondatachannel = function(event) {
       self.setupChannel(event.channel);
@@ -200,7 +200,7 @@ class WebRtcPeer {
   }
 
   handleCandidate(message) {
-    var RTCIceCandidate =
+    const RTCIceCandidate =
       window.RTCIceCandidate ||
       window.webkitRTCIceCandidate ||
       window.mozRTCIceCandidate;
@@ -232,7 +232,7 @@ class WebRtcPeer {
   }
 
   setRemoteDescription(message) {
-    var RTCSessionDescription =
+    const RTCSessionDescription =
       window.RTCSessionDescription ||
       window.webkitRTCSessionDescription ||
       window.mozRTCSessionDescription ||
@@ -367,17 +367,22 @@ class WebrtcAdapter {
             video: false
           };
           navigator.mediaDevices.getUserMedia(mediaConstraints)
-          .then(localStream => {
-            self.storeAudioStream(self.myId, localStream);
-            self.connectSuccess(self.myId);
+            .then(localStream => {
+              self.storeAudioStream(self.myId, localStream);
+              self.connectSuccess(self.myId);
+              localStream.getTracks().forEach(
+                track => {
+                  Object.keys(self.peers).forEach(peerId => { 
                   self.peers[peerId].pc.addTrack(track, localStream) 
-          })
-          .catch(e => {
-            NAF.log.error(e);
-            console.error("Microphone is disabled due to lack of permissions");
-            self.sendAudio = false;
-            self.connectSuccess(self.myId);
-          });
+                })
+              })
+            })
+            .catch(e => {
+              NAF.log.error(e);
+              console.error("Microphone is disabled due to lack of permissions");
+              self.sendAudio = false;
+              self.connectSuccess(self.myId);
+            });
         } else {
           self.connectSuccess(self.myId);
         }
@@ -423,7 +428,7 @@ class WebrtcAdapter {
     const self = this;
     const localId = this.myId;
 
-    for (var key in occupants) {
+    for (let key in occupants) {
       const remoteId = key;
       if (this.peers[remoteId]) continue;
 
@@ -517,7 +522,7 @@ class WebrtcAdapter {
   }
 
   broadcastData(type, data) {
-    for (var clientId in this.peers) {
+    for (let clientId in this.peers) {
       this.sendData(clientId, type, data);
     }
   }
@@ -546,14 +551,14 @@ class WebrtcAdapter {
   }
 
   getMediaStream(clientId) {
-    var that = this;
+    const self = this;
     if (this.audioStreams[clientId]) {
       NAF.log.write("Already had audio for " + clientId);
       return Promise.resolve(this.audioStreams[clientId]);
     } else {
       NAF.log.write("Waiting on audio for " + clientId);
       return new Promise(resolve => {
-        that.pendingAudioRequest[clientId] = resolve;
+        self.pendingAudioRequest[clientId] = resolve;
       });
     }
   }
@@ -563,11 +568,11 @@ class WebrtcAdapter {
 
     return fetch(document.location.href, { method: "HEAD", cache: "no-cache" })
       .then(res => {
-        var precision = 1000;
-        var serverReceivedTime = new Date(res.headers.get("Date")).getTime() + (precision / 2);
-        var clientReceivedTime = Date.now();
-        var serverTime = serverReceivedTime + ((clientReceivedTime - clientSentTime) / 2);
-        var timeOffset = serverTime - clientReceivedTime;
+        const precision = 1000;
+        const serverReceivedTime = new Date(res.headers.get("Date")).getTime() + (precision / 2);
+        const clientReceivedTime = Date.now();
+        const serverTime = serverReceivedTime + ((clientReceivedTime - clientSentTime) / 2);
+        const timeOffset = serverTime - clientReceivedTime;
 
         this.serverTimeRequests++;
 
