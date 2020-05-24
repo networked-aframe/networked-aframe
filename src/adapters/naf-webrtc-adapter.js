@@ -367,22 +367,22 @@ class WebrtcAdapter {
             video: false
           };
           navigator.mediaDevices.getUserMedia(mediaConstraints)
-            .then(localStream => {
-              self.storeAudioStream(self.myId, localStream);
-              self.connectSuccess(self.myId);
-              localStream.getTracks().forEach(
-                track => {
-                  Object.keys(self.peers).forEach(peerId => { 
-                  self.peers[peerId].pc.addTrack(track, localStream) 
-                })
+          .then(localStream => {
+            self.storeAudioStream(self.myId, localStream);
+            self.connectSuccess(self.myId);
+            localStream.getTracks().forEach(
+              track => {
+                Object.keys(self.peers).forEach(peerId => { 
+                self.peers[peerId].pc.addTrack(track, localStream) 
               })
             })
-            .catch(e => {
-              NAF.log.error(e);
-              console.error("Microphone is disabled due to lack of permissions");
-              self.sendAudio = false;
-              self.connectSuccess(self.myId);
-            });
+          })
+          .catch(e => {
+            NAF.log.error(e);
+            console.error("Microphone is disabled due to lack of permissions");
+            self.sendAudio = false;
+            self.connectSuccess(self.myId);
+          });
         } else {
           self.connectSuccess(self.myId);
         }
