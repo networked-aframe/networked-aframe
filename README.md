@@ -71,9 +71,9 @@ Basic Example
   <body>
     <a-scene networked-scene>
       <a-assets>
-        <template id="avatar-template">
+        <naf-template id="avatar-template">
            <a-sphere></a-sphere>
-        </template>
+        </naf-template>
       </a-assets>
       <a-entity id="player" networked="template:#avatar-template;attachTemplateToLocal:false;" camera wasd-controls look-controls>
       </a-entity>
@@ -163,11 +163,11 @@ Completely removing `a-scene` from your page will also handle cleanly disconnect
 
 ```html
 <a-assets>
-  <template id="my-template">
+  <naf-template id="my-template">
     <a-entity>
       <a-sphere color="#f00"></a-sphere>
     </a-entity>
-  </template>
+  </naf-template>
 <a-assets>
 
 <!-- Attach local template by default -->

@@ -14,7 +14,7 @@ suite('networked', function() {
   function initScene(done) {
     var opts = {
       assets: [
-        "<template id='t1'><a-entity><a-entity class='template-child'></a-entity></a-entity></template>"
+        "<naf-template id='t1'><a-entity><a-entity class='template-child'></a-entity></a-entity></template>"
       ],
       entity: '<a-entity id="test-entity" networked="template:#t1" position="1 2 3" rotation="4 3.5 2"><a-box></a-box></a-entity>'
     };

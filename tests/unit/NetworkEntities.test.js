@@ -13,10 +13,10 @@ suite('NetworkEntities', function() {
   function initScene(done) {
     var opts = {
       assets: [
-        '<template id="template1"><a-entity></a-entity></template>',
-        '<template id="template2"><a-box></a-box></template>',
-        '<template id="template3"><a-sphere></a-sphere></template>',
-        '<template id="template4"><a-sphere><a-entity class="test-child"></a-entity></a-sphere></template>'
+        '<naf-template id="template1"><a-entity></a-entity></template>',
+        '<naf-template id="template2"><a-box></a-box></template>',
+        '<naf-template id="template3"><a-sphere></a-sphere></template>',
+        '<naf-template id="template4"><a-sphere><a-entity class="test-child"></a-entity></a-sphere></template>'
       ]
     };
     scene = helpers.sceneFactory(opts);

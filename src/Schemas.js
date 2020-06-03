@@ -28,7 +28,7 @@ class Schemas {
       if (!this.validateTemplate(schema, templateEl)) {
         return;
       }
-      this.templateCache[schema.template] = document.importNode(templateEl.content, true);
+      this.templateCache[schema.template] = document.importNode(templateEl.childNodes[0], true);
     } else {
       NAF.log.error('Schema not valid: ', schema);
       NAF.log.error('See https://github.com/haydenjameslee/networked-aframe#syncing-custom-components');
@@ -72,8 +72,11 @@ class Schemas {
   }
 
   validateTemplate(schema, el) {
+    if (this.deprecatedTemplateTag(el)) {
+      NAF.log.error(`The usage of ${el.tagName} is deprecated. We suggest using <naf-template> instead.`)
+    }
     if (!this.isTemplateTag(el)) {
-      NAF.log.error(`Template for ${schema.template} is not a <template> tag. Instead found: ${el.tagName}`);
+      NAF.log.error(`Template for ${schema.template} is not a <naf-template> tag. Instead found: ${el.tagName}`);
       return false;
     } else if (!this.templateHasOneOrZeroChildren(el)) {
       NAF.log.error(`Template for ${schema.template} has more than one child. Templates must have one direct child element, no more. Template found:`, el);
@@ -84,11 +87,11 @@ class Schemas {
   }
 
   isTemplateTag(el) {
-    return el.tagName.toLowerCase() === 'template';
+    return ['naf-template', 'template'].indexOf(el.tagName.toLowerCase()) > -1
   }
 
   templateHasOneOrZeroChildren(el) {
-    return el.content.childElementCount < 2;
+    return el.childNodes.length < 2
   }
 
   remove(template) {
@@ -97,6 +100,10 @@ class Schemas {
 
   clear() {
     this.schemaDict = {};
+  }
+
+  deprecatedTemplateTag(el) {
+    return el.tagName.toLowerCase() === 'template'
   }
 }
 

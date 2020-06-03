@@ -15,8 +15,8 @@ suite('networked_withParent', function() {
   function initScene(done) {
     var opts = {
       assets: [
-        "<template id='t1'><a-entity></a-entity></template>",
-        "<template id='t2'><a-entity></a-entity></template>"
+        "<naf-template id='t1'><a-entity></a-entity></template>",
+        "<naf-template id='t2'><a-entity></a-entity></template>"
       ],
       entity: '<a-entity id="test-parent" networked="template:#t2"><a-entity id="test-entity" networked="template:#t1" position="1 2 3" rotation="4 3 2"><a-box></a-box></a-entity></a-entity>'
     };
