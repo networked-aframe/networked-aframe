@@ -69,7 +69,7 @@ class NetworkEntities {
     if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
     var networkId = entityData.networkId;
 
-    const entityOwnerActive = NAF.connection.activeDataChannels[entityData.owner] === false;
+    const entityOwnerActive = NAF.connection.hasActiveDataChannel(entityData.ownerId);
     if (this.hasEntity(networkId)) {
       this.entities[networkId].components.networked.networkUpdate(entityData);
     } else if (entityData.isFirstSync && entityOwnerActive) {
