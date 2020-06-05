@@ -69,10 +69,9 @@ class NetworkEntities {
     if (NAF.options.syncSource && source !== NAF.options.syncSource) return;
     var networkId = entityData.networkId;
 
-    const entityOwnerActive = NAF.connection.hasActiveDataChannel(entityData.owner);
     if (this.hasEntity(networkId)) {
       this.entities[networkId].components.networked.networkUpdate(entityData);
-    } else if (entityData.isFirstSync && entityOwnerActive) {
+    } else if (entityData.isFirstSync && NAF.connection.hasActiveDataChannel(entityData.owner)) {
       if (NAF.options.firstSyncSource && source !== NAF.options.firstSyncSource) {
         NAF.log.write('Ignoring first sync from disallowed source', source);
       } else {
