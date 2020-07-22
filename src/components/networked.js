@@ -76,6 +76,7 @@ AFRAME.registerComponent('networked', {
     template: {default: ''},
     attachTemplateToLocal: { default: true },
     persistent: { default: false },
+    synchWorldTransforms: { default: false },
 
     networkId: {default: ''},
     owner: {default: ''},
@@ -330,6 +331,11 @@ AFRAME.registerComponent('networked', {
 
       var componentName = componentSchema.component ? componentSchema.component : componentSchema;
       var componentData = componentElement.getAttribute(componentName);
+
+      //we will gather and send world transforms (instead of default local space) if schema says so
+      if (this.data.synchWorldTransforms === true) {
+        console.log('sync world transform: ' + componentName);
+      }
 
       if (componentData === null) {
         if (fullSync) {
