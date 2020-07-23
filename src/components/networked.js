@@ -335,29 +335,20 @@ AFRAME.registerComponent('networked', {
       var componentData = componentElement.getAttribute(componentName);
 
       //we will gather and send world transforms (instead of default local space) if schema says so
+      //not that calling each "world" transform individually is not optimized; but slotting this code in one place seems worth it
       if (this.data.synchWorldTransforms === true) {
         if (componentName === 'position') {
-          // console.log('sync world transform: ' + componentName);
-          // console.log(componentData);
           componentData = new THREE.Vector3();
           this.el.object3D.getWorldPosition(componentData);
-          // console.log(componentData);
-          // console.log('----');
         }
         else if (componentName === 'rotation') {
-          // console.log(componentData);
           this.el.object3D.getWorldQuaternion(quat);
           euler.setFromQuaternion(quat, 'YZX');
           componentData = {x:THREE.Math.radToDeg(euler.x), y:THREE.Math.radToDeg(euler.y), z:THREE.Math.radToDeg(euler.z)}; 
-          // console.log(componentData);
-          // console.log('----');
         }
         else if (componentName === 'scale') {
-          // console.log(componentData);
           componentData = new THREE.Vector3();
           this.el.object3D.getWorldScale(componentData);
-          // console.log(componentData);
-          // console.log('----');
         }
       }
 

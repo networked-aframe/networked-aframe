@@ -4,13 +4,13 @@ AFRAME.registerComponent('pickupable', {
     self.player = document.querySelector('#player');  //this is our player/camera
     self.pickedUp = false;
 
-    //let's give a consistent random material color
+    //let's give a random material color that syncs appropriately
     self.el.setAttribute('material', {flatShading:true, color:'rgb(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ')'});
 
     self.el.addEventListener('click', (e) => {
         if (self.pickedUp === true) {
-            //drop
-            self.el.sceneEl.object3D.attach(self.el.object3D);
+            //release
+            self.el.sceneEl.object3D.attach(self.el.object3D); //using three's "attch" allows us to retain world transforms during pickup/release
             self.pickedUp = false;
         }
         else {
