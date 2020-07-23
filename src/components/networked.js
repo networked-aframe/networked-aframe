@@ -316,6 +316,8 @@ AFRAME.registerComponent('networked', {
 
   gatherComponentsData: function(fullSync) {
     var componentsData = null;
+    var euler = new THREE.Euler();
+    var quat = new THREE.Quaternion();
 
     for (var i = 0; i < this.componentSchemas.length; i++) {
       var componentSchema = this.componentSchemas[i];
@@ -334,7 +336,29 @@ AFRAME.registerComponent('networked', {
 
       //we will gather and send world transforms (instead of default local space) if schema says so
       if (this.data.synchWorldTransforms === true) {
-        console.log('sync world transform: ' + componentName);
+        if (componentName === 'position') {
+          // console.log('sync world transform: ' + componentName);
+          // console.log(componentData);
+          componentData = new THREE.Vector3();
+          this.el.object3D.getWorldPosition(componentData);
+          // console.log(componentData);
+          // console.log('----');
+        }
+        else if (componentName === 'rotation') {
+          // console.log(componentData);
+          this.el.object3D.getWorldQuaternion(quat);
+          euler.setFromQuaternion(quat, 'YZX');
+          componentData = {x:THREE.Math.radToDeg(euler.x), y:THREE.Math.radToDeg(euler.y), z:THREE.Math.radToDeg(euler.z)}; 
+          // console.log(componentData);
+          // console.log('----');
+        }
+        else if (componentName === 'scale') {
+          console.log(componentData);
+          componentData = new THREE.Vector3();
+          this.el.object3D.getWorldScale(componentData);
+          console.log(componentData);
+          console.log('----');
+        }
       }
 
       if (componentData === null) {
