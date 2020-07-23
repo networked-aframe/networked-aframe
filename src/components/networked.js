@@ -343,8 +343,8 @@ AFRAME.registerComponent('networked', {
         }
         else if (componentName === 'rotation') {
           this.el.object3D.getWorldQuaternion(quat);
-          euler.setFromQuaternion(quat, 'YZX');
-          componentData = {x:THREE.Math.radToDeg(euler.x), y:THREE.Math.radToDeg(euler.y), z:THREE.Math.radToDeg(euler.z)}; 
+          euler.setFromQuaternion(quat, this.conversionEuler.order);
+          componentData = {x:DEG2RAD * euler.x, y:DEG2RAD * euler.y, z:DEG2RAD * euler.z}; 
         }
         else if (componentName === 'scale') {
           componentData = new THREE.Vector3();
