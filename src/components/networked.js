@@ -353,11 +353,11 @@ AFRAME.registerComponent('networked', {
           // console.log('----');
         }
         else if (componentName === 'scale') {
-          console.log(componentData);
+          // console.log(componentData);
           componentData = new THREE.Vector3();
           this.el.object3D.getWorldScale(componentData);
-          console.log(componentData);
-          console.log('----');
+          // console.log(componentData);
+          // console.log('----');
         }
       }
 
