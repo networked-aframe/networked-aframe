@@ -316,8 +316,21 @@ AFRAME.registerComponent('networked', {
 
   gatherComponentsData: function(fullSync) {
     var componentsData = null;
-    var euler = new THREE.Euler();
-    var quat = new THREE.Quaternion();
+    var euler_w = null;
+    var pos_w = null;
+    var quat_w = null;
+    var scale_w = null;
+
+    if (this.data.synchWorldTransforms === true) {
+      euler_w = new THREE.Euler();
+      pos_w = new THREE.Vector3();
+      quat_w = new THREE.Quaternion();
+      scale_w = new THREE.Vector3();
+
+      //doing this here once so we don't have to do it multiple times later
+      this.el.object3D.updateMatrixWorld( true );
+      this.el.object3D.matrixWorld.decompose( pos_w, quat_w, scale_w );
+    }
 
     for (var i = 0; i < this.componentSchemas.length; i++) {
       var componentSchema = this.componentSchemas[i];
@@ -338,17 +351,14 @@ AFRAME.registerComponent('networked', {
       //not that calling each "world" transform individually is not optimized; but slotting this code in one place seems worth it
       if (this.data.synchWorldTransforms === true) {
         if (componentName === 'position') {
-          componentData = new THREE.Vector3();
-          this.el.object3D.getWorldPosition(componentData);
+          componentData = pos_w.clone();
         }
         else if (componentName === 'rotation') {
-          this.el.object3D.getWorldQuaternion(quat);
-          euler.setFromQuaternion(quat, this.conversionEuler.order);
-          componentData = {x:DEG2RAD * euler.x, y:DEG2RAD * euler.y, z:DEG2RAD * euler.z}; 
+          euler_w.setFromQuaternion(quat_w, this.conversionEuler.order);
+          componentData = {x:DEG2RAD * euler_w.x, y:DEG2RAD * euler_w.y, z:DEG2RAD * euler_w.z}; 
         }
         else if (componentName === 'scale') {
-          componentData = new THREE.Vector3();
-          this.el.object3D.getWorldScale(componentData);
+          componentData = scale_w.clone();
         }
       }
 
