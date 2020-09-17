@@ -153,22 +153,22 @@ class NetworkEntities {
   }
 
   removeEntitiesOfClient(clientId) {
-    var entityList = [];
+    const removedEntities = [];
     for (var id in this.entities) {
-      var entityCreator = NAF.utils.getCreator(this.entities[id]);
-      if (entityCreator === clientId) {
-        let persists;
-        const component = this.entities[id].getAttribute('networked');
+      const entity = this.entities[id]
+      const creator = NAF.utils.getCreator(entity);
+      const owner = NAF.utils.getNetworkOwner(entity);
+      if (creator === clientId || (!creator && owner === clientId)) {
+        const component = this.entities[id].getAttribute("networked")
         if (component && component.persistent) {
-          persists = NAF.utils.isMine(this.entities[id]) || NAF.utils.takeOwnership(this.entities[id]);
-        }
-        if (!persists) {
-          var entity = this.removeEntity(id);
-          entityList.push(entity);
+          // everyone will attempt to take ownership, someone will win, it does not particularly matter who
+          NAF.utils.takeOwnership(entity);
+        } else {
+          removedEntities.push(this.removeEntity(id));
         }
       }
     }
-    return entityList;
+    return removedEntities;
   }
 
   removeEntity(id) {
