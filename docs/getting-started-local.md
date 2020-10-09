@@ -267,7 +267,7 @@ Now you have a basic networked WebVR scene up and running. But there's a lot mor
 
 ### Hand Controllers
 
-To add hand controllers follow the [tracked controllers example](https://github.com/networked-aframe/networked-aframe/blob/master/server/examples/tracked-controllers.html).
+To add hand controllers follow the [tracked controllers example](https://github.com/networked-aframe/networked-aframe/blob/master/examples/tracked-controllers.html).
 
 ### WebRTC
 
