@@ -299,24 +299,27 @@ AFRAME.registerComponent('networked', {
         buffer.update(dt);
         if (componentNames.includes("position")) {
           const position = buffer.getPosition();
-          if (!isValidVector3(position)) {
+          if (isValidVector3(position)) {
+            object3D.position.copy(position);
+          } else {
             throttle(warnOnInvalidNetworkUpdate, 5000);
           }
-          isValidVector3(position) && object3D.position.copy(position);
         }
         if (componentNames.includes("rotation")) {
           const quaternion = buffer.getQuaternion();
-          if (!isValidQuaternion(quaternion)) {
+          if (isValidQuaternion(quaternion)) {
+            object3D.quaternion.copy(quaternion);
+          } else {
             throttle(warnOnInvalidNetworkUpdate, 5000);
           }
-          isValidQuaternion(quaternion) && object3D.quaternion.copy(quaternion);
         }
         if (componentNames.includes("scale")) {
           const scale = buffer.getScale();
-          if (!isValidVector3(scale)) {
+          if (isValidVector3(scale)) {
+            object3D.scale.copy(scale);
+          } else {
             throttle(warnOnInvalidNetworkUpdate, 5000);
           }
-          isValidVector3(scale) && object3D.scale.copy(scale);
         }
       }
     }
