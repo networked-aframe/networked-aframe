@@ -300,21 +300,21 @@ AFRAME.registerComponent('networked', {
         if (componentNames.includes("position")) {
           const position = buffer.getPosition();
           if (!isValidVector3(position)) {
-            throttle(warnOnInvalidNetworkUpdate, 5);
+            throttle(warnOnInvalidNetworkUpdate, 5000);
           }
           isValidVector3(position) && object3D.position.copy(position);
         }
         if (componentNames.includes("rotation")) {
           const quaternion = buffer.getQuaternion();
           if (!isValidQuaternion(quaternion)) {
-            throttle(warnOnInvalidNetworkUpdate, 5);
+            throttle(warnOnInvalidNetworkUpdate, 5000);
           }
           isValidQuaternion(quaternion) && object3D.quaternion.copy(quaternion);
         }
         if (componentNames.includes("scale")) {
           const scale = buffer.getScale();
           if (!isValidVector3(scale)) {
-            throttle(warnOnInvalidNetworkUpdate, 5);
+            throttle(warnOnInvalidNetworkUpdate, 5000);
           }
           isValidVector3(scale) && object3D.scale.copy(scale);
         }
