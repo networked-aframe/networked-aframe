@@ -211,6 +211,12 @@
 	    throw new Error("Entity does not have and is not a child of an entity with the [networked] component ");
 	  }
 
+	  // Remote networked entity data isn't parsed immediately on the local client.
+	  // Because this only happens when the local client receives remote entity instantiation events we can return false.
+	  if (!curEntity.components.networked.data) {
+	    return false;
+	  }
+
 	  return curEntity.components.networked.data.owner === NAF.clientId;
 	};
 
