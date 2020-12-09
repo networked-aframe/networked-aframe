@@ -5,6 +5,7 @@
     <meta name="description" content="Dev Example — Networked-Aframe">
 
     <script src="https://aframe.io/releases/1.0.3/aframe.min.js"></script>
+    <script src="https://croquet.io/sdk/croquet-latest-pre.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <script src="/build.js"></script>
 
@@ -37,7 +38,7 @@
       networked-scene="
         room: dev;
         debug: true;
-        adapter: socketio;
+        adapter: croquet;
       ">
       <a-assets>
 

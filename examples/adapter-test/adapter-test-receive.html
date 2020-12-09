@@ -4,6 +4,7 @@
     <title>Dev Example — Networked-Aframe</title>
     <meta name="description" content="Dev Example — Networked-Aframe">
 
+    <script src="https://croquet.io/sdk/croquet-latest-pre.min.js"></script>
     <script src="https://aframe.io/releases/0.7.0/aframe.min.js"></script>
     <script src="/build.js"></script>
 
@@ -70,7 +71,7 @@
     <a-scene embedded networked-scene="
       room: dev;
       debug: true;
-      adapter: wseasyrtc;
+      adapter: croquet;
     ">
 
     <!-- <a-scene embedded networked-scene="

@@ -1,11 +1,13 @@
 const WebrtcAdapter = require("./naf-webrtc-adapter");
 const SocketioAdapter = require('./naf-socketio-adapter');
+const CroquetAdapter = require('./naf-croquet-adapter')
 
 class AdapterFactory {
   constructor() {
     this.adapters = {
       "socketio": SocketioAdapter,
       "webrtc": WebrtcAdapter,
+      "croquet": CroquetAdapter,
     };
 
     this.IS_CONNECTED = AdapterFactory.IS_CONNECTED;
