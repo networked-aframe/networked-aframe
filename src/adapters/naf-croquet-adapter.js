@@ -196,9 +196,6 @@ if (window.Croquet) {
                                 resolve()
                             }
                         }).then(() => {
-                            this.connectSuccess(this.myId)
-                            this.receivedOccupants()
-                
                             this.session.view.subscribe(this.session.id, 'client-join', viewId => {
                                 this.openListener(viewId)
                                 this.receivedOccupants()
@@ -229,6 +226,9 @@ if (window.Croquet) {
                                     this.messageListener(from, type, data)
                                 }
                             })
+
+                            this.connectSuccess(this.myId)
+                            this.receivedOccupants()
                         })
                     })
                 })
