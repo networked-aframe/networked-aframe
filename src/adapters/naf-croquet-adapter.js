@@ -11,12 +11,14 @@ if (window.Croquet) {
         init() {
             super.init()
     
-            this.occupants = {}
+            this.clients = {}
             this.subscribe(this.sessionId, 'view-join', this.onViewJoin)
             this.subscribe(this.sessionId, 'view-exit', this.onViewExit)
     
             this.subscribe(this.sessionId, 'broadcast', this.onBroadcast)
             this.subscribe(this.sessionId, 'send', this.onSend)
+
+            this.subscribe(this.sessionId, 'client-ready', this.onClientReady)
         }
     
         static types () {
@@ -24,14 +26,17 @@ if (window.Croquet) {
                 'THREE.Vector3' : THREE.Vector3,
             }
         }
-    
+        
         onViewJoin (viewId) {
-            this.occupants[viewId] = this.now()
+            this.clients[viewId] = {
+                joinTime: this.now(),
+                isReady: false,
+            }
             this.publish(this.sessionId, 'client-join', viewId)
             this.publish(viewId, 'client-join')
         }
         onViewExit (viewId) {
-            delete this.occupants[viewId]
+            delete this.clients[viewId]
             this.publish(this.sessionId, 'client-exit', viewId)
         }
     
@@ -41,6 +46,13 @@ if (window.Croquet) {
         onSend (packet) {
             this.publish(packet.to, 'did-send', packet)
         }
+
+        onClientReady (viewId) {
+            if (this.clients[viewId] && !this.clients[viewId].isReady) {
+                this.clients[viewId].isReady = true
+                this.publish(this.sessionId, 'client-is-ready', viewId)
+            }
+        }
     }
     Model.register('Model')
     
@@ -49,9 +61,21 @@ if (window.Croquet) {
             super(model)
             this.model = model
         }
+
+        get myClient () {
+            return this.model.clients[this.viewId]
+        }
     
         get myRoomJoinTime () {
-            return this.model.occupants[this.viewId]
+            return this.myClient?
+                this.myClient.joinTime:
+                null
+        }
+
+        get isReady () {
+            return this.myClient?
+                this.myClient.isReady:
+                null
         }
     
         broadcast (packet) {
@@ -83,6 +107,12 @@ if (window.Croquet) {
                 null
         }
 
+        get isReady () {
+            return this.session?
+                this.session.view.isReady:
+                false
+        }
+
         get myStream () {
             return this.streams[this.myId]
         }
@@ -90,15 +120,27 @@ if (window.Croquet) {
         get usePeers () {
             return this.room.startsWith('!')
         }
+
+        get clients () {
+            return this.session?
+                this.session.model.clients:
+                {}
+        }
     
         get myRoomJoinTime () {
             return this.session.view.myRoomJoinTime
         }
     
         get occupants () {
-            return this.session?
-                this.session.model.occupants:
-                {}
+            const occupants = {}
+            if (this.clients) {
+                for (const viewId in this.clients) {
+                    if (this.clients[viewId].isReady) {
+                        occupants[viewId] = this.clients[viewId].joinTime
+                    }
+                }
+            }
+            return occupants
         }
         get connectedClients () {
             const connectedClients = Object.keys(this.occupants)
@@ -172,10 +214,7 @@ if (window.Croquet) {
                             })
                         }
                     }).then(() => {
-                        NAF.log.write("User connected", this.myId)
-                        NAF.log.write("Successfully joined room", this.room, "at server time", this.myRoomJoinTime)
-
-                        new Promise((resolve, reject) => {
+                        return new Promise((resolve, reject) => {
                             if (this.usePeers && (this.sendAudio || this.sendVideo)) {
                                 navigator.mediaDevices.getUserMedia({
                                     video: AFRAME.utils.device.checkHeadsetConnected()?
@@ -195,41 +234,51 @@ if (window.Croquet) {
                             else {
                                 resolve()
                             }
-                        }).then(() => {
-                            this.session.view.subscribe(this.session.id, 'client-join', viewId => {
-                                this.openListener(viewId)
-                                this.receivedOccupants()
-                            })
-                            this.session.view.subscribe(this.session.id, 'client-exit', viewId => {
-                                this.closedListener(viewId)
-                                this.receivedOccupants()
-                            })
-                
-                            this.session.view.subscribe(this.session.id, 'did-broadcast', packet => {
-                                const {from, type, data} = packet
-                                this.messageListener(from, type, data)
-                            })
-        
-                            this.session.view.subscribe(this.session.view.viewId, 'did-send', packet => {
-                                const {from, type} = packet
-                                let {data} = packet
-                                if (type === 'simple-peer') {
-                                    if (this.usePeers) {
-                                        if (!this.peers[from]) {
-                                            data = JSON.parse(data)
-                                            this.createPeer({to: from, data})
-                                        }
-                                        this.peers[from].signal(data)
-                                    }
-                                }
-                                else {
-                                    this.messageListener(from, type, data)
-                                }
-                            })
-
-                            this.connectSuccess(this.myId)
-                            this.receivedOccupants()
                         })
+                    }).then(() => {
+                        this.session.view.subscribe(this.session.id, 'client-is-ready', viewId => {
+                            if (viewId === this.myId) {
+                                this.session.view.subscribe(this.session.id, 'did-broadcast', packet => {
+                                    const {from, type, data} = packet
+                                    this.messageListener(from, type, data)
+                                })
+            
+                                this.session.view.subscribe(this.session.view.viewId, 'did-send', packet => {
+                                    const {from, type} = packet
+                                    let {data} = packet
+                                    if (type === 'simple-peer') {
+                                        if (this.usePeers) {
+                                            if (!this.peers[from]) {
+                                                data = JSON.parse(data)
+                                                this.createPeer({to: from, data})
+                                            }
+                                            this.peers[from].signal(data)
+                                        }
+                                    }
+                                    else {
+                                        this.messageListener(from, type, data)
+                                    }
+                                })
+
+                                this.session.view.subscribe(this.session.id, 'client-exit', viewId => {
+                                    this.closedListener(viewId)
+                                    this.receivedOccupants()
+                                })
+                                
+                                NAF.log.write("User connected", this.myId)
+                                NAF.log.write("Successfully joined room", this.room, "at server time", this.myRoomJoinTime)
+                                this.connectSuccess(this.myId)
+                                this.receivedOccupants()
+                            }
+                            else {
+                                if (this.isReady) {
+                                    this.openListener(viewId)
+                                    this.receivedOccupants()
+                                }
+                            }
+                        })
+
+                        this.session.view.publish(this.session.id, 'client-ready', this.session.view.viewId)
                     })
                 })
             })
@@ -269,7 +318,6 @@ if (window.Croquet) {
                 stream: this.myStream,
 
                 offerToReceiveAudio: true,
-                offerToReceiveVideo: true,
             })
             console.log('created peer', peer)
 
@@ -350,18 +398,9 @@ if (window.Croquet) {
                 data,
                 sending: true,
             }
-
-            console.log(packet)
         
             if (this.session) {
-                if (type === 'u') {
-                    setTimeout(() => {
-                        this.session.view.send(packet)
-                    }, 500)
-                }
-                else {
-                    this.session.view.send(packet)
-                }
+                this.session.view.send(packet)
             } else {
                 NAF.log.warn('Croquet Session not created yet')
             }
