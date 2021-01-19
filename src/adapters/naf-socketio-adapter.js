@@ -66,43 +66,43 @@ class SocketioAdapter {
           self.wsUrl = "ws://" + location.host;
         }
       }
-  
+
       NAF.log.write("Attempting to connect to socket.io");
       const socket = self.socket = io(self.wsUrl);
-  
+
       socket.on("connect", () => {
         NAF.log.write("User connected", socket.id);
         self.myId = socket.id;
         self.joinRoom();
       });
-  
+
       socket.on("connectSuccess", (data) => {
         const { joinedTime } = data;
-  
+
         self.myRoomJoinTime = joinedTime;
         NAF.log.write("Successfully joined room", self.room, "at server time", joinedTime);
 
         self.connectSuccess(self.myId);
       });
-  
+
       socket.on("error", err => {
         console.error("Socket connection failure", err);
         self.connectFailure();
       });
-  
+
       socket.on("occupantsChanged", data => {
         const { occupants } = data;
         NAF.log.write('occupants changed', data);
         self.receivedOccupants(occupants);
       });
-  
+
       function receiveData(packet) {
         const from = packet.from;
         const type = packet.type;
         const data = packet.data;
         self.messageListener(from, type, data);
       }
-  
+
       socket.on("send", receiveData);
       socket.on("broadcast", receiveData);
     })
@@ -217,6 +217,10 @@ class SocketioAdapter {
 
   getServerTime() {
     return new Date().getTime() + this.avgTimeOffset;
+  }
+
+  disconnect() {
+    this.socket.disconnect();
   }
 }
 
