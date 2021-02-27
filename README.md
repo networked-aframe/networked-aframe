@@ -408,6 +408,23 @@ NAF.options.useLerp
 
 By default when an entity is created the [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is attached to smooth out position and rotation network updates. Set this to false if you don't want the lerp component to be attached on creation.
 
+### SSL/HTTPS
+
+To serve the files via https (because audio otherwise will silently fail due to security reasons), you have enable https to provide a secure connection.
+
+To acchieve this one needs to insert:
+
+    const https = require("https");
+    const fs = require("fs");
+    var privateKey  = fs.readFileSync('key.pem', 'utf8');
+    var certificate = fs.readFileSync('cert.pem', 'utf8');
+    var credentials = {key: privateKey, cert: certificate};
+
+Add the keys, change the http references to https and start the server with the credentials:
+
+    var webServer = https.createServer(credentials, app);
+
+
 Stay in Touch
 -------------
 
