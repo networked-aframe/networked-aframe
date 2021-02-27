@@ -100,6 +100,12 @@ module.exports.isMine = function(entity) {
     throw new Error("Entity does not have and is not a child of an entity with the [networked] component ");
   }
 
+  // When remote networked entities are initially created, there's a frame delay before they are completely instantiated.
+  // On that frame, data is undefined so we can't check the owner. In this instance we assume that the user is not the owner of the entity.
+  if (!curEntity.components.networked.data) {
+    return false;
+  }
+
   return curEntity.components.networked.data.owner === NAF.clientId;
 };
 

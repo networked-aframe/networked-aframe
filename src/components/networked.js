@@ -17,8 +17,49 @@ function defaultRequiresUpdate() {
   };
 }
 
+function isValidVector3(v) {
+  return !!(
+    v.isVector3 &&
+    !isNaN(v.x) &&
+    !isNaN(v.y) &&
+    !isNaN(v.z) &&
+    v.x !== null &&
+    v.y !== null &&
+    v.z !== null
+  );
+}
+function isValidQuaternion(q) {
+  return !!(
+    q.isQuaternion &&
+    !isNaN(q.x) &&
+    !isNaN(q.y) &&
+    !isNaN(q.z) &&
+    !isNaN(q.w) &&
+    q.x !== null &&
+    q.y !== null &&
+    q.z !== null &&
+    q.w !== null
+  );
+}
+
+var throttle = (function () {
+  var previousLogTime = 0;
+  return function throttle(f, milliseconds) {
+    var now = Date.now();
+    if (now - previousLogTime > milliseconds) {
+      previousLogTime = now;
+      f();
+    }
+  };
+})();
+
+function warnOnInvalidNetworkUpdate() {
+  NAF.log.warn(`Received invalid network update.`);
+}
+
 AFRAME.registerSystem("networked", {
   init() {
+    // An array of "networked" component instances.
     this.components = [];
     this.nextSyncTime = 0;
   },
@@ -41,6 +82,7 @@ AFRAME.registerSystem("networked", {
       if (!NAF.connection.adapter) return;
       if (this.el.clock.elapsedTime < this.nextSyncTime) return;
 
+      // "d" is an array of entity datas per entity in this.components.
       const data = { d: [] };
 
       for (let i = 0, l = this.components.length; i < l; i++) {
@@ -118,8 +160,17 @@ AFRAME.registerComponent('networked', {
 
     this.initNetworkParent();
 
+    let networkId;
+
     if (this.data.networkId === '') {
-      this.el.setAttribute(this.name, {networkId: NAF.utils.createNetworkId()});
+      networkId = NAF.utils.createNetworkId()
+      this.el.setAttribute(this.name, {networkId});
+    } else {
+      networkId = this.data.networkId;
+    }
+
+    if (!this.el.id) {
+      this.el.setAttribute('id', 'naf-' + networkId);
     }
 
     if (wasCreatedByNetwork) {
@@ -246,14 +297,29 @@ AFRAME.registerComponent('networked', {
         var object3D = bufferInfo.object3D;
         var componentNames = bufferInfo.componentNames;
         buffer.update(dt);
-        if (componentNames.includes('position')) {
-          object3D.position.copy(buffer.getPosition());
+        if (componentNames.includes("position")) {
+          const position = buffer.getPosition();
+          if (isValidVector3(position)) {
+            object3D.position.copy(position);
+          } else {
+            throttle(warnOnInvalidNetworkUpdate, 5000);
+          }
         }
-        if (componentNames.includes('rotation')) {
-          object3D.quaternion.copy(buffer.getQuaternion());
+        if (componentNames.includes("rotation")) {
+          const quaternion = buffer.getQuaternion();
+          if (isValidQuaternion(quaternion)) {
+            object3D.quaternion.copy(quaternion);
+          } else {
+            throttle(warnOnInvalidNetworkUpdate, 5000);
+          }
         }
-        if (componentNames.includes('scale')) {
-          object3D.scale.copy(buffer.getScale());
+        if (componentNames.includes("scale")) {
+          const scale = buffer.getScale();
+          if (isValidVector3(scale)) {
+            object3D.scale.copy(scale);
+          } else {
+            throttle(warnOnInvalidNetworkUpdate, 5000);
+          }
         }
       }
     }

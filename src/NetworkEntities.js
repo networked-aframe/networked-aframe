@@ -20,8 +20,6 @@ class NetworkEntities {
     var networkId = entityData.networkId;
     var el = NAF.schemas.getCachedTemplate(entityData.template);
 
-    el.setAttribute('id', 'naf-' + networkId);
-
     this.initPosition(el, entityData.components);
     this.initRotation(el, entityData.components);
     this.addNetworkComponent(el, entityData);
@@ -73,7 +71,7 @@ class NetworkEntities {
 
     if (this.hasEntity(networkId)) {
       this.entities[networkId].components.networked.networkUpdate(entityData);
-    } else if (entityData.isFirstSync) {
+    } else if (entityData.isFirstSync && NAF.connection.activeDataChannels[entityData.owner] !== false) {
       if (NAF.options.firstSyncSource && source !== NAF.options.firstSyncSource) {
         NAF.log.write('Ignoring first sync from disallowed source', source);
       } else {
@@ -132,8 +130,7 @@ class NetworkEntities {
   }
 
   addEntityToParent(entity, parentId) {
-    var parentEl = document.getElementById('naf-' + parentId);
-    parentEl.appendChild(entity);
+    this.entities[parentId].appendChild(entity);
   }
 
   addEntityToSceneRoot(el) {
@@ -156,22 +153,22 @@ class NetworkEntities {
   }
 
   removeEntitiesOfClient(clientId) {
-    var entityList = [];
+    const removedEntities = [];
     for (var id in this.entities) {
-      var entityCreator = NAF.utils.getCreator(this.entities[id]);
-      if (entityCreator === clientId) {
-        let persists;
-        const component = this.entities[id].getAttribute('networked');
+      const entity = this.entities[id]
+      const creator = NAF.utils.getCreator(entity);
+      const owner = NAF.utils.getNetworkOwner(entity);
+      if (creator === clientId || (!creator && owner === clientId)) {
+        const component = this.entities[id].getAttribute("networked")
         if (component && component.persistent) {
-          persists = NAF.utils.takeOwnership(this.entities[id]);
-        }
-        if (!persists) {
-          var entity = this.removeEntity(id);
-          entityList.push(entity);
+          // everyone will attempt to take ownership, someone will win, it does not particularly matter who
+          NAF.utils.takeOwnership(entity);
+        } else {
+          removedEntities.push(this.removeEntity(id));
         }
       }
     }
-    return entityList;
+    return removedEntities;
   }
 
   removeEntity(id) {
