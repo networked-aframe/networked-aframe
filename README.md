@@ -424,7 +424,7 @@ Help and More Information
 * [Live demo site](http://haydenlee.io/networked-aframe)
 * [Networked-Aframe Adapters](https://github.com/networked-aframe)
 * [A-Frame](https://aframe.io/)
-* [WebXR](https://github.com/immersive-web/webxr)
+* [WebXR](https://immersiveweb.dev)
 * [Hayden Lee, NAF Creator and Maintainer](https://twitter.com/haydenlee37)
 * Bugs and requests can be filed on [GitHub Issues](https://github.com/networked-aframe/networked-aframe/issues)
 
