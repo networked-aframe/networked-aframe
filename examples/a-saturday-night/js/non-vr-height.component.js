@@ -29,11 +29,11 @@ AFRAME.registerComponent('non-vr-height', {
 
   exitedVR: function () {
     console.log("EXITED VR");
-    this.setHeight(this.getData());
+    this.setHeight(this.data);
   },
 
   setHeight: function(height) {
-    var position = this.el.components.position.getData();
+    var position = this.el.components.position.data;
     position.y = height;
     this.el.setAttribute('position', position);
   }

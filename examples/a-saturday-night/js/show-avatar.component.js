@@ -6,7 +6,7 @@ AFRAME.registerComponent('show-avatar', {
 
   update: function() {
     this.waitingToLoad = true;
-    this.showAvatar(this.getData().index);
+    this.showAvatar(this.data.index);
   },
 
   tick: function() {

@@ -5,7 +5,7 @@ AFRAME.registerComponent('show-child', {
   },
 
   update: function() {
-    this.show(this.getData());
+    this.show(this.data);
   },
 
   show: function(index) {
