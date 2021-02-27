@@ -208,7 +208,10 @@ class NetworkConnection {
 
   disconnect() {
     this.entities.removeRemoteEntities();
-    this.adapter.disconnect();
+
+    if (this.adapter) {
+      this.adapter.disconnect();
+    }
 
     NAF.app = '';
     NAF.room = '';
