@@ -32,7 +32,7 @@ Now let's setup the required dependencies. Create a file called `package.json` a
   "version": "1.0.0",
   "description": "My first multi-user virtual reality",
   "scripts": {
-    "start": "node ./server/index.js"
+    "start": "node ./server/easyrtc-server.js"
   },
   "author": "YOUR_NAME",
   "dependencies": {
@@ -66,12 +66,12 @@ robocopy .\node_modules\networked-aframe\server\ .\server\ /e
 robocopy .\node_modules\networked-aframe\examples\ .\examples\ /e
 ```
 
-You'll now see another new folder: `server/`. Inside it you'll see `index.js` which is the server code.
+You'll now see another new folder: `server/`. Inside it you'll see `easyrtc-server.js` which is the server code.
 
 Let's run the default server and start playing with the examples. From your project's root run:
 
 ```sh
-node ./server/index.js
+node ./server/easyrtc-server.js
 ```
 
 You'll notice the `package.json` has a shortcut to start the server that you can use by running:
@@ -108,8 +108,9 @@ Here's the template we'll start with:
 ```html
 <html>
   <head>
-    <script src="https://aframe.io/releases/1.0.3/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
     <script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js"></script>
   </head>
   <body>
@@ -118,7 +119,7 @@ Here's the template we'll start with:
 </html>
 ```
 
-We can see that all the NAF dependencies are included; aframe, socket.io and Networked-Aframe itself. Copy this template into `my-example.html`. To check the dependencies are setup correctly, start the server by running `npm start` and then head to `localhost:8080/my-example.html`. You should see a blank white page and no Javascript errors in the Developer Console. There'll probably be a bunch of mumbo jumbo in the dev console showing the current versions of each library.
+We can see that all the NAF dependencies are included; aframe, socket.io, open-easyrtc and networked-aframe itself. Copy this template into `my-example.html`. To check the dependencies are setup correctly, start the server by running `npm start` and then head to `localhost:8080/my-example.html`. You should see a blank white page and no Javascript errors in the Developer Console. There'll probably be a bunch of mumbo jumbo in the dev console showing the current versions of each library.
 
 First up we need to add the `networked-scene` component to the A-Frame `a-scene` tag.
 
@@ -271,11 +272,11 @@ To add hand controllers follow the [tracked controllers example](https://github.
 
 ### WebRTC
 
-By default NAF uses WebSockets to send packets to other users. This follows a classic client-server architecture and uses the TCP network protocol. If you'd prefer to use a peer-to-peer architecture and would like to use the UDP network protocol you should use WebRTC. In order to enable it in NAF set the `adapter` property of the `networked-scene` component to `webrtc`. This also allows for voice chat (see below).
+By default NAF uses WebSockets to send packets to other users. This follows a classic client-server architecture and uses the TCP network protocol. If you'd prefer to use a peer-to-peer architecture and would like to use the UDP network protocol you should use WebRTC. In order to enable it in NAF set the `adapter` property of the `networked-scene` component to `easyrtc`. This also allows for voice chat (see below).
 
 ### Voice Chat / Audio Streaming
 
-NAF has built in voice chat when you're using WebRTC. Change `adapter` and `audio` properties of the `networked-scene` component to `webrtc` and `true` respectively and your users will be able to speak to each other. This is a little hard to test locally because the audio feedback will destroy your ears, so try it with headphones and you'll hear your voice being echoed back to you without the feedback. Note: in order for audio streaming to work on a hosted server you'll need to be using HTTPS. 
+NAF has built in voice chat when you're using WebRTC. Change `adapter` and `audio` properties of the `networked-scene` component to `easyrtc` and `true` respectively and your users will be able to speak to each other. This is a little hard to test locally because the audio feedback will destroy your ears, so try it with headphones and you'll hear your voice being echoed back to you without the feedback. Note: in order for audio streaming to work on a hosted server you'll need to be using HTTPS. 
 
 **Using HTTPS locally**:
 

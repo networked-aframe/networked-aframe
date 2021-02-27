@@ -11,13 +11,15 @@
   },
   "scripts": {
     "build": "browserify src/index.js -o examples/build.js",
-    "dev": "npm run build && node ./server/index.js",
+    "dev": "npm run build && node ./server/easyrtc-server.js",
+    "dev-socketio": "npm run build && node ./server/socketio-server.js",
     "dist": "webpack --config webpack.config.js && webpack -p --config webpack.prod.config.js",
     "lint": "eslint src tests *.js",
     "prepare": "npm run dist",
     "preghpages": "npm run build && shx rm -rf gh-pages && shx mkdir gh-pages && shx cp -r examples/* gh-pages",
     "ghpages": "npm run preghpages && ghpages -p gh-pages",
-    "start": "node ./server/index.js",
+    "start": "node ./server/easyrtc-server.js",
+    "start-socketio": "node ./server/socketio-server.js",
     "test": "karma start ./tests/unit/karma.conf.js",
     "test:firefox": "karma start ./tests/unit/karma.conf.js --browsers Firefox",
     "test:chrome": "karma start ./tests/unit/karma.conf.js --browsers Chrome",
@@ -27,10 +29,11 @@
   "dependencies": {
     "buffered-interpolation": "^0.2.5",
     "express": "^4.17.1",
+    "open-easyrtc": "^2.0.5",
     "socket.io": "^2.3.0"
   },
   "devDependencies": {
-    "aframe": "~1.0.0",
+    "aframe": "~1.2.0",
     "@babel/core": "~7.8.3",
     "@babel/preset-env": "~7.8.3",
     "babel-loader": "8.0.0-beta.1",
