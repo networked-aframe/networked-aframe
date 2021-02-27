@@ -146,7 +146,7 @@ class NetworkConnection {
   }
 
   hasActiveDataChannel(clientId) {
-    return !!(this.activeDataChannels[clientId] && this.activeDataChannels[clientId]);
+    return !!this.activeDataChannels[clientId];
   }
 
   broadcastData(dataType, data) {
