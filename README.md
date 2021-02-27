@@ -265,8 +265,8 @@ To sync nested templates setup your HTML nodes like so:
 ```HTML
 <a-entity id="player" networked="template:#player-template;attachTemplateToLocal:false;" wasd-controls>
   <a-entity camera look-controls networked="template:#head-template;attachTemplateToLocal:false;"></a-entity>
-  <a-entity hand-controls="left" networked="template:#left-hand-template"></a-entity>
-  <a-entity hand-controls="right" networked="template:#right-hand-template"></a-entity>
+  <a-entity hand-controls="hand:left" networked="template:#left-hand-template"></a-entity>
+  <a-entity hand-controls="hand:right" networked="template:#right-hand-template"></a-entity>
 </a-entity>
 ```
 
