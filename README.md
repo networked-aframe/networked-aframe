@@ -291,7 +291,7 @@ Subscribe and unsubscribe callbacks to network messages specified by `dataType`.
 | -------- | -----------
 | clientId | ClientId to send this data to
 | dataType  | String to identify a network message. `u` is a reserved data type, don't use it pls
-| callback  | Function to be called when message of type `dataType` is received. Parameters: function(senderId, dataType, data, targetId)
+| callback  | Function to be called when message of type `dataType` is received. Parameters: `function(senderId, dataType, data, targetId)`
 | data | Object to be sent to all other clients
 
 
@@ -321,7 +321,7 @@ document.body.addEventListener('clientConnected', function (evt) {
   console.error('clientConnected event. clientId =', evt.detail.clientId);
 });
 ```
-Events need to be subscribed after the document.body element has been created. This could be achieved by waiting for the document.body `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/networked-aframe/networked-aframe/blob/master/examples/basic-events.html#L30) as an example.
+Events need to be subscribed after the `document.body` element has been created. This could be achieved by waiting for the `document.body` `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/networked-aframe/networked-aframe/blob/master/examples/basic-events.html) as an example.
 
 List of events:
 
@@ -355,8 +355,6 @@ NAF can be used with multiple network libraries and services. An adapter is a cl
 - Do you need audio (microphone) streaming?
 - Do you need custom server-side logic?
 - Do you want a WebSocket (client-server) network architecture or WebRTC (peer-to-peer)?
-
-I'll write up a post on the answers to these questions soon (please [bug me](https://github.com/networked-aframe/networked-aframe/issues) about it if you're interested).
 
 By default the `wseasyrtc` adapter is used, which does not support audio and uses a TCP connection. This is not ideal for production deployments however due to inherent connection issues with WebRTC we've set it as the default. To support audio via WebRTC be sure the server is using https and change the adapter to `easyrtc` (this uses UDP).
 
@@ -452,7 +450,6 @@ Roadmap
 -------
 
 * More examples!
-* [Roadmap](https://github.com/networked-aframe/networked-aframe/projects/1)
 * [Add your suggestions](https://github.com/networked-aframe/networked-aframe/issues)
 
 Interested in contributing? [Open an issue](https://github.com/networked-aframe/networked-aframe/issues) or send a pull request.
