@@ -364,10 +364,10 @@ List of the supported adapters:
 
 | Adapter | Description | Supports Audio | WebSockets or WebRTC | How to start |
 | -------- | ----------- | ------------- | ----------- | ---------- |
-| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Yes | WebSockets | `npm run start` |
-| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Yes | WebRTC | `npm run start` |
-| socketio | WIP SocketIO implementation without external library | No | WebSockets | `npm run start-socketio` |
-| webrtc | WIP Native WebRTC implementation without external library | Yes | WebRTC | `npm run start-socketio` |
+| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Yes | WebSockets | `npm run dev` |
+| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Yes | WebRTC | `npm run dev` |
+| socketio | WIP SocketIO implementation without external library | No | WebSockets | `npm run dev-socketio` |
+| webrtc | WIP Native WebRTC implementation without external library | Yes | WebRTC | `npm run dev-socketio` |
 | Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
 | uWS | Implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
 | Deepstream | [DeepstreamHub](https://deepstreamhub.com/) for WebRTC signalling | No | WebRTC | See [naf-deepstream-adapter](https://github.com/networked-aframe/naf-deepstream-adapter) |
