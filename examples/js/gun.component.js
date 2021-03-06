@@ -1,3 +1,4 @@
+/* global AFRAME, THREE */
 AFRAME.registerComponent('gun', {
   schema: {
     bulletTemplate: {default: '#bullet-template'},

@@ -1,3 +1,4 @@
+/* global AFRAME, NAF, THREE */
 /**
  * Rotate the entity every frame if you are the owner.
  * When you press enter take ownership of the entity,

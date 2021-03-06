@@ -1,3 +1,4 @@
+/* global AFRAME, THREE */
 AFRAME.registerComponent('spawn-in-circle', {
   schema: {
     radius: {type: 'number', default: 1}
@@ -15,7 +16,7 @@ AFRAME.registerComponent('spawn-in-circle', {
 
     var angleDeg = angleRad * 180 / Math.PI;
     var angleToCenter = -1 * angleDeg + 90;
-    var angleRad = THREE.Math.degToRad(angleToCenter);
+    angleRad = THREE.Math.degToRad(angleToCenter);
     el.object3D.rotation.set(0, angleRad, 0);
     // console.log('angle deg', angleDeg);
   },

@@ -1,3 +1,4 @@
+/* global AFRAME */
 /**
  * Creates a grid of entities based on the given template
  * Place at the center of the grid you wish to create

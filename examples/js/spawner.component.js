@@ -1,3 +1,4 @@
+/* global AFRAME */
 AFRAME.registerComponent('spawner', {
   schema: {
     template: { default: '' },
