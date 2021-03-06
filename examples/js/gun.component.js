@@ -28,8 +28,7 @@ AFRAME.registerComponent('gun', {
     el.setAttribute('position', this.getInitialBulletPosition(tip));
     el.setAttribute('rotation', this.getInitialBulletRotation(tip));
 
-    var scene = document.querySelector('a-scene');
-    scene.appendChild(el);
+    this.el.sceneEl.appendChild(el);
   },
 
   getInitialBulletPosition: function(spawnerEl) {
