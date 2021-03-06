@@ -19,11 +19,11 @@ app.use(express.static(path.resolve(__dirname, "..", "examples")));
 if (process.env.NODE_ENV === "development") {
   const webpackMiddleware = require("webpack-dev-middleware");
   const webpack = require("webpack");
-  const config = require("../webpack.dev");
+  const config = require("../webpack.config");
 
   app.use(
     webpackMiddleware(webpack(config), {
-      publicPath: "/dist/"
+      publicPath: "/"
     })
   );
 }
