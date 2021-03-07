@@ -74,7 +74,7 @@ easyrtc.events.on("roomJoin", (connectionObj, roomName, roomParameter, callback)
 });
 
 // Start EasyRTC server
-const rtc = easyrtc.listen(app, socketServer, null, (err, rtcRef) => {
+easyrtc.listen(app, socketServer, null, (err, rtcRef) => {
     console.log("Initiated");
 
     rtcRef.events.on("roomCreate", (appObj, creatorConnectionObj, roomName, roomOptions, callback) => {
