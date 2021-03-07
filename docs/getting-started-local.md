@@ -119,6 +119,16 @@ Here's the template we'll start with:
 </html>
 ```
 
+Please don't use `https://unpkg.com/networked-aframe/dist/networked-aframe.min.js` for production, it will get the latest release.
+For production you want to pin to a specific version like `https://unpkg.com/networked-aframe@0.8.0/dist/networked-aframe.min.js`.
+If you want to use a more recent build from github master that is not released yet, you can use:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/networked-aframe/networked-aframe@master/dist/networked-aframe.min.js" crossorigin="anonymous"></script>
+```
+
+But again don't use that for production.
+
 We can see that all the NAF dependencies are included; aframe, socket.io, open-easyrtc and networked-aframe itself. Copy this template into `my-example.html`. To check the dependencies are setup correctly, start the server by running `npm start` and then head to `localhost:8080/my-example.html`. You should see a blank white page and no Javascript errors in the Developer Console. There'll probably be a bunch of mumbo jumbo in the dev console showing the current versions of each library.
 
 First up we need to add the `networked-scene` component to the A-Frame `a-scene` tag.
