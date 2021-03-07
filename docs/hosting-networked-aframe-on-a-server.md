@@ -69,7 +69,7 @@ If your experience uses WebRTC audio functionality, you need to setup an SSL cer
 
 ## Other Solutions
 
-For other hosting solutions check out the [A-Frame Hosting Guide](https://aframe.io/docs/0.6.0/introduction/hosting-and-publishing.html).
+For other hosting solutions check out the [A-Frame Hosting Guide](https://aframe.io/docs/master/introduction/hosting-and-publishing.html).
 
 
 ### Author
