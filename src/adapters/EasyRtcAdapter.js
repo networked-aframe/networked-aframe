@@ -40,8 +40,8 @@ class EasyRtcAdapter extends NoOpAdapter {
     this.easyrtc.enableAudio(options.audio);
 
     // TODO receive(audio|video) options ?
-    this.easyrtc.enableVideoReceive(options.video);
-    this.easyrtc.enableAudioReceive(options.audio);
+    this.easyrtc.enableVideoReceive(true);
+    this.easyrtc.enableAudioReceive(true);
   }
 
   setServerConnectListeners(successListener, failureListener) {
@@ -233,10 +233,12 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   enableMicrophone(enabled) {
+    this.easyrtc.enableAudio(enabled);
     this.easyrtc.enableMicrophone(enabled);
   }
 
   enableCamera(enabled) {
+    this.easyrtc.enableVideo(enabled);
     this.easyrtc.enableCamera(enabled);
   }
 
