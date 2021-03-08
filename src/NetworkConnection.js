@@ -38,7 +38,7 @@ class NetworkConnection {
 
     var webrtcOptions = {
       audio: enableAudio,
-      video: enableAudio,
+      video: enableVideo,
       datachannel: true
     };
     this.adapter.setWebRtcOptions(webrtcOptions);
