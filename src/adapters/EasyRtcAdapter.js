@@ -101,9 +101,6 @@ class EasyRtcAdapter extends NoOpAdapter {
         this._connect(resolve, reject);
       })
     ]).then(([_, clientId]) => {
-      this.setLocalMediaStream(
-        this.easyrtc.getLocalStream()
-      );
       this._myRoomJoinTime = this._getRoomJoinTime(clientId);
       this.connectSuccess(clientId);
     }).catch(this.connectFailure);
