@@ -1,8 +1,6 @@
 /* global AFRAME, NAF, THREE */
 var naf = require('../NafIndex');
 
-// https://stackoverflow.com/questions/53905525/aframe-how-to-render-a-camera-to-a-texture
-
 AFRAME.registerComponent('networked-video-source', {
 
   schema: {
@@ -28,10 +26,6 @@ AFRAME.registerComponent('networked-video-source', {
         // Correctly configured local entity, perhaps do something here for enabling debug audio loopback
       }
     });
-  },
-
-  update() {
-
   },
 
   _setMediaStream(newStream) {
@@ -80,10 +74,6 @@ AFRAME.registerComponent('networked-video-source', {
 
   setupVideo: function() {
     var el = this.el;
-
-    if (this.video) {
-      el.removeObject3D(this.attrName);
-    }
 
     if (!this.video) {
       var video = document.createElement('video');
