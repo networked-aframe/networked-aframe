@@ -54,6 +54,7 @@ errorShots
 
 # Temp build file
 examples/build.js
+examples/dist
 
 # Webstorm
 /.idea/*
