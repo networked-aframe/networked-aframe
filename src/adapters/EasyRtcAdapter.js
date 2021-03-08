@@ -225,13 +225,6 @@ class EasyRtcAdapter extends NoOpAdapter {
     }
   }
 
-  setLocalMediaStream(stream) {
-    this.setMediaStream(
-        this.easyrtc.myEasyrtcid,
-        stream
-    );
-  }
-
   enableMicrophone(enabled) {
     this.easyrtc.enableAudio(enabled);
     this.easyrtc.enableMicrophone(enabled);
