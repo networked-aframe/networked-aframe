@@ -42,13 +42,19 @@ AFRAME.registerComponent('networked-video-source', {
       if (newStream) {
         this.video.srcObject = newStream;
 
-        var playResult = this.video.play();
+        const playResult = this.video.play();
         if (playResult instanceof Promise) {
           playResult.catch((e) => naf.log.error(`Error play video stream`, e));
         }
 
+        if (this.videoTexture) {
+          this.videoTexture.dispose();
+        }
+
+        this.videoTexture = new THREE.VideoTexture(this.video);
+
         const mesh = this.el.getObject3D('mesh');
-        mesh.material.map = new THREE.VideoTexture(this.video);
+        mesh.material.map = this.videoTexture;
         mesh.material.needsUpdate = true;
       }
 
@@ -57,31 +63,35 @@ AFRAME.registerComponent('networked-video-source', {
   },
 
   _clearMediaStream() {
-    if (this.video) {
-      this.video.srcObject = null;
-      this.video = null;
-      this.stream = null;
+
+    this.stream = null;
+
+    if (this.videoTexture) {
+
+      if (this.videoTexture.image instanceof HTMLVideoElement) {
+        // Note: this.videoTexture.image === this.video
+        const video = this.videoTexture.image;
+        video.pause();
+        video.srcObject = null;
+        video.load();
+      }
+
+      this.videoTexture.dispose();
+      this.videoTexture = null;
     }
   },
 
   remove: function() {
-    if (!this.videoTexture) return;
-
-    if (this.stream) {
-        this._clearMediaStream();
-    }
+      this._clearMediaStream();
   },
 
   setupVideo: function() {
-    var el = this.el;
-
     if (!this.video) {
-      var video = document.createElement('video');
+      const video = document.createElement('video');
       video.setAttribute('autoplay', true);
       video.setAttribute('playsinline', true);
       video.setAttribute('muted', true);
+      this.video = video;
     }
-
-    this.video = video;
   }
 });
