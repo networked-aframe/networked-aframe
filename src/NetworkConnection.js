@@ -28,7 +28,7 @@ class NetworkConnection {
         = this.entities.removeRemoteEntity.bind(this.entities);
   }
 
-  connect(serverUrl, appName, roomName, enableAudio = false) {
+  connect(serverUrl, appName, roomName, enableAudio = false, enableVideo = false) {
     NAF.app = appName;
     NAF.room = roomName;
 
@@ -38,7 +38,7 @@ class NetworkConnection {
 
     var webrtcOptions = {
       audio: enableAudio,
-      video: false,
+      video: enableVideo,
       datachannel: true
     };
     this.adapter.setWebRtcOptions(webrtcOptions);
