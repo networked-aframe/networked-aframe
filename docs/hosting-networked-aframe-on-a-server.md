@@ -46,7 +46,7 @@ Steps:
 3. Push your [local Networked-Aframe experience](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md) to a GitHub repo
 4. Git clone your repo onto the AWS instance
 5. Run `npm install pm2 -g` to install the pm2 process manager (this keeps your app alive even when you log off your server)
-6. Start the app with `PORT=80 pm2 start server.js`
+6. Start the app with `PORT=80 pm2 start server/easyrtc-server.js`
 
 
 ### Extra Steps for WebRTC
