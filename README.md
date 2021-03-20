@@ -431,7 +431,8 @@ Help and More Information
 * [A-Frame](https://aframe.io/)
 * [WebXR](https://immersiveweb.dev)
 * [Open EasyRTC WebRTC library](https://github.com/open-easyrtc/open-easyrtc)
-* [Hayden Lee, NAF Creator and Maintainer](https://twitter.com/haydenlee37)
+* [Hayden Lee, NAF creator and previous maintainer](https://twitter.com/haydenlee37)
+* [Vincent Fretin](https://twitter.com/vincentfretin) is handling new contributions and releases since the version 0.8.0
 * Bugs and requests can be filed on [GitHub Issues](https://github.com/networked-aframe/networked-aframe/issues)
 
 
