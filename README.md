@@ -372,6 +372,7 @@ List of the supported adapters:
 | -------- | ----------- | ------------- | ----------- | ---------- |
 | wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | No | WebSockets | `npm run dev` |
 | easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Audio and Camera (no screen share) | WebRTC | `npm run dev` |
+| janus | Uses the [Janus WebRTC server](https://github.com/meetecho/janus-gateway) and [janus-plugin-sfu](https://github.com/mozilla/janus-plugin-sfu) | Audio and Video (camera or screen share) | WebRTC | See [naf-janus-adapter](https://github.com/Synantoo/naf-janus-adapter/tree/3.0.x) |
 | socketio | SocketIO implementation without external library (work in progress, currently no maintainer) | No | WebSockets | `npm run dev-socketio` |
 | webrtc | Native WebRTC implementation without external library (work in progress, currently no maintainer) | Audio | WebRTC | `npm run dev-socketio` |
 | Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling (currently no maintainer) | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
