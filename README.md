@@ -368,12 +368,12 @@ If you're interested in contributing to NAF a great opportunity is to add suppor
 
 List of the supported adapters:
 
-| Adapter | Description | Supports Audio | WebSockets or WebRTC | How to start |
+| Adapter | Description | Supports Audio/Video | WebSockets or WebRTC | How to start |
 | -------- | ----------- | ------------- | ----------- | ---------- |
 | wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | No | WebSockets | `npm run dev` |
-| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Yes | WebRTC | `npm run dev` |
+| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Audio and Camera (no screen share) | WebRTC | `npm run dev` |
 | socketio | SocketIO implementation without external library (work in progress, currently no maintainer) | No | WebSockets | `npm run dev-socketio` |
-| webrtc | Native WebRTC implementation without external library (work in progress, currently no maintainer) | Yes | WebRTC | `npm run dev-socketio` |
+| webrtc | Native WebRTC implementation without external library (work in progress, currently no maintainer) | Audio | WebRTC | `npm run dev-socketio` |
 | Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling (currently no maintainer) | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
 | uWS | Implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) (currently no maintainer) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
 
