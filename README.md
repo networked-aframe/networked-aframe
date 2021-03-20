@@ -37,6 +37,12 @@ Features
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
 
 
+Release notes
+-------------
+
+You can read [the release notes](https://github.com/networked-aframe/networked-aframe/blob/master/docs/RELEASE_NOTES.md) to know what changed in the latest releases.
+
+
 Getting Started
 ---------------
 
