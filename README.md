@@ -370,7 +370,7 @@ List of the supported adapters:
 
 | Adapter | Description | Supports Audio | WebSockets or WebRTC | How to start |
 | -------- | ----------- | ------------- | ----------- | ---------- |
-| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Yes | WebSockets | `npm run dev` |
+| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | No | WebSockets | `npm run dev` |
 | easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Yes | WebRTC | `npm run dev` |
 | socketio | SocketIO implementation without external library (work in progress, currently no maintainer) | No | WebSockets | `npm run dev-socketio` |
 | webrtc | Native WebRTC implementation without external library (work in progress, currently no maintainer) | Yes | WebRTC | `npm run dev-socketio` |
