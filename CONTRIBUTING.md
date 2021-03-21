@@ -29,6 +29,7 @@ If you're not sure how to do something with Networked-Aframe, please post a ques
 
 # Contribute Code to Networked-Aframe
 
+[README]: https://github.com/networked-aframe/networked-aframe/blob/master/README.md
 [naf]: https://github.com/networked-aframe/networked-aframe
 [aframe]: https://github.com/aframevr/aframe/
 [pr]: https://www.digitalocean.com/community/tutorials/how-to-create-a-pull-request-on-github
