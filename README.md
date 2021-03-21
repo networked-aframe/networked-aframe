@@ -37,6 +37,12 @@ Features
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
 
 
+Release notes
+-------------
+
+You can read [the release notes](https://github.com/networked-aframe/networked-aframe/blob/master/docs/RELEASE_NOTES.md) to know what changed in the latest releases.
+
+
 Getting Started
 ---------------
 
@@ -362,21 +368,30 @@ If you're interested in contributing to NAF a great opportunity is to add suppor
 
 List of the supported adapters:
 
-| Adapter | Description | Supports Audio | WebSockets or WebRTC | How to start |
+| Adapter | Description | Supports Audio/Video | WebSockets or WebRTC | How to start |
 | -------- | ----------- | ------------- | ----------- | ---------- |
-| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Yes | WebSockets | `npm run dev` |
-| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Yes | WebRTC | `npm run dev` |
-| socketio | WIP SocketIO implementation without external library | No | WebSockets | `npm run dev-socketio` |
-| webrtc | WIP Native WebRTC implementation without external library | Yes | WebRTC | `npm run dev-socketio` |
-| Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
-| uWS | Implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
-| Deepstream | [DeepstreamHub](https://deepstreamhub.com/) for WebRTC signalling | No | WebRTC | See [naf-deepstream-adapter](https://github.com/networked-aframe/naf-deepstream-adapter) |
+| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | No | WebSockets | `npm run dev` |
+| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Audio and Camera (no screen share) | WebRTC | `npm run dev` |
+| janus | Uses the [Janus WebRTC server](https://github.com/meetecho/janus-gateway) and [janus-plugin-sfu](https://github.com/mozilla/janus-plugin-sfu) | Audio and Video (camera or screen share) | WebRTC | See [naf-janus-adapter](https://github.com/Synantoo/naf-janus-adapter/tree/3.0.x) |
+| socketio | SocketIO implementation without external library (work in progress, currently no maintainer) | No | WebSockets | `npm run dev-socketio` |
+| webrtc | Native WebRTC implementation without external library (work in progress, currently no maintainer) | Audio | WebRTC | `npm run dev-socketio` |
+| Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling (currently no maintainer) | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
+| uWS | Implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) (currently no maintainer) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
 
 ### Audio
 
-After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3D space from that entities position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
+After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3D space from that entity's position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
 
 To quickly get started, try the [Glitch NAF Audio Example](https://glitch.com/edit/#!/networked-aframe-audio?path=public/index.html).
+
+### Video
+
+After adding `video: true` (not needed for the janus adapter) to the `networked-scene` component (and using an adapter that supports it) you will not see any video by default. Though the video will be streaming, it will not be visible until an entity using a mesh (`<a-plane>` for example) with a `networked-video-source` is created. The video from the owner of this entity will be visible in 3D space from that entity's position. The `networked-video-source` component must be added to an `<a-plane>` child entity of an entity with the `networked` component.
+
+This currently applies only to the easyrtc and janus adapters that supports the `getMediaStream(clientId, type="video")` API.
+
+See the [Video Streaming](https://github.com/networked-aframe/networked-aframe/blob/master/examples/basic-video.html) example
+that shows the user camera without audio.
 
 ### Misc
 
@@ -425,7 +440,8 @@ Help and More Information
 * [A-Frame](https://aframe.io/)
 * [WebXR](https://immersiveweb.dev)
 * [Open EasyRTC WebRTC library](https://github.com/open-easyrtc/open-easyrtc)
-* [Hayden Lee, NAF Creator and Maintainer](https://twitter.com/haydenlee37)
+* [Hayden Lee, NAF creator and previous maintainer](https://twitter.com/haydenlee37)
+* [Vincent Fretin](https://twitter.com/vincentfretin) is handling new contributions and releases since the version 0.8.0
 * Bugs and requests can be filed on [GitHub Issues](https://github.com/networked-aframe/networked-aframe/issues)
 
 
