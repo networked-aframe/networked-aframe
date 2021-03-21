@@ -1,6 +1,5 @@
 [slack]: https://aframe.io/slack-invite/
 [issues]: https://github.com/networked-aframe/networked-aframe/issues
-[hayden]: https://twitter.com/HaydenLee37
 
 Interested in contributing? As an open source project, we'd appreciate any help
 and contributions! On top of the Networked-Aframe framework itself, you can also
@@ -58,8 +57,8 @@ under the [MIT License](LICENSE).
 
 1. Create something awesome with networked-aframe
 2. Publish your work to Github (and GitHub pages) so everyone can learn from your work.
-3. Share it on [Slack](https://aframe.io/slack-invite/), Twitter, or the [awesome-aframe repository](https://github.com/aframevr/awesome-aframe).
-4. Let A-Frame know about it so they can feature it on their blog: [A Week of A-Frame](https://aframe.io/blog/).
+3. Share it on [Slack](https://aframe.io/slack-invite/) on the #projects channel.
+4. Let A-Frame know about it so they can feature it on their blog: [A Week of A-Frame](https://aframe.io/blog/). For this just tweet your project with a small video to @aframevr
 4. For bonus points, write and publish a case study to explain how you built it.
 
 # Help Your Fellow A-Framers
@@ -77,15 +76,14 @@ under the [MIT License](LICENSE).
 # Curate and Make Efforts Known
 
 Every week, the A-Frame team rounds up all the cool stuff happening with A-Frame on their
-[blog](https://aframe.io/blog). They collect things to show off in [these GitHub
-issues](https://github.com/aframevr/aframe-site/labels/A%20Week%20of%20A-Frame).
-If you see anything, just post it there!
+[blog](https://aframe.io/blog). If you tweeted about it and added a comment on Slack,
+there is a good chance for it to be included in the next blog post.
 
-Also feel free to message head NAF maintainer [Hayden on twitter][hayden]!
+Also feel free to message us on #networked-aframe channel on [Slack](https://aframe.io/slack-invite/).
 
 # Spread the Word
 
 If you want to hold an event and talk about WebVR, A-Frame and/or Networked-Aframe, check out [the
 presentation kit](https://github.com/aframevr/aframe-presentation-kit).
 
-Thanks so much for contributing and helping grow WebVR!
+Thanks so much for contributing and helping grow WebXR!
