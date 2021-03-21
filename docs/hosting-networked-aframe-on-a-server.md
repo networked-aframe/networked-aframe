@@ -15,7 +15,7 @@ Custom domain: [Not yet](https://glitch.com/faq#domain)
 
 Steps:
 1. Sign up for a Glitch.com account (you can sign in with GitHub)
-2. Open the [Networked-Aframe Glitch Starter Pack](https://glitch.com/~networked-aframe)
+2. Open the [Networked-Aframe Glitch Starter Pack](https://glitch.com/~naf-project)
 3. Click "Remix your own"
 
 That's it! You can then click "Show" and you have a working example of NAF running at that URL. Open the URL in multiple tabs and you'll see the other avatars. If you're just in proof of concept phase I highly recommend you stop reading here and just use Glitch. It's also the defacto way the A-Frame community shares bugs and shows off examples, so its worth becoming familiar with it.

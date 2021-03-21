@@ -6,7 +6,7 @@ You might be thinking: wait you can do VR on the web? And the answer is yes! Usi
 
 This tutorial goes through how to setup a Networked-Aframe experience from scratch, however if you'd like to get started writing your app with no fuss, remix this project on Glitch and get right to it:
 
-[![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/networked-aframe)
+[![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/naf-project)
 
 If you'd like to setup your own local server and really understand how NAF works, continue on.
 

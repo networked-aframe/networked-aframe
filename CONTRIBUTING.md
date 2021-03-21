@@ -24,7 +24,7 @@ If you're not sure how to do something with Networked-Aframe, please post a ques
 2. Specify the version of Networked-Aframe in which the bug occurred.
 3. Specify information about your browser and system (e.g., "Firefox Nightly on OS X")
 4. Describe the problem in detail (i.e., what happened and what you expected would happen).
-5. If possible, provide a small test case with [Glitch](http://glitch.com), a link to your application, and/or a screenshot. You can fork/remix this [Glitch project](https://glitch.com/edit/#!/networked-aframe).
+5. If possible, provide a small test case with [Glitch](http://glitch.com), a link to your application, and/or a screenshot. You can fork/remix this [Glitch project](https://glitch.com/edit/#!/naf-project).
 
 # Contribute Code to Networked-Aframe
 
