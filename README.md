@@ -99,9 +99,9 @@ Open in two tabs if nobody else is online.
 * [Google Blocks](https://naf-examples.glitch.me/google-blocks.html)
 * [Tracked Controllers](https://naf-examples.glitch.me/tracked-controllers.html)
 * [Positional Audio](https://naf-examples.glitch.me/basic-audio.html)
-* [Nametags](https://glitch.com/edit/#!/naf-nametags)
-* [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
-* [Form to set room and username](https://glitch.com/edit/#!/naf-form-example)
+* [Nametags](https://glitch.com/edit/#!/naf-nametags) (not updated to latest version)
+* [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room) (not updated to latest version)
+* [Form to set room and username](https://glitch.com/edit/#!/naf-form-example) (not updated to latest version)
 * [More...](https://naf-examples.glitch.me)
 
 Made something awesome with Networked-Aframe? [Let us know](https://github.com/networked-aframe/networked-aframe/issues) and we'll include it here.
@@ -385,7 +385,7 @@ part.
 
 After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3D space from that entity's position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
 
-To quickly get started, try the [Glitch NAF Audio Example](https://glitch.com/edit/#!/networked-aframe-audio?path=public/index.html).
+To quickly get started, try the [Glitch NAF Audio Example](https://glitch.com/edit/#!/networked-aframe-audio?path=public/index.html) (not updated to latest version).
 
 ### Video
 
