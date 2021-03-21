@@ -93,17 +93,16 @@ More Examples
 
 Open in two tabs if nobody else is online.
 
-* [Basic](http://haydenlee.io/networked-aframe/basic.html)
-* [Basic with 4 clients](http://haydenlee.io/networked-aframe/basic-4.html)
-* [Dance Club](http://haydenlee.io/networked-aframe/a-saturday-night/index.html)
-* [Google Blocks](http://haydenlee.io/networked-aframe/google-blocks.html)
-* [Tracked Controllers](http://haydenlee.io/networked-aframe/tracked-controllers.html)
-* [Positional Audio](https://networked-aframe-audio.glitch.me/)
+* [Basic](https://naf-examples.glitch.me/basic.html)
+* [Basic with 4 clients](https://naf-examples.glitch.me/basic-4.html)
+* [Dance Club](https://naf-examples.glitch.me/a-saturday-night/index.html)
+* [Google Blocks](https://naf-examples.glitch.me/google-blocks.html)
+* [Tracked Controllers](https://naf-examples.glitch.me/tracked-controllers.html)
+* [Positional Audio](https://naf-examples.glitch.me/basic-audio.html)
 * [Nametags](https://glitch.com/edit/#!/naf-nametags)
 * [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
 * [Form to set room and username](https://glitch.com/edit/#!/naf-form-example)
-* [Minecraft Clone](https://uxvirtual.com/demo/blocks/)
-* [More...](http://haydenlee.io/networked-aframe/)
+* [More...](https://naf-examples.glitch.me)
 
 Made something awesome with Networked-Aframe? [Let us know](https://github.com/networked-aframe/networked-aframe/issues) and we'll include it here.
 
@@ -439,7 +438,7 @@ Help and More Information
 
 * [Getting started tutorial](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md)
 * [Edit live example on glitch.com](https://glitch.com/~networked-aframe)
-* [Live demo site](http://haydenlee.io/networked-aframe)
+* [Live demo site](https://naf-examples.glitch.me)
 * [Networked-Aframe Adapters](https://github.com/networked-aframe)
 * [A-Frame](https://aframe.io/)
 * [WebXR](https://immersiveweb.dev)
