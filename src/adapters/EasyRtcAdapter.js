@@ -226,12 +226,10 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   enableMicrophone(enabled) {
-    this.easyrtc.enableAudio(enabled);
     this.easyrtc.enableMicrophone(enabled);
   }
 
   enableCamera(enabled) {
-    this.easyrtc.enableVideo(enabled);
     this.easyrtc.enableCamera(enabled);
   }
 

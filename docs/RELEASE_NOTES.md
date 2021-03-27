@@ -1,5 +1,10 @@
 # Networked-Aframe Release Notes
 
+## 0.8.1
+
+- Fix an issue with easyrtc adapter enableMicrophone and enableCamera API not
+  working properly.
+
 ## 0.8.0
 
 - Add back wseasyrtc/easyrtc adapters and switch from easyrtc to open-easyrtc
