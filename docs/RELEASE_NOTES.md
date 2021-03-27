@@ -1,5 +1,9 @@
 # Networked-Aframe Release Notes
 
+## 0.8.2
+
+- Republish 0.8.1 as 0.8.2 with the correct version in the js files.
+
 ## 0.8.1
 
 - Fix an issue with easyrtc adapter enableMicrophone and enableCamera API not
