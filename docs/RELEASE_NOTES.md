@@ -4,6 +4,7 @@
 
 - Fix an issue with easyrtc adapter enableMicrophone and enableCamera API not
   working properly.
+- Fix condition in socketio-server.js to remove the room if everybody left.
 
 ## 0.8.0
 
