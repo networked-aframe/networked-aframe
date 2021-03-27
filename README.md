@@ -143,6 +143,7 @@ Required on the A-Frame `<a-scene>` component.
 | onConnect  | Function to be called when client has successfully connected to the server. | onConnect |
 | adapter | The network service that you wish to use, see [adapters](#adapters). | wseasyrtc |
 | audio  | Turn on / off microphone audio streaming for your app. Only works if the chosen adapter supports it. | false |
+| video  | Turn on / off video streaming for your app. Only works if the chosen adapter supports it. | false |
 | debug  | Turn on / off Networked-Aframe debug logs. | false |
 
 ### Connecting
@@ -387,6 +388,14 @@ After adding `audio: true` to the `networked-scene` component (and using an adap
 
 To quickly get started, try the [Glitch NAF Audio Example](https://glitch.com/edit/#!/networked-aframe-audio?path=public/index.html) (not updated to latest version).
 
+To mute/unmute the microphone, you can use the following API (easyrtc and janus adapters):
+
+```javascript
+NAF.connection.adapter.enableMicrophone(enabled)
+```
+
+where `enabled` is `true` or `false`.
+
 ### Video
 
 After adding `video: true` (not needed for the janus adapter) to the `networked-scene` component (and using an adapter that supports it) you will not see any video by default. Though the video will be streaming, it will not be visible until an entity using a mesh (`<a-plane>` for example) with a `networked-video-source` is created. The video from the owner of this entity will be visible in 3D space from that entity's position. The `networked-video-source` component must be added to an `<a-plane>` child entity of an entity with the `networked` component.
@@ -395,6 +404,14 @@ This currently applies only to the easyrtc and janus adapters that supports the 
 
 See the [Video Streaming](https://github.com/networked-aframe/networked-aframe/blob/master/examples/basic-video.html) example
 that shows the user camera without audio.
+
+To disable/reenable the camera, you can use the following API (easyrtc adapter only):
+
+```javascript
+NAF.connection.adapter.enableCamera(enabled)
+```
+
+where `enabled` is `true` or `false`.
 
 ### Misc
 
