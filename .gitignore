@@ -48,13 +48,13 @@ jspm_packages
 
 # MacOS
 .DS_Store
-**Icon?
 
 # Testing suites
 errorShots
 
 # Temp build file
 examples/build.js
+examples/dist
 
 # Webstorm
 /.idea/*

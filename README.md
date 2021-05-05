@@ -4,7 +4,6 @@
 Networked-Aframe
 =======
 
-<a href="https://travis-ci.org/networked-aframe/networked-aframe"><img src="https://img.shields.io/travis/networked-aframe/networked-aframe.svg" alt="Build Status"></a>
 <span class="badge-npmversion"><a href="https://npmjs.org/package/networked-aframe" title="View this project on NPM"><img src="https://img.shields.io/npm/v/networked-aframe.svg" alt="NPM version" /></a></span>
 <span class="badge-npmdownloads"><a href="https://npmjs.org/package/networked-aframe" title="View this project on NPM"><img src="https://img.shields.io/npm/dm/networked-aframe.svg" alt="NPM downloads" /></a></span>
 
@@ -38,10 +37,16 @@ Features
 * Extendable. Sync any A-Frame component, including your own, without changing the component code at all.
 
 
+Release notes
+-------------
+
+You can read [the release notes](https://github.com/networked-aframe/networked-aframe/blob/master/docs/RELEASE_NOTES.md) to know what changed in the latest releases.
+
+
 Getting Started
 ---------------
 
-[![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/networked-aframe)
+[![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/naf-project)
 
 Follow [the NAF Getting Started tutorial](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md) to build your own example from scratch, including setting up a local server.
 
@@ -64,8 +69,9 @@ Basic Example
 <html>
   <head>
     <title>My Networked-Aframe Scene</title>
-    <script src="https://aframe.io/releases/1.0.3/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
     <script src="https://unpkg.com/networked-aframe/dist/networked-aframe.min.js"></script>
   </head>
   <body>
@@ -87,17 +93,16 @@ More Examples
 
 Open in two tabs if nobody else is online.
 
-* [Basic](http://haydenlee.io/networked-aframe/basic.html)
-* [Basic with 4 clients](http://haydenlee.io/networked-aframe/basic-4.html)
-* [Dance Club](http://haydenlee.io/networked-aframe/a-saturday-night/index.html)
-* [Google Blocks](http://haydenlee.io/networked-aframe/google-blocks.html)
-* [Tracked Controllers](http://haydenlee.io/networked-aframe/tracked-controllers.html)
-* [Positional Audio](https://networked-aframe-audio.glitch.me/)
-* [Nametags](https://glitch.com/edit/#!/naf-nametags)
-* [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
-* [Form to set room and username](https://glitch.com/edit/#!/naf-form-example)
-* [Minecraft Clone](https://uxvirtual.com/demo/blocks/)
-* [More...](http://haydenlee.io/networked-aframe/)
+* [Basic](https://naf-examples.glitch.me/basic.html)
+* [Basic with 4 clients](https://naf-examples.glitch.me/basic-4.html)
+* [Dance Club](https://naf-examples.glitch.me/a-saturday-night/index.html)
+* [Google Blocks](https://naf-examples.glitch.me/google-blocks.html)
+* [Tracked Controllers](https://naf-examples.glitch.me/tracked-controllers.html)
+* [Positional Audio](https://naf-examples.glitch.me/basic-audio.html)
+* [Nametags](https://glitch.com/edit/#!/naf-nametags) (not updated to latest version)
+* [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room) (not updated to latest version)
+* [Form to set room and username](https://glitch.com/edit/#!/naf-form-example) (not updated to latest version)
+* [More...](https://naf-examples.glitch.me)
 
 Made something awesome with Networked-Aframe? [Let us know](https://github.com/networked-aframe/networked-aframe/issues) and we'll include it here.
 
@@ -121,7 +126,7 @@ Required on the A-Frame `<a-scene>` component.
   room: <roomName>;
   connectOnLoad: true;
   onConnect: onConnect;
-  adapter: socketio;
+  adapter: wseasyrtc;
   audio: false;
   debug: false;
 ">
@@ -136,8 +141,9 @@ Required on the A-Frame `<a-scene>` component.
 | room  | Unique room name. Can be multiple per app. Spaces are not allowed. There can be multiple rooms per app and clients can only connect to clients in the same app & room. | default |
 | connectOnLoad  | Connect to the server as soon as the webpage loads. | true |
 | onConnect  | Function to be called when client has successfully connected to the server. | onConnect |
-| adapter | The network service that you wish to use, see [adapters](#adapters). | socketio |
+| adapter | The network service that you wish to use, see [adapters](#adapters). | wseasyrtc |
 | audio  | Turn on / off microphone audio streaming for your app. Only works if the chosen adapter supports it. | false |
+| video  | Turn on / off video streaming for your app. Only works if the chosen adapter supports it. | false |
 | debug  | Turn on / off Networked-Aframe debug logs. | false |
 
 ### Connecting
@@ -265,8 +271,8 @@ To sync nested templates setup your HTML nodes like so:
 ```HTML
 <a-entity id="player" networked="template:#player-template;attachTemplateToLocal:false;" wasd-controls>
   <a-entity camera look-controls networked="template:#head-template;attachTemplateToLocal:false;"></a-entity>
-  <a-entity hand-controls="left" networked="template:#left-hand-template"></a-entity>
-  <a-entity hand-controls="right" networked="template:#right-hand-template"></a-entity>
+  <a-entity hand-controls="hand:left" networked="template:#left-hand-template"></a-entity>
+  <a-entity hand-controls="hand:right" networked="template:#right-hand-template"></a-entity>
 </a-entity>
 ```
 
@@ -291,7 +297,7 @@ Subscribe and unsubscribe callbacks to network messages specified by `dataType`.
 | -------- | -----------
 | clientId | ClientId to send this data to
 | dataType  | String to identify a network message. `u` is a reserved data type, don't use it pls
-| callback  | Function to be called when message of type `dataType` is received. Parameters: function(senderId, dataType, data, targetId)
+| callback  | Function to be called when message of type `dataType` is received. Parameters: `function(senderId, dataType, data, targetId)`
 | data | Object to be sent to all other clients
 
 
@@ -321,7 +327,7 @@ document.body.addEventListener('clientConnected', function (evt) {
   console.error('clientConnected event. clientId =', evt.detail.clientId);
 });
 ```
-Events need to be subscribed after the document.body element has been created. This could be achieved by waiting for the document.body `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/networked-aframe/networked-aframe/blob/master/examples/basic-events.html#L30) as an example.
+Events need to be subscribed after the `document.body` element has been created. This could be achieved by waiting for the `document.body` `onLoad` method, or by using NAF's `onConnect` function. Use the [NAF Events Demo](https://github.com/networked-aframe/networked-aframe/blob/master/examples/basic-events.html) as an example.
 
 List of events:
 
@@ -356,28 +362,56 @@ NAF can be used with multiple network libraries and services. An adapter is a cl
 - Do you need custom server-side logic?
 - Do you want a WebSocket (client-server) network architecture or WebRTC (peer-to-peer)?
 
-I'll write up a post on the answers to these questions soon (please [bug me](https://github.com/networked-aframe/networked-aframe/issues) about it if you're interested).
-
-By default the `socketio` adapter is used, which does not support audio and uses a TCP connection. This is not ideal for production deployments however due to inherent connection issues with WebRTC we've set it as the default. To use WebRTC instead of WebSockets, change the adapter to `webrtc`, which supports audio and uses a UDP.
+By default the `wseasyrtc` adapter is used, which does not support audio and uses a TCP connection. This is not ideal for production deployments however due to inherent connection issues with WebRTC we've set it as the default. To support audio via WebRTC be sure the server is using https and change the adapter to `easyrtc` (this uses UDP).
 
 If you're interested in contributing to NAF a great opportunity is to add support for more adapters and send a pull request.
 
 List of the supported adapters:
 
-| Adapter | Description | Supports Audio | WebSockets or WebRTC | How to start |
+| Adapter | Description | Supports Audio/Video | WebSockets or WebRTC | How to start |
 | -------- | ----------- | ------------- | ----------- | ---------- |
-| socketio | DEFAULT - SocketIO implementation | No | WebSockets only | `npm run start` |
-| webrtc | Native WebRTC implementation | Yes | Both | `npm run start` |
-| Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
-| uWS | Implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
-| EasyRTC | [EasyRTC](https://github.com/priologic/easyrtc) | Yes | Both | See [naf-easyrtc-adapter](https://github.com/networked-aframe/naf-easyrtc-adapter) |
-| Deepstream | [DeepstreamHub](https://deepstreamhub.com/) for WebRTC signalling | No | WebRTC | See [naf-deepstream-adapter](https://github.com/networked-aframe/naf-deepstream-adapter) |
+| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | No | WebSockets | `npm run dev` |
+| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Audio and Camera (no screen share) | WebRTC | `npm run dev` |
+| janus | Uses the [Janus WebRTC server](https://github.com/meetecho/janus-gateway) and [janus-plugin-sfu](https://github.com/mozilla/janus-plugin-sfu) | Audio and Video (camera or screen share) | WebRTC | See [naf-janus-adapter](https://github.com/networked-aframe/naf-janus-adapter/tree/3.0.x) |
+| socketio | SocketIO implementation without external library (work in progress, currently no maintainer) | No | WebSockets | `npm run dev-socketio` |
+| webrtc | Native WebRTC implementation without external library (work in progress, currently no maintainer) | Audio | WebRTC | `npm run dev-socketio` |
+| Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling (currently no maintainer) | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
+| uWS | Implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) (currently no maintainer) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
+
+WebRTC in the table means that component updates is using WebRTC Datachannels
+(UDP) instead of the WebSocket (TCP). You still have a WebSocket for the signaling
+part.
 
 ### Audio
 
-After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3D space from that entities position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
+After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3D space from that entity's position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
 
-To quickly get started, try the [Glitch NAF Audio Example](https://glitch.com/edit/#!/networked-aframe-audio?path=public/index.html).
+To quickly get started, try the [Glitch NAF Audio Example](https://glitch.com/edit/#!/networked-aframe-audio?path=public/index.html) (not updated to latest version).
+
+To mute/unmute the microphone, you can use the following API (easyrtc and janus adapters):
+
+```javascript
+NAF.connection.adapter.enableMicrophone(enabled)
+```
+
+where `enabled` is `true` or `false`.
+
+### Video
+
+After adding `video: true` (not needed for the janus adapter) to the `networked-scene` component (and using an adapter that supports it) you will not see any video by default. Though the video will be streaming, it will not be visible until an entity using a mesh (`<a-plane>` for example) with a `networked-video-source` is created. The video from the owner of this entity will be visible in 3D space from that entity's position. The `networked-video-source` component must be added to an `<a-plane>` child entity of an entity with the `networked` component.
+
+This currently applies only to the easyrtc and janus adapters that supports the `getMediaStream(clientId, type="video")` API.
+
+See the [Video Streaming](https://github.com/networked-aframe/networked-aframe/blob/master/examples/basic-video.html) example
+that shows the user camera without audio.
+
+To disable/reenable the camera, you can use the following API (easyrtc adapter only):
+
+```javascript
+NAF.connection.adapter.enableCamera(enabled)
+```
+
+where `enabled` is `true` or `false`.
 
 ### Misc
 
@@ -411,7 +445,7 @@ By default when an entity is created the [`aframe-lerp-component`](https://githu
 Stay in Touch
 -------------
 
-- Join the [A-Frame Slack](https://aframevr-slack.herokuapp.com) and add the #networked-aframe channel
+- Join the [A-Frame Slack](https://aframe.io/slack-invite/) and add the #networked-aframe channel
 - Follow changes on [GitHub](https://github.com/networked-aframe/networked-aframe/subscription)
 - Let us know if you've made something with Networked-Aframe. We'd love to see it!
 
@@ -420,12 +454,14 @@ Help and More Information
 ------------------------------
 
 * [Getting started tutorial](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md)
-* [Edit live example on glitch.com](https://glitch.com/~networked-aframe)
-* [Live demo site](http://haydenlee.io/networked-aframe)
+* [Edit live example on glitch.com](https://glitch.com/~naf-project)
+* [Live demo site](https://naf-examples.glitch.me)
 * [Networked-Aframe Adapters](https://github.com/networked-aframe)
 * [A-Frame](https://aframe.io/)
-* [WebXR](https://github.com/immersive-web/webxr)
-* [Hayden Lee, NAF Creator and Maintainer](https://twitter.com/haydenlee37)
+* [WebXR](https://immersiveweb.dev)
+* [Open EasyRTC WebRTC library](https://github.com/open-easyrtc/open-easyrtc)
+* [Hayden Lee, NAF creator and previous maintainer](https://twitter.com/haydenlee37)
+* [Vincent Fretin](https://twitter.com/vincentfretin) is handling new contributions and releases since the version 0.8.0
 * Bugs and requests can be filed on [GitHub Issues](https://github.com/networked-aframe/networked-aframe/issues)
 
 
@@ -450,7 +486,6 @@ Roadmap
 -------
 
 * More examples!
-* [Roadmap](https://github.com/networked-aframe/networked-aframe/projects/1)
 * [Add your suggestions](https://github.com/networked-aframe/networked-aframe/issues)
 
 Interested in contributing? [Open an issue](https://github.com/networked-aframe/networked-aframe/issues) or send a pull request.

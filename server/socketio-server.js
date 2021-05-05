@@ -17,11 +17,11 @@ app.use(express.static(path.resolve(__dirname, "..", "examples")));
 if (process.env.NODE_ENV === "development") {
   const webpackMiddleware = require("webpack-dev-middleware");
   const webpack = require("webpack");
-  const config = require("../webpack.dev");
+  const config = require("../webpack.config");
 
   app.use(
     webpackMiddleware(webpack(config), {
-      publicPath: "/dist/"
+      publicPath: "/"
     })
   );
 }
@@ -76,7 +76,7 @@ io.on("connection", socket => {
       const occupants = rooms[curRoom].occupants;
       socket.to(curRoom).broadcast.emit("occupantsChanged", { occupants });
 
-      if (occupants == {}) {
+      if (Object.keys(occupants).length === 0) {
         console.log("everybody left room");
         delete rooms[curRoom];
       }

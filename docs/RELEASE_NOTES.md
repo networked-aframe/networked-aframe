@@ -1,5 +1,51 @@
 # Networked-Aframe Release Notes
 
+## 0.8.2
+
+- Republish 0.8.1 as 0.8.2 with the correct version in the js files.
+
+## 0.8.1
+
+- Fix an issue with easyrtc adapter enableMicrophone and enableCamera API not
+  working properly.
+- Fix condition in socketio-server.js to remove the room if everybody left.
+
+## 0.8.0
+
+- Add back wseasyrtc/easyrtc adapters and switch from easyrtc to open-easyrtc
+  library. The wseasyrtc is again the default adapter.
+- Keep the socketio/webrtc adapters introduced in 0.7.0 but mark them as
+  work in progress. The webrtc adapter wasn't tested in production condition
+  and we had several reports of issues with it. You may continue to
+  use the simple socketio adapter (without dependency on open-easyrtc) but be
+  aware it may lack some keepalive mechanism if you host the node process
+  behind nginx for example. We advice to use again wseasyrtc if you want an
+  adapter without audio because it contains a keepalive mechanism by sending a
+  stillAlive message every 20s by default. See issue [#243](https://github.com/networked-aframe/networked-aframe/issues/243)
+  for more details.
+- Add support for sharing camera in the easyrtc adapter and add a basic-video
+  example to share the camera without audio. The example uses a new `networked-video-source`
+  component similar to `networked-audio-source`. You can use `networked-video-source` with any adapter
+  supporting the `getMediaStream(clientId, type="video")` API (currently easyrtc
+  and janus adapters).
+- Fix the shooter example where the bullets weren't visible to the person
+  shooting the bullets. See issue [#213](https://github.com/networked-aframe/networked-aframe/issues/213) to know why.
+- Remove all browserify dependencies and now only use webpack in the repo. You
+  may be impacted if you use the repo directly instead of following the getting
+  started tutorial. See [PR #259](https://github.com/networked-aframe/networked-aframe/pull/259) to know what needs to be changed.
+- Add note about using a specific networked-aframe version for production in
+  the getting started tutorial.
+- Prevent invalid positions from freezing remote clients, see [Mozilla #43](https://github.com/MozillaReality/networked-aframe/pull/43)
+
+## 0.7.1
+
+- Fix some issues in the new socketio/webrtc adapters.
+
+## 0.7.0
+
+- Remove wseasyrtc/easyrtc adapters and add new socketio/webrtc adapters.
+  The socketio is the new default adapter.
+
 ## 0.6.1
 
 - Removes requirement to add a schema for a template if only syncing the default components (position and rotation)

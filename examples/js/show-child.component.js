@@ -1,3 +1,4 @@
+/* global AFRAME */
 AFRAME.registerComponent('show-child', {
   schema: {
     type: 'int',

@@ -7,8 +7,9 @@ AFRAME.registerComponent('networked-scene', {
     room: {default: 'default'},
     connectOnLoad: {default: true},
     onConnect: {default: 'onConnect'},
-    adapter: {default: 'socketio'}, // See https://github.com/networked-aframe/networked-aframe#adapters for list of adapters
+    adapter: {default: 'wseasyrtc'}, // See https://github.com/networked-aframe/networked-aframe#adapters for list of adapters
     audio: {default: false}, // Only if adapter supports audio
+    video: {default: false}, // Only if adapter supports video
     debug: {default: false},
   },
 
@@ -34,7 +35,7 @@ AFRAME.registerComponent('networked-scene', {
     if (this.hasOnConnectFunction()) {
       this.callOnConnect();
     }
-    return NAF.connection.connect(this.data.serverURL, this.data.app, this.data.room, this.data.audio);
+    return NAF.connection.connect(this.data.serverURL, this.data.app, this.data.room, this.data.audio, this.data.video);
   },
 
   checkDeprecatedProperties: function() {

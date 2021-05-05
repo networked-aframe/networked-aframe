@@ -16,7 +16,7 @@ suite('networked', function() {
       assets: [
         "<template id='t1'><a-entity><a-entity class='template-child'></a-entity></a-entity></template>"
       ],
-      entity: '<a-entity id="test-entity" networked="template:#t1" position="1 2 3" rotation="4 3.5 2"><a-box></a-box></a-entity>'
+      entity: '<a-entity networked="template:#t1" position="1 2 3" rotation="4 3.5 2"><a-box></a-box></a-entity>'
     };
     scene = helpers.sceneFactory(opts);
     naf.utils.whenEntityLoaded(scene, done);
@@ -26,7 +26,7 @@ suite('networked', function() {
     naf.clientId = 'owner1';
     naf.connection.setNetworkAdapter(new helpers.MockNetworkAdapter());
     initScene(function() {
-      entity = document.querySelector('#test-entity');
+      entity = document.querySelector('a-entity');
       networked = entity.components['networked'];
       networkedSystem = scene.systems['networked'];
       networked.data.networkId = '';
@@ -51,13 +51,15 @@ suite('networked', function() {
 
   suite('init', function() {
 
-    test('sets networkId', sinon.test(function() {
+    test('sets networkId and element id', sinon.test(function() {
       this.stub(naf.utils, 'createNetworkId').returns('nid1');
 
+      networked.el.id = ''
       networked.init();
 
       var result = networked.data.networkId;
       assert.equal(result, 'nid1');
+      assert.equal(entity.id, 'naf-nid1');
     }));
 
     test('retains networkId after component update', sinon.test(function() {
