@@ -1,0 +1,39 @@
+name: Test Cases
+on:
+  push:
+    branches:
+      - master
+      - issue-237-git-action
+  pull_request:
+    branches:
+      - master
+jobs:
+  test:
+    name: Test Cases
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['12.x']
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2.3.2
+
+      - name: Use Node.js ${{ matrix['node-version'] }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix['node-version'] }}
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Test Cases Using Firefox
+        run: yarn test:firefox
+
+      - name: Test Cases Using Chrome
+        run: yarn test:chrome
+
+      - name: Check Lint
+        run: yarn lint
+
+      - name: Build
+        run: yarn build
