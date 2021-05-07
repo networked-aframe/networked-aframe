@@ -1,11 +1,6 @@
 // karma configuration
-var karma_conf = {
+const karma_conf = {
   basePath: '../../',
-  browserify: {
-    debug: true,
-    paths: ['src'],
-    transform: ['browserify-istanbul']
-  },
   browserNoActivityTimeout: 1000000,
   browsers: [ 'Chrome', 'Firefox' ],
   client: {
@@ -15,6 +10,9 @@ var karma_conf = {
   envPreprocessor: [
     'TEST_ENV'
   ],
+  webpack: {
+
+  },
   files: [
     // Define test files.
     {pattern: './tests/unit/NafInterface.test.js'},
@@ -28,12 +26,26 @@ var karma_conf = {
     {pattern: './tests/unit/ChildEntityCache.test.js'},
     {pattern: './src/**/*.js', included: false}
   ],
-  frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal', 'browserify'],
-  preprocessors: {
-    'tests/unit/**/*.js': ['browserify', 'env'],
-    'src/**/*.js': 'coverage'
+    frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal', 'webpack'],
+    preprocessors: {
+    'tests/unit/**/*.js': ['webpack', 'env'],
+      'src/**/*.js': ['coverage']
   },
-  reporters: ['mocha', 'coverage']
+  plugins: [
+    'karma-webpack',
+    'karma-mocha',
+    'karma-sinon-chai',
+    'karma-chai-shallow-deep-equal',
+    'karma-mocha-reporter',
+    'karma-chrome-launcher',
+    'karma-firefox-launcher',
+    'karma-coverage',
+    'karma-env-preprocessor'
+  ],
+  reporters: ['mocha', 'coverage'],
+  logLevel: 'INFO',
+  colors: true,
+  singleRun: true
   // restartOnFileChange: true
 };
 
