@@ -128,6 +128,7 @@ Required on the A-Frame `<a-scene>` component.
   onConnect: onConnect;
   adapter: wseasyrtc;
   audio: false;
+  video: false;
   debug: false;
 ">
   ...
