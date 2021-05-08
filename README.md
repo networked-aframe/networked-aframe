@@ -224,7 +224,7 @@ Templates must only have one root element. When `attachTemplateToLocal` is set t
 | -------- | ------------ | --------------
 | template  | A css selector to a template tag stored in `<a-assets>` | ''
 | attachTemplateToLocal  | Does not attach the template for the local user when set to false. This is useful when there is different behavior locally and remotely. | true
-| persistent | On remote owner disconnect, attempts to take ownership of persistent entities rather than delete them | false
+| persistent | On remote creator (not owner) disconnect, attempts to take ownership of persistent entities rather than delete them | false
 
 
 ### Deleting Networked Entities
