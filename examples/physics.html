@@ -8,8 +8,54 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
+    <script>
+      // see issue https://github.com/networked-aframe/networked-aframe/issues/267
+      NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
+      NAF.schemas.getComponents = (template) => {
+        if (!NAF.schemas.hasTemplate("#avatar-template")) {
+          // Define custom schema for syncing avatar color, set by random-color
+          NAF.schemas.add({
+            template: '#avatar-template',
+             components: [
+              'position',
+              'rotation',
+              {
+                selector: '.head',
+                component: 'material',
+                property: 'color'
+              }
+            ]
+          });
+        }
+
+        if (!NAF.schemas.hasTemplate("#cube-template")) {
+          NAF.schemas.add({
+            template: '#cube-template',
+            components: [
+              'position',
+              {
+                selector: '.cube',
+                component: 'position'
+              },
+              {
+                selector: '.cube',
+                component: 'rotation'
+              },
+              {
+                selector: '.cube',
+                component: 'material',
+                property: 'color'
+              }
+            ]
+          });
+        }
+
+        const components = NAF.schemas.getComponentsOriginal(template);
+        return components;
+      }
+    </script>
     <script src="https://mixedreality.mozilla.org/ammo.js/builds/ammo.wasm.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@master/dist/aframe-physics-system.js"></script>
     <!--
     This example is a modified version of ownership-transfer.html
     You can compare the two files to easily see what changes you need to do to add physics.
@@ -40,6 +86,17 @@
         font-family: monospace;
         color: white;
       }
+
+      #enter-room-btn {
+        position: absolute;
+        cursor: pointer;
+        bottom: 50%;
+        left:50%;
+        background: #fff;
+        height: 40px;
+        width: 100px;
+        border-radius: 30px;
+      }
     </style>
 
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
@@ -47,7 +104,6 @@
     <script src="https://cdn.jsdelivr.net/gh/oneWaveAdrian/aframe-particle-system-component@aframe-1.2.0-upgrade/dist/aframe-particle-system-component.min.js"></script>
     <script src="/js/spawn-in-circle.component.js"></script>
     <script src="/js/spawner.component.js"></script>
-    <script src="/js/toggle-ownership.component.js"></script>
   </head>
   <body>
     <a-scene
@@ -56,6 +112,7 @@
         room: dev;
         debug: true;
         adapter: wseasyrtc;
+        connectOnLoad: false;
       ">
       <a-assets>
 
@@ -101,7 +158,7 @@
 
         <template id="cube-template">
           <a-entity>
-            <a-box class="cube" toggle-ownership color="#F00"
+            <a-box class="cube" color="#F00" position="0 1 0"
               ammo-body="type: dynamic" ammo-shape="type: box"
               ></a-box>
           </a-entity>
@@ -142,8 +199,9 @@
     </a-scene>
 
     <div class="controls">
-      <p>Press space to spawn a cube. Press enter to take ownership of all cubes.</p>
+      <p>Press space to spawn a cube.</p>
     </div>
+    <button id="enter-room-btn" type="button">Enter Room</button>
 
     <!-- GitHub Corner. -->
     <a href="https://github.com/networked-aframe/networked-aframe" class="github-corner">
@@ -165,45 +223,19 @@
     </script>
 
     <script>
-      // Define custom schema for syncing avatar color, set by random-color
-      NAF.schemas.add({
-        template: '#avatar-template',
-        components: [
-          'position',
-          'rotation',
-          {
-            selector: '.head',
-            component: 'material',
-            property: 'color'
-          }
-        ]
-      });
-
-      NAF.schemas.add({
-        template: '#cube-template',
-        components: [
-          "position",
-          {
-            selector: '.cube',
-            component: 'rotation'
-          },
-          {
-            selector: '.cube',
-            component: 'material',
-            property: 'color'
-          },
-          {
-            selector: '.cube',
-            component: 'toggle-ownership',
-            property: 'direction'
-          }
-        ]
-      });
-
       // Called by Networked-Aframe when connected to server
       function onConnect () {
         console.log("onConnect", new Date());
       }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const scene = document.querySelector('a-scene');
+        const enterRoomBtn = document.getElementById('enter-room-btn');
+        enterRoomBtn.addEventListener('click', () => {
+          scene.emit('connect');
+          enterRoomBtn.style.display = 'none';
+        });
+      });
     </script>
   </body>
 </html>
