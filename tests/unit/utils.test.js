@@ -35,7 +35,7 @@ suite('utils', function() {
         done();
       };
 
-      setTimeout(checkCalled, 10);
+      setTimeout(checkCalled, 30);
     });
 
     test('callback gets called when has already loaded', function() {
