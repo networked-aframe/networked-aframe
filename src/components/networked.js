@@ -580,7 +580,11 @@ AFRAME.registerComponent('networked', {
       if (NAF.entities.hasEntity(this.data.networkId)) {
         NAF.connection.broadcastDataGuaranteed('r', syncData);
       } else {
-        NAF.log.error("Removing networked entity that is not in entities array.");
+        // The entity may already have been removed if the creator (different of the current owner) left the room.
+        // Don't log an error in this case.
+        if (!(this.data.creator && NAF.connection.activeDataChannels[this.data.creator] === false)) {
+          NAF.log.error("Removing networked entity that is not in entities array.");
+        }
       }
     }
     NAF.entities.forgetEntity(this.data.networkId);
