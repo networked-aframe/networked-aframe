@@ -18,7 +18,6 @@
     <script src="js/remove-in-seconds.component.js"></script>
   </head>
   <body>
-
     <a-scene networked-scene="
       room: shooter;
       debug: true;
@@ -133,7 +132,7 @@
     </script>
 
     <script>
-      // Define custom schema for syncing avatar components
+      // Define custom schema for syncing avatar color, set by random-color
       NAF.schemas.add({
         template: '#avatar-template',
         components: [
@@ -141,7 +140,8 @@
           'rotation',
           {
             selector: '.head',
-            component: 'material'
+            component: 'material',
+            property: 'color'
           }
         ]
       });

@@ -15,7 +15,6 @@
     <script src="/js/spawn-in-circle.component.js"></script>
   </head>
   <body>
-
     <a-scene networked-scene="
       room: handcontrollers;
       debug: true;
@@ -36,7 +35,6 @@
         <template id="head-template">
           <a-entity class="avatar">
             <a-sphere class="head"
-              color="#ffffff"
               scale="0.45 0.5 0.4"
             ></a-sphere>
             <a-entity class="face"
@@ -129,7 +127,8 @@
           'rotation',
           {
             selector: '.head',
-            component: 'material'
+            component: 'material',
+            property: 'color'
           }
         ]
       });
@@ -152,7 +151,7 @@
 
       // Called by Networked-Aframe when connected to server
       function onConnect () {
-        console.log("onConnect");
+        console.log("onConnect", new Date());
       }
     </script>
   </body>
