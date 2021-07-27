@@ -81,6 +81,13 @@ AFRAME.registerComponent('networked-audio-source', {
     if (this.stream) {
       this.sound.disconnect();
     }
+
+    if (this.audioEl) {
+      this.audioEl.pause();
+      this.audioEl.srcObject = null;
+      this.audioEl.load();
+      this.audioEl = null;
+    }
   },
 
   setupSound: function() {
