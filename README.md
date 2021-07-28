@@ -186,7 +186,7 @@ Completely removing `a-scene` from your page will also handle cleanly disconnect
 </a-entity>
 ```
 
-Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is added to allow for less network updates while keeping smooth motion.
+Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`buffered-interpolation`](https://github.com/InfiniteLee/buffered-interpolation) is added to allow for less network updates while keeping smooth motion.
 
 Templates must only have one root element. When `attachTemplateToLocal` is set to true, the attributes on this element will be copied to the local entity and the children will be appended to the local entity. Remotely instantiated entities will be a copy of the root element of the template with the `networked` component added to it.
 

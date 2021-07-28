@@ -5,7 +5,7 @@ Interested in contributing? As an open source project, we'd appreciate any help
 and contributions! On top of the Networked-Aframe framework itself, you can also
 contribute to this related component:
 
-- [aframe-lerp-component](https://github.com/haydenjameslee/aframe-lerp-component)
+- [buffered-interpolation](https://github.com/InfiniteLee/buffered-interpolation)
 
 # Join the Community on Slack
 
