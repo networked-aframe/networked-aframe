@@ -383,6 +383,8 @@ WebRTC in the table means that component updates is using WebRTC Datachannels
 (UDP) instead of the WebSocket (TCP). You still have a WebSocket for the signaling
 part.
 
+See also the document [NAF adapters comparison](https://github.com/networked-aframe/networked-aframe/wiki/NAF-adapters-comparison).
+
 ### Audio
 
 After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3D space from that entity's position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
