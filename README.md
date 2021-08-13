@@ -91,7 +91,7 @@ Basic Example
 More Examples
 -------------
 
-Open in two tabs if nobody else is online.
+Open in two tabs if nobody else is online, or [remix the code examples yourself](https://glitch.com/edit/#!/remix/naf-examples).
 
 * [Basic](https://naf-examples.glitch.me/basic.html)
 * [Basic with 4 clients](https://naf-examples.glitch.me/basic-4.html)
