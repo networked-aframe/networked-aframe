@@ -9,8 +9,7 @@
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
     
-<!--   new style does not seem to work here, unfortunately.   -->
-<!--     <script>
+    <script>
         NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
         NAF.schemas.getComponents = (template) => {
           if (!NAF.schemas.hasTemplate("#head-template")) {
@@ -30,7 +29,7 @@
           const components = NAF.schemas.getComponentsOriginal(template);
           return components;
         }
-    </script> -->
+    </script>
     
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
@@ -164,26 +163,26 @@
     
     <script>
       // Define custom schema for syncing avatar color, set by random-color
-      NAF.schemas.add({
-        template: '#head-template',
-        components: [
-          'position',
-          'rotation',
-          {
-            selector: '.head',
-            component: 'material',
-            property: 'color'
-          }
-        ]
-      });
+      // NAF.schemas.add({
+      //   template: '#head-template',
+      //   components: [
+      //     'position',
+      //     'rotation',
+      //     {
+      //       selector: '.head',
+      //       component: 'material',
+      //       property: 'color'
+      //     }
+      //   ]
+      // });
 
-      NAF.schemas.add({
-        template: '#player-template',
-        components: [
-          'position',
-          'rotation'
-        ]
-      });
+      // NAF.schemas.add({
+      //   template: '#player-template',
+      //   components: [
+      //     'position',
+      //     'rotation'
+      //   ]
+      // });
 
       // Called by Networked-Aframe when connected to server
       function onConnect () {
