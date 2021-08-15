@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
-    
+
     <script>
         NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
         NAF.schemas.getComponents = (template) => {
@@ -68,6 +68,7 @@
           // and broadcast the matching gestures to other connected clients
           // possibly trigger the animation on the model itself using animation-mixer:
           // https://github.com/n5ro/aframe-extras/tree/master/src/loaders
+          // could add as 'networked-hands' component within repo
         }
       })
     </script>
@@ -87,7 +88,7 @@
         <!-- NAF Templates -->
 
         <!-- Camera Rig / Player -->
-        <template id="player-template">
+        <template id="camera-rig-template">
           <a-entity></a-entity>
         </template>
 
@@ -127,21 +128,17 @@
       <a-entity environment="preset:forest; skyType:atmosphere; fog:0.25; dressingAmount: 250; dressingColor:#53624b; groundColor: #62473c; groundColor2: #64443a; dressingScale: 2;"></a-entity>
       
       <!--   Here we declare only the local user's avatar, which we then broadcast to other users     -->
-      <a-entity id="player" 
-                tracked-vr-hands 
-                movement-controls="fly:true;" 
-                spawn-in-circle="radius:3"
-                networked="template:#player-template;attachTemplateToLocal:false;" 
+      <!--   tracked-vr-hands means the tracked controllers will be appended to camera rig -->
+      <a-entity id="player" movement-controls="fly:true;" spawn-in-circle="radius:3"
+                tracked-vr-hands
+                networked="template:#camera-rig-template;attachTemplateToLocal:false;"
       >
-        <a-entity camera 
-                  position="0 1.6 0" 
-                  look-controls 
-                  networked="template:#head-template;attachTemplateToLocal:false;">
-            <a-sphere class="head"
-                      random-color
-                      visible="false"
-            ></a-sphere>
+        <a-entity camera position="0 1.6 0" look-controls
+                  networked="template:#head-template;attachTemplateToLocal:false;"
+        >
+            <a-sphere class="head" random-color visible="false"></a-sphere>
         </a-entity>
+
         <!--     if you add hands directly here, like this, it will work! But players without any tracked controllers will have floating hands dragging on the floor under them.     -->
         <!--     instead, add them in an enter-vr event listener, which we put in a component called tracked-vr-hands -->
         <!--         
@@ -162,6 +159,8 @@
 
     
     <script>
+      // old style sync schema declaration, can cause race condition glitch--use new style above
+
       // Define custom schema for syncing avatar color, set by random-color
       // NAF.schemas.add({
       //   template: '#head-template',
@@ -177,15 +176,15 @@
       // });
 
       // NAF.schemas.add({
-      //   template: '#player-template',
+      //   template: '#camera-rig-template',
       //   components: [
       //     'position',
       //     'rotation'
       //   ]
       // });
 
-      // Called by Networked-Aframe when connected to server
       function onConnect () {
+        // Called by Networked-Aframe when connected to server
         console.log("onConnect", new Date());
       }
     </script>
