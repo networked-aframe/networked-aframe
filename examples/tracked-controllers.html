@@ -1,13 +1,36 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Dev Example — Networked-Aframe</title>
-    <meta name="description" content="Dev Example — Networked-Aframe">
+    <title>Tracked Controllers — Networked-Aframe</title>
+    <meta name="description" content="Tracked Controllers — Networked-Aframe">
 
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
+    
+<!--   new style does not seem to work here, unfortunately.   -->
+<!--     <script>
+        NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
+        NAF.schemas.getComponents = (template) => {
+          if (!NAF.schemas.hasTemplate("#head-template")) {
+            NAF.schemas.add({
+              template: '#head-template',
+               components: [
+                'position',
+                'rotation',
+                {
+                  selector: '.head',
+                  component: 'material',
+                  property: 'color'
+                }
+              ]
+            });
+          }
+          const components = NAF.schemas.getComponentsOriginal(template);
+          return components;
+        }
+    </script> -->
     
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
@@ -54,14 +77,16 @@
     <a-scene 
       stats
       networked-scene="
-      room: handcontrollers;
-      debug: true;
+        room: handcontrollers;
+        debug: true;
     ">
       <a-assets>
-        <a-asset-item id="#left-hand-model" src="./assets/leftHandHigh.glb"></a-asset-item>
-        <a-asset-item id="#right-hand-model" src="./assets/rightHandHigh.glb"></a-asset-item>
-
+        <!-- models are from a-frame repo; see bottom of page for downloads:  https://aframe.io/docs/1.2.0/components/hand-controls.html -->
+-        <a-asset-item id="left-hand-model" src="./assets/leftHandHigh.glb"></a-asset-item>
+-        <a-asset-item id="right-hand-model" src="./assets/rightHandHigh.glb"></a-asset-item>
+        
         <!-- NAF Templates -->
+
         <!-- Camera Rig / Player -->
         <template id="player-template">
           <a-entity></a-entity>
@@ -72,10 +97,10 @@
           <a-entity class="avatar">
             <a-sphere class="head" scale="0.2 0.22 0.2" ></a-sphere>
             <a-entity class="face" position="0 0.05 0" >
-              <a-sphere class="eye"  color="white"  position="0.134 0.093 -0.231"  scale="0.06 0.06 0.06" >
+              <a-sphere class="eye"  color="white"  position="0.06 0.05 -0.16"  scale="0.04 0.04 0.04" >
                 <a-sphere class="pupil"  color="black"  position="0 0 -1"  scale="0.2 0.2 0.2"  ></a-sphere>
               </a-sphere>
-              <a-sphere class="eye"  color="white"  position="-0.134 0.093 -0.231"  scale="0.06 0.06 0.06" >
+              <a-sphere class="eye"  color="white"  position="-0.06 0.05 -0.16"  scale="0.04 0.04 0.04" >
                 <a-sphere class="pupil"  color="black"  position="0 0 -1"  scale="0.2 0.2 0.2" ></a-sphere>
               </a-sphere>
             </a-entity>
@@ -83,7 +108,6 @@
         </template>
 
         <!-- Hands -->
-        <!-- models are from a-frame repo; see bottom of page for downloads:  https://aframe.io/docs/1.2.0/components/hand-controls.html -->
         <template id="left-hand-template">
           <a-entity>
             <a-gltf-model class="tracked-left-hand" rotation="0 0 90" src="#left-hand-model"></a-gltf-model>
@@ -95,19 +119,28 @@
             <a-gltf-model class="tracked-right-hand" rotation="0 0 -90" src="#right-hand-model"></a-gltf-model>
           </a-entity>
         </template>
-        <!-- /Templates -->
-      </a-assets>
 
+        <!-- /NAF Templates -->
+
+      </a-assets>
       
       <!--   Actual scene begins:   -->
       <a-entity environment="preset:forest; skyType:atmosphere; fog:0.25; dressingAmount: 250; dressingColor:#53624b; groundColor: #62473c; groundColor2: #64443a; dressingScale: 2;"></a-entity>
       
       <!--   Here we declare only the local user's avatar, which we then broadcast to other users     -->
-      <a-entity id="player" tracked-vr-hands movement-controls="fly:true;" networked="template:#player-template;attachTemplateToLocal:false;" spawn-in-circle="radius:3">
-        <a-entity camera position="0 1.6 0" look-controls networked="template:#head-template;attachTemplateToLocal:false;">
+      <a-entity id="player" 
+                tracked-vr-hands 
+                movement-controls="fly:true;" 
+                spawn-in-circle="radius:3"
+                networked="template:#player-template;attachTemplateToLocal:false;" 
+      >
+        <a-entity camera 
+                  position="0 1.6 0" 
+                  look-controls 
+                  networked="template:#head-template;attachTemplateToLocal:false;">
             <a-sphere class="head"
-              random-color
-              visible="false"
+                      random-color
+                      visible="false"
             ></a-sphere>
         </a-entity>
         <!--     if you add hands directly here, like this, it will work! But players without any tracked controllers will have floating hands dragging on the floor under them.     -->
