@@ -11,11 +11,21 @@ class EasyRtcAdapter extends NoOpAdapter {
     this.room = "default";
 
     this.mediaStreams = {};
+    this.remoteClients = {};
     this.pendingMediaRequests = new Map();
 
     this.serverTimeRequests = 0;
     this.timeOffsets = [];
     this.avgTimeOffset = 0;
+
+    this.easyrtc.setPeerOpenListener((clientId) => {
+      const clientConnection = this.easyrtc.getPeerConnectionByUserId(clientId);
+      this.remoteClients[clientId] = clientConnection;
+    });
+
+    this.easyrtc.setPeerClosedListener((clientId) => {
+      delete this.remoteClients[clientId];
+    });
   }
 
   setServerUrl(url) {
@@ -128,7 +138,7 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   closeStreamConnection(clientId) {
-    // Handled by easyrtc
+    this.easyrtc.hangup(clientId);
   }
 
   sendData(clientId, dataType, data) {
@@ -173,56 +183,112 @@ class EasyRtcAdapter extends NoOpAdapter {
     }
   }
 
-  getMediaStream(clientId, type = "audio") {
-    if (this.mediaStreams[clientId]) {
-      NAF.log.write(`Already had ${type} for ${clientId}`);
-      return Promise.resolve(this.mediaStreams[clientId][type]);
+  getMediaStream(clientId, streamName = "audio") {
+
+    if (this.mediaStreams[clientId] && this.mediaStreams[clientId][streamName]) {
+      NAF.log.write(`Already had ${streamName} for ${clientId}`);
+      return Promise.resolve(this.mediaStreams[clientId][streamName]);
     } else {
-      NAF.log.write(`Waiting on ${type} for ${clientId}`);
+      NAF.log.write(`Waiting on ${streamName} for ${clientId}`);
+
+      // Create initial pendingMediaRequests with audio|video alias
       if (!this.pendingMediaRequests.has(clientId)) {
-        this.pendingMediaRequests.set(clientId, {});
+        const pendingMediaRequests = {};
 
         const audioPromise = new Promise((resolve, reject) => {
-          this.pendingMediaRequests.get(clientId).audio = { resolve, reject };
-        });
+          pendingMediaRequests.audio = { resolve, reject };
+        }).catch(e => NAF.log.warn(`${clientId} getMediaStream Audio Error`, e));
+        pendingMediaRequests.audio.promise = audioPromise;
+
         const videoPromise = new Promise((resolve, reject) => {
-          this.pendingMediaRequests.get(clientId).video = { resolve, reject };
-        });
+          pendingMediaRequests.video = { resolve, reject };
+        }).catch(e => NAF.log.warn(`${clientId} getMediaStream Video Error`, e));
+        pendingMediaRequests.video.promise = videoPromise;
 
-        this.pendingMediaRequests.get(clientId).audio.promise = audioPromise;
-        this.pendingMediaRequests.get(clientId).video.promise = videoPromise;
-
-        audioPromise.catch(e => NAF.log.warn(`${clientId} getMediaStream Audio Error`, e));
-        videoPromise.catch(e => NAF.log.warn(`${clientId} getMediaStream Video Error`, e));
+        this.pendingMediaRequests.set(clientId, pendingMediaRequests);
       }
-      return this.pendingMediaRequests.get(clientId)[type].promise;
+
+      const pendingMediaRequests = this.pendingMediaRequests.get(clientId);
+
+      // Create initial pendingMediaRequests with streamName
+      if (!pendingMediaRequests[streamName]) {
+        const streamPromise = new Promise((resolve, reject) => {
+          pendingMediaRequests[streamName] = { resolve, reject };
+        }).catch(e => NAF.log.warn(`${clientId} getMediaStream "${streamName}"" Error`, e))
+        pendingMediaRequests[streamName].promise = streamPromise;
+      }
+
+      return this.pendingMediaRequests.get(clientId)[streamName].promise;
     }
   }
 
-  setMediaStream(clientId, stream) {
-    // Safari doesn't like it when you use single a mixed media stream where one of the tracks is inactive, so we
-    // split the tracks into two streams.
-    const audioStream = new MediaStream();
-    try {
-      stream.getAudioTracks().forEach(track => audioStream.addTrack(track));
-    } catch(e) {
-      NAF.log.warn(`${clientId} setMediaStream Audio Error`, e);
-    }
+  setMediaStream(clientId, stream, streamName) {
 
-    const videoStream = new MediaStream();
-    try {
-      stream.getVideoTracks().forEach(track => videoStream.addTrack(track));
-    } catch (e) {
-      NAF.log.warn(`${clientId} setMediaStream Video Error`, e);
-    }
+    const clientMediaStreams = this.mediaStreams[clientId] = this.mediaStreams[clientId] || new Map();
+    clientMediaStreams.set(streamName, stream);
 
-    this.mediaStreams[clientId] = { audio: audioStream, video: videoStream };
-
-    // Resolve the promise for the user's media stream if it exists.
     if (this.pendingMediaRequests.has(clientId)) {
-      this.pendingMediaRequests.get(clientId).audio.resolve(audioStream);
-      this.pendingMediaRequests.get(clientId).video.resolve(videoStream);
+      const pendingMediaRequests = this.pendingMediaRequests.get(clientId);
+
+      // Add mediaStreams audio streamName alias if does not exist yet
+      const audioTracks = stream.getAudioTracks();
+      if (!clientMediaStreams.has('audio') && audioTracks.length > 0) {
+        // Safari doesn't like it when you use single a mixed media stream where one of the tracks is inactive, so we
+        // split the tracks into two streams.
+        const audioStream = new MediaStream();
+        try {
+          audioTracks.forEach(track => audioStream.addTrack(track));
+          clientMediaStreams.set('audio', audioStream)
+        } catch(e) {
+          NAF.log.warn(`${clientId} setMediaStream "audio" alias Error`, e);
+        }
+
+        // Resolve the promise for the user's media stream audio alias if it exists.
+        pendingMediaRequests.audio.resolve(audioStream);
+      }
+
+      // Add mediaStreams video streamName alias if does not exist yet
+      const videoTracks = stream.getVideoTracks();
+      if (!clientMediaStreams.has('video') && videoTracks.length > 0) {
+        // Safari doesn't like it when you use single a mixed media stream where one of the tracks is inactive, so we
+        // split the tracks into two streams.
+        const videoStream = new MediaStream();
+        try {
+          videoTracks.forEach(track => videoStream.addTrack(track));
+          clientMediaStreams.set('video', videoStream)
+        } catch(e) {
+          NAF.log.warn(`${clientId} setMediaStream "video" alias Error`, e);
+        }
+
+        // Resolve the promise for the user's media stream video alias if it exists.
+        pendingMediaRequests.video.resolve(videoStream);
+      }
+
+      // Resolve the promise for the user's media stream by StreamName if it exists.
+      if (pendingMediaRequests[streamName]) {
+        pendingMediaRequests[streamName].resolve(stream);
+      }
     }
+  }
+
+  addLocalMediaStream(stream, streamName) {
+    const easyrtc = this.easyrtc;
+    streamName = streamName || stream.id;
+    this.setMediaStream("local", stream, streamName);
+    easyrtc.register3rdPartyLocalMediaStream(stream, streamName);
+
+    // Add local stream to existing connections
+    Object.keys(this.remoteClients).forEach((clientId) => {
+      if (easyrtc.getConnectStatus(clientId) !== easyrtc.NOT_CONNECTED) {
+        easyrtc.addStreamToCall(clientId, streamName);
+      }
+    });
+  }
+
+  removeLocalMediaStream(stream, streamName) {
+    streamName = streamName || stream.id;
+    this.easyrtc.closeLocalMediaStream(streamName);
+    delete this.mediaStreams["local"][streamName];
   }
 
   enableMicrophone(enabled) {
@@ -246,14 +312,17 @@ class EasyRtcAdapter extends NoOpAdapter {
 
     this.easyrtc.setStreamAcceptor(this.setMediaStream.bind(this));
 
-    this.easyrtc.setOnStreamClosed(function(easyrtcid) {
-      delete that.mediaStreams[easyrtcid];
+    this.easyrtc.setOnStreamClosed(function(clientId, stream, streamName) {
+      delete this.mediaStreams[clientId][streamName];
     });
 
     if (that.easyrtc.audioEnabled || that.easyrtc.videoEnabled) {
-      this.easyrtc.initMediaSource(
+      navigator.mediaDevices.getUserMedia({
+        video: that.easyrtc.videoEnabled,
+        audio: that.easyrtc.audioEnabled
+      }).then(
         function(stream) {
-          that.setMediaStream(that.easyrtc.myEasyrtcid, stream);
+          that.addLocalMediaStream(stream, "default");
           that.easyrtc.connect(that.app, connectSuccess, connectFailure);
         },
         function(errorCode, errmesg) {
