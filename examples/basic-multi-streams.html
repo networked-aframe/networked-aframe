@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Video Streaming Example — Networked-Aframe</title>
+    <title>Multi Streams Example — Networked-Aframe</title>
     <meta name="description" content="Dev Example — Networked-Aframe">
 
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
@@ -102,17 +102,14 @@
         console.log("onConnect", new Date());
 
         // Handle screen button click (Off and On)
-        let screenStream;
         screenBtnEle.addEventListener('click', function() {
           if (screenEnabled) {
-            NAF.connection.adapter.removeLocalMediaStream(screenStream, "screen");
-            screenStream = null;
+            NAF.connection.adapter.removeLocalMediaStream("screen");
             screenEnabled = false;
             screenBtnEle.textContent = 'Share screen';
           } else {
             navigator.mediaDevices.getDisplayMedia().then((stream) => {
               NAF.connection.adapter.addLocalMediaStream(stream, "screen");
-              screenStream = stream;
               screenEnabled = true;
               screenBtnEle.textContent = 'Stop Screen';
             });
