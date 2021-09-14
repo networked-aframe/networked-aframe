@@ -285,8 +285,7 @@ class EasyRtcAdapter extends NoOpAdapter {
     });
   }
 
-  removeLocalMediaStream(stream, streamName) {
-    streamName = streamName || stream.id;
+  removeLocalMediaStream(streamName) {
     this.easyrtc.closeLocalMediaStream(streamName);
     delete this.mediaStreams["local"][streamName];
   }
