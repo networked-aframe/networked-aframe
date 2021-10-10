@@ -8,27 +8,60 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
-
-    <script>
+      
+    <script>     
+        // note the way we're establishing the NAF schema here; this is a bit awkward 
+        // because of a recent bug found in the original handling. This mitigates that bug for now,
+        // until a refactor in the future that should fix the issue more cleanly
         NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
         NAF.schemas.getComponents = (template) => {
           if (!NAF.schemas.hasTemplate("#head-template")) {
             NAF.schemas.add({
               template: '#head-template',
                components: [
+                // position and rotation are synced by default, but if we declare
+                // a custom schema, then ommitting them will cause them to go untracked.
                 'position',
                 'rotation',
-                {
-                  selector: '.head',
-                  component: 'material',
-                  property: 'color'
-                }
+
+                // in our current example, we don't sync the material.color itself;
+                // we instead sync player-info, which includes color setting + updating.
+                // {
+                //   selector: '.head',
+                //   component: 'material',
+                //   property: 'color'
+                // },
+
+                // NOTICE THAT WE SYNC PLAYER INFO! this is where color and username are stored
+                'player-info'
               ]
             });
           }
           const components = NAF.schemas.getComponentsOriginal(template);
           return components;
         }
+        
+        // we could theoretically add this one in as well, but 
+        // since position and rotation are the default tracked components for
+        // networked entities, no schema declaration is necessary. If we did
+        // include it, though, it would look like this:
+
+        // NAF.schemas.getComponents = (template) => {
+        //   if (!NAF.schemas.hasTemplate("#camera-rig-template")) {
+        //     NAF.schemas.add({
+        //       template: '#camera-rig-template',
+        //        components: [
+        //         'position',
+        //         'rotation',
+        //       ]
+        //     });
+        //   }
+        //   const components = NAF.schemas.getComponentsOriginal(template);
+        //   return components;
+        // }
+
+        // likewise for the left-hand-template and right-hand-template--since we're only 
+        // syncing position/rotation, no schema declaration needed!
     </script>
     
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
@@ -40,27 +73,26 @@
   <script>
       // always register components before your scene
       AFRAME.registerComponent('tracked-vr-hands', {
-
-        init() {
-          AFRAME.scenes[0].addEventListener('enter-vr', async () => {
-            if (AFRAME.utils.device.isMobile()) return // exclude e.g. cardboard, which lacks tracked controllers
-
-            // add these with JS:
-            // <a-entity hand-controls="hand:left" networked="template:#left-hand-template;attachTemplateToLocal:true;"></a-entity>
-            // <a-entity hand-controls="hand:right" networked="template:#right-hand-template;attachTemplateToLocal:true;"></a-entity>
-
-            ['left','right'].forEach(side => {
-              const el = document.createElement('a-entity')
-              el.setAttribute('hand-controls',{hand:side})
-              el.setAttribute('networked',{template:`#${side}-hand-template`,attachTempalateToLocal:true})
-              el.setAttribute('id',`my-tracked-${side}-hand`)
-              // note that the ID will be applied to THIS client's hands, 
-              // but not other connected clients,
-              // and not on the machine of other connected clients
-              this.el.appendChild(el);
-              console.log("appended tracked hand",side,el)
-            })
+        onEnterVR() {
+          if (AFRAME.utils.device.isMobile()) return // exclude e.g. cardboard, which lacks tracked controllers
+          if (document.querySelector('my-tracked-right-hand')) return // don't add them in more than once!
+          // add these with JS:
+          // <a-entity hand-controls="hand:left" networked="template:#left-hand-template;attachTemplateToLocal:true;"></a-entity>
+          // <a-entity hand-controls="hand:right" networked="template:#right-hand-template;attachTemplateToLocal:true;"></a-entity>
+          ['left','right'].forEach(side => {
+            const el = document.createElement('a-entity')
+            el.setAttribute('hand-controls',{hand:side})
+            el.setAttribute('networked',{template:`#${side}-hand-template`,attachTempalateToLocal:true})
+            el.setAttribute('id',`my-tracked-${side}-hand`)
+            // note that the ID will be applied to THIS client's hands, 
+            // but not other connected clients,
+            // and not on the machine of other connected clients
+            this.el.appendChild(el);
+            console.log("appended tracked hand",side,el)
           })
+        },
+        init() {
+          AFRAME.scenes[0].addEventListener('enter-vr', this.onEnterVR.bind(this))
 
           // future improvements:
           // pick up hand-controls events
@@ -71,9 +103,58 @@
           // could add as 'networked-hands' component within repo
         }
       })
+
+      NAF.utils.ownedByLocalUser = function ownedByLocalUser(el) {
+        return new Promise(async (resolve, reject) => {
+          const ownerId = await NAF.utils.safelyGetOwner(el)
+          resolve(ownerId === NAF.clientId)
+        })
+      }
+
+      NAF.utils.safelyGetOwner = function safelyGetOwner(el) {
+        return new Promise(async (resolve, reject) => {
+          const netEl = await NAF.utils.getNetworkedEntity(el)
+          const ownerId = netEl.components.networked.data.owner
+          resolve(!ownerId || ownerId !== NAF.clientId ? ownerId : NAF.clientId)
+        })
+      }
+    
+      AFRAME.registerComponent('player-info', {
+        schema: {
+          color: { type: 'string', default: '#' + new THREE.Color( Math.random(), Math.random(), Math.random() ).getHexString() },
+          nametag: { type: 'string', default: "user-" + Math.round(Math.random()*10000) },
+        },
+
+        init: function() {
+          this.head = this.el.querySelector('.head');
+          this.nametag = this.el.querySelector('.nametag');
+
+          // for handling usernames
+          NAF.utils.ownedByLocalUser(this.el).then(local => {
+            if (local) {
+              document.querySelector("#username-overlay").value = this.data.nametag;
+              document.querySelector("#username-overlay").oninput = () => {
+                this.data.nametag = document.querySelector("#username-overlay").value || " "
+              };
+            }
+            console.log("userlist", [...document.querySelectorAll('[player-info]')].map(el => el.components['player-info'].data.nametag))
+          })
+        },
+      
+        update: async function(newArgs) {
+          console.log('update',this.data, newArgs)
+          try {
+            this.nametag.setAttribute('value',this.data.nametag)
+            this.head.setAttribute('material', 'color', this.data.color);
+          } catch (e) {
+            console.warn("will benignly fail when `this.head` doesn't exist, which is the case for local user, who has visible='false' set.",e)
+          }
+        }
+      });
     </script>
   
   <body>
+    <input id="username-overlay" style="z-index: 100; bottom: 24px; left: 24px; position:fixed;"></input>
     <a-scene 
       stats
       networked-scene="
@@ -82,19 +163,21 @@
     ">
       <a-assets>
         <!-- models are from a-frame repo; see bottom of page for downloads:  https://aframe.io/docs/1.2.0/components/hand-controls.html -->
--        <a-asset-item id="left-hand-model" src="./assets/leftHandHigh.glb"></a-asset-item>
--        <a-asset-item id="right-hand-model" src="./assets/rightHandHigh.glb"></a-asset-item>
-        
-        <!-- NAF Templates -->
+         <a-asset-item id="left-hand-model" src="./assets/leftHandHigh.glb"></a-asset-item>
+         <a-asset-item id="right-hand-model" src="./assets/rightHandHigh.glb"></a-asset-item>
 
+        <!-- 
+          NAF Templates 
+        -->
         <!-- Camera Rig / Player -->
         <template id="camera-rig-template">
           <a-entity></a-entity>
         </template>
 
         <!-- Head / Avatar -->
+        <!--      a few spheres make a head + eyes + pupils    -->
         <template id="head-template">
-          <a-entity class="avatar">
+          <a-entity class="avatar" player-info>
             <a-sphere class="head" scale="0.2 0.22 0.2" ></a-sphere>
             <a-entity class="face" position="0 0.05 0" >
               <a-sphere class="eye"  color="white"  position="0.06 0.05 -0.16"  scale="0.04 0.04 0.04" >
@@ -104,6 +187,7 @@
                 <a-sphere class="pupil"  color="black"  position="0 0 -1"  scale="0.2 0.2 0.2" ></a-sphere>
               </a-sphere>
             </a-entity>
+            <a-text class="nametag" value="?" rotation="0 180 0" position=".25 -.35 0" side="double" scale=".5 .5 .5"></a-text>
           </a-entity>
         </template>
 
@@ -119,29 +203,44 @@
             <a-gltf-model class="tracked-right-hand" rotation="0 0 -90" src="#right-hand-model"></a-gltf-model>
           </a-entity>
         </template>
-
-        <!-- /NAF Templates -->
-
+        <!-- 
+          /NAF Templates 
+        -->
       </a-assets>
-      
-      <!--   Actual scene begins:   -->
-      <a-entity environment="preset:forest; skyType:atmosphere; fog:0.25; dressingAmount: 250; dressingColor:#53624b; groundColor: #62473c; groundColor2: #64443a; dressingScale: 2;"></a-entity>
+
+      <a-entity environment="preset:starry; groundColor: #000000;"></a-entity>
+      <a-entity light="type:ambient; intensity:.5"></a-entity>
       
       <!--   Here we declare only the local user's avatar, which we then broadcast to other users     -->
-      <!--   tracked-vr-hands means the tracked controllers will be appended to camera rig -->
-      <a-entity id="player" movement-controls="fly:true;" spawn-in-circle="radius:3"
-                tracked-vr-hands
-                networked="template:#camera-rig-template;attachTemplateToLocal:false;"
+      <!--   The 'spawn-in-circle' component will set the position and rotation of #camera-rig; 
+             because this entity also has the networked component, and position and rotation are tracked by default, 
+             the changes made by spawn-in-circle will be kept in sync with other networked users.
+             Also note that by adding the networked component with a template reference, we generate that full template, 
+             including all applicable child elements. However, because we don't need to see our own avatar, we use the 
+             visible="false" option. This makes our local copy invisible on our machine, but visible on everyone else's.
+      -->
+      <a-entity id="camera-rig" 
+                tracked-vr-hands 
+                movement-controls="fly:true;" 
+                spawn-in-circle="radius:3"
+                networked="template:#camera-rig-template;" 
       >
-        <a-entity camera position="0 1.6 0" look-controls
-                  networked="template:#head-template;attachTemplateToLocal:false;"
-        >
-            <a-sphere class="head" random-color visible="false"></a-sphere>
+        <a-entity camera  position="0 1.6 0" look-controls 
+                  networked="template:#head-template;" visible="false">
+        <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice. 
+             We set the camera to head height for e.g. computer users, but otherwise never touch it again; if the user enters VR,
+             its rotation and position will be updated by the headset in VR. If we need to touch the user's position 
+             or rotation, we always do that by adjusting the rig parent of the active camera. By making that rig--and the
+             active camera appended to it--both networked, we ensure all player movement is kept in sync.
+        -->
         </a-entity>
-
-        <!--     if you add hands directly here, like this, it will work! But players without any tracked controllers will have floating hands dragging on the floor under them.     -->
-        <!--     instead, add them in an enter-vr event listener, which we put in a component called tracked-vr-hands -->
-        <!--         
+        
+        <!-- Q: How about adding tracked hands here, like this below?
+             A: if you add hands directly here, like this, it will work! But camera-rigs without any tracked controllers (e.g., non-vr desktop users and phone users) 
+             will have floating hands dragging on the floor under them.
+             instead, let's add them in an enter-vr event listener, which we put in a component called tracked-vr-hands at the top of this file.
+        -->
+        <!--
         <a-entity hand-controls="hand:left" networked="template:#left-hand-template;attachTemplateToLocal:true;"></a-entity>
         <a-entity hand-controls="hand:right" networked="template:#right-hand-template;attachTemplateToLocal:true;"></a-entity> 
         -->
@@ -157,10 +256,9 @@
     <style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}
     </style>
 
-    
     <script>
-      // old style sync schema declaration, can cause race condition glitch--use new style above
-
+      // old style sync schema declaration, can cause race condition glitch--use new style, shown at top of file
+      
       // Define custom schema for syncing avatar color, set by random-color
       // NAF.schemas.add({
       //   template: '#head-template',
@@ -183,10 +281,9 @@
       //   ]
       // });
 
-      function onConnect () {
-        // Called by Networked-Aframe when connected to server
-        console.log("onConnect", new Date());
-      }
+      // this shows how to get a function to fire once NAF has connected. Note that NAF.connection.onConnect() must be called AFTER the body, however.
+      NAF.connection.active = new Promise((rs, rj) => { NAF.connection.onConnect(rs)})
+      NAF.connection.active.then(() => {console.log('1. NAF connected at', new Date())})
     </script>
   </body>
 </html>
