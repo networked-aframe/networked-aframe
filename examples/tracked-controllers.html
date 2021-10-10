@@ -14,6 +14,9 @@
         // because of a recent bug found in the original handling. This mitigates that bug for now,
         // until a refactor in the future that should fix the issue more cleanly
         NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
+      
+        // this one is necessary, because tracking the .head child component's material's color
+        // won't happen unless we tell NAF to keep it in sync, like here
         NAF.schemas.getComponents = (template) => {
           if (!NAF.schemas.hasTemplate("#head-template")) {
             NAF.schemas.add({
@@ -217,7 +220,7 @@
              the changes made by spawn-in-circle will be kept in sync with other networked users.
              Also note that by adding the networked component with a template reference, we generate that full template, 
              including all applicable child elements. However, because we don't need to see our own avatar, we use the 
-             visible="false" option. This makes our local copy invisible on our machine, but visible on everyone else's.
+             `attachTemplateToLocal:false` option. This makes our local copies invisible on our machine, but visible on everyone else's.
       -->
       <a-entity id="camera-rig" 
                 tracked-vr-hands 
