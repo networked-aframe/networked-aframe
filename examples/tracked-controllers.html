@@ -106,52 +106,35 @@
           // could add as 'networked-hands' component within repo
         }
       })
-
-      NAF.utils.ownedByLocalUser = function ownedByLocalUser(el) {
-        return new Promise(async (resolve, reject) => {
-          const ownerId = await NAF.utils.safelyGetOwner(el)
-          resolve(ownerId === NAF.clientId)
-        })
-      }
-
-      NAF.utils.safelyGetOwner = function safelyGetOwner(el) {
-        return new Promise(async (resolve, reject) => {
-          const netEl = await NAF.utils.getNetworkedEntity(el)
-          const ownerId = netEl.components.networked.data.owner
-          resolve(!ownerId || ownerId !== NAF.clientId ? ownerId : NAF.clientId)
-        })
-      }
     
       AFRAME.registerComponent('player-info', {
         schema: {
+          name: { type: 'string', default: "user-" + Math.round(Math.random()*10000) },
           color: { type: 'string', default: '#' + new THREE.Color( Math.random(), Math.random(), Math.random() ).getHexString() },
-          nametag: { type: 'string', default: "user-" + Math.round(Math.random()*10000) },
         },
 
-        init: function() {
+        init: async function() {
           this.head = this.el.querySelector('.head');
           this.nametag = this.el.querySelector('.nametag');
 
-          // for handling usernames
-          NAF.utils.ownedByLocalUser(this.el).then(local => {
-            if (local) {
-              document.querySelector("#username-overlay").value = this.data.nametag;
-              document.querySelector("#username-overlay").oninput = () => {
-                this.data.nametag = document.querySelector("#username-overlay").value || " "
-              };
-            }
-            console.log("userlist", [...document.querySelectorAll('[player-info]')].map(el => el.components['player-info'].data.nametag))
-          })
+          this.ownedByLocalUser = this.el.id === "local-head"; // await NAF.utils.ownedByLocalUser(this.el);
+          if (this.ownedByLocalUser) {
+            this.nametagInput = document.getElementById("username-overlay");
+            this.nametagInput.value = this.data.name;
+            this.nametagInput.oninput = () => {
+              this.el.setAttribute('player-info', 'name', this.nametagInput.value || " ");
+            };
+          }
+        },
+
+        listUsers: function() {
+          console.log("userlist", [...document.querySelectorAll('[player-info]')].map(el => el.components['player-info'].data.nametag))
         },
       
         update: async function(newArgs) {
           console.log('update',this.data, newArgs)
-          try {
-            this.nametag.setAttribute('value',this.data.nametag)
-            this.head.setAttribute('material', 'color', this.data.color);
-          } catch (e) {
-            console.warn("will benignly fail when `this.head` doesn't exist, which is the case for local user, who has visible='false' set.",e)
-          }
+          if (this.head) this.head.setAttribute('material', 'color', this.data.color);
+          if (this.nametag) this.nametag.setAttribute('value',this.data.name)
         }
       });
     </script>
