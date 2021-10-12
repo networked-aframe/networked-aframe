@@ -78,25 +78,23 @@
       AFRAME.registerComponent('tracked-vr-hands', {
         onEnterVR() {
           if (AFRAME.utils.device.isMobile()) return // exclude e.g. cardboard, which lacks tracked controllers
-          if (document.querySelector('my-tracked-right-hand')) return // don't add them in more than once!
+          if (document.getElementById('my-tracked-right-hand')) return // don't add them in more than once!
           // add these with JS:
           // <a-entity hand-controls="hand:left" networked="template:#left-hand-template;attachTemplateToLocal:true;"></a-entity>
           // <a-entity hand-controls="hand:right" networked="template:#right-hand-template;attachTemplateToLocal:true;"></a-entity>
           ['left','right'].forEach(side => {
             const el = document.createElement('a-entity')
             el.setAttribute('hand-controls',{hand:side})
-            el.setAttribute('networked',{template:`#${side}-hand-template`,attachTempalateToLocal:true})
+            el.setAttribute('networked',{template:`#${side}-hand-template`, attachTemplateToLocal:false})
             el.setAttribute('id',`my-tracked-${side}-hand`)
             // note that the ID will be applied to THIS client's hands, 
             // but not other connected clients,
             // and not on the machine of other connected clients
             this.el.appendChild(el);
-            console.log("appended tracked hand",side,el)
           })
         },
         init() {
-          AFRAME.scenes[0].addEventListener('enter-vr', this.onEnterVR.bind(this))
-
+          this.el.sceneEl.addEventListener('enter-vr', this.onEnterVR.bind(this));
           // future improvements:
           // pick up hand-controls events
           // https://github.com/aframevr/aframe/blob/b164623dfa0d2548158f4b7da06157497cd4ea29/docs/components/hand-controls.md
@@ -116,14 +114,14 @@
         init: async function() {
           this.head = this.el.querySelector('.head');
           this.nametag = this.el.querySelector('.nametag');
-
           this.ownedByLocalUser = this.el.id === "local-head"; // await NAF.utils.ownedByLocalUser(this.el);
           if (this.ownedByLocalUser) {
             this.nametagInput = document.getElementById("username-overlay");
             this.nametagInput.value = this.data.name;
-            this.nametagInput.oninput = () => {
-              this.el.setAttribute('player-info', 'name', this.nametagInput.value || " ");
-            };
+            this.el.id = "local-avatar";
+            // this.nametagInput.oninput = () => {
+            //   this.el.setAttribute('player-info', 'name', this.nametagInput.value || " ");
+            // };
           }
         },
 
@@ -140,7 +138,11 @@
     </script>
   
   <body>
-    <input id="username-overlay" style="z-index: 100; bottom: 24px; left: 24px; position:fixed;"></input>
+    <input 
+      id="username-overlay"
+      style="z-index: 100; bottom: 24px; left: 24px; position:fixed;"
+      oninput="console.log('local-avatar?',document.getElementById('local-avatar')); document.getElementById('local-avatar').setAttribute('player-info', 'name', this.value || ' ')"
+    ></input>
     <a-scene 
       stats
       networked-scene="
@@ -211,7 +213,7 @@
                 spawn-in-circle="radius:3"
                 networked="template:#camera-rig-template;" 
       >
-        <a-entity camera  position="0 1.6 0" look-controls 
+        <a-entity id="local-head" camera  position="0 1.6 0" look-controls 
                   networked="template:#head-template;" visible="false">
         <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice. 
              We set the camera to head height for e.g. computer users, but otherwise never touch it again; if the user enters VR,
