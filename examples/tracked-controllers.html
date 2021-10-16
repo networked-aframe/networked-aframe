@@ -8,26 +8,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
-      
-    <script>     
-        // note the way we're establishing the NAF schema here; this is a bit awkward 
+
+    <script>
+        // Note the way we're establishing the NAF schema here; this is a bit awkward
         // because of a recent bug found in the original handling. This mitigates that bug for now,
-        // until a refactor in the future that should fix the issue more cleanly
+        // until a refactor in the future that should fix the issue more cleanly.
         NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
-      
-        // this one is necessary, because tracking the .head child component's material's color
-        // won't happen unless we tell NAF to keep it in sync, like here
+
+        // This one is necessary, because tracking the .head child component's material's color
+        // won't happen unless we tell NAF to keep it in sync, like here.
         NAF.schemas.getComponents = (template) => {
           if (!NAF.schemas.hasTemplate("#head-template")) {
             NAF.schemas.add({
               template: '#head-template',
-               components: [
+              components: [
                 // position and rotation are synced by default, but if we declare
                 // a custom schema, then ommitting them will cause them to go untracked.
                 'position',
                 'rotation',
 
-                // in our current example, we don't sync the material.color itself;
+                // In our current example, we don't sync the material.color itself;
                 // we instead sync player-info, which includes color setting + updating.
                 // {
                 //   selector: '.head',
@@ -43,8 +43,8 @@
           const components = NAF.schemas.getComponentsOriginal(template);
           return components;
         }
-        
-        // we could theoretically add this one in as well, but 
+
+        // We could theoretically add this one in as well, but
         // since position and rotation are the default tracked components for
         // networked entities, no schema declaration is necessary. If we did
         // include it, though, it would look like this:
@@ -63,31 +63,31 @@
         //   return components;
         // }
 
-        // likewise for the left-hand-template and right-hand-template--since we're only 
+        // likewise for the left-hand-template and right-hand-template--since we're only
         // syncing position/rotation, no schema declaration needed!
     </script>
-    
+
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="https://unpkg.com/aframe-environment-component@1.2.0/dist/aframe-environment-component.min.js"></script>
     <script src="/js/spawn-in-circle.component.js"></script>
   </head>
-  
+
   <script>
       // always register components before your scene
       AFRAME.registerComponent('tracked-vr-hands', {
         onEnterVR() {
-          if (AFRAME.utils.device.isMobile()) return // exclude e.g. cardboard, which lacks tracked controllers
-          if (document.getElementById('my-tracked-right-hand')) return // don't add them in more than once!
+          if (AFRAME.utils.device.isMobile()) return; // exclude e.g. cardboard, which lacks tracked controllers
+          if (document.getElementById('my-tracked-right-hand')) return; // don't add them in more than once!
           // add these with JS:
           // <a-entity hand-controls="hand:left" networked="template:#left-hand-template;attachTemplateToLocal:true;"></a-entity>
           // <a-entity hand-controls="hand:right" networked="template:#right-hand-template;attachTemplateToLocal:true;"></a-entity>
           ['left','right'].forEach(side => {
             const el = document.createElement('a-entity')
-            el.setAttribute('hand-controls',{hand:side})
-            el.setAttribute('networked',{template:`#${side}-hand-template`, attachTemplateToLocal:false})
-            el.setAttribute('id',`my-tracked-${side}-hand`)
-            // note that the ID will be applied to THIS client's hands, 
+            el.setAttribute('hand-controls', {hand: side});
+            el.setAttribute('networked', {template: `#${side}-hand-template`, attachTemplateToLocal: false});
+            el.setAttribute('id', `my-tracked-${side}-hand`);
+            // note that the ID will be applied to THIS client's hands,
             // but not other connected clients,
             // and not on the machine of other connected clients
             this.el.appendChild(el);
@@ -104,7 +104,7 @@
           // could add as 'networked-hands' component within repo
         }
       })
-    
+
       AFRAME.registerComponent('player-info', {
         schema: {
           name: { type: 'string', default: "user-" + Math.round(Math.random()*10000) },
@@ -126,24 +126,23 @@
         },
 
         listUsers: function() {
-          console.log("userlist", [...document.querySelectorAll('[player-info]')].map(el => el.components['player-info'].data.nametag))
+          console.log("userlist", [...document.querySelectorAll('[player-info]')].map(el => el.components['player-info'].data.nametag));
         },
-      
-        update: async function(newArgs) {
-          console.log('update',this.data, newArgs)
+
+        update: function() {
           if (this.head) this.head.setAttribute('material', 'color', this.data.color);
-          if (this.nametag) this.nametag.setAttribute('value',this.data.name)
+          if (this.nametag) this.nametag.setAttribute('value', this.data.name);
         }
       });
     </script>
-  
+
   <body>
-    <input 
+    <input
       id="username-overlay"
       style="z-index: 100; bottom: 24px; left: 24px; position:fixed;"
       oninput="console.log('local-avatar?',document.getElementById('local-avatar')); document.getElementById('local-avatar').setAttribute('player-info', 'name', this.value || ' ')"
     ></input>
-    <a-scene 
+    <a-scene
       stats
       networked-scene="
         room: handcontrollers;
@@ -154,8 +153,8 @@
          <a-asset-item id="left-hand-model" src="./assets/leftHandHigh.glb"></a-asset-item>
          <a-asset-item id="right-hand-model" src="./assets/rightHandHigh.glb"></a-asset-item>
 
-        <!-- 
-          NAF Templates 
+        <!--
+          NAF Templates
         -->
         <!-- Camera Rig / Player -->
         <template id="camera-rig-template">
@@ -185,52 +184,52 @@
             <a-gltf-model class="tracked-left-hand" rotation="0 0 90" src="#left-hand-model"></a-gltf-model>
           </a-entity>
         </template>
-        
+
         <template id="right-hand-template">
           <a-entity>
             <a-gltf-model class="tracked-right-hand" rotation="0 0 -90" src="#right-hand-model"></a-gltf-model>
           </a-entity>
         </template>
-        <!-- 
-          /NAF Templates 
+        <!--
+          /NAF Templates
         -->
       </a-assets>
 
       <a-entity environment="preset:starry; groundColor: #000000;"></a-entity>
       <a-entity light="type:ambient; intensity:.5"></a-entity>
-      
+
       <!--   Here we declare only the local user's avatar, which we then broadcast to other users     -->
-      <!--   The 'spawn-in-circle' component will set the position and rotation of #camera-rig; 
-             because this entity also has the networked component, and position and rotation are tracked by default, 
+      <!--   The 'spawn-in-circle' component will set the position and rotation of #camera-rig;
+             because this entity also has the networked component, and position and rotation are tracked by default,
              the changes made by spawn-in-circle will be kept in sync with other networked users.
-             Also note that by adding the networked component with a template reference, we generate that full template, 
-             including all applicable child elements. However, because we don't need to see our own avatar, we use the 
+             Also note that by adding the networked component with a template reference, we generate that full template,
+             including all applicable child elements. However, because we don't need to see our own avatar, we use the
              `attachTemplateToLocal:false` option. This makes our local copies invisible on our machine, but visible on everyone else's.
       -->
-      <a-entity id="camera-rig" 
-                tracked-vr-hands 
-                movement-controls="fly:true;" 
+      <a-entity id="camera-rig"
+                tracked-vr-hands
+                movement-controls="fly:true;"
                 spawn-in-circle="radius:3"
-                networked="template:#camera-rig-template;" 
+                networked="template:#camera-rig-template;"
       >
-        <a-entity id="local-head" camera  position="0 1.6 0" look-controls 
+        <a-entity id="local-head" camera  position="0 1.6 0" look-controls
                   networked="template:#head-template;" visible="false">
-        <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice. 
+        <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice.
              We set the camera to head height for e.g. computer users, but otherwise never touch it again; if the user enters VR,
-             its rotation and position will be updated by the headset in VR. If we need to touch the user's position 
+             its rotation and position will be updated by the headset in VR. If we need to touch the user's position
              or rotation, we always do that by adjusting the rig parent of the active camera. By making that rig--and the
              active camera appended to it--both networked, we ensure all player movement is kept in sync.
         -->
         </a-entity>
-        
+
         <!-- Q: How about adding tracked hands here, like this below?
-             A: if you add hands directly here, like this, it will work! But camera-rigs without any tracked controllers (e.g., non-vr desktop users and phone users) 
+             A: if you add hands directly here, like this, it will work! But camera-rigs without any tracked controllers (e.g., non-vr desktop users and phone users)
              will have floating hands dragging on the floor under them.
              instead, let's add them in an enter-vr event listener, which we put in a component called tracked-vr-hands at the top of this file.
         -->
         <!--
         <a-entity hand-controls="hand:left" networked="template:#left-hand-template;attachTemplateToLocal:true;"></a-entity>
-        <a-entity hand-controls="hand:right" networked="template:#right-hand-template;attachTemplateToLocal:true;"></a-entity> 
+        <a-entity hand-controls="hand:right" networked="template:#right-hand-template;attachTemplateToLocal:true;"></a-entity>
         -->
       </a-entity>
     </a-scene>
@@ -246,7 +245,7 @@
 
     <script>
       // old style sync schema declaration, can cause race condition glitch--use new style, shown at top of file
-      
+
       // Define custom schema for syncing avatar color, set by random-color
       // NAF.schemas.add({
       //   template: '#head-template',
@@ -269,9 +268,9 @@
       //   ]
       // });
 
-      // this shows how to get a function to fire once NAF has connected. Note that NAF.connection.onConnect() must be called AFTER the body, however.
-      NAF.connection.active = new Promise((rs, rj) => { NAF.connection.onConnect(rs)})
-      NAF.connection.active.then(() => {console.log('1. NAF connected at', new Date())})
+      // This shows how to get a function to fire once NAF has connected. Note that NAF.connection.onConnect() must be called AFTER the body, however.
+      NAF.connection.active = new Promise((rs, rj) => { NAF.connection.onConnect(rs)});
+      NAF.connection.active.then(() => {console.log('1. NAF connected at', new Date())});
     </script>
   </body>
 </html>
