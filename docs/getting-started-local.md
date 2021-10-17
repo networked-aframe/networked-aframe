@@ -88,6 +88,21 @@ http://localhost:8080
 
 You should see an index page that shows a list of the included examples.
 
+In the html files, you need to change the script tag
+
+```html
+<script src="/dist/networked-aframe.js"></script>
+```
+
+to
+
+```html
+<script src="https://unpkg.com/networked-aframe@^0.8.0/dist/networked-aframe.min.js"></script>
+```
+
+for the examples to work.
+
+
 <img src="http://i.imgur.com/pc07Nyir.png" width="500">
 
 To see the networking in action, open up two browser windows and go to the same example on both. Click and hold with the mouse to move your avatar's head around. The other browser should see your avatar's movements.
