@@ -184,7 +184,6 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   getMediaStream(clientId, streamName = "audio") {
-
     if (this.mediaStreams[clientId] && this.mediaStreams[clientId][streamName]) {
       NAF.log.write(`Already had ${streamName} for ${clientId}`);
       return Promise.resolve(this.mediaStreams[clientId][streamName]);
@@ -214,7 +213,7 @@ class EasyRtcAdapter extends NoOpAdapter {
       if (!pendingMediaRequests[streamName]) {
         const streamPromise = new Promise((resolve, reject) => {
           pendingMediaRequests[streamName] = { resolve, reject };
-        }).catch(e => NAF.log.warn(`${clientId} getMediaStream "${streamName}"" Error`, e))
+        }).catch(e => NAF.log.warn(`${clientId} getMediaStream "${streamName}" Error`, e))
         pendingMediaRequests[streamName].promise = streamPromise;
       }
 
