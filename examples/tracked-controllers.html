@@ -40,31 +40,28 @@
               ]
             });
           }
+
+          // We could theoretically add this one in as well, but
+          // since position and rotation are the default tracked components for
+          // networked entities, no schema declaration is necessary. If we did
+          // include it, though, it would look like this:
+
+          // if (!NAF.schemas.hasTemplate("#camera-rig-template")) {
+          //   NAF.schemas.add({
+          //     template: '#camera-rig-template',
+          //      components: [
+          //       'position',
+          //       'rotation',
+          //     ]
+          //   });
+          // }
+
+          // likewise for the left-hand-template and right-hand-template--since we're only
+          // syncing position/rotation, no schema declaration needed!
+
           const components = NAF.schemas.getComponentsOriginal(template);
           return components;
         }
-
-        // We could theoretically add this one in as well, but
-        // since position and rotation are the default tracked components for
-        // networked entities, no schema declaration is necessary. If we did
-        // include it, though, it would look like this:
-
-        // NAF.schemas.getComponents = (template) => {
-        //   if (!NAF.schemas.hasTemplate("#camera-rig-template")) {
-        //     NAF.schemas.add({
-        //       template: '#camera-rig-template',
-        //        components: [
-        //         'position',
-        //         'rotation',
-        //       ]
-        //     });
-        //   }
-        //   const components = NAF.schemas.getComponentsOriginal(template);
-        //   return components;
-        // }
-
-        // likewise for the left-hand-template and right-hand-template--since we're only
-        // syncing position/rotation, no schema declaration needed!
     </script>
 
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
