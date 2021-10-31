@@ -81,7 +81,7 @@
     <script>
       // Camera status
       let cameraEnabled = true;
-      // Camera button ele
+      // Camera button element
       const cameraBtnEle = document.getElementById('camera-btn');
 
       // On mobile remove elements that are resource heavy
@@ -91,9 +91,7 @@
         const particles = document.getElementById('particles');
         particles.parentNode.removeChild(particles);
       }
-    </script>
 
-    <script>
       // Define custom schema for syncing avatar color, set by random-color
       NAF.schemas.add({
         template: '#avatar-template',
