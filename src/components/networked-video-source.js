@@ -4,6 +4,7 @@ var naf = require('../NafIndex');
 AFRAME.registerComponent('networked-video-source', {
 
   schema: {
+    streamName: { default: 'video' },
   },
 
   dependencies: ['material'],
@@ -19,7 +20,7 @@ AFRAME.registerComponent('networked-video-source', {
       const ownerId = networkedEl.components.networked.data.owner;
 
       if (ownerId) {
-        NAF.connection.adapter.getMediaStream(ownerId, "video")
+        NAF.connection.adapter.getMediaStream(ownerId, this.data.streamName)
           .then(this._setMediaStream)
           .catch((e) => naf.log.error(`Error getting media stream for ${ownerId}`, e));
       } else {

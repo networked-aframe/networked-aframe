@@ -3,6 +3,7 @@ var naf = require('../NafIndex');
 
 AFRAME.registerComponent('networked-audio-source', {
   schema: {
+    streamName: { default: 'audio' },
     positional: { default: true },
     distanceModel: {
       default: "inverse",
@@ -23,7 +24,7 @@ AFRAME.registerComponent('networked-audio-source', {
       const ownerId = networkedEl.components.networked.data.owner;
 
       if (ownerId) {
-        NAF.connection.adapter.getMediaStream(ownerId)
+        NAF.connection.adapter.getMediaStream(ownerId, this.data.streamName)
           .then(this._setMediaStream)
           .catch((e) => naf.log.error(`Error getting media stream for ${ownerId}`, e));
       } else {

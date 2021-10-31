@@ -90,7 +90,7 @@ class NetworkConnection {
     for (var id in oldOccupantList) {
       var clientFound = newOccupantList[id];
       if (!clientFound) {
-        NAF.log.write('Closing stream to ', id);
+        NAF.log.write('Closing stream to', id);
         this.adapter.closeStreamConnection(id);
       }
     }
@@ -101,7 +101,7 @@ class NetworkConnection {
     for (var id in occupantList) {
       var startConnection = this.isNewClient(id) && this.adapter.shouldStartConnectionTo(occupantList[id]);
       if (startConnection) {
-        NAF.log.write('Opening datachannel to ', id);
+        NAF.log.write('Opening datachannel to', id);
         this.adapter.startStreamConnection(id);
       }
     }
