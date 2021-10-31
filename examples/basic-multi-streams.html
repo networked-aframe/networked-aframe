@@ -117,5 +117,11 @@
         });
       }
     </script>
+    <!--
+      Known issues with this demo, some cases are not handled:
+      - If participant A shares their screen, the partipant B sees the other participant's screen.
+        When participant A stops their screen share, the other participant will see a frozen screen, the last image received.
+      - If participant A starts screen share, stops, and restarts the screen share, the other participant won't see it.
+    -->
   </body>
 </html>
