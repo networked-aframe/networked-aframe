@@ -75,13 +75,19 @@
     </style>
 
     <div class="actions">
+      <button id="camera-btn" type="button" class="button">Hide Camera</button>
       <button id="screen-btn" type="button" class="button">Share screen</button>
     </div>
 
     <script>
       // Camera status
+      let cameraEnabled = true;
+      // Camera button element
+      const cameraBtnEle = document.getElementById('camera-btn');
+
+      // Screen share status
       let screenEnabled = false;
-      // Camera button ele
+      // Screen share button element
       const screenBtnEle = document.getElementById('screen-btn');
 
       // On mobile remove elements that are resource heavy
@@ -104,6 +110,13 @@
       // Called by Networked-Aframe when connected to server
       function onConnect () {
         console.log("onConnect", new Date());
+
+        // Handle camera button click (Off and On)
+        cameraBtnEle.addEventListener('click', function() {
+          NAF.connection.adapter.enableCamera(!cameraEnabled);
+          cameraEnabled = !cameraEnabled;
+          cameraBtnEle.textContent = cameraEnabled ? 'Hide Camera' : 'Show Camera';
+        });
 
         // Handle screen button click (Off and On)
         screenBtnEle.addEventListener('click', function() {
