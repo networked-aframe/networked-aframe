@@ -261,9 +261,10 @@
       //   ]
       // });
 
-      // This shows how to get a function to fire once NAF has connected. Note that NAF.connection.onConnect() must be called AFTER the body, however.
-      NAF.connection.active = new Promise((rs, rj) => { NAF.connection.onConnect(rs)});
-      NAF.connection.active.then(() => {console.log('1. NAF connected at', new Date())});
+      // Called by Networked-Aframe when connected to server
+      function onConnect () {
+        console.log("onConnect", new Date());
+      }
     </script>
   </body>
 </html>
