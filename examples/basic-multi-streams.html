@@ -32,8 +32,8 @@
         <!-- Avatar -->
         <template id="avatar-template">
           <a-entity class="avatar">
-             <a-plane  color="#FFF" width="4" height="3" position="0 .6 0"  material="side: front" networked-video-source></a-plane>
-             <a-plane  color="#FFF" width="2" height="1" position="0 .7 0"  material="side: front" networked-video-source="streamName: screen"></a-plane>
+            <a-plane color="#FFF" width="4" height="3" position="0 .6 0" material="side: back" networked-video-source></a-plane>
+            <a-plane color="#FFF" width="2" height="1" position="0 .7 -0.001" material="side: back" networked-video-source="streamName: screen"></a-plane>
           </a-entity>
         </template>
 
@@ -117,5 +117,11 @@
         });
       }
     </script>
+    <!--
+      Known issues with this demo, some cases are not handled:
+      - If participant A shares their screen, the partipant B sees the other participant's screen.
+        When participant A stops their screen share, the other participant will see a frozen screen, the last image received.
+      - If participant A starts screen share, stops, and restarts the screen share, the other participant won't see it.
+    -->
   </body>
 </html>

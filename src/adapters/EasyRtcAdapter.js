@@ -184,7 +184,6 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   getMediaStream(clientId, streamName = "audio") {
-
     if (this.mediaStreams[clientId] && this.mediaStreams[clientId][streamName]) {
       NAF.log.write(`Already had ${streamName} for ${clientId}`);
       return Promise.resolve(this.mediaStreams[clientId][streamName]);
@@ -214,7 +213,7 @@ class EasyRtcAdapter extends NoOpAdapter {
       if (!pendingMediaRequests[streamName]) {
         const streamPromise = new Promise((resolve, reject) => {
           pendingMediaRequests[streamName] = { resolve, reject };
-        }).catch(e => NAF.log.warn(`${clientId} getMediaStream "${streamName}"" Error`, e))
+        }).catch(e => NAF.log.warn(`${clientId} getMediaStream "${streamName}" Error`, e))
         pendingMediaRequests[streamName].promise = streamPromise;
       }
 
@@ -223,49 +222,46 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   setMediaStream(clientId, stream, streamName) {
+    const pendingMediaRequests = this.pendingMediaRequests.get(clientId); // return undefined if there is no entry in the Map
+    const clientMediaStreams = this.mediaStreams[clientId] = this.mediaStreams[clientId] || {};
 
-    const clientMediaStreams = this.mediaStreams[clientId] = this.mediaStreams[clientId] || new Map();
-    clientMediaStreams.set(streamName, stream);
-
-    if (this.pendingMediaRequests.has(clientId)) {
-      const pendingMediaRequests = this.pendingMediaRequests.get(clientId);
-
-      // Add mediaStreams audio streamName alias if does not exist yet
+    if (streamName === 'default') {
+      // Safari doesn't like it when you use a mixed media stream where one of the tracks is inactive, so we
+      // split the tracks into two streams.
+      // Add mediaStreams audio streamName alias
       const audioTracks = stream.getAudioTracks();
-      if (!clientMediaStreams.has('audio') && audioTracks.length > 0) {
-        // Safari doesn't like it when you use single a mixed media stream where one of the tracks is inactive, so we
-        // split the tracks into two streams.
+      if (audioTracks.length > 0) {
         const audioStream = new MediaStream();
         try {
           audioTracks.forEach(track => audioStream.addTrack(track));
-          clientMediaStreams.set('audio', audioStream)
+          clientMediaStreams.audio = audioStream;
         } catch(e) {
           NAF.log.warn(`${clientId} setMediaStream "audio" alias Error`, e);
         }
 
         // Resolve the promise for the user's media stream audio alias if it exists.
-        pendingMediaRequests.audio.resolve(audioStream);
+        if (pendingMediaRequests) pendingMediaRequests.audio.resolve(audioStream);
       }
 
-      // Add mediaStreams video streamName alias if does not exist yet
+      // Add mediaStreams video streamName alias
       const videoTracks = stream.getVideoTracks();
-      if (!clientMediaStreams.has('video') && videoTracks.length > 0) {
-        // Safari doesn't like it when you use single a mixed media stream where one of the tracks is inactive, so we
-        // split the tracks into two streams.
+      if (videoTracks.length > 0) {
         const videoStream = new MediaStream();
         try {
           videoTracks.forEach(track => videoStream.addTrack(track));
-          clientMediaStreams.set('video', videoStream)
+          clientMediaStreams.video = videoStream;
         } catch(e) {
           NAF.log.warn(`${clientId} setMediaStream "video" alias Error`, e);
         }
 
         // Resolve the promise for the user's media stream video alias if it exists.
-        pendingMediaRequests.video.resolve(videoStream);
+        if (pendingMediaRequests) pendingMediaRequests.video.resolve(videoStream);
       }
+    } else {
+      clientMediaStreams[streamName] = stream;
 
       // Resolve the promise for the user's media stream by StreamName if it exists.
-      if (pendingMediaRequests[streamName]) {
+      if (pendingMediaRequests && pendingMediaRequests[streamName]) {
         pendingMediaRequests[streamName].resolve(stream);
       }
     }
