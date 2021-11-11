@@ -68,9 +68,7 @@
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="https://unpkg.com/aframe-environment-component@1.2.0/dist/aframe-environment-component.min.js"></script>
     <script src="/js/spawn-in-circle.component.js"></script>
-  </head>
-
-  <script>
+    <script>
       // always register components before your scene
       AFRAME.registerComponent('tracked-vr-hands', {
         onEnterVR() {
@@ -128,13 +126,14 @@
         }
       });
     </script>
+  </head>
 
   <body>
     <input
       id="username-overlay"
       style="z-index: 100; bottom: 24px; left: 24px; position:fixed;"
       oninput="document.getElementById('local-avatar').setAttribute('player-info', 'name', this.value)"
-    ></input>
+    />
     <a-scene
       stats
       networked-scene="
