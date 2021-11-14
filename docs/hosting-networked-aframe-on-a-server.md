@@ -1,10 +1,12 @@
+[slack]: https://aframevr.slack.com/join/shared_invite/zt-f6rne3ly-ekVaBU~Xu~fsZHXr56jacQ
+
 # How to Host Networked-Aframe on a Server
 
 Once you've followed Networked-Aframe's [getting started guide](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md) and have a local instance of NAF the next step is to deploy your code to a server so you can share your experience over the internet.
 
 There are many ways to host your experience, ranging from super simple but without much customization, to quite complex with lots of customization. This post will describe the various methods from simplest to most complex. The setup times listed are for people with no experience with the platform in question, ie. people with experience using AWS should be able to setup the server much quicker, however newbies will have a harder time.
 
-Below the three example hosting services is extra information if you're using NAF with WebRTC. As always, if you find any errors with this post or run into any problems, please post a comment in the #networked-aframe channel of the [A-Frame Slack](https://aframe.io/slack-invite/) or reach out to me directly [on twitter](https://twitter.com/haydenlee37).
+Below the three example hosting services is extra information if you're using NAF with WebRTC. As always, if you find any errors with this post or run into any problems, please post a comment in the #networked-aframe channel of the [A-Frame Slack][slack] or reach out to me directly [on twitter](https://twitter.com/haydenlee37).
 
 
 ## Glitch.com (~5 minute setup time)

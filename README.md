@@ -1,3 +1,5 @@
+[slack]: https://aframevr.slack.com/join/shared_invite/zt-f6rne3ly-ekVaBU~Xu~fsZHXr56jacQ
+
 <img src="http://i.imgur.com/7ddbE0q.gif" width="300">
 
 
@@ -467,7 +469,7 @@ By default when an entity is created the [`aframe-lerp-component`](https://githu
 Stay in Touch
 -------------
 
-- Join the [A-Frame Slack](https://aframe.io/slack-invite/) and add the #networked-aframe channel
+- Join the [A-Frame Slack][slack] and add the #networked-aframe channel
 - Follow changes on [GitHub](https://github.com/networked-aframe/networked-aframe/subscription)
 - Let us know if you've made something with Networked-Aframe. We'd love to see it!
 

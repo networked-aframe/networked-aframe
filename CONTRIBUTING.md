@@ -1,4 +1,4 @@
-[slack]: https://aframe.io/slack-invite/
+[slack]: https://aframevr.slack.com/join/shared_invite/zt-f6rne3ly-ekVaBU~Xu~fsZHXr56jacQ
 [issues]: https://github.com/networked-aframe/networked-aframe/issues
 
 Interested in contributing? As an open source project, we'd appreciate any help
@@ -57,7 +57,7 @@ under the [MIT License](LICENSE).
 
 1. Create something awesome with networked-aframe
 2. Publish your work to Github (and GitHub pages) so everyone can learn from your work.
-3. Share it on [Slack](https://aframe.io/slack-invite/) on the #projects channel.
+3. Share it on [Slack][slack] on the #projects channel.
 4. Let A-Frame know about it so they can feature it on their blog: [A Week of A-Frame](https://aframe.io/blog/). For this just tweet your project with a small video to @aframevr
 4. For bonus points, write and publish a case study to explain how you built it.
 
@@ -65,7 +65,7 @@ under the [MIT License](LICENSE).
 
 ## On Slack
 
-1. [Invite yourself](https://aframe.io/slack-invite/) to the A-Frame Slack channel.
+1. [Invite yourself][slack] to the A-Frame Slack channel.
 2. Join the #networked-aframe channel
 3. Help answer questions that people might have and welcome new people.
 
@@ -79,7 +79,7 @@ Every week, the A-Frame team rounds up all the cool stuff happening with A-Frame
 [blog](https://aframe.io/blog). If you tweeted about it and added a comment on Slack,
 there is a good chance for it to be included in the next blog post.
 
-Also feel free to message us on #networked-aframe channel on [Slack](https://aframe.io/slack-invite/).
+Also feel free to message us on #networked-aframe channel on [Slack][slack].
 
 # Spread the Word
 
