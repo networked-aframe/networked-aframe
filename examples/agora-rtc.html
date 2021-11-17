@@ -123,23 +123,24 @@
 
     
     <div class="actions">
-      <button id="mic-btn" type="button" class="button">Mute Mic</button>
+      <button id="join-btn" type="button" class="button">Join</button>
+      <br>
+      <button id="mute-btn" type="button" class="button">Mute</button>
     </div>
+
 
     <script>
 
       // Mic status
-      let micEnabled = false;
+      let joinEnabled = false;
       // Mic button ele
-      const micBtnEle = document.getElementById('mic-btn');
-      // On mobile remove elements that are resource heavy
-      const isMobile = AFRAME.utils.device.isMobile();
-
-      if (isMobile) {
-        const particles = document.getElementById('particles');
-        particles.parentNode.removeChild(particles);
-      }
-
+      const joinBtnEle = document.getElementById('join-btn');
+      
+      // Mic status
+      let muteEnabled = false;
+      // Mic button ele
+      const muteBtnEle = document.getElementById('mute-btn');
+  
       // Define custom schema for syncing avatar color, set by random-color
       NAF.schemas.add({
         template: '#avatar-template',
@@ -158,19 +159,37 @@
       function onConnect () {
         console.log("onConnect", new Date());
 
-        // Handle mic button click (Mute and Unmute)
-        micBtnEle.addEventListener('click', function() {
-        //NAF.connection.adapter.enableMicrophone(!micEnabled);
-        micEnabled = !micEnabled;
-        micBtnEle.textContent = micEnabled ? 'Mute Mic' : 'Unmute Mic';
+        // Handle join button click (Join Leave)
+        joinBtnEle.addEventListener('click', function() {
+        console.log("join ", muteEnabled);
 
-        if(micEnabled)
+        if (!joinEnabled) {
           join();
-        else
+          joinBtnEle.textContent = 'Leave Audio';
+        } else {
           leave();
+          joinBtnEle.textContent = 'Join Channel';
+        }
+        joinEnabled = !joinEnabled;
         });
 
 
+        // Handle mute button click (Mute and Unmute)
+        muteBtnEle.addEventListener('click', function() {
+        console.log("muteStatus ", muteEnabled);
+
+        if(joinEnabled)
+        {
+          if (!localTrackState.audioTrackMuted) {
+            muteAudio();
+            muteBtnEle.textContent = 'Unmute Mic';
+          } else {
+            unmuteAudio();
+            muteBtnEle.textContent = 'Mute';
+          }
+          muteEnabled = !muteEnabled;
+        }
+        });
       }
     </script>
 
@@ -180,11 +199,15 @@
 /*
  * Clear the video and audio tracks used by `client` on initiation.
  */
-var localTracks = {
-  //videoTrack: null,
+ var localTracks = {
+  videoTrack: null,
   audioTrack: null
 };
 
+var localTrackState = {
+  videoTrackMuted: false,
+  audioTrackMuted: false
+}
 /*
  * On initiation no users are connected.
  */
@@ -210,16 +233,16 @@ async function join() {
   client.on("user-unpublished", handleUserUnpublished);
 
   // Join a channel and create local tracks. Best practice is to use Promise.all and run them concurrently.
-  [ options.uid, localTracks.audioTrack] = await Promise.all([
+  [ options.uid, localTracks.audioTrack, localTracks.videoTrack] = await Promise.all([
     // Join the channel.
     client.join(options.appid, options.channel, options.token || null, options.uid || null),
     // Create tracks to the local microphone and camera.
     AgoraRTC.createMicrophoneAudioTrack(),
-    //AgoraRTC.createCameraVideoTrack()
+    AgoraRTC.createCameraVideoTrack()
   ]);
 
   // Play the local video track to the local browser and update the UI with the user ID.
-  localTracks.audioTrack.play("local-player");
+  //localTracks.videoTrack.play("local-player");
   //$("#local-player-name").text(`localVideo(${options.uid})`);
 
   // Publish the local video and audio tracks to the channel.
@@ -296,6 +319,26 @@ function handleUserUnpublished(user) {
   delete remoteUsers[id];
   //$(`#player-wrapper-${id}`).remove();
 }
+
+async function muteAudio() {
+  if (!localTracks.audioTrack) return;
+  /**
+   * After calling setMuted to mute an audio or video track, the SDK stops sending the audio or video stream. Users whose tracks are muted are not counted as users sending streams.
+   * Calling setEnabled to disable a track, the SDK stops audio or video capture
+   */
+  await localTracks.audioTrack.setMuted(true);
+  localTrackState.audioTrackMuted = true;
+  //$("#mute-audio").text("Unmute Audio");
+}
+
+async function unmuteAudio() {
+  if (!localTracks.audioTrack) return;
+  await localTracks.audioTrack.setMuted(false);
+  localTrackState.audioTrackMuted = false;
+  //$("#mute-audio").text("Mute Audio");
+}
+
+
   </script>
 
   </body>
