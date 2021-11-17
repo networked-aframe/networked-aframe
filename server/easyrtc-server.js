@@ -1,15 +1,20 @@
 // Load required modules
-const http = require("http");                 // http server core module
+//const http = require("http");                 // http server core module
+const https = require("https");                 // https server core module
+const fs = require("fs");
 const path = require("path");
 const express = require("express");           // web framework external module
 const socketIo = require("socket.io");        // web socket external module
 const easyrtc = require("open-easyrtc");      // EasyRTC external module
 
+const privateKey = fs.readFileSync('/etc/letsencrypt/archive/agoraverse.shivagana.com/privkey1.pem');
+const certificate = fs.readFileSync('/etc/letsencrypt/archive/agoraverse.shivagana.com/fullchain1.pem');
+
 // Set process name
 process.title = "networked-aframe-server";
 
 // Get port or default to 8080
-const port = process.env.PORT || 8080;
+const port = 443 || process.env.PORT || 8080;
 
 // Setup and configure Express http server.
 const app = express();
@@ -29,7 +34,14 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Start Express http server
-const webServer = http.createServer(app);
+//const webServer = http.createServer(app);
+// Start Express https server
+const webServer = https.createServer({
+    key: privateKey,
+    cert: certificate
+}, app).listen(port, function(){
+  console.log("Express server listening on port " + port);
+});
 
 // Start Socket.io so it attaches itself to Express server
 const socketServer = socketIo.listen(webServer, {"log level": 1});
@@ -82,9 +94,4 @@ easyrtc.listen(app, socketServer, null, (err, rtcRef) => {
 
         appObj.events.defaultListeners.roomCreate(appObj, creatorConnectionObj, roomName, roomOptions, callback);
     });
-});
-
-// Listen on port
-webServer.listen(port, () => {
-    console.log("listening on http://localhost:" + port);
 });
