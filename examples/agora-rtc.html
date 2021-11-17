@@ -1,0 +1,233 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Basic Example — Networked-Aframe</title>
+    <meta name="description" content="Basic Example — Networked-Aframe">
+
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
+    <script src="/dist/networked-aframe.js"></script>
+
+    <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+    <script src="/js/spawn-in-circle.component.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+  </head>
+  <body>
+
+    <a-scene networked-scene="
+      room: blocks;
+      debug: true;
+    ">
+      <a-assets>
+
+        <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
+        <img id="sky" src="https://img.gs/bbdkhfbzkk/2048x2048,stretch/https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+
+        <a-asset-item id="raccoon-obj" src="./assets/Raccoon_Blocks/model.obj"></a-asset-item>
+        <a-asset-item id="raccoon-mtl" src="./assets/Raccoon_Blocks/materials.mtl"></a-asset-item>
+
+        <a-asset-item id="scene-obj" src="./assets/Campfire_Blocks/model.obj"></a-asset-item>
+        <a-asset-item id="scene-mtl" src="./assets/Campfire_Blocks/materials.mtl"></a-asset-item>
+
+        <img id="sechelt" crossorigin="anonymous" src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/sechelt.jpg">
+
+        <!-- Templates -->
+
+        <!-- Avatar -->
+        <template id="avatar-template">
+          <a-entity obj-model="obj: #raccoon-obj; mtl: #raccoon-mtl" scale="5 5 5"></a-entity>
+        </template>
+
+        <!-- /Templates -->
+      </a-assets>
+
+      <a-entity id="player" class="heads" networked="template:#avatar-template;attachTemplateToLocal:false;" camera position="0 1.6 0" spawn-in-circle="radius:2;" wasd-controls look-controls></a-entity>
+
+      <a-sky id="image-360" radius="100" src="#sechelt" data-set-image-fade-setup="true" animation__fade=""></a-sky>
+
+      <a-entity obj-model="obj: #scene-obj; mtl: #scene-mtl" position="-0.542 1.5 -6.206" scale="30 30 30"></a-entity>
+    </a-scene>
+
+    
+    <div class="actions">
+      <button id="mic-btn" type="button" class="button">Mute Mic</button>
+    </div>
+
+    <script>
+
+      // Mic status
+      let micEnabled = false;
+      // Mic button ele
+      const micBtnEle = document.getElementById('mic-btn');
+      // On mobile remove elements that are resource heavy
+      const isMobile = AFRAME.utils.device.isMobile();
+
+      if (isMobile) {
+        const particles = document.getElementById('particles');
+        particles.parentNode.removeChild(particles);
+      }
+
+
+      // Define custom schema for syncing avatar
+      NAF.schemas.add({
+        template: '#avatar-template',
+        components: [
+          'position',
+          'rotation'
+        ]
+      });
+
+      // Called by Networked-Aframe when connected to server
+      function onConnect () {
+        console.log("onConnect", new Date());
+
+        // Handle mic button click (Mute and Unmute)
+        micBtnEle.addEventListener('click', function() {
+        //NAF.connection.adapter.enableMicrophone(!micEnabled);
+        micEnabled = !micEnabled;
+        micBtnEle.textContent = micEnabled ? 'Mute Mic' : 'Unmute Mic';
+
+        if(micEnabled)
+          join();
+        else
+          leave();
+        });
+
+
+      }
+    </script>
+
+<script>
+  var client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+
+/*
+ * Clear the video and audio tracks used by `client` on initiation.
+ */
+var localTracks = {
+  //videoTrack: null,
+  audioTrack: null
+};
+
+/*
+ * On initiation no users are connected.
+ */
+var remoteUsers = {};
+
+/*
+ * On initiation. `client` is not attached to any project or channel for any specific user.
+ */
+var options = {
+  appid: "010f1d7fd17146be9a8b1a92b7260a79",
+  channel: "agoraverse",
+  uid: null,
+  token: null
+};
+
+/*
+ * Join a channel, then create local video and audio tracks and publish them to the channel.
+ */
+async function join() {
+
+  // Add an event listener to play remote tracks when remote user publishes.
+  client.on("user-published", handleUserPublished);
+  client.on("user-unpublished", handleUserUnpublished);
+
+  // Join a channel and create local tracks. Best practice is to use Promise.all and run them concurrently.
+  [ options.uid, localTracks.audioTrack] = await Promise.all([
+    // Join the channel.
+    client.join(options.appid, options.channel, options.token || null, options.uid || null),
+    // Create tracks to the local microphone and camera.
+    AgoraRTC.createMicrophoneAudioTrack(),
+    //AgoraRTC.createCameraVideoTrack()
+  ]);
+
+  // Play the local video track to the local browser and update the UI with the user ID.
+  localTracks.audioTrack.play("local-player");
+  $("#local-player-name").text(`localVideo(${options.uid})`);
+
+  // Publish the local video and audio tracks to the channel.
+  await client.publish(Object.values(localTracks));
+  console.log("publish success");
+}
+
+/*
+ * Stop all local and remote tracks then leave the channel.
+ */
+async function leave() {
+  for (trackName in localTracks) {
+    var track = localTracks[trackName];
+    if(track) {
+      track.stop();
+      track.close();
+      localTracks[trackName] = undefined;
+    }
+  }
+
+  // Remove remote users and player views.
+  remoteUsers = {};
+  $("#remote-playerlist").html("");
+
+  // leave the channel
+  await client.leave();
+
+  $("#local-player-name").text("");
+  $("#join").attr("disabled", false);
+  $("#leave").attr("disabled", true);
+  console.log("client leaves channel success");
+}
+
+
+/*
+ * Add the local use to a remote channel.
+ *
+ * @param  {IAgoraRTCRemoteUser} user - The {@link  https://docs.agora.io/en/Voice/API%20Reference/web_ng/interfaces/iagorartcremoteuser.html| remote user} to add.
+ * @param {trackMediaType - The {@link https://docs.agora.io/en/Voice/API%20Reference/web_ng/interfaces/itrack.html#trackmediatype | media type} to add.
+ */
+async function subscribe(user, mediaType) {
+  const uid = user.uid;
+  // subscribe to a remote user
+  await client.subscribe(user, mediaType);
+  console.log("subscribe success");
+  if (mediaType === 'video') {
+    const player = $(`
+      <div id="player-wrapper-${uid}">
+        <p class="player-name">remoteUser(${uid})</p>
+        <div id="player-${uid}" class="player"></div>
+      </div>
+    `);
+    $("#remote-playerlist").append(player);
+    user.audioTrack.play(`player-${uid}`);
+  }
+  if (mediaType === 'audio') {
+    user.audioTrack.play();
+  }
+}
+
+/*
+ * Add a user who has subscribed to the live channel to the local interface.
+ *
+ * @param  {IAgoraRTCRemoteUser} user - The {@link  https://docs.agora.io/en/Voice/API%20Reference/web_ng/interfaces/iagorartcremoteuser.html| remote user} to add.
+ * @param {trackMediaType - The {@link https://docs.agora.io/en/Voice/API%20Reference/web_ng/interfaces/itrack.html#trackmediatype | media type} to add.
+ */
+function handleUserPublished(user, mediaType) {
+  const id = user.uid;
+  remoteUsers[id] = user;
+  subscribe(user, mediaType);
+}
+
+/*
+ * Remove the user specified from the channel in the local interface.
+ *
+ * @param  {string} user - The {@link  https://docs.agora.io/en/Voice/API%20Reference/web_ng/interfaces/iagorartcremoteuser.html| remote user} to remove.
+ */
+function handleUserUnpublished(user) {
+  const id = user.uid;
+  delete remoteUsers[id];
+  $(`#player-wrapper-${id}`).remove();
+}
+  </script>
+
+  </body>
+</html>
