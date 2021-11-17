@@ -13,9 +13,6 @@
     <script src="/js/spawn-in-circle.component.js"></script>
     <link rel="stylesheet" type="text/css" href="/css/style.css" />
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
-
-
-    <script src="https://cdn.jsdelivr.net/gh/oneWaveAdrian/aframe-particle-system-component@aframe-1.2.0-upgrade/dist/aframe-particle-system-component.min.js"></script>
     <script src="js/gun.component.js"></script>
     <script src="js/forward.component.js"></script>
     <script src="js/remove-in-seconds.component.js"></script>
@@ -223,7 +220,7 @@ async function join() {
 
   // Play the local video track to the local browser and update the UI with the user ID.
   localTracks.audioTrack.play("local-player");
-  $("#local-player-name").text(`localVideo(${options.uid})`);
+  //$("#local-player-name").text(`localVideo(${options.uid})`);
 
   // Publish the local video and audio tracks to the channel.
   await client.publish(Object.values(localTracks));
@@ -245,14 +242,14 @@ async function leave() {
 
   // Remove remote users and player views.
   remoteUsers = {};
-  $("#remote-playerlist").html("");
+  //$("#remote-playerlist").html("");
 
   // leave the channel
   await client.leave();
 
-  $("#local-player-name").text("");
-  $("#join").attr("disabled", false);
-  $("#leave").attr("disabled", true);
+  //$("#local-player-name").text("");
+  //$("#join").attr("disabled", false);
+  //$("#leave").attr("disabled", true);
   console.log("client leaves channel success");
 }
 
@@ -269,13 +266,7 @@ async function subscribe(user, mediaType) {
   await client.subscribe(user, mediaType);
   console.log("subscribe success");
   if (mediaType === 'video') {
-    const player = $(`
-      <div id="player-wrapper-${uid}">
-        <p class="player-name">remoteUser(${uid})</p>
-        <div id="player-${uid}" class="player"></div>
-      </div>
-    `);
-    $("#remote-playerlist").append(player);
+    //$("#remote-playerlist").append(player);
     user.audioTrack.play(`player-${uid}`);
   }
   if (mediaType === 'audio') {
@@ -303,7 +294,7 @@ function handleUserPublished(user, mediaType) {
 function handleUserUnpublished(user) {
   const id = user.uid;
   delete remoteUsers[id];
-  $(`#player-wrapper-${id}`).remove();
+  //$(`#player-wrapper-${id}`).remove();
 }
   </script>
 
