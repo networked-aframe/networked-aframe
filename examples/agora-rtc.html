@@ -198,12 +198,10 @@
  * Clear the video and audio tracks used by `client` on initiation.
  */
  var localTracks = {
-  videoTrack: null,
   audioTrack: null
 };
 
 var localTrackState = {
-  videoTrackMuted: false,
   audioTrackMuted: false
 }
 /*
@@ -231,17 +229,12 @@ async function join() {
   client.on("user-unpublished", handleUserUnpublished);
 
   // Join a channel and create local tracks. Best practice is to use Promise.all and run them concurrently.
-  [ options.uid, localTracks.audioTrack, localTracks.videoTrack] = await Promise.all([
+  [ options.uid, localTracks.audioTrack] = await Promise.all([
     // Join the channel.
     client.join(options.appid, options.channel, options.token || null, options.uid || null),
     // Create tracks to the local microphone and camera.
     AgoraRTC.createMicrophoneAudioTrack()
-    //AgoraRTC.createCameraVideoTrack()
   ]);
-
-  // Play the local video track to the local browser and update the UI with the user ID.
-  //localTracks.videoTrack.play("local-player");
-  //$("#local-player-name").text(`localVideo(${options.uid})`);
 
   // Publish the local video and audio tracks to the channel.
   await client.publish(Object.values(localTracks));
@@ -286,10 +279,7 @@ async function subscribe(user, mediaType) {
   // subscribe to a remote user
   await client.subscribe(user, mediaType);
   console.log("subscribe success");
-  if (mediaType === 'video') {
-    //$("#remote-playerlist").append(player);
-    user.audioTrack.play(`player-${uid}`);
-  }
+
   if (mediaType === 'audio') {
     user.audioTrack.play();
   }
