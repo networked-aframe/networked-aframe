@@ -121,9 +121,9 @@
 
     
     <div class="actions">
-      <button id="join-btn" type="button" class="button">Join</button>
+      <button id="join-btn" type="button" class="button">Join Channel</button>
       <br>
-      <button id="mute-btn" type="button" class="button">Mute</button>
+      <button id="mute-btn" type="button" class="button">Mute Channel</button>
     </div>
 
 
@@ -180,10 +180,10 @@
         {
           if (!localTrackState.audioTrackMuted) {
             muteAudio();
-            muteBtnEle.textContent = 'Unmute Mic';
+            muteBtnEle.textContent = 'Unmute Channel';
           } else {
             unmuteAudio();
-            muteBtnEle.textContent = 'Mute';
+            muteBtnEle.textContent = 'Mute Channel';
           }
           muteEnabled = !muteEnabled;
         }
