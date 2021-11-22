@@ -60,10 +60,12 @@ Let's copy the example server that comes with networked-aframe into our project.
 # MacOS & Linux
 cp -r ./node_modules/networked-aframe/server/ ./server/
 cp -r ./node_modules/networked-aframe/examples/ ./examples/
+cp -r ./node_modules/networked-aframe/dist/ ./examples/dist/ /e
 
 # Windows
 robocopy .\node_modules\networked-aframe\server\ .\server\ /e
 robocopy .\node_modules\networked-aframe\examples\ .\examples\ /e
+robocopy .\node_modules\networked-aframe\dist\ .\examples\dist\ /e
 ```
 
 You'll now see another new folder: `server/`. Inside it you'll see `easyrtc-server.js` which is the server code.
