@@ -60,7 +60,7 @@ Let's copy the example server that comes with networked-aframe into our project.
 # MacOS & Linux
 cp -r ./node_modules/networked-aframe/server/ ./server/
 cp -r ./node_modules/networked-aframe/examples/ ./examples/
-cp -r ./node_modules/networked-aframe/dist/ ./examples/dist/ /e
+cp -r ./node_modules/networked-aframe/dist/ ./examples/dist/
 
 # Windows
 robocopy .\node_modules\networked-aframe\server\ .\server\ /e
