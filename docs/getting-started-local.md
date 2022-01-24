@@ -90,21 +90,6 @@ http://localhost:8080
 
 You should see an index page that shows a list of the included examples.
 
-In the html files, you need to change the script tag
-
-```html
-<script src="/dist/networked-aframe.js"></script>
-```
-
-to
-
-```html
-<script src="https://unpkg.com/networked-aframe@^0.8.0/dist/networked-aframe.min.js"></script>
-```
-
-for the examples to work.
-
-
 <img src="http://i.imgur.com/pc07Nyir.png" width="500">
 
 To see the networking in action, open up two browser windows and go to the same example on both. Click and hold with the mouse to move your avatar's head around. The other browser should see your avatar's movements.
@@ -147,6 +132,13 @@ If you want to use a more recent build from github master that is not released y
 ```
 
 But again don't use that for production.
+
+Instead of the url to a CDN, you may want to use your own build in the `examples/dist`
+folder like it's done in the examples, in this case use:
+
+```html
+<script src="/dist/networked-aframe.js"></script>
+```
 
 We can see that all the NAF dependencies are included; aframe, socket.io, open-easyrtc and networked-aframe itself. Copy this template into `my-example.html`. To check the dependencies are setup correctly, start the server by running `npm start` and then head to `localhost:8080/my-example.html`. You should see a blank white page and no Javascript errors in the Developer Console. There'll probably be a bunch of mumbo jumbo in the dev console showing the current versions of each library.
 
