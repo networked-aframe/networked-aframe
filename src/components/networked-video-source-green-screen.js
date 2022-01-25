@@ -5,11 +5,26 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
 
   schema: {
     streamName: { default: 'video' },
+    gthresshold : {default: 0.02},
+    event: {type: 'string', default: ''}
   },
 
   dependencies: ['material'],
 
-  init: function () {
+  update: function () {
+
+    var data = this.data;  // Component property values.
+    var el = this.el;  // Reference to the component's entity.
+
+    if (data.event) {
+      // This will log the `message` when the entity emits the `event`.
+      el.addEventListener(data.event, function () {
+      });
+    } else {
+      // `event` not specified, just log the message.
+    }
+
+
     this.videoTexture = null;
     this.video = null;
     this.stream = null;
@@ -18,7 +33,6 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
 
     NAF.utils.getNetworkedEntity(this.el).then((networkedEl) => {
       const ownerId = networkedEl.components.networked.data.owner;
-
       if (ownerId) {
         NAF.connection.adapter.getMediaStream(ownerId, this.data.streamName)
           .then(this._setMediaStream)
@@ -31,16 +45,24 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
 
   _setMediaStream(newStream) {
 
+
+
     if(!this.video) {
       this.setupVideo();
     }
 
     if(newStream != this.stream) {
+
+
+
       if (this.stream) {
         this._clearMediaStream();
       }
 
       if (newStream) {
+
+
+
         this.video.srcObject = newStream;
 
         const playResult = this.video.play();
@@ -56,22 +78,26 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
         this.videoTexture.format = THREE.RGBAFormat;
 
         const mesh = this.el.getObject3D('mesh');
+
         //--------- begin replace green with transparent ---------
 
-        let uniforms = {};
+        this.uniforms = {};
 
-        uniforms.uMap = {type: 't', value: this.videoTexture }
+        this.uniforms.uMap = {type: 't', value: this.videoTexture }
+        this.uniforms.gthresshold = {type: 'float', value: this.data.gthresshold};
 
-        uniforms = THREE.UniformsUtils.merge([
-                                                      uniforms,
+
+
+        this.uniforms = THREE.UniformsUtils.merge([
+                                                      this.uniforms,
                                                       THREE.UniformsLib['lights']
                                                     ]);
 
-        let materialIncoming =  new THREE.ShaderMaterial({
-          uniforms: uniforms
-        })
+        this.materialIncoming =  new THREE.ShaderMaterial({
+                                  uniforms: this.uniforms
+                                });
 
-        materialIncoming.vertexShader = `
+        this.materialIncoming.vertexShader = `
                          varying vec2 vUv;
 
                         void main() {
@@ -82,23 +108,24 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
                         }
                       `;
 
-        materialIncoming.fragmentShader = `
+        this.materialIncoming.fragmentShader = `
                            varying vec2 vUv;
                            uniform sampler2D uMap;
-
+                           uniform float gthresshold;
+                           
                            void main() {
                                 vec2 uv = vUv;
                                 vec4 tex1 = texture2D(uMap, uv * 1.0);
-                                 if (tex1.g - tex1.r > 0.15 && tex1.g - tex1.r > 0.15)
+                                 if (tex1.g - tex1.r > gthresshold && tex1.g - tex1.r > gthresshold)
                                     gl_FragColor = vec4(0,0,0,0);
                                  else
                                     gl_FragColor = vec4(tex1.r,tex1.g,tex1.b,1.0);
                             }
                       `;
 
-        materialIncoming.transparent = true;
-        materialIncoming.side = THREE.BackSide;
-        mesh.material = materialIncoming;
+        this.materialIncoming.transparent = true;
+        this.materialIncoming.side = THREE.BackSide;
+        mesh.material = this.materialIncoming;
 
         //---------- end of replace -----------------
         //mesh.material.map = this.videoTexture;

@@ -2,10 +2,14 @@
 <head>
   <meta charset="utf-8">
   <title>Multi Streams Example — Networked-Aframe</title>
+
   <meta name="description" content="Dev Example — Networked-Aframe">
+
+  <script  src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
   <script src="/easyrtc/easyrtc.js"></script>
   <script src="/dist/networked-aframe.js"></script>
 
@@ -15,6 +19,7 @@
   <script src="/js/spawn-in-circle.component.js"></script>
   <link rel="stylesheet" type="text/css" href="/css/style.css" />
   <link rel="stylesheet" type="text/css" href="/css/adv-screen.css" />
+
 </head>
 <body>
 <a-scene networked-scene="
@@ -24,49 +29,53 @@
       audio: false;
       video: true;
     ">
+
+
   <a-assets>
 
     <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
     <img id="sky" src="https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
-    <img id="strawb" src="img/strawb.png" crossorigin="anonymous" />
-
-<!--    <a-asset-item id="liberty" src="./assets/Liberty_v7_candle.glb"></a-asset-item>-->
-    <!-- Templates -->
+    <!--    <a-asset-item id="liberty" src="./assets/Liberty_v7_candle.glb"></a-asset-item>-->
 
     <!-- Avatar -->
     <template id="avatar-template">
       <a-entity class="avatar">
-        <a-plane color="#FFF" width="4" height="3" position="0 .6 0" material="side: back"
-                 networked-video-source-green-screen></a-plane>
+        <a-plane id="playerPlane" color="#FFF" width="4" height="3" position="0 0.6 0" material="side: back"
+                 networked-video-source="streamName: video;"></a-plane>
 
-        <a-plane color="#FFF" width="2" height="1" position="0 1.7 -0.001" material="side: back"
-                 networked-video-source-green-screen="streamName: screen"></a-plane>
+        <a-plane id="screenPlane" color="#FFF" width="3" height="2" position="0 1.6 -0.5" material="side: back"
+                 networked-video-source="streamName: screen;"></a-plane>
       </a-entity>
     </template>
 
-    <!-- /Templates -->
+
   </a-assets>
 
+  <!-- Pawn -->
   <a-entity id="player"
             networked="template:#avatar-template;attachTemplateToLocal:false;"
             camera
             position="0 1.6 0"
             spawn-in-circle="radius:3"
             wasd-controls look-controls
-  >
-    <a-sphere class="head"
-              visible="false"
-              random-color
-    ></a-sphere>
+            >
+
+            <a-sphere class="head"
+                      visible="false"
+                      random-color
+            ></a-sphere>
   </a-entity>
 
+  <!-- Grid -->
   <a-entity position="0 0 0"
             geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
             material="src: #grid; repeat: 10000 10000; transparent: true; metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;"></a-entity>
 
+  <!-- Lights -->
   <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>
   <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity>
 
+  <!-- Sky -->
   <a-sky src="#sky" rotation="0 -90 0"></a-sky>
 
 </a-scene>
@@ -82,59 +91,106 @@
 
 <div class="actions">
   <button id="camera-btn" type="button" class="button">Hide Camera</button>
-  <button id="screen-btn" type="button" class="button">Share screen</button>
+  <button id="screen-btn" type="button" class="button">Show Screen</button>
 </div>
 
-<!-- Video by MediaPipe as 2D Element -->
+<!-- Preview what stream you send -->
 <div class="videoUI" style="">
   <div class="video-canvas-container">
-    <canvas id="video_output_canvas" width="320px" height="240px" style="width:160px; height:120px">
+    <canvas id="video_output_canvas" width="320px" height="240px" style="width:320px; height:240px">
     </canvas>
   </div>
-  <div class="control-panel" style="visibility: hidden"></div>
 </div>
 
-
-
 <script>
+  // --------- here I capture my own stream in order to transmit it as I want ----
+  const constraints = {
+    video: true,
+  };
+
+  // Get my camera stream (to do some processing before capturing to canvas
+  const myvideo = document.createElement('video');
+  navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+    myvideo.srcObject = stream;
+    myvideo.play();
+  });
+
+
+  // ---------------------------
+  const API = {
+    gthresshold: 0.02
+  };
+
+  // GUI for changing thresshold for green screen
+  const gui = new dat.GUI();
+  gui.add( API, 'gthresshold', 0, 0.2 ).onChange( function () {
+    document.getElementById("playerPlane").setAttribute("networked-video-source-green-screen","gthresshold",
+            API.gthresshold);
+  } );
+  gui.open();
+
+
   // Camera status
   let cameraEnabled = true;
   // Camera button element
   const cameraBtnEle = document.getElementById('camera-btn');
 
+//  const imageRhi = document.getElementById('strawb');
+
   var canvasElement = document.getElementById('video_output_canvas');
-  var canvasCtx = canvasElement.getContext('2d');
-
-
   const w = canvasElement.width;
   const h = canvasElement.height;
+  var canvasCtx = canvasElement.getContext('2d');
+  var canvasStream;
 
+  (function loop() {
+       canvasCtx.drawImage(myvideo, 0, 0, w, h);
 
-  const imageRhi = document.getElementById('strawb');
+            //   canvasCtx.clearRect(0, 0, w, h);
+            //   canvasCtx.drawImage(imageRhi, 0,0,w,h);
+            //
+            //   // Background
+            //   canvasCtx.fillStyle = "#00FF00FF";
+            //   canvasCtx.globalCompositeOperation='xor';
+            //   canvasCtx.fillRect(0,0,w,h);
+            //
+            //   // Image again in the back because it was lost in xor
+            //   canvasCtx.globalCompositeOperation='destination-over';
+            //   canvasCtx.drawImage(imageRhi, 0, 0, w, h);
 
-  imageRhi.addEventListener('load', e => {
-    canvasCtx.clearRect(0, 0, w, h);
-    canvasCtx.drawImage(imageRhi, 0,0,w,h);
+            //   canvasCtx.drawImage(myvideo, 0, 0, w, h);
+            //
+              const imageData = canvasCtx.getImageData(0, 0, w, h);
+              const data = imageData.data;
+              // for (var i = 0; i < data.length; i += 4) {
+              //   data[i]     = 255 - data[i];     // red
+              //   data[i + 1] = 255 - data[i + 1]; // green
+              //   data[i + 2] = 255 - data[i + 2]; // blue
+              // }
 
-    // Background
-    canvasCtx.fillStyle = "#00FF00FF";
-    canvasCtx.globalCompositeOperation='xor';
-    canvasCtx.fillRect(0,0,w,h);
+            let r,g,b;
+            for (var i = 0; i < data.length; i += 4) {
+              r = data[i]; g = data[i+1]; b = data[i+2];
+              if (g-r>5){
+                data[i] =0;
+                data[i+1]=255;
+                data[i+2]=0;
+              }
+            }
 
-    // Image again in the back because it was lost in xor
-    canvasCtx.globalCompositeOperation='destination-over';
-    canvasCtx.drawImage(imageRhi, 0, 0, w, h);
+            canvasCtx.putImageData(imageData, 0, 0);
 
-  });
-  var canvasStream = canvasElement.captureStream(30);
+           setTimeout(loop, 1000 / 30); // drawing at 30fps
+       }
+  )();
 
+  canvasStream = canvasElement.captureStream(30);
 
   // Screen share status
   let screenEnabled = false;
+
   // Screen share button element
   const screenBtnEle = document.getElementById('screen-btn');
-
-
 
   // Define custom schema for syncing avatar color, set by random-color
   NAF.schemas.add({
@@ -156,14 +212,17 @@
       cameraBtnEle.textContent = cameraEnabled ? 'Hide Camera' : 'Show Camera';
     });
 
+
+
     // Handle screen button click (Off and On)
     screenBtnEle.addEventListener('click', function() {
       if (screenEnabled) {
-        NAF.connection.adapter.removeLocalMediaStream("video");
+        NAF.connection.adapter.removeLocalMediaStream("screen");
         screenEnabled = false;
         screenBtnEle.textContent = 'Share screen';
       } else {
         //navigator.mediaDevices.getDisplayMedia().then((stream) => {
+          console.log("starting screen ------> ");
           NAF.connection.adapter.addLocalMediaStream(canvasStream, "screen"); // stream
           screenEnabled = true;
           screenBtnEle.textContent = 'Stop Screen';
@@ -171,6 +230,7 @@
       }
     });
   }
+
 </script>
 <!--
   Known issues with this demo, some cases are not handled:
