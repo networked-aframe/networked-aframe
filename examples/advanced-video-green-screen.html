@@ -29,25 +29,22 @@
       room: basic-multi-stream-green-screen;
       debug: true;
       adapter: easyrtc;
-      audio: false;
+      audio: true;
       video: true;
     ">
 
   <a-assets>
-
     <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
     <img id="sky" src="https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
 
     <!-- Avatar -->
     <template id="avatar-template">
-      <a-entity class="avatar">
+      <a-entity class="avatar" networked-audio-source>
 
         <a-plane id="screenPlane" color="#FFF" width="2" height="1.5" position="0 0.6 -0.15" material="side: back"
                  networked-video-source-green-screen="streamName: screen; GreenThresholdIn:0.02"></a-plane>
       </a-entity>
     </template>
-
-
   </a-assets>
 
   <!-- Pawn -->
