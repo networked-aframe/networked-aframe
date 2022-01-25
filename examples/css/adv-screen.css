@@ -3,7 +3,7 @@
     position: fixed;
     bottom: 10px;
     left: 350px;
-    width: 190px;
+    width: 400px;
     height: 140px;
     z-index: 15;
     opacity:0.8;
@@ -31,7 +31,7 @@
     /*align-items: center;*/
 }
 
-#video_output_canvas {
+.output_canvas {
     display: flex;
     position: absolute;
     flex-direction: row;

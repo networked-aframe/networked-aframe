@@ -5,7 +5,7 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
 
   schema: {
     streamName: { default: 'video' },
-    gthresshold : {default: 0.02},
+    gthreshold : {default: 0.02},
     event: {type: 'string', default: ''}
   },
 
@@ -45,24 +45,17 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
 
   _setMediaStream(newStream) {
 
-
-
     if(!this.video) {
       this.setupVideo();
     }
 
     if(newStream != this.stream) {
 
-
-
       if (this.stream) {
         this._clearMediaStream();
       }
 
       if (newStream) {
-
-
-
         this.video.srcObject = newStream;
 
         const playResult = this.video.play();
@@ -84,7 +77,7 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
         this.uniforms = {};
 
         this.uniforms.uMap = {type: 't', value: this.videoTexture }
-        this.uniforms.gthresshold = {type: 'float', value: this.data.gthresshold};
+        this.uniforms.gthreshold = {type: 'float', value: this.data.gthreshold};
 
 
 
@@ -111,12 +104,12 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
         this.materialIncoming.fragmentShader = `
                            varying vec2 vUv;
                            uniform sampler2D uMap;
-                           uniform float gthresshold;
+                           uniform float gthreshold;
                            
                            void main() {
                                 vec2 uv = vUv;
                                 vec4 tex1 = texture2D(uMap, uv * 1.0);
-                                 if (tex1.g - tex1.r > gthresshold && tex1.g - tex1.r > gthresshold)
+                                 if (tex1.g - tex1.r > gthreshold)
                                     gl_FragColor = vec4(0,0,0,0);
                                  else
                                     gl_FragColor = vec4(tex1.r,tex1.g,tex1.b,1.0);

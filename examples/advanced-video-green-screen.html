@@ -30,7 +30,6 @@
       video: true;
     ">
 
-
   <a-assets>
 
     <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
@@ -40,11 +39,11 @@
     <!-- Avatar -->
     <template id="avatar-template">
       <a-entity class="avatar">
-        <a-plane id="playerPlane" color="#FFF" width="4" height="3" position="0 0.6 0" material="side: back"
-                 networked-video-source="streamName: video;"></a-plane>
+<!--        <a-plane id="rawPlayerPlane" color="#FFF" width="4" height="3" position="0 2.6 0" material="side: back"-->
+<!--                 networked-video-source-green-screen="streamName: video; gthreshold:0.02" visible="true"></a-plane>-->
 
-        <a-plane id="screenPlane" color="#FFF" width="3" height="2" position="0 1.6 -0.5" material="side: back"
-                 networked-video-source="streamName: screen;"></a-plane>
+        <a-plane id="screenPlane" color="#FFF" width="3" height="2" position="0 0.6 -0.15" material="side: back"
+                 networked-video-source-green-screen="streamName: screen; gthreshold:0.02"></a-plane>
       </a-entity>
     </template>
 
@@ -91,15 +90,23 @@
 
 <div class="actions">
   <button id="camera-btn" type="button" class="button">Hide Camera</button>
-  <button id="screen-btn" type="button" class="button">Show Screen</button>
+  <button id="screen-btn" type="button" class="button" style="height:80px">Debug Screen (increases bandwidth!)</button>
 </div>
 
 <!-- Preview what stream you send -->
-<div class="videoUI" style="">
+<div class="videoUI" style="text-align:center; color:white">
+  <span style="font-size: small">This is what you send (Before, After processing)</span>
+
   <div class="video-canvas-container">
-    <canvas id="video_output_canvas" width="320px" height="240px" style="width:320px; height:240px">
-    </canvas>
+    <canvas id="canvas_secret" class="output_canvas" width="320px" height="240px" style="width:160px; height:120px"></canvas>
   </div>
+
+  <div class="video-canvas-container" style="left:200px">
+    <canvas id="video_output_canvas" class="output_canvas" width="320px" height="240px" style="width:160px; height:120px"></canvas>
+  </div>
+
+
+
 </div>
 
 <script>
@@ -115,18 +122,35 @@
     myvideo.play();
   });
 
-
-  // ---------------------------
+  // ---------- The gui for configuring other clients inputs  -----------------
   const API = {
-    gthresshold: 0.02
+    gthreshold: 0.02,
+    GreenThresholdOut: 5,
   };
 
   // GUI for changing thresshold for green screen
-  const gui = new dat.GUI();
-  gui.add( API, 'gthresshold', 0, 0.2 ).onChange( function () {
-    document.getElementById("playerPlane").setAttribute("networked-video-source-green-screen","gthresshold",
-            API.gthresshold);
+  const gui = new dat.GUI( { width: 400 });
+
+  gui.add( API, 'gthreshold', 0, 0.7 ).onChange( function () {
+    // document.getElementById("rawPlayerPlane").setAttribute("networked-video-source-green-screen","gthreshold",
+    //         API.gthreshold);
+
+    document.getElementById("screenPlane").setAttribute("networked-video-source-green-screen","gthreshold",
+            API.gthreshold);
+
   } );
+
+  const videoOutbound = gui.addFolder("Video outbound");
+  videoOutbound.open();
+
+  videoOutbound.add(API, "GreenThresholdOut", 0, 255, 1).onChange((val) => {
+    API.GreenThresholdOut = val;
+  });
+
+
+
+
+
   gui.open();
 
 
@@ -135,55 +159,39 @@
   // Camera button element
   const cameraBtnEle = document.getElementById('camera-btn');
 
-//  const imageRhi = document.getElementById('strawb');
-
+  // Process my stream
   var canvasElement = document.getElementById('video_output_canvas');
+  var canvasElementSecret = document.getElementById('canvas_secret');
+
   const w = canvasElement.width;
   const h = canvasElement.height;
   var canvasCtx = canvasElement.getContext('2d');
+  var canvasCtxSecret = canvasElementSecret.getContext('2d');
+
   var canvasStream;
+  let r,g,b;
 
   (function loop() {
-       canvasCtx.drawImage(myvideo, 0, 0, w, h);
+            canvasCtxSecret.drawImage(myvideo, 0, 0, w, h);
+            let imageData = canvasCtxSecret.getImageData(0, 0, w, h);
 
-            //   canvasCtx.clearRect(0, 0, w, h);
-            //   canvasCtx.drawImage(imageRhi, 0,0,w,h);
-            //
-            //   // Background
-            //   canvasCtx.fillStyle = "#00FF00FF";
-            //   canvasCtx.globalCompositeOperation='xor';
-            //   canvasCtx.fillRect(0,0,w,h);
-            //
-            //   // Image again in the back because it was lost in xor
-            //   canvasCtx.globalCompositeOperation='destination-over';
-            //   canvasCtx.drawImage(imageRhi, 0, 0, w, h);
-
-            //   canvasCtx.drawImage(myvideo, 0, 0, w, h);
-            //
-              const imageData = canvasCtx.getImageData(0, 0, w, h);
-              const data = imageData.data;
-              // for (var i = 0; i < data.length; i += 4) {
-              //   data[i]     = 255 - data[i];     // red
-              //   data[i + 1] = 255 - data[i + 1]; // green
-              //   data[i + 2] = 255 - data[i + 2]; // blue
-              // }
-
-            let r,g,b;
-            for (var i = 0; i < data.length; i += 4) {
-              r = data[i]; g = data[i+1]; b = data[i+2];
-              if (g-r>5){
-                data[i] =0;
-                data[i+1]=255;
-                data[i+2]=0;
+            for (var i = 0; i < imageData.data.length; i += 4) {
+              r = imageData.data[i]; g = imageData.data[i+1]; b = imageData.data[i+2];
+              if (g-r> API.GreenThresholdOut){
+                imageData.data[i] =0;
+                imageData.data[i+1]=255;
+                imageData.data[i+2]=0;
               }
             }
 
             canvasCtx.putImageData(imageData, 0, 0);
 
-           setTimeout(loop, 1000 / 30); // drawing at 30fps
+
+            setTimeout(loop, 1000 / 30); // drawing at 30fps
        }
   )();
 
+  // final processed stream to send
   canvasStream = canvasElement.captureStream(30);
 
   // Screen share status
@@ -212,20 +220,17 @@
       cameraBtnEle.textContent = cameraEnabled ? 'Hide Camera' : 'Show Camera';
     });
 
-
-
     // Handle screen button click (Off and On)
     screenBtnEle.addEventListener('click', function() {
       if (screenEnabled) {
         NAF.connection.adapter.removeLocalMediaStream("screen");
         screenEnabled = false;
-        screenBtnEle.textContent = 'Share screen';
+        screenBtnEle.textContent = 'Share Debug screen';
       } else {
         //navigator.mediaDevices.getDisplayMedia().then((stream) => {
-          console.log("starting screen ------> ");
           NAF.connection.adapter.addLocalMediaStream(canvasStream, "screen"); // stream
           screenEnabled = true;
-          screenBtnEle.textContent = 'Stop Screen';
+          screenBtnEle.textContent = 'Stop Debug Screen';
         //});
       }
     });
