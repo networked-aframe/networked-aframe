@@ -373,31 +373,39 @@ I would love love love you to send me cool examples you've made, and I'm looking
 
 --------
 
-#Stopping NAF
+#Permanent run NAF for Linux based servers
+
+When you start NAF with `npm start` then the Process generated is contextualized with the terminal window, i.e. if you close the window or restart the server, the process stops.  
+
+In order to have NAF running in your linux server permantently, i.e. to avoid the aforementioned misshappenings then you should use pm2 in order to convert node NAF server in a daemon service. 
+PM2 is a Production Process Manager for Node.js applications with a built-in Load Balancer (http://pm2.io/).
+
+Steps
+-  Install PM2
+
+`$ sudo npm install -g pm2`
+
+- Go to /server folder and start easyrtc-server.js as a service with pm2
+ 
+`$ pm2 start easyrtc-server.js -i 4`
+
+Note that `-i 4` sets as maximum 4 instances of NAF at your server which can significantly improve performance when many players enter. 
+
+
+Monitor:
+
+`$ pm2 monitor`
+
+Make pm2 auto-boot at server restart:
+
+`$ pm2 startup`
+
+
+#Stopping NAF when started with pm2
 
 How to stop NAF ?
 
-As you have observed there is no stop command. If you are in a Linux based server, e.g. Ubuntu, try the following commands to Find and Kill (the process that you have initiated for NAF).
-
-**1. Find**
-
-`sudo lsof -i:8080`
-
-With this command you find where node server listens (change 8080 to whatever port you use)
-
-Then you will get a big report that has also a line beginning with **node** 
-
-`COMMAND   PID        USER       FD   TYPE   DEVICE SIZE/OFF NODE NAME 
-
-node     3766        JohnSmith   20u  IPv4    27606      0t0  TCP *:8080 (LISTEN)`
-
-
-You want the second field namely ProcessID which happens for me to be 3766 but for you will be another number
-
-
-**2. Kill**
-
-**sudo kill -9 3766**
+`pm2 stop easyrtc-server.js` 
 
 
 

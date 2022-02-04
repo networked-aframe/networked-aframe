@@ -5,25 +5,12 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
 
   schema: {
     streamName: { default: 'video' },
-    GreenThresholdIn : {default: 0.02},
-    event: {type: 'string', default: ''}
+    gthreshold : {default: 0.02}
   },
 
   dependencies: ['material'],
 
   update: function () {
-
-    var data = this.data;  // Component property values.
-    var el = this.el;  // Reference to the component's entity.
-
-    if (data.event) {
-      // This will log the `message` when the entity emits the `event`.
-      el.addEventListener(data.event, function () {
-      });
-    } else {
-      // `event` not specified, just log the message.
-    }
-
 
     this.videoTexture = null;
     this.video = null;
@@ -68,7 +55,6 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
         }
 
         this.videoTexture = new THREE.VideoTexture(this.video);
-        this.videoTexture.format = THREE.RGBAFormat;
 
         const mesh = this.el.getObject3D('mesh');
 
@@ -77,7 +63,7 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
         this.uniforms = {};
 
         this.uniforms.uMap = {type: 't', value: this.videoTexture }
-        this.uniforms.GreenThresholdIn = {type: 'float', value: this.data.GreenThresholdIn};
+        this.uniforms.gthreshold = {type: 'float', value: this.data.gthreshold};
 
 
 
@@ -104,20 +90,20 @@ AFRAME.registerComponent('networked-video-source-green-screen', {
         this.materialIncoming.fragmentShader = `
                            varying vec2 vUv;
                            uniform sampler2D uMap;
-                           uniform float GreenThresholdIn;
+                           uniform float gthreshold;
                            
                            void main() {
                                 vec2 uv = vUv;
                                 vec4 tex1 = texture2D(uMap, uv * 1.0);
-                                 if (tex1.g - tex1.r > GreenThresholdIn)
-                                    gl_FragColor = vec4(0,0,0,0);
+                                 if (tex1.g - tex1.r > gthreshold)
+                                    discard; // better than gl_FragColor = vec4(0,0,0,0);
                                  else
                                     gl_FragColor = vec4(tex1.r,tex1.g,tex1.b,1.0);
                             }
                       `;
 
         this.materialIncoming.transparent = true;
-        this.materialIncoming.side = THREE.BackSide;
+        this.materialIncoming.side = THREE.DoubleSide;
         mesh.material = this.materialIncoming;
 
         //---------- end of replace -----------------
