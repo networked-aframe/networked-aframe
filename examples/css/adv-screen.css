@@ -49,3 +49,8 @@
     left: 10px;
     top: 10px;
 }
+
+/* dat gui */
+.dg.ac{
+    z-index: 1000;
+}

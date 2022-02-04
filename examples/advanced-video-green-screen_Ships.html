@@ -16,6 +16,9 @@
   <script src="/easyrtc/easyrtc.js"></script>
   <script src="/dist/networked-aframe.js"></script>
 
+  <script src="js/a-water.v0.1.0.js"></script>
+  <script src="https://unpkg.com/aframe-sun-sky@3.0.3/dist/aframe-sun-sky.min.js"></script>
+
   <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
   <!--<script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>-->
   <script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@master/dist/aframe-particle-system-component.min.js"></script>
@@ -25,7 +28,10 @@
 
 </head>
 <body>
-<a-scene stats networked-scene="
+
+<a-scene
+
+         renderer="antialias: true; sortObjects: true;" stats networked-scene="
       room: basic-multi-stream-green-screen;
       debug: true;
       adapter: easyrtc;
@@ -33,16 +39,28 @@
       video: false;
     ">
 
+  <!-- Lights -->
+  <a-entity light="type:directional; castShadow:true; intensity: 3; color: #ffffff" position="200 200 -60"  visible="">
+    <!-- A default sky -->
+    <a-sun-sky material="side:back; sunPosition: 1.0 1.0 0.0"></a-sun-sky>
+
+  </a-entity>
+<!--  light="color: #ccccff; -->
+
+
+
+
   <a-assets>
 
     <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
     <img id="sky" src="https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
 
+    <a-asset-item id="ship" src="assets/Liberty_v7_candle.glb"></a-asset-item>
     <!-- Avatar -->
     <template id="avatar-template">
       <a-entity class="avatar" networked-audio-source>
 
-        <a-plane id="screenPlane" color="#FFF" width="2" height="1.5" position="0 0.6 -0.15" material="side: back"
+        <a-plane id="screenPlane" color="#FFF" width="2" height="1.5" position="0 0.6 -0.15" material="side: double"
                  networked-video-source-green-screen="streamName: screen; GreenThresholdIn:0.02"></a-plane>
       </a-entity>
     </template>
@@ -51,7 +69,7 @@
   <!-- Pawn -->
   <a-entity id="player"
             networked="template:#avatar-template;attachTemplateToLocal:false;"
-            camera
+
             position="0 1.6 0"
             spawn-in-circle="radius:3"
             wasd-controls look-controls
@@ -61,19 +79,27 @@
                       visible="false"
                       random-color
             ></a-sphere>
+
+          <a-entity active="true" camera="near: 0.1; far: 7000.0;" position="0 1.6 0"></a-entity>
   </a-entity>
 
-  <!-- Grid -->
-  <a-entity position="0 0 0"
-            geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
-            material="src: #grid; repeat: 10000 10000; transparent: true; metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;"></a-entity>
 
-  <!-- Lights -->
-  <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>
-  <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity>
 
-  <!-- Sky -->
-  <a-sky src="#sky" rotation="0 -90 0"></a-sky>
+
+  <a-gltf-model src="#ship" shadow="receive: true"></a-gltf-model>
+
+
+
+
+
+
+
+
+
+  <!-- The ocean we want to create. It works better with things to refract and real time lighting,
+  but this gives an idea of the most basic setup. -->
+  <a-ocean ocean-state="wind_velocity: 0.25 0.25;" shadow="receive: true"></a-ocean>
+
 
 </a-scene>
 
@@ -87,7 +113,7 @@
 </style>
 
 <div class="actions">
-  <button id="screen-btn" type="button" class="button" style="height:80px">Send Video</button>
+  <button id="screen-btn" type="button" class="button" style="height:80px; z-index: 10000">Send Video</button>
 </div>
 
 <!-- Preview what stream you send -->
@@ -126,6 +152,7 @@
 
   // GUI for changing thresshold for green screen
   const gui = new dat.GUI( { width: 400 });
+
 
   const videoInbound = gui.addFolder("Video Inbound");
   videoInbound.open();
