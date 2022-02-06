@@ -1,0 +1,56 @@
+.videoUI {
+    border: 1px solid cyan;
+    position: fixed;
+    bottom: 10px;
+    left: 350px;
+    width: 400px;
+    height: 140px;
+    z-index: 15;
+    opacity:0.8;
+    pointer-events: none; /* allow click-through in transparent areas */
+}
+
+
+#live_label{
+    display: flex;
+    justify-content: center;
+    font-size: 9pt;
+    width: 100%;
+}
+
+.video-canvas-container {
+    display: flex;
+    position: absolute;
+    flex-direction: row;
+    left: 10px;
+    bottom:0px;
+    border: 1px solid violet;
+    pointer-events: none;
+    opacity:0.8;
+    /*justify-content: center;*/
+    /*align-items: center;*/
+}
+
+.output_canvas {
+    display: flex;
+    position: absolute;
+    flex-direction: row;
+    width: 320px;
+    height: 240px;
+    left: 0px;
+    bottom: 0px;
+    border: 3px solid darkgray;
+    pointer-events: none;
+    z-index:999;
+}
+
+.control-panel {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
+
+/* dat gui */
+.dg.ac{
+    z-index: 1000;
+}

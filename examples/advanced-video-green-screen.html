@@ -1,0 +1,115 @@
+<html>
+<head>
+  <!-- Dimitrios Ververidis for CERTH/ITI, 25/1/2022 -->
+  <meta charset="utf-8">
+  <title>Multi Streams Example — Networked-Aframe</title>
+
+  <meta name="description" content="Dev Example — Networked-Aframe with Green Screen effect">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+  <script src="/easyrtc/easyrtc.js"></script>
+  <script src="/dist/networked-aframe.js"></script>
+
+  <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+  <!--<script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>-->
+  <script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@master/dist/aframe-particle-system-component.min.js"></script>
+  <script src="/js/spawn-in-circle.component.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/style.css" />
+  <link rel="stylesheet" type="text/css" href="/css/adv-screen.css" />
+
+</head>
+
+<body>
+<a-scene networked-scene="
+      room: multi-stream-green-screen;
+      debug: true;
+      adapter: easyrtc;
+      audio: true;
+      video: true;
+    ">
+
+  <a-assets>
+    <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
+    <img id="sky" src="https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+
+    <!-- Avatar -->
+    <template id="avatar-template">
+      <a-entity class="avatar" networked-audio-source>
+        <a-plane
+                material="side: double;"
+                id="screenPlane" color="#FFF" width="3" height="1.5" position="0 0.6 -0.15"
+                networked-video-source="useGreenScreen: true; greenThreshold: 0.08"></a-plane>
+      </a-entity>
+    </template>
+  </a-assets>
+
+  <!-- Pawn -->
+  <a-entity id="player"
+            networked="template:#avatar-template;attachTemplateToLocal:false;"
+            camera
+            position="0 1.6 0"
+            spawn-in-circle="radius:3"
+            wasd-controls look-controls
+  >
+
+    <a-sphere class="head"
+              visible="false"
+              random-color
+    ></a-sphere>
+  </a-entity>
+
+  <!-- Grid -->
+  <a-entity position="0 0 0"
+            geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
+            material="src: #grid; repeat: 10000 10000; transparent: true; metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;"></a-entity>
+
+  <!-- Lights -->
+  <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>
+  <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity>
+
+  <!-- Sky -->
+  <a-sky src="#sky" rotation="0 -90 0"></a-sky>
+
+</a-scene>
+
+
+
+<script>
+
+  // Define custom schema for syncing avatar color, set by random-color
+  NAF.schemas.add({
+    template: '#avatar-template',
+    components: [
+      'position',
+      'rotation'
+    ]
+  });
+
+
+  // Configure Background Green Screen
+  const API = {
+    GreenThreshold: 0.08
+  };
+
+  const gui = new dat.GUI( { width: 400 });
+  const video = gui.addFolder("Video Filtering Parameters");
+  video.open();
+  video.add( API, 'GreenThreshold', 0, 0.3, 0.01 ).onChange( function () {
+    document.getElementById("screenPlane").setAttribute("networked-video-source","greenThreshold",
+            API.GreenThreshold);
+  } );
+
+</script>
+<!--
+  Known issues with this demo, some cases are not handled:
+  - If participant A shares their screen, the partipant B sees the other participant's screen.
+    When participant A stops their screen share, the other participant will see a frozen screen, the last image received.
+  - If participant A starts screen share, stops, and restarts the screen share, the other participant won't see it.
+-->
+</body>
+</html>

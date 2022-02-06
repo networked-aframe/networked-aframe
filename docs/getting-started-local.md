@@ -371,3 +371,41 @@ I would love love love you to send me cool examples you've made, and I'm looking
 
 [@HaydenLee37](https://twitter.com/haydenlee37)
 
+--------
+
+#Permanent run NAF for Linux based servers
+
+When you start NAF with `npm start` then the Process generated is contextualized with the terminal window, i.e. if you close the window or restart the server, the process stops.  
+
+In order to have NAF running in your linux server permantently, i.e. to avoid the aforementioned misshappenings then you should use pm2 in order to convert node NAF server in a daemon service. 
+PM2 is a Production Process Manager for Node.js applications with a built-in Load Balancer (http://pm2.io/).
+
+Steps
+-  Install PM2
+
+`$ sudo npm install -g pm2`
+
+- Go to /server folder and start easyrtc-server.js as a service with pm2
+ 
+`$ pm2 start easyrtc-server.js -i 4`
+
+Note that `-i 4` sets as maximum 4 instances of NAF at your server which can significantly improve performance when many players enter. 
+
+
+Monitor:
+
+`$ pm2 monitor`
+
+Make pm2 auto-boot at server restart:
+
+`$ pm2 startup`
+
+
+#Stopping NAF when started with pm2
+
+How to stop NAF ?
+
+`pm2 stop easyrtc-server.js` 
+
+
+

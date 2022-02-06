@@ -5,11 +5,13 @@ AFRAME.registerComponent('networked-video-source', {
 
   schema: {
     streamName: { default: 'video' },
+    useGreenScreen: {default: false},
+    greenThreshold : {default: 0.02}
   },
 
   dependencies: ['material'],
 
-  init: function () {
+  update: function () {
     this.videoTexture = null;
     this.video = null;
     this.stream = null;
@@ -55,7 +57,55 @@ AFRAME.registerComponent('networked-video-source', {
         this.videoTexture = new THREE.VideoTexture(this.video);
 
         const mesh = this.el.getObject3D('mesh');
-        mesh.material.map = this.videoTexture;
+
+        //  replace green with transparent pixels
+        if (this.data.useGreenScreen) {
+          this.uniforms = {};
+
+          this.uniforms.uMap = {type: 't', value: this.videoTexture}
+          this.uniforms.greenThreshold = {type: 'float', value: this.data.greenThreshold};
+
+          this.uniforms = THREE.UniformsUtils.merge([
+            this.uniforms,
+            THREE.UniformsLib['lights']
+          ]);
+
+          this.materialIncoming = new THREE.ShaderMaterial({
+            uniforms: this.uniforms
+          });
+
+          this.materialIncoming.vertexShader = `
+                         varying vec2 vUv;
+
+                        void main() {
+                            vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
+                            vec3 vWorldPosition = worldPosition.xyz;
+                            vUv = uv;
+                            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+                        }
+                      `;
+
+          this.materialIncoming.fragmentShader = `
+                           varying vec2 vUv;
+                           uniform sampler2D uMap;
+                           uniform float greenThreshold;
+                           
+                           void main() {
+                                vec2 uv = vUv;
+                                vec4 tex1 = texture2D(uMap, uv * 1.0);
+                                 if (tex1.g - tex1.r > greenThreshold)
+                                    discard; 
+                                 else
+                                    gl_FragColor = vec4(tex1.r,tex1.g,tex1.b,1.0);
+                            }
+                      `;
+
+          this.materialIncoming.transparent = true;
+          this.materialIncoming.side = THREE.DoubleSide;
+          mesh.material = this.materialIncoming;
+        } else {
+          mesh.material.map = this.videoTexture;
+        }
         mesh.material.needsUpdate = true;
       }
 
