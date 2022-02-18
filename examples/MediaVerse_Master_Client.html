@@ -1,0 +1,249 @@
+<html>
+<head>
+  <!-- Dimitrios Ververidis for CERTH/ITI, 25/1/2022 -->
+  <meta charset="utf-8">
+  <title>Ζωντανή Παράσταση</title>
+
+  <meta name="description" content="Dev Example — Networked-Aframe with Green Screen effect">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
+
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+  <script src="/easyrtc/easyrtc.js"></script>
+  <script src="/dist/networked-aframe.js"></script>
+  <script src="js/a-water.master.min.js"></script>
+  <script src="https://unpkg.com/aframe-sun-sky@3.0.3/dist/aframe-sun-sky.min.js"></script>
+
+  <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+  <!--<script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>-->
+  <script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@master/dist/aframe-particle-system-component.min.js"></script>
+  <script src="/js/spawn-in-circle.component.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/style.css" />
+  <link rel="stylesheet" type="text/css" href="/css/adv-screen.css" />
+
+</head>
+<body>
+
+<a-scene
+        fog="type: linear; color: #AAB; far: 230; near: 0"
+      renderer="antialias: true; sortObjects: true;" networked-scene="
+      room: basic-multi-stream-green-screen;
+      debug: true;
+      adapter: easyrtc;
+      audio: true;
+      video: false;
+    ">
+
+  <!-- Lights -->
+  <a-entity light="type:directional; castShadow:true; intensity: 3; color: #ffffff" position="200 200 -60"  visible="">
+    <!-- A default sky -->
+    <a-sun-sky material="side:back; sunPosition: 1.0 1.0 0.0"></a-sun-sky>
+
+  </a-entity>
+
+  <a-entity light="type:point; castShadow:false; intensity: 1; color: #ffffff" position="-2 1.7 -7"  visible=""></a-entity>
+
+<!--  light="color: #ccccff; -->
+
+
+
+
+  <a-assets>
+
+    <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
+    <img id="sky" src="https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+
+    <a-asset-item id="ship" src="assets/Liberty_v7_candle.glb"></a-asset-item>
+
+    <!-- Avatar -->
+    <template id="avatar-template">
+      <a-entity class="avatar" networked-audio-source>
+
+        <a-plane id="videoPlaneGreen" color="#FFF" width="1" height="0.75" position="0 0.6 -0.15" material="side: double"
+                 networked-video-source="useGreenScreen: true; greenThreshold: 0.04; streamName: video"></a-plane>
+
+        <a-plane id="screenPlane" color="#FFF" width="0" height="0" position="0 0.6 -0.15" material="side: double"
+                 networked-video-source="streamName:screen"></a-plane>
+      </a-entity>
+    </template>
+  </a-assets>
+
+  <!-- Pawn -->
+  <a-entity id="player"
+            networked="template:#avatar-template;attachTemplateToLocal:false;"
+            position="0 0.6 0"
+            spawn-in-circle="radius:3"
+            wasd-controls="fly: true;"
+            show-position
+            look-controls>
+
+            <a-sphere class="head"
+                      visible="false"
+                      random-color
+            ></a-sphere>
+          <a-entity active="true" camera="near: 0.1; far: 7000.0;" position="0 0.6 0"></a-entity>
+  </a-entity>
+
+  <a-gltf-model src="#ship" shadow="receive: true" clear-frustum-culling></a-gltf-model>
+
+  <a-ocean ocean-state="wind_velocity: 0.25 0.25;" shadow="receive: true" ocean-depth></a-ocean>
+</a-scene>
+
+
+
+<div class="actions">
+  <span id="positionShow" style="z-index: 1000; color:white;"></span>
+  <button id="screen-btn-sendscreen" type="button" class="button" style="height:30px; z-index: 10000">Send screen</button>
+</div>
+
+
+
+<script>
+  AFRAME.registerComponent('show-position', {
+    init: function () {
+      this.positionShow = document.getElementById("positionShow");
+    },
+    tick: function (time, timeDelta) {
+      var p = this.el.getAttribute('position');
+      this.positionShow.innerHTML = Math.round(p.x*100)/100 + ", " + Math.round(p.y*100)/100 + ", " + Math.round(p.z*100)/100;
+    }
+  });
+
+
+
+  AFRAME.registerComponent('clear-frustum-culling', {
+    init: function(){
+      let el = this.el;
+      el.addEventListener("model-loaded", e =>{
+        let mesh = el.getObject3D('mesh');
+        if (!mesh){return;}
+        mesh.traverse(function(node){
+          if (node.isMesh){
+            node.frustumCulled = false;
+            //node.material.depthTest = false;
+            //node.material.depthWrite = false;
+          }
+        });
+      });
+    }
+  });
+
+
+  // AFRAME.registerComponent('ocean-depth', {
+  //   init: function(){
+  //     let el = this.el;
+  //     el.addEventListener("model-loaded", e =>{
+  //
+  //       console.log(el);
+  //       let mesh = el.getObject3D('mesh');
+  //       if (!mesh){return;}
+  //       mesh.traverse(function(node){
+  //         if (node.isMesh){
+  //           //node.frustumCulled = false;
+  //           node.material.depthWrite = false;
+  //         }
+  //       });
+  //     });
+  //   }
+  // });
+
+
+  // ---------- The gui for configuring other clients inputs  -----------------
+  // Configure Background Green Screen
+  const API = {
+    ThresholdMin: 0.106,
+    ThresholdMax: 0.13,
+    red: 48,
+    green: 146,
+    blue: 89
+  };
+  const gui = new dat.GUI( { width: 200 });
+  const video = gui.addFolder("Video Filtering Parameters");
+  //video.open();
+
+  video.add( API, 'red', 0, 255, 1 ).onChange( function () {
+    document.getElementById("screenPlane").setAttribute("networked-video-source","red",
+            API.red);
+  } );
+
+  video.add( API, 'green', 0, 255, 1 ).onChange( function () {
+    document.getElementById("screenPlane").setAttribute("networked-video-source","green",
+            API.green);
+  } );
+
+  video.add( API, 'blue', 0, 255, 1 ).onChange( function () {
+    document.getElementById("screenPlane").setAttribute("networked-video-source","blue",
+            API.blue);
+  } );
+
+  video.add( API, 'ThresholdMin', 0, 0.4, 0.001 ).onChange( function () {
+    document.getElementById("screenPlane").setAttribute("networked-video-source","ThresholdMin",
+            API.ThresholdMin);
+  } );
+
+  video.add( API, 'ThresholdMax', 0, 0.4, 0.01 ).onChange( function () {
+    document.getElementById("screenPlane").setAttribute("networked-video-source","ThresholdMax",
+            API.ThresholdMax);
+  } );
+
+
+  //gui.open();
+
+
+
+  // Define custom schema for syncing avatar color, set by random-color
+  NAF.schemas.add({
+    template: '#avatar-template',
+    components: [
+      'position',
+      'rotation'
+    ]
+  });
+
+  // Called by Networked-Aframe when connected to server
+  function onConnect () {
+    console.log("onConnect", new Date());
+    // setTimeout(function(){
+    //   // This is the processed stream that we want to send
+    //   // We do not want the default stream camera (takes bandwidth)
+    // //  NAF.connection.adapter.enableCamera(false);
+    // },5000);
+
+
+      // setTimeout(function(){
+    const screenBtnEle = document.getElementById('screen-btn-sendscreen');
+    screenBtnEle.addEventListener('click', function() {
+      navigator.mediaDevices.getDisplayMedia().then((stream) => {
+        NAF.connection.adapter.addLocalMediaStream(stream, "screen");
+      });
+     });
+      //},8000);
+
+
+    // // Handle screen button click (Off and On)
+    // screenBtnEle.addEventListener('click', function() {
+    //   if (screenEnabled) {
+    //     NAF.connection.adapter.removeLocalMediaStream("screen");
+    //     screenEnabled = false;
+    //     screenBtnEle.textContent = 'Send Video';
+    //   } else {
+    //     NAF.connection.adapter.addLocalMediaStream(canvasStream, "screen"); // stream
+    //     screenEnabled = true;
+    //     screenBtnEle.textContent = 'Stop sending Video';
+    //   }
+    // });
+  }
+
+</script>
+<!--
+  Known issues with this demo, some cases are not handled:
+  - If participant A shares their screen, the partipant B sees the other participant's screen.
+    When participant A stops their screen share, the other participant will see a frozen screen, the last image received.
+  - If participant A starts screen share, stops, and restarts the screen share, the other participant won't see it.
+-->
+</body>
+</html>
