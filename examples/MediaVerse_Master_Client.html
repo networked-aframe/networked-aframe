@@ -57,7 +57,7 @@
     <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
     <img id="sky" src="https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
 
-    <a-asset-item id="ship" src="assets/Liberty_v7_candle.glb"></a-asset-item>
+<!--    <a-asset-item id="ship" src="assets/Liberty_v7_candle.glb"></a-asset-item>-->
 
     <!-- Avatar -->
     <template id="avatar-template">
@@ -88,28 +88,48 @@
           <a-entity active="true" camera="near: 0.1; far: 7000.0;" position="0 0.6 0"></a-entity>
   </a-entity>
 
-  <a-gltf-model src="#ship" shadow="receive: true" clear-frustum-culling></a-gltf-model>
+<!--  <a-gltf-model src="#ship" shadow="receive: true" clear-frustum-culling></a-gltf-model>-->
 
   <a-ocean ocean-state="wind_velocity: 0.25 0.25;" shadow="receive: true" ocean-depth></a-ocean>
 </a-scene>
 
 
 
-<div class="actions">
-  <span id="positionShow" style="z-index: 1000; color:white;"></span>
-  <button id="screen-btn-sendscreen" type="button" class="button" style="height:30px; z-index: 10000">Send screen</button>
+<div class="actions" style="background: #222222;">
+  <span id="infoshow" style="z-index: 1000; color:white;">
+    Position:<span id="positionShow" style="z-index: 1000; color:white;"></span>
+    <br />
+    Number of Players: <span id="occupantsNumberShow" style="z-index: 1000; color:white;"></span>
+    <br />
+    Players: <span id="occupantsShow" style="z-index: 1000; color:white;"></span>
+  </span>
+  <br />
+  <br />
+  <button id="screen-btn-sendscreen" type="button" class="button" style="position:absolute;height:30px; left:300px; z-index: 10000">Send screen</button>
 </div>
 
 
 
 <script>
+
+
+
   AFRAME.registerComponent('show-position', {
     init: function () {
       this.positionShow = document.getElementById("positionShow");
+      this.occupantsNumberShow = document.getElementById("occupantsNumberShow");
+      this.occupantsShow = document.getElementById("occupantsShow");
     },
     tick: function (time, timeDelta) {
       var p = this.el.getAttribute('position');
       this.positionShow.innerHTML = Math.round(p.x*100)/100 + ", " + Math.round(p.y*100)/100 + ", " + Math.round(p.z*100)/100;
+
+      var occupants = window.easyrtc.getRoomOccupantsAsMap(window.NAF.room);
+      if(occupants) {
+        this.occupantsNumberShow.innerHTML = Object.keys(occupants).length;
+        this.occupantsShow.innerHTML = '';
+        for (let o in occupants){this.occupantsShow.innerHTML += ' ' + o + ', ';}
+      }
     }
   });
 
@@ -166,27 +186,27 @@
   //video.open();
 
   video.add( API, 'red', 0, 255, 1 ).onChange( function () {
-    document.getElementById("screenPlane").setAttribute("networked-video-source","red",
+    document.getElementById("videoPlaneGreen").setAttribute("networked-video-source","red",
             API.red);
   } );
 
   video.add( API, 'green', 0, 255, 1 ).onChange( function () {
-    document.getElementById("screenPlane").setAttribute("networked-video-source","green",
+    document.getElementById("videoPlaneGreen").setAttribute("networked-video-source","green",
             API.green);
   } );
 
   video.add( API, 'blue', 0, 255, 1 ).onChange( function () {
-    document.getElementById("screenPlane").setAttribute("networked-video-source","blue",
+    document.getElementById("videoPlaneGreen").setAttribute("networked-video-source","blue",
             API.blue);
   } );
 
   video.add( API, 'ThresholdMin', 0, 0.4, 0.001 ).onChange( function () {
-    document.getElementById("screenPlane").setAttribute("networked-video-source","ThresholdMin",
+    document.getElementById("videoPlaneGreen").setAttribute("networked-video-source","ThresholdMin",
             API.ThresholdMin);
   } );
 
   video.add( API, 'ThresholdMax', 0, 0.4, 0.01 ).onChange( function () {
-    document.getElementById("screenPlane").setAttribute("networked-video-source","ThresholdMax",
+    document.getElementById("videoPlaneGreen").setAttribute("networked-video-source","ThresholdMax",
             API.ThresholdMax);
   } );
 

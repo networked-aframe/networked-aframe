@@ -1,0 +1,224 @@
+<html>
+<head>
+  <!-- Dimitrios Ververidis for CERTH/ITI, 25/1/2022 -->
+  <meta charset="utf-8">
+  <title>Πύλη συμμετοχής</title>
+  <meta name="description" content="Πάρε μέρος στο έργο !">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+  <script src="/easyrtc/easyrtc.js"></script>
+  <script src="/dist/networked-aframe.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/style.css" />
+  <link rel="stylesheet" type="text/css" href="/css/adv-screen.css" />
+</head>
+<body>
+
+<a-scene
+
+        background="color: black"
+        vr-mode-ui="enabled: false"
+       networked-scene="
+      room: basic-multi-stream-green-screen;
+      debug: true;
+      adapter: easyrtc;
+      audio: true;
+      video: false;
+    ">
+
+  <a-assets>
+    <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
+    <img id="sky" src="https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
+
+    <!-- Avatar -->
+    <template id="avatar-template">
+      <a-entity class="avatar" networked-audio-source>
+        <a-plane id="screenPlane" color="#FFF" width="1" height="0.75" position="0 0.6 0" material="side: double"
+                 networked-video-source="streamName: screen"></a-plane>
+
+<!--        <a-plane color="#FFF" width="3" height="2" position="0 3 0" material="side: double" networked-video-source="streamName: screen"></a-plane>-->
+      </a-entity>
+    </template>
+  </a-assets>
+
+  <!-- Pawn -->
+  <a-entity id="player"
+            networked="template:#avatar-template;attachTemplateToLocal:false;"
+            position="0 1.6 0"
+            wasd-controls="fly:true"
+            look-controls>
+
+            <a-sphere class="head"
+                      visible="false"
+                      random-color
+            ></a-sphere>
+
+          <a-entity active="true" camera="near: 0.1; far: 7000.0;" position="0 1.6 0"></a-entity>
+  </a-entity>
+
+  <a-entity position="0 0 0"
+            geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
+            material="src: #grid; repeat: 10000 10000; transparent: true; metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;"></a-entity>
+
+
+  <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity>
+
+
+
+
+</a-scene>
+
+
+
+
+<div class="actions">
+  <button id="screen-btn-1" type="button" class="button" style="height:80px; z-index: 10000">1</button>
+  <button id="screen-btn-2" type="button" class="button" style="left:150px; height:80px; z-index: 10000">2</button>
+  <button id="screen-btn-3" type="button" class="button" style="left:180px; height:80px; z-index: 10000">3</button>
+</div>
+
+
+<!-- Preview what stream you send -->
+<div class="videoUI" style="text-align:center; color:white; bottom:200px; left:50px">
+  <span style="font-size: small">This is what you send (Before, After processing)</span>
+
+  <div class="video-canvas-container">
+    <!-- Here we first put the data to process them -->
+    <canvas id="canvas_secret" class="output_canvas" width="800px" height="600px" style="width:160px; height:120px"></canvas>
+  </div>
+
+  <div class="video-canvas-container" style="left:200px">
+    <!-- Here are the processed data -->
+    <canvas id="video_output_canvas" class="output_canvas" width="800px" height="600px" style="width:160px; height:120px"></canvas>
+  </div>
+</div>
+
+<script>
+  const screenBtnEle1 = document.getElementById('screen-btn-1');
+  const screenBtnEle2 = document.getElementById('screen-btn-2');
+  const screenBtnEle3 = document.getElementById('screen-btn-3');
+
+  // Define custom schema for syncing avatar color, set by random-color
+  NAF.schemas.add({
+    template: '#avatar-template',
+    components: [
+      'position',
+      'rotation'
+    ]
+  });
+
+
+
+
+
+
+
+
+  // Get my camera stream (to do some processing before capturing to canvas
+  const myvideo = document.createElement('video');
+  navigator.mediaDevices.getUserMedia({video: true}).then((stream) => {
+    myvideo.srcObject = stream;
+    myvideo.play();
+  });
+
+  // ---------- The gui for configuring other clients inputs  -----------------
+  const API = {
+    GreenThresholdOut: 5,
+  };
+
+  // GUI for changing thresshold for green screen
+  const gui = new dat.GUI( { width: 400 });
+
+
+
+  const videoOutbound = gui.addFolder("Video outbound");
+  videoOutbound.open();
+
+  videoOutbound.add(API, "GreenThresholdOut", 0, 255, 1).onChange((val) => {
+    API.GreenThresholdOut = val;
+  });
+
+  gui.open();
+
+  // Process my stream
+  var canvasElement = document.getElementById('video_output_canvas');
+  var canvasElementSecret = document.getElementById('canvas_secret');
+
+  const w = canvasElement.width;
+  const h = canvasElement.height;
+  var canvasCtx = canvasElement.getContext('2d');
+  var canvasCtxSecret = canvasElementSecret.getContext('2d');
+
+  var canvasStream;
+  let r,g,b;
+
+  (function loop() {
+            canvasCtxSecret.drawImage(myvideo, 0, 0, w, h);
+            let imageData = canvasCtxSecret.getImageData(0, 0, w, h);
+
+            for (var i = 0; i < imageData.data.length; i += 4) {
+              r = imageData.data[i]; g = imageData.data[i+1]; b = imageData.data[i+2];
+              if (g-r> API.GreenThresholdOut){
+                imageData.data[i] =0;
+                imageData.data[i+1]=255;
+                imageData.data[i+2]=0;
+              }
+            }
+            canvasCtx.putImageData(imageData, 0, 0);
+            setTimeout(loop, 1000 / 30); // drawing at 30fps
+          }
+  )();
+
+  // final processed stream to send
+  canvasStream = canvasElement.captureStream(30);
+
+
+
+
+
+
+  // Called by Networked-Aframe when connected to server
+  function onConnect () {
+
+    NAF.connection.adapter.addLocalMediaStream(canvasStream, "screen2"); // stream
+
+    screenBtnEle1.addEventListener('click', function() {
+        alert("Πήρες τη Θέση 1 : Καμπίνα, Γραφείο, καρέκλα, αριστερά");
+        var el = document.getElementById('player');
+        el.setAttribute('position', {x: 0.6, y: 1.6, z: -13.74});
+    });
+    screenBtnEle2.addEventListener('click', function() {
+         alert("Πήρες τη Θέση 2 : Καμπίνα, Γραφείο, καρέκλα, δεξιά");
+         var el = document.getElementById('player');
+         el.setAttribute('position', {x: -0.6, y: 1.8, z: -13.74});
+    });
+  }
+</script>
+
+<!-- Preview what stream you send -->
+<!--<div class="videoUI" style="text-align:center; color:white">-->
+<!--  <span style="font-size: small">This is what you send (Before, After processing)</span>-->
+
+<!--  <div class="video-canvas-container">-->
+<!--    &lt;!&ndash; Here we first put the data to process them &ndash;&gt;-->
+<!--    <canvas id="canvas_secret" class="output_canvas" width="800px" height="600px" style="width:160px; height:120px"></canvas>-->
+<!--  </div>-->
+
+<!--  <div class="video-canvas-container" style="left:200px">-->
+<!--    &lt;!&ndash; Here are the processed data &ndash;&gt;-->
+<!--    <canvas id="video_output_canvas" class="output_canvas" width="800px" height="600px" style="width:160px; height:120px"></canvas>-->
+<!--  </div>-->
+<!--</div>-->
+
+
+<!--
+  Known issues with this demo, some cases are not handled:
+  - If participant A shares their screen, the partipant B sees the other participant's screen.
+    When participant A stops their screen share, the other participant will see a frozen screen, the last image received.
+  - If participant A starts screen share, stops, and restarts the screen share, the other participant won't see it.
+-->
+</body>
+</html>
