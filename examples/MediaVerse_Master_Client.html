@@ -28,8 +28,10 @@
 </head>
 <body>
 
+<!--fog="type: linear; color: #AAB; far: 230; near: 0"-->
+
 <a-scene
-        fog="type: linear; color: #AAB; far: 230; near: 0"
+
       renderer="antialias: true; sortObjects: true;" networked-scene="
       room: basic-multi-stream-green-screen;
       debug: true;
@@ -112,11 +114,11 @@
 
 
   <button id="obtainStatusAndSetSizeControls" type="button" class="button"
-          style="position:absolute;height:30px; left:10px; bottom:250px; z-index: 10000">
+          style="position:absolute;height:30px; left:10px; bottom:60px; z-index: 10000">
     Panels size controls
   </button>
   <div id="panelsSizeControlsDiv"
-       style="position:absolute;height:150px; left:20px; bottom:200px; z-index: 10000; scroll-behavior: auto;">
+       style="position:absolute;height:350px; left:20px; bottom:350px; z-index: 10000; scroll-behavior: auto;">
   </div>
 
 
@@ -259,40 +261,53 @@
     var nActor = 0;
 
     if(entities) {
+
+      var inputH = [];
+      var inputW = [];
+      var buttonSubmit = [];
+      var panel = {};
       for (let e in entities){
         var h = window.NAF.connection.entities.entities[e].childNodes[1].getAttribute('height');
+
         if (h) {
+          console.log(e);
           nActor++;
-          var panel = window.NAF.connection.entities.entities[e].childNodes[1];
-          var w = panel.getAttribute('width');
+          panel[e] = window.NAF.connection.entities.entities[e].childNodes[1] ;
+
+          console.log(panel);
+
+          var w = panel[e].getAttribute('width');
 
 
           var titleNode = document.createElement('div');
           titleNode.innerHTML = nActor;
           panelsSizeControlsDiv.appendChild(titleNode);
 
-          var inputH = document.createElement("INPUT");
-          inputH.setAttribute("type", "text");
-          inputH.value = h;
-          panelsSizeControlsDiv.appendChild(inputH);
+          // Height
+          inputH[e] = document.createElement("INPUT");
+          inputH[e].setAttribute("type", "text");
+          inputH[e].value = h;
+          panelsSizeControlsDiv.appendChild(inputH[e]);
 
+          // Width
+          inputW[e] = document.createElement("INPUT");
+          inputW[e].setAttribute("type", "text");
+          inputW[e].value = w;
+          panelsSizeControlsDiv.appendChild(inputW[e]);
 
-          var inputW = document.createElement("INPUT");
-          inputW.setAttribute("type", "text");
-          inputW.value = w;
-          panelsSizeControlsDiv.appendChild(inputW);
-
-          var buttonSubmit = document.createElement("button");
-          buttonSubmit.innerHTML = "Submit";
-
-          buttonSubmit.addEventListener('click', function(){
-            panel.setAttribute('height', inputH.value);
-            panel.setAttribute('width', inputW.value);
+          buttonSubmit[e] = document.createElement("button");
+          buttonSubmit[e].innerHTML = "Submit";
+          console.log(panel);
+          buttonSubmit[e].addEventListener('click', function(){
+            panel[e].setAttribute('height', inputH[e].value);
+            panel[e].setAttribute('width', inputW[e].value);
           });
-          panelsSizeControlsDiv.appendChild(buttonSubmit);
+
+          panelsSizeControlsDiv.appendChild(buttonSubmit[e]);
         }
       }
     }
+
 
   });
 
