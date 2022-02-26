@@ -101,11 +101,25 @@
     <br />
     Number of Players: <span id="occupantsNumberShow" style="z-index: 1000; color:white;"></span>
     <br />
-    Players: <span id="occupantsShow" style="z-index: 1000; color:white;"></span>
+<!--    Players: <span id="occupantsShow" style="z-index: 1000; color:white;"></span>-->
+<!--    <br />-->
+<!--    Entities: <span id="entitiesShow" style="z-index: 1000; color:white;"></span>-->
+
   </span>
   <br />
   <br />
   <button id="screen-btn-sendscreen" type="button" class="button" style="position:absolute;height:30px; left:300px; z-index: 10000">Send screen</button>
+
+
+  <button id="obtainStatusAndSetSizeControls" type="button" class="button"
+          style="position:absolute;height:30px; left:10px; bottom:250px; z-index: 10000">
+    Panels size controls
+  </button>
+  <div id="panelsSizeControlsDiv"
+       style="position:absolute;height:150px; left:20px; bottom:200px; z-index: 10000; scroll-behavior: auto;">
+  </div>
+
+
 </div>
 
 
@@ -118,8 +132,15 @@
     init: function () {
       this.positionShow = document.getElementById("positionShow");
       this.occupantsNumberShow = document.getElementById("occupantsNumberShow");
-      this.occupantsShow = document.getElementById("occupantsShow");
+      // this.occupantsShow = document.getElementById("occupantsShow");
+      // this.entitiesShow = document.getElementById("entitiesShow");
     },
+    update: function(oldData){
+
+
+
+    }
+    ,
     tick: function (time, timeDelta) {
       var p = this.el.getAttribute('position');
       this.positionShow.innerHTML = Math.round(p.x*100)/100 + ", " + Math.round(p.y*100)/100 + ", " + Math.round(p.z*100)/100;
@@ -127,9 +148,25 @@
       var occupants = window.easyrtc.getRoomOccupantsAsMap(window.NAF.room);
       if(occupants) {
         this.occupantsNumberShow.innerHTML = Object.keys(occupants).length;
-        this.occupantsShow.innerHTML = '';
-        for (let o in occupants){this.occupantsShow.innerHTML += ' ' + o + ', ';}
+        // this.occupantsShow.innerHTML = '';
+        // for (let o in occupants){this.occupantsShow.innerHTML += ' ' + o + ', ';}
       }
+      //
+      // var entities = window.NAF.connection.entities.entities;
+      //
+      // if(entities) {
+      //   this.entitiesShow.innerHTML = '';
+      //   for (let e in entities){
+      //     var h = window.NAF.connection.entities.entities[e].childNodes[1].getAttribute('height');
+      //     if (h) {
+      //       var plane = window.NAF.connection.entities.entities[e].childNodes[1];
+      //       var w =plane.getAttribute('width');
+      //       this.entitiesShow.innerHTML += ', (' + h + ',' + w + ')';
+      //     }
+      //   }
+      // }
+
+
     }
   });
 
@@ -211,7 +248,54 @@
   } );
 
 
-  //gui.open();
+
+  var btStatusControls = document.getElementById('obtainStatusAndSetSizeControls');
+  btStatusControls.addEventListener('click', function(){
+
+    var entities = window.NAF.connection.entities.entities;
+    var panelsSizeControlsDiv = document.getElementById('panelsSizeControlsDiv');
+    panelsSizeControlsDiv.replaceChildren([]);
+
+    var nActor = 0;
+
+    if(entities) {
+      for (let e in entities){
+        var h = window.NAF.connection.entities.entities[e].childNodes[1].getAttribute('height');
+        if (h) {
+          nActor++;
+          var panel = window.NAF.connection.entities.entities[e].childNodes[1];
+          var w = panel.getAttribute('width');
+
+
+          var titleNode = document.createElement('div');
+          titleNode.innerHTML = nActor;
+          panelsSizeControlsDiv.appendChild(titleNode);
+
+          var inputH = document.createElement("INPUT");
+          inputH.setAttribute("type", "text");
+          inputH.value = h;
+          panelsSizeControlsDiv.appendChild(inputH);
+
+
+          var inputW = document.createElement("INPUT");
+          inputW.setAttribute("type", "text");
+          inputW.value = w;
+          panelsSizeControlsDiv.appendChild(inputW);
+
+          var buttonSubmit = document.createElement("button");
+          buttonSubmit.innerHTML = "Submit";
+
+          buttonSubmit.addEventListener('click', function(){
+            panel.setAttribute('height', inputH.value);
+            panel.setAttribute('width', inputW.value);
+          });
+          panelsSizeControlsDiv.appendChild(buttonSubmit);
+        }
+      }
+    }
+
+  });
+
 
 
 
