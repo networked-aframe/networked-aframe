@@ -28,10 +28,10 @@
 </head>
 <body>
 
-<!--fog="type: linear; color: #AAB; far: 230; near: 0"-->
+
 
 <a-scene
-
+      fog="type: linear; color: #AAB; far: 230; near: 0"
       renderer="antialias: true; sortObjects: true;" networked-scene="
       room: basic-multi-stream-green-screen;
       debug: true;
@@ -59,13 +59,15 @@
     <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
     <img id="sky" src="https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
 
-<!--    <a-asset-item id="ship" src="assets/Liberty_v7_candle.glb"></a-asset-item>-->
+    <a-asset-item id="ship" src="assets/Liberty_v7_candle.glb"></a-asset-item>
 
     <!-- Avatar -->
     <template id="avatar-template">
       <a-entity class="avatar" networked-audio-source>
 
-        <a-plane id="videoPlaneGreen" color="#FFF" width="1" height="0.75" position="0 0.6 -0.15" material="side: double"
+        <a-plane id="videoPlaneGreen"
+                 class="videoPlaneGreenClass"
+                 color="#FFF" width="1" height="0.75" position="0 0.6 -0.15" material="side: double"
                  networked-video-source="useGreenScreen: true; greenThreshold: 0.04; streamName: video"></a-plane>
 
         <a-plane id="screenPlane" color="#FFF" width="0" height="0" position="0 0.6 -0.15" material="side: double"
@@ -90,7 +92,7 @@
           <a-entity active="true" camera="near: 0.1; far: 7000.0;" position="0 0.6 0"></a-entity>
   </a-entity>
 
-<!--  <a-gltf-model src="#ship" shadow="receive: true" clear-frustum-culling></a-gltf-model>-->
+  <a-gltf-model src="#ship" shadow="receive: true" clear-frustum-culling></a-gltf-model>
 
   <a-ocean ocean-state="wind_velocity: 0.25 0.25;" shadow="receive: true" ocean-depth></a-ocean>
 </a-scene>
@@ -103,10 +105,6 @@
     <br />
     Number of Players: <span id="occupantsNumberShow" style="z-index: 1000; color:white;"></span>
     <br />
-<!--    Players: <span id="occupantsShow" style="z-index: 1000; color:white;"></span>-->
-<!--    <br />-->
-<!--    Entities: <span id="entitiesShow" style="z-index: 1000; color:white;"></span>-->
-
   </span>
   <br />
   <br />
@@ -128,19 +126,12 @@
 
 <script>
 
-
-
   AFRAME.registerComponent('show-position', {
     init: function () {
       this.positionShow = document.getElementById("positionShow");
       this.occupantsNumberShow = document.getElementById("occupantsNumberShow");
       // this.occupantsShow = document.getElementById("occupantsShow");
       // this.entitiesShow = document.getElementById("entitiesShow");
-    },
-    update: function(oldData){
-
-
-
     }
     ,
     tick: function (time, timeDelta) {
@@ -150,25 +141,7 @@
       var occupants = window.easyrtc.getRoomOccupantsAsMap(window.NAF.room);
       if(occupants) {
         this.occupantsNumberShow.innerHTML = Object.keys(occupants).length;
-        // this.occupantsShow.innerHTML = '';
-        // for (let o in occupants){this.occupantsShow.innerHTML += ' ' + o + ', ';}
       }
-      //
-      // var entities = window.NAF.connection.entities.entities;
-      //
-      // if(entities) {
-      //   this.entitiesShow.innerHTML = '';
-      //   for (let e in entities){
-      //     var h = window.NAF.connection.entities.entities[e].childNodes[1].getAttribute('height');
-      //     if (h) {
-      //       var plane = window.NAF.connection.entities.entities[e].childNodes[1];
-      //       var w =plane.getAttribute('width');
-      //       this.entitiesShow.innerHTML += ', (' + h + ',' + w + ')';
-      //     }
-      //   }
-      // }
-
-
     }
   });
 
@@ -191,124 +164,91 @@
     }
   });
 
-
-  // AFRAME.registerComponent('ocean-depth', {
-  //   init: function(){
-  //     let el = this.el;
-  //     el.addEventListener("model-loaded", e =>{
-  //
-  //       console.log(el);
-  //       let mesh = el.getObject3D('mesh');
-  //       if (!mesh){return;}
-  //       mesh.traverse(function(node){
-  //         if (node.isMesh){
-  //           //node.frustumCulled = false;
-  //           node.material.depthWrite = false;
-  //         }
-  //       });
-  //     });
-  //   }
-  // });
-
-
   // ---------- The gui for configuring other clients inputs  -----------------
-  // Configure Background Green Screen
-  const API = {
-    ThresholdMin: 0.106,
-    ThresholdMax: 0.13,
-    red: 48,
-    green: 146,
-    blue: 89
-  };
-  const gui = new dat.GUI( { width: 200 });
-  const video = gui.addFolder("Video Filtering Parameters");
-  //video.open();
-
-  video.add( API, 'red', 0, 255, 1 ).onChange( function () {
-    document.getElementById("videoPlaneGreen").setAttribute("networked-video-source","red",
-            API.red);
-  } );
-
-  video.add( API, 'green', 0, 255, 1 ).onChange( function () {
-    document.getElementById("videoPlaneGreen").setAttribute("networked-video-source","green",
-            API.green);
-  } );
-
-  video.add( API, 'blue', 0, 255, 1 ).onChange( function () {
-    document.getElementById("videoPlaneGreen").setAttribute("networked-video-source","blue",
-            API.blue);
-  } );
-
-  video.add( API, 'ThresholdMin', 0, 0.4, 0.001 ).onChange( function () {
-    document.getElementById("videoPlaneGreen").setAttribute("networked-video-source","ThresholdMin",
-            API.ThresholdMin);
-  } );
-
-  video.add( API, 'ThresholdMax', 0, 0.4, 0.01 ).onChange( function () {
-    document.getElementById("videoPlaneGreen").setAttribute("networked-video-source","ThresholdMax",
-            API.ThresholdMax);
-  } );
-
-
+  const api_pattern_single = {ThresholdMin: 0.106, ThresholdMax: 0.13, red: 48, green: 146, blue: 89, w: 1, h: 0.75};
+  const api_pattern_singleMin = {ThresholdMinLow: 0, ThresholdMaxLow: 0, redLow: 0, greenLow: 0, blueLow: 0, wLow: 0.1, hLow: 0.1};
+  const api_pattern_singleMax = {ThresholdMinHigh: 0.4, ThresholdMaxHigh: 0.4, redHigh: 255, greenHigh: 255, blueHigh: 255, wHigh: 5, hHigh: 5};
+  const api_pattern_singleStep = {ThresholdMinStep: 0.001, ThresholdMaxStep: 0.001, redStep: 1, greenStep: 1, blueStep: 1, wStep: 0.1, hStep: 0.1};
+  //var gui = new dat.GUI( { width: 200 });
 
   var btStatusControls = document.getElementById('obtainStatusAndSetSizeControls');
   btStatusControls.addEventListener('click', function(){
 
     var entities = window.NAF.connection.entities.entities;
     var panelsSizeControlsDiv = document.getElementById('panelsSizeControlsDiv');
+
+    // Clear Panels Size  Controls
     panelsSizeControlsDiv.replaceChildren([]);
+
+    // DestroyGui
+    try {
+      console.log("destroying");
+      btStatusControls.gui.destroy();
+    }catch (e){
+
+    }
+
+    btStatusControls.gui = new dat.GUI( { width: 200 });
+    //video.open();
+
+    // Color Thresholds
+    var elementsDatGui = [];
+    var videoUserGui = [];
 
     var nActor = 0;
 
     if(entities) {
+        // Canvas Size Controls
+        var inputH = [];
+        var inputW = [];
+        var buttonSubmit = [];
+        var panel = {};
+        for (let e in entities){
+          var h = window.NAF.connection.entities.entities[e].childNodes[1].getAttribute('height');
+          if (h) {
+            nActor++;
 
-      var inputH = [];
-      var inputW = [];
-      var buttonSubmit = [];
-      var panel = {};
-      for (let e in entities){
-        var h = window.NAF.connection.entities.entities[e].childNodes[1].getAttribute('height');
+            var stringName = "Video Filtering: " + e;
 
-        if (h) {
-          console.log(e);
-          nActor++;
-          panel[e] = window.NAF.connection.entities.entities[e].childNodes[1] ;
+            // Thresholds Green
+            videoUserGui[e] = btStatusControls.gui.addFolder(stringName);
 
-          console.log(panel);
+            // Panels
+            panel[e] = window.NAF.connection.entities.entities[e].childNodes[1] ;
 
-          var w = panel[e].getAttribute('width');
+            elementsDatGui[e] = [];
+            for (var a in api_pattern_single) {
+              var L = a + "Low";
+              var H = a + "High";
+              var S = a + "Step";
 
-
-          var titleNode = document.createElement('div');
-          titleNode.innerHTML = nActor;
-          panelsSizeControlsDiv.appendChild(titleNode);
-
-          // Height
-          inputH[e] = document.createElement("INPUT");
-          inputH[e].setAttribute("type", "text");
-          inputH[e].value = h;
-          panelsSizeControlsDiv.appendChild(inputH[e]);
-
-          // Width
-          inputW[e] = document.createElement("INPUT");
-          inputW[e].setAttribute("type", "text");
-          inputW[e].value = w;
-          panelsSizeControlsDiv.appendChild(inputW[e]);
-
-          buttonSubmit[e] = document.createElement("button");
-          buttonSubmit[e].innerHTML = "Submit";
-          console.log(panel);
-          buttonSubmit[e].addEventListener('click', function(){
-            panel[e].setAttribute('height', inputH[e].value);
-            panel[e].setAttribute('width', inputW[e].value);
-          });
-
-          panelsSizeControlsDiv.appendChild(buttonSubmit[e]);
+              elementsDatGui[e][a] = videoUserGui[e].add(api_pattern_single, a, api_pattern_singleMin[L],
+                                                                                api_pattern_singleMax[H],
+                                                                                api_pattern_singleStep[S]);
+              if (a[0]==='w' || a[0]==='h') {
+                elementsDatGui[e][a].panelaki = panel[e];
+                if (a[0]==='h'){
+                    elementsDatGui[e][a].onChange(function () {
+                      this.panelaki.setAttribute('height', api_pattern_single[this.property]);
+                      //panel[e].setAttribute('width', inputW[e].value);
+                    });
+                } else if (a[0]==='w') {
+                   elementsDatGui[e][a].onChange(function () {
+                      this.panelaki.setAttribute('width', api_pattern_single[this.property]);
+                      //panel[e].setAttribute('width', inputW[e].value);
+                  });
+                }
+              } else {
+                elementsDatGui[e][a].onChange(function () {
+                  var domAffected = document.getElementsByClassName("videoPlaneGreenClass")[elementsDatGui[e][a].nActor];
+                  domAffected.setAttribute("networked-video-source", this.property, api_pattern_single[this.property]);
+                });
+              }
+              elementsDatGui[e][a].nActor = nActor-1;
+            }
+          }
         }
-      }
     }
-
-
   });
 
 
