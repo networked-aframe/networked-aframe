@@ -11,21 +11,11 @@ class EasyRtcAdapter extends NoOpAdapter {
     this.room = "default";
 
     this.mediaStreams = {};
-    this.remoteClients = {};
     this.pendingMediaRequests = new Map();
 
     this.serverTimeRequests = 0;
     this.timeOffsets = [];
     this.avgTimeOffset = 0;
-
-    this.easyrtc.setPeerOpenListener((clientId) => {
-      const clientConnection = this.easyrtc.getPeerConnectionByUserId(clientId);
-      this.remoteClients[clientId] = clientConnection;
-    });
-
-    this.easyrtc.setPeerClosedListener((clientId) => {
-      delete this.remoteClients[clientId];
-    });
   }
 
   setServerUrl(url) {
@@ -138,7 +128,7 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   closeStreamConnection(clientId) {
-    this.easyrtc.hangup(clientId);
+    // Handled by easyrtc
   }
 
   sendData(clientId, dataType, data) {
@@ -183,107 +173,56 @@ class EasyRtcAdapter extends NoOpAdapter {
     }
   }
 
-  getMediaStream(clientId, streamName = "audio") {
-    if (this.mediaStreams[clientId] && this.mediaStreams[clientId][streamName]) {
-      NAF.log.write(`Already had ${streamName} for ${clientId}`);
-      return Promise.resolve(this.mediaStreams[clientId][streamName]);
+  getMediaStream(clientId, type = "audio") {
+    if (this.mediaStreams[clientId]) {
+      NAF.log.write(`Already had ${type} for ${clientId}`);
+      return Promise.resolve(this.mediaStreams[clientId][type]);
     } else {
-      NAF.log.write(`Waiting on ${streamName} for ${clientId}`);
-
-      // Create initial pendingMediaRequests with audio|video alias
+      NAF.log.write(`Waiting on ${type} for ${clientId}`);
       if (!this.pendingMediaRequests.has(clientId)) {
-        const pendingMediaRequests = {};
+        this.pendingMediaRequests.set(clientId, {});
 
         const audioPromise = new Promise((resolve, reject) => {
-          pendingMediaRequests.audio = { resolve, reject };
-        }).catch(e => NAF.log.warn(`${clientId} getMediaStream Audio Error`, e));
-        pendingMediaRequests.audio.promise = audioPromise;
-
+          this.pendingMediaRequests.get(clientId).audio = { resolve, reject };
+        });
         const videoPromise = new Promise((resolve, reject) => {
-          pendingMediaRequests.video = { resolve, reject };
-        }).catch(e => NAF.log.warn(`${clientId} getMediaStream Video Error`, e));
-        pendingMediaRequests.video.promise = videoPromise;
+          this.pendingMediaRequests.get(clientId).video = { resolve, reject };
+        });
 
-        this.pendingMediaRequests.set(clientId, pendingMediaRequests);
+        this.pendingMediaRequests.get(clientId).audio.promise = audioPromise;
+        this.pendingMediaRequests.get(clientId).video.promise = videoPromise;
+
+        audioPromise.catch(e => NAF.log.warn(`${clientId} getMediaStream Audio Error`, e));
+        videoPromise.catch(e => NAF.log.warn(`${clientId} getMediaStream Video Error`, e));
       }
-
-      const pendingMediaRequests = this.pendingMediaRequests.get(clientId);
-
-      // Create initial pendingMediaRequests with streamName
-      if (!pendingMediaRequests[streamName]) {
-        const streamPromise = new Promise((resolve, reject) => {
-          pendingMediaRequests[streamName] = { resolve, reject };
-        }).catch(e => NAF.log.warn(`${clientId} getMediaStream "${streamName}" Error`, e))
-        pendingMediaRequests[streamName].promise = streamPromise;
-      }
-
-      return this.pendingMediaRequests.get(clientId)[streamName].promise;
+      return this.pendingMediaRequests.get(clientId)[type].promise;
     }
   }
 
-  setMediaStream(clientId, stream, streamName) {
-    const pendingMediaRequests = this.pendingMediaRequests.get(clientId); // return undefined if there is no entry in the Map
-    const clientMediaStreams = this.mediaStreams[clientId] = this.mediaStreams[clientId] || {};
-
-    if (streamName === 'default') {
-      // Safari doesn't like it when you use a mixed media stream where one of the tracks is inactive, so we
-      // split the tracks into two streams.
-      // Add mediaStreams audio streamName alias
-      const audioTracks = stream.getAudioTracks();
-      if (audioTracks.length > 0) {
-        const audioStream = new MediaStream();
-        try {
-          audioTracks.forEach(track => audioStream.addTrack(track));
-          clientMediaStreams.audio = audioStream;
-        } catch(e) {
-          NAF.log.warn(`${clientId} setMediaStream "audio" alias Error`, e);
-        }
-
-        // Resolve the promise for the user's media stream audio alias if it exists.
-        if (pendingMediaRequests) pendingMediaRequests.audio.resolve(audioStream);
-      }
-
-      // Add mediaStreams video streamName alias
-      const videoTracks = stream.getVideoTracks();
-      if (videoTracks.length > 0) {
-        const videoStream = new MediaStream();
-        try {
-          videoTracks.forEach(track => videoStream.addTrack(track));
-          clientMediaStreams.video = videoStream;
-        } catch(e) {
-          NAF.log.warn(`${clientId} setMediaStream "video" alias Error`, e);
-        }
-
-        // Resolve the promise for the user's media stream video alias if it exists.
-        if (pendingMediaRequests) pendingMediaRequests.video.resolve(videoStream);
-      }
-    } else {
-      clientMediaStreams[streamName] = stream;
-
-      // Resolve the promise for the user's media stream by StreamName if it exists.
-      if (pendingMediaRequests && pendingMediaRequests[streamName]) {
-        pendingMediaRequests[streamName].resolve(stream);
-      }
+  setMediaStream(clientId, stream) {
+    // Safari doesn't like it when you use single a mixed media stream where one of the tracks is inactive, so we
+    // split the tracks into two streams.
+    const audioStream = new MediaStream();
+    try {
+      stream.getAudioTracks().forEach(track => audioStream.addTrack(track));
+    } catch(e) {
+      NAF.log.warn(`${clientId} setMediaStream Audio Error`, e);
     }
-  }
 
-  addLocalMediaStream(stream, streamName) {
-    const easyrtc = this.easyrtc;
-    streamName = streamName || stream.id;
-    this.setMediaStream("local", stream, streamName);
-    easyrtc.register3rdPartyLocalMediaStream(stream, streamName);
+    const videoStream = new MediaStream();
+    try {
+      stream.getVideoTracks().forEach(track => videoStream.addTrack(track));
+    } catch (e) {
+      NAF.log.warn(`${clientId} setMediaStream Video Error`, e);
+    }
 
-    // Add local stream to existing connections
-    Object.keys(this.remoteClients).forEach((clientId) => {
-      if (easyrtc.getConnectStatus(clientId) !== easyrtc.NOT_CONNECTED) {
-        easyrtc.addStreamToCall(clientId, streamName);
-      }
-    });
-  }
+    this.mediaStreams[clientId] = { audio: audioStream, video: videoStream };
 
-  removeLocalMediaStream(streamName) {
-    this.easyrtc.closeLocalMediaStream(streamName);
-    delete this.mediaStreams["local"][streamName];
+    // Resolve the promise for the user's media stream if it exists.
+    if (this.pendingMediaRequests.has(clientId)) {
+      this.pendingMediaRequests.get(clientId).audio.resolve(audioStream);
+      this.pendingMediaRequests.get(clientId).video.resolve(videoStream);
+    }
   }
 
   enableMicrophone(enabled) {
@@ -307,17 +246,14 @@ class EasyRtcAdapter extends NoOpAdapter {
 
     this.easyrtc.setStreamAcceptor(this.setMediaStream.bind(this));
 
-    this.easyrtc.setOnStreamClosed(function(clientId, stream, streamName) {
-      delete this.mediaStreams[clientId][streamName];
+    this.easyrtc.setOnStreamClosed(function(easyrtcid) {
+      delete that.mediaStreams[easyrtcid];
     });
 
     if (that.easyrtc.audioEnabled || that.easyrtc.videoEnabled) {
-      navigator.mediaDevices.getUserMedia({
-        video: that.easyrtc.videoEnabled,
-        audio: that.easyrtc.audioEnabled
-      }).then(
+      this.easyrtc.initMediaSource(
         function(stream) {
-          that.addLocalMediaStream(stream, "default");
+          that.setMediaStream(that.easyrtc.myEasyrtcid, stream);
           that.easyrtc.connect(that.app, connectSuccess, connectFailure);
         },
         function(errorCode, errmesg) {
