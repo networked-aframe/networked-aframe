@@ -225,7 +225,7 @@ class EasyRtcAdapter extends NoOpAdapter {
     const pendingMediaRequests = this.pendingMediaRequests.get(clientId); // return undefined if there is no entry in the Map
     const clientMediaStreams = this.mediaStreams[clientId] = this.mediaStreams[clientId] || {};
 
-    if (streamName === 'default') {
+    if (streamName === "default") {
       // Safari doesn't like it when you use a mixed media stream where one of the tracks is inactive, so we
       // split the tracks into two streams.
       // Add mediaStreams audio streamName alias
@@ -308,7 +308,16 @@ class EasyRtcAdapter extends NoOpAdapter {
     this.easyrtc.setStreamAcceptor(this.setMediaStream.bind(this));
 
     this.easyrtc.setOnStreamClosed(function(clientId, stream, streamName) {
-      delete this.mediaStreams[clientId][streamName];
+      if (streamName === "default") {
+        delete that.mediaStreams[clientId].audio;
+        delete that.mediaStreams[clientId].video;
+      } else {
+        delete that.mediaStreams[clientId][streamName];
+      }
+
+      if (Object.keys(that.mediaStreams[clientId]).length === 0) {
+        delete that.mediaStreams[clientId];
+      }
     });
 
     if (that.easyrtc.audioEnabled || that.easyrtc.videoEnabled) {
