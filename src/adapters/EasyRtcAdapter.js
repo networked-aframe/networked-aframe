@@ -25,6 +25,7 @@ class EasyRtcAdapter extends NoOpAdapter {
 
     this.easyrtc.setPeerClosedListener((clientId) => {
       delete this.remoteClients[clientId];
+      this.closeStreamConnection(clientId);
     });
   }
 
