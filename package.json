@@ -83,8 +83,8 @@
     "webvr"
   ],
   "engines": {
-    "node": ">=16",
-    "npm": ">=7"
+    "node": ">= 8.10.0",
+    "npm": ">= 4.0.5"
   },
   "babel": {
     "presets": [
