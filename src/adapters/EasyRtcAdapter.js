@@ -25,7 +25,6 @@ class EasyRtcAdapter extends NoOpAdapter {
 
     this.easyrtc.setPeerClosedListener((clientId) => {
       delete this.remoteClients[clientId];
-      this.closeStreamConnection(clientId);
     });
   }
 
@@ -309,7 +308,7 @@ class EasyRtcAdapter extends NoOpAdapter {
     this.easyrtc.setStreamAcceptor(this.setMediaStream.bind(this));
 
     this.easyrtc.setOnStreamClosed(function(clientId, stream, streamName) {
-      delete this.mediaStreams[clientId][streamName];
+      delete that.mediaStreams[clientId][streamName];
     });
 
     if (that.easyrtc.audioEnabled || that.easyrtc.videoEnabled) {
