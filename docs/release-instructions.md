@@ -15,3 +15,9 @@ and type:
     git fetch upstream
     git reset --hard upstream/master
     refresh
+
+edit `package.json` to use node 16 with npm 7 supporting lockfile v2 (otherwise glitch will use node 10):
+
+    "engines": {
+      "node": ">=16"
+    }
