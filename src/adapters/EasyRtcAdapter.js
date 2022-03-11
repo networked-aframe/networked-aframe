@@ -25,6 +25,14 @@ class EasyRtcAdapter extends NoOpAdapter {
 
     this.easyrtc.setPeerClosedListener((clientId) => {
       delete this.remoteClients[clientId];
+      const pendingMediaRequests = this.pendingMediaRequests.get(clientId);
+      if (pendingMediaRequests) {
+        const msg = "The user disconnected before the media stream was resolved.";
+        Object.keys(pendingMediaRequests).forEach((streamName) => {
+         pendingMediaRequests[streamName].reject(msg);
+        });
+        this.pendingMediaRequests.delete(clientId);
+      }
     });
   }
 
