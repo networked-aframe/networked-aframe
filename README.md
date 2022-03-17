@@ -98,7 +98,6 @@ Open in two tabs if nobody else is online, or [remix the code examples yourself]
 
 * [Basic](https://naf-examples.glitch.me/basic.html)
 * [Basic with 4 clients](https://naf-examples.glitch.me/basic-4.html)
-* [Dance Club](https://naf-examples.glitch.me/a-saturday-night/index.html)
 * [Google Blocks](https://naf-examples.glitch.me/google-blocks.html)
 * [Tracked Controllers](https://naf-examples.glitch.me/tracked-controllers.html)
 * [Positional Audio](https://naf-examples.glitch.me/basic-audio.html)
