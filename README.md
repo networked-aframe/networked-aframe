@@ -188,7 +188,7 @@ Completely removing `a-scene` from your page will also handle cleanly disconnect
 </a-entity>
 ```
 
-Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`buffered-interpolation`](https://github.com/InfiniteLee/buffered-interpolation) is added to allow for less network updates while keeping smooth motion.
+Create an instance of a template to be synced across clients. The position and rotation will be synced by default. The [`buffered-interpolation`](https://github.com/InfiniteLee/buffered-interpolation) library is used to allow for less network updates while keeping smooth motion.
 
 Templates must only have one root element. When `attachTemplateToLocal` is set to true, the attributes on this element will be copied to the local entity and the children will be appended to the local entity. Remotely instantiated entities will be a copy of the root element of the template with the `networked` component added to it.
 
@@ -463,7 +463,7 @@ Frequency the network component `sync` function is called, per second. 10-20 is 
 NAF.options.useLerp
 ```
 
-By default when an entity is created the [`aframe-lerp-component`](https://github.com/haydenjameslee/aframe-lerp-component) is attached to smooth out position and rotation network updates. Set this to false if you don't want the lerp component to be attached on creation.
+By default when an entity is created the [`buffered-interpolation`](https://github.com/InfiniteLee/buffered-interpolation) library is used to smooth out position, rotation and scale network updates. Set this to false if you don't want this feature to be used on creation.
 
 Stay in Touch
 -------------
