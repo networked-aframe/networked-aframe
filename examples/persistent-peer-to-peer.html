@@ -1,7 +1,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Persistent sphere — Networked-Aframe</title>
+    <title>Spawned persistent spheres — Networked-Aframe</title>
     <meta name="description" content="Dev Example — Networked-Aframe">
 
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
@@ -48,14 +48,24 @@
     <script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@master/dist/aframe-particle-system-component.min.js"></script>
     <script src="/js/spawn-in-circle.component.js"></script>
     <script src="/js/color-changer.component.js"></script>
+    <script src="/js/spawner-persistent.component.js"></script>
+    <script src="/js/persistent-p2p.component.js"></script>
+    <!--
+      The spawner-persistent and persistent-p2p components go together,
+      spawner-persistent is set on the player entity,
+      persistent-p2p on the a-scene entity.
+      The persistent-p2p component handle the logic of keeping the persistent entities peer to peer.
+      The spheres are kept in the room if there is at least one participant remaining in the room.
+    -->
     <link rel="stylesheet" type="text/css" href="/css/style.css" />
   </head>
   <body>
     <a-scene
       cursor="rayOrigin: mouse"
       raycaster="objects:.raycastable"
+      persistent-p2p
       networked-scene="
-        room: basic-persistent;
+        room: persistent-peer-to-peer;
         debug: true;
         adapter: wseasyrtc"
     >
@@ -112,6 +122,7 @@
         camera
         position="0 1.6 0"
         spawn-in-circle="radius:3"
+        spawner-persistent="template:#sphere-template"
         wasd-controls look-controls
         >
         <a-sphere class="head"
@@ -119,15 +130,6 @@
           random-color
         ></a-sphere>
       </a-entity>
-
-      <a-entity id="sphere" networked="template:#sphere-template;networkId:sphere;persistent:true;owner:scene"></a-entity>
-      <!--
-        Specifying a owner that isn't a real participant is used so that the
-        participant joining the room won't send this entity because not the
-        current owner, otherwise the participant will send the default red
-        color to the other participants, overriding the color
-        defined by the current owner of the sphere in the room.
-      -->
 
       <a-entity position="0 0 0"
         geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
@@ -141,7 +143,7 @@
     </a-scene>
 
     <div class="controls">
-      <p>Click on the sphere to change its color. The color is shared between the participants. The sphere won't be removed if the current owner (the latest participant that clicked on the sphere) leaves the room.</p>
+      <p>Press space to spawn a sphere that will persist even if you leave the room at the condition there is a participant that stay in the room.</p>
     </div>
 
     <!-- GitHub Corner. -->
