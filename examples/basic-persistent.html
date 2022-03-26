@@ -66,7 +66,7 @@
 
         <!-- Templates -->
         <template id="sphere-template">
-          <a-entity geometry="primitive: sphere" material="color: red" color-changer></a-entity>
+          <a-entity class="raycastable" geometry="primitive: sphere" material="color: red" color-changer></a-entity>
         </template>
 
         <!-- Avatar -->
@@ -120,7 +120,7 @@
         ></a-sphere>
       </a-entity>
 
-      <a-entity class="raycastable" id="sphere" networked="template:#sphere-template;networkId:sphere;persistent:true;owner:scene"></a-entity>
+      <a-entity id="sphere" networked="template:#sphere-template;networkId:sphere;persistent:true;owner:scene"></a-entity>
       <!--
         Specifying a owner that isn't a real participant is used so that the
         participant joining the room won't send this entity because not the
