@@ -299,8 +299,8 @@ Subscribe and unsubscribe callbacks to network messages specified by `dataType`.
 | Parameter | Description
 | -------- | -----------
 | clientId | ClientId to send this data to
-| dataType  | String to identify a network message. `u` is a reserved data type, don't use it pls
-| callback  | Function to be called when message of type `dataType` is received. Parameters: `function(senderId, dataType, data, targetId)`
+| dataType  | String to identify a network message. `u` (Update), `um` (UpdateMulti) and `r` (Remove) are reserved data types, don't use them please
+| callback  | Function to be called when message of type `dataType` is received. Parameters: `function(senderId, dataType, data, targetObj)` With the easyrtc adapter `targetObj` can be `{targetRoom: 'roomId'}` when broadcasting a message or `{targetEasyrtcid: 'targetId'}` when sending a message to a specific participant. With the janus adapter, senderId is always null and `targetObj` is more a `source` parameter and generally equals to "janus-event".
 | data | Object to be sent to all other clients
 
 
