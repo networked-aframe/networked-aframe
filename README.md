@@ -266,6 +266,74 @@ Once you've defined the schema then add it to the list of schemas by calling `NA
 
 Component data is retrieved by the A-Frame Component `data` property. During the network tick each component's data is checked against its previous synced value; if the data object has changed at all it will be synced across the network.
 
+### Syncing components optimization
+
+For each component, you can define a `requiresNetworkUpdate` function that
+takes the current value and return true if the current value changed from the
+previous value. You can return false if current and previous value are close
+enough, to not send this change to other participants.
+
+By default when you don't define it, it always use the `defaultRequiresUpdate` function (defined at the top of [`networked.js`](https://github.com/networked-aframe/networked-aframe/blob/master/src/components/networked.js)) which is using a generic `deepEqual` function to compare the current value with the previous value and use `cachedData = AFRAME.utils.clone(newData);` when both values are different to keep the previous value for the next comparison.
+`AFRAME.utils.clone` implementation is doing `JSON.parse(JSON.stringify(obj))` that can be used with any type, but this may not be the best performance implementation for Vector3 type like position, rotation, scale.
+
+Just so you know what this is doing:
+
+```
+> const v = new THREE.Vector3(1,2,3);
+Vector3 {x: 1, y: 2, z: 3}
+> JSON.parse(JSON.stringify(v))
+{x: 1, y: 2, z: 3}
+```
+
+So this is creating a new object in memory each time the syncing process is done if the value changed, those objects are garbage collected at one point. Garbage collection in general can take 1ms or more if you have a heavy scene, a consequence could be that the browser drops some frames, so not having a consistent fps.
+You can use Chrome profiler to confirm this. This is barely noticeable with just your moving avatar, but it may be important for your use case if the user owns a lot of continuously moving objects.
+
+Moreover with the current aframe `wasd-controls` implementation and how the position is smoothed, the player position is still changing below the millimeter precision 2s after the user stopped pressing a key, so sending a lot of NAF messages over the network for visually unnoticeable changes of position.
+NAF already includes position interpolation to smooth the position changes received, so sending all those position changes over the network is even redundant.
+
+You can use a dedicated function to compare two Vector3 with a given precision to achieve better performance in term of sending less messages over the network and memory by avoiding creating new objects:
+
+```
+const vectorRequiresUpdate = epsilon => {
+  return () => {
+    let prev = null;
+
+    return curr => {
+      if (prev === null) {
+        prev = new THREE.Vector3(curr.x, curr.y, curr.z);
+        return true;
+      } else if (!NAF.utils.almostEqualVec3(prev, curr, epsilon)) {
+        prev.copy(curr);
+        return true;
+      }
+
+      return false;
+    };
+  };
+};
+```
+
+This function is actually defined in `NAF.utils.vectorRequiresUpdate` for you
+to use.
+
+To use it in your networked schema for a position precision of 1 millimeter
+and rotation precision of 0.5 degree, use it like this:
+
+```
+{
+  template: '#avatar-template',
+  components: [
+    {
+      component: "position",
+      requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+    },
+    {
+      component: "rotation",
+      requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+    }
+  ]
+}
+```
 
 ### Syncing nested templates - eg. hands
 

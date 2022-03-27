@@ -1,4 +1,4 @@
-/* global NAF */
+/* global NAF, THREE */
 
 module.exports.whenEntityLoaded = function(entity, callback) {
   if (entity.hasLoaded) { callback(); }
@@ -111,4 +111,22 @@ module.exports.isMine = function(entity) {
 
 module.exports.almostEqualVec3 = function(u, v, epsilon) {
   return Math.abs(u.x-v.x)<epsilon && Math.abs(u.y-v.y)<epsilon && Math.abs(u.z-v.z)<epsilon;
+};
+
+module.exports.vectorRequiresUpdate = epsilon => {
+  return () => {
+    let prev = null;
+
+    return curr => {
+      if (prev === null) {
+        prev = new THREE.Vector3(curr.x, curr.y, curr.z);
+        return true;
+      } else if (!NAF.utils.almostEqualVec3(prev, curr, epsilon)) {
+        prev.copy(curr);
+        return true;
+      }
+
+      return false;
+    };
+  };
 };
