@@ -11,27 +11,18 @@ AFRAME.registerComponent('networked-audio-source', {
     },
     maxDistance: { default: 10000 },
     refDistance: { default: 1 },
-    rolloffFactor: { default: 1 }
+    rolloffFactor: { default: 1 },
+    createSoundOnInit: { default: true }
   },
 
   init: function () {
     this.stream = null;
     this.sound = null;
     this.audioEl = null;
-
-    this.setupSound = this.setupSound.bind(this);
-
-    NAF.utils.getNetworkedEntity(this.el).then((networkedEl) => {
-      const ownerId = networkedEl.components.networked.data.owner;
-
-      if (ownerId) {
-        NAF.connection.adapter.getMediaStream(ownerId, this.data.streamName)
-          .then(this.setupSound)
-          .catch((e) => naf.log.error(`Error getting media stream for ${ownerId}`, e));
-      } else {
-        // Correctly configured local entity, perhaps do something here for enabling debug audio loopback
-      }
-    });
+    this._setupSound = this._setupSound.bind(this);
+    if (this.data.createSoundOnInit) {
+      this.createSound();
+    }
   },
 
   update(oldData) {
@@ -40,7 +31,7 @@ AFRAME.registerComponent('networked-audio-source', {
     }
     if (oldData.positional !== this.data.positional) {
       this.destroySound();
-      this.setupSound(this.stream);
+      this._setupSound(this.stream);
     } else if (this.data.positional) {
       this._setPannerProperties();
     }
@@ -55,6 +46,15 @@ AFRAME.registerComponent('networked-audio-source', {
 
   remove() {
     this.destroySound();
+  },
+
+  destroySound() {
+    if (this.sound) {
+      this.el.emit('sound-source-removed', { soundSource: this.soundSource });
+      this.sound.disconnect();
+      this.el.removeObject3D(this.attrName);
+      this.sound = null;
+    }
 
     if (this.audioEl) {
       this.audioEl.pause();
@@ -64,15 +64,21 @@ AFRAME.registerComponent('networked-audio-source', {
     }
   },
 
-  destroySound() {
-    if (this.sound) {
-      this.sound.disconnect();
-      this.el.removeObject3D(this.attrName);
-      this.sound = null;
-    }
+  createSound() {
+    NAF.utils.getNetworkedEntity(this.el).then((networkedEl) => {
+      const ownerId = networkedEl.components.networked.data.owner;
+
+      if (ownerId) {
+        NAF.connection.adapter.getMediaStream(ownerId, this.data.streamName)
+          .then(this._setupSound)
+          .catch((e) => naf.log.error(`Error getting media stream for ${ownerId}`, e));
+      } else {
+        // Correctly configured local entity, perhaps do something here for enabling debug audio loopback
+      }
+    });
   },
 
-  setupSound(newStream) {
+  _setupSound(newStream) {
     if (!newStream) return;
     const isRemoved = !this.el.parentNode;
     if (isRemoved) return;
@@ -99,18 +105,16 @@ AFRAME.registerComponent('networked-audio-source', {
     // We don't want to do this in other browsers, particularly in Safari, which actually plays the audio despite
     // setting the volume to 0.
     if (/chrome/i.test(navigator.userAgent)) {
-      if (!this.audioEl) {
-        this.audioEl = new Audio();
-        this.audioEl.setAttribute("autoplay", "autoplay");
-        this.audioEl.setAttribute("playsinline", "playsinline");
-        this.audioEl.srcObject = newStream;
-        this.audioEl.volume = 0; // we don't actually want to hear audio from this element
-      }
+      this.audioEl = new Audio();
+      this.audioEl.setAttribute("autoplay", "autoplay");
+      this.audioEl.setAttribute("playsinline", "playsinline");
+      this.audioEl.srcObject = newStream;
+      this.audioEl.volume = 0; // we don't actually want to hear audio from this element
     }
 
-    const soundSource = this.sound.context.createMediaStreamSource(newStream);
-    this.sound.setNodeSource(soundSource);
-    this.el.emit('sound-source-set', { soundSource });
+    this.soundSource = this.sound.context.createMediaStreamSource(newStream);
+    this.sound.setNodeSource(this.soundSource);
+    this.el.emit('sound-source-set', { soundSource: this.soundSource });
     this.stream = newStream;
   }
 });
