@@ -301,6 +301,7 @@ AFRAME.registerComponent('networked', {
           const position = buffer.getPosition();
           if (isValidVector3(position)) {
             object3D.position.copy(position);
+            object3D.matrixNeedsUpdate = true;
           } else {
             throttle(warnOnInvalidNetworkUpdate, 5000);
           }
@@ -309,6 +310,7 @@ AFRAME.registerComponent('networked', {
           const quaternion = buffer.getQuaternion();
           if (isValidQuaternion(quaternion)) {
             object3D.quaternion.copy(quaternion);
+            object3D.matrixNeedsUpdate = true;
           } else {
             throttle(warnOnInvalidNetworkUpdate, 5000);
           }
@@ -317,6 +319,7 @@ AFRAME.registerComponent('networked', {
           const scale = buffer.getScale();
           if (isValidVector3(scale)) {
             object3D.scale.copy(scale);
+            object3D.matrixNeedsUpdate = true;
           } else {
             throttle(warnOnInvalidNetworkUpdate, 5000);
           }
