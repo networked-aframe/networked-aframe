@@ -1,8 +1,9 @@
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Dev Example — Networked-Aframe</title>
-    <meta name="description" content="Dev Example — Networked-Aframe">
+    <meta name="description" content="Dev Example — Networked-Aframe" />
 
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.slim.js"></script>
@@ -10,11 +11,9 @@
     <script src="/dist/networked-aframe.js"></script>
 
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@master/dist/aframe-particle-system-component.min.js"></script>
     <script src="/js/spawn-in-circle.component.js"></script>
 
     <style>
-
       .fail {
         background-color: red;
         color: white;
@@ -26,29 +25,28 @@
         color: white;
         padding: 0 5px;
       }
-
     </style>
 
     <script>
-      NAF.connection.subscribeToDataChannel('reliableBroadcast', function() {
+      NAF.connection.subscribeToDataChannel('reliableBroadcast', function () {
         var label = document.getElementById('reliable-broadcast');
         label.innerHTML = 'success';
         label.className = 'success';
       });
 
-      NAF.connection.subscribeToDataChannel('unreliableBroadcast', function() {
+      NAF.connection.subscribeToDataChannel('unreliableBroadcast', function () {
         var label = document.getElementById('unreliable-broadcast');
         label.innerHTML = 'success';
         label.className = 'success';
       });
 
-      NAF.connection.subscribeToDataChannel('reliableSend', function() {
+      NAF.connection.subscribeToDataChannel('reliableSend', function () {
         var label = document.getElementById('reliable-send');
         label.innerHTML = 'success';
         label.className = 'success';
       });
 
-      NAF.connection.subscribeToDataChannel('unreliableSend', function() {
+      NAF.connection.subscribeToDataChannel('unreliableSend', function () {
         var label = document.getElementById('unreliable-send');
         label.innerHTML = 'success';
         label.className = 'success';
@@ -56,26 +54,32 @@
     </script>
   </head>
   <body>
-
     <div>
       <p>Broadcast reliable test result: <span id="reliable-broadcast" class="fail">waiting</span></p>
-      <p>Broadcast unreliable  test result: <span id="unreliable-broadcast" class="fail">waiting</span></p>
+      <p>Broadcast unreliable test result: <span id="unreliable-broadcast" class="fail">waiting</span></p>
       <p>Send reliable test result: <span id="reliable-send" class="fail">waiting</span></p>
       <p>Send unreliable test result: <span id="unreliable-send" class="fail">waiting</span></p>
     </div>
 
     <!-- Uncomment the block corresponding to the network adapter you want to test -->
 
-    <a-scene embedded networked-scene="
+    <a-scene
+      embedded
+      networked-scene="
       room: dev;
       debug: true;
       adapter: wseasyrtc;
-    ">
+    "
+    >
+    </a-scene>
 
-    <!-- <a-scene embedded networked-scene="
+    <!-- <a-scene
+      embedded
+      networked-scene="
       room: dev;
       debug: true;
       adapter: easyrtc;
-    "> -->
+    "
+    ></a-scene> -->
   </body>
 </html>
