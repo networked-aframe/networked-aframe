@@ -11,7 +11,6 @@ AFRAME.registerComponent('forward', {
     worldDirection.multiplyScalar(-1);
 
     this.worldDirection = worldDirection;
-    console.error(this.worldDirection);
   },
 
   tick: function() {
