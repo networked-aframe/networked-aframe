@@ -31,7 +31,7 @@ const karma_conf = {
     {pattern: './tests/unit/ChildEntityCache.test.js'},
     {pattern: './src/**/*.js', included: false}
   ],
-  frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal', 'webpack'],
+  frameworks: ['mocha', 'sinon-chai', 'webpack'],
   preprocessors: {
     'tests/unit/**/*.js': ['webpack', 'env'],
     'src/**/*.js': ['webpack', 'coverage']
@@ -40,7 +40,6 @@ const karma_conf = {
     'karma-webpack',
     'karma-mocha',
     'karma-sinon-chai',
-    'karma-chai-shallow-deep-equal',
     'karma-mocha-reporter',
     'karma-chrome-launcher',
     'karma-firefox-launcher',
