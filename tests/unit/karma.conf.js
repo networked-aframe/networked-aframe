@@ -11,7 +11,12 @@ const karma_conf = {
     'TEST_ENV'
   ],
   webpack: {
-
+    mode: "none",
+    module: {
+      rules: [
+        { test: /\.js$/, loader: "babel-loader", exclude: /node_modules/, options: { presets: ['@babel/preset-env'] }, }
+      ]
+    }
   },
   files: [
     // Define test files.
@@ -26,16 +31,15 @@ const karma_conf = {
     {pattern: './tests/unit/ChildEntityCache.test.js'},
     {pattern: './src/**/*.js', included: false}
   ],
-    frameworks: ['mocha', 'sinon-chai', 'chai-shallow-deep-equal', 'webpack'],
-    preprocessors: {
+  frameworks: ['mocha', 'sinon-chai', 'webpack'],
+  preprocessors: {
     'tests/unit/**/*.js': ['webpack', 'env'],
-      'src/**/*.js': ['coverage']
+    'src/**/*.js': ['webpack', 'coverage']
   },
   plugins: [
     'karma-webpack',
     'karma-mocha',
     'karma-sinon-chai',
-    'karma-chai-shallow-deep-equal',
     'karma-mocha-reporter',
     'karma-chrome-launcher',
     'karma-firefox-launcher',
