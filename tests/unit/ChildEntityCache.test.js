@@ -1,4 +1,6 @@
 /* global assert, suite, test, sinon */
+var sinonTest = require("sinon-test");
+sinon.test = sinonTest(sinon);
 var ChildEntityCache = require('../../src/ChildEntityCache');
 
 suite('ChildEntityCache', function() {

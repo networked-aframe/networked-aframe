@@ -1,4 +1,6 @@
 /* global assert, setup, suite, test, sinon */
+var sinonTest = require("sinon-test");
+sinon.test = sinonTest(sinon);
 var NafLogger = require('../../src/NafLogger');
 
 /*eslint no-console: "off" */
