@@ -1,54 +1,60 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>360 Image Example — Networked-Aframe</title>
-    <meta name="description" content="360 Image Example — Networked-Aframe">
+    <meta name="description" content="360 Image Example — Networked-Aframe" />
 
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
-
+    <script>
+      // see issue https://github.com/networked-aframe/networked-aframe/issues/267
+      NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
+      NAF.schemas.getComponents = (template) => {
+        if (!NAF.schemas.hasTemplate('#avatar-template')) {
+          NAF.schemas.add({
+            template: '#avatar-template',
+            components: [
+              'position',
+              'rotation',
+              {
+                selector: '.head',
+                component: 'material',
+                property: 'color'
+              }
+            ]
+          });
+        }
+        const components = NAF.schemas.getComponentsOriginal(template);
+        return components;
+      };
+    </script>
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
     <script src="/js/spawn-in-circle.component.js"></script>
   </head>
   <body>
-    <a-scene networked-scene="
+    <a-scene
+      networked-scene="
       room: 360;
       debug: true;
-    ">
+      adapter: wseasyrtc;
+    "
+    >
       <a-assets>
+        <!-- Templates -->
+
         <!-- Avatar -->
         <template id="avatar-template">
           <a-entity class="avatar">
-            <a-sphere class="head"
-              scale="0.45 0.5 0.4"
-            ></a-sphere>
-            <a-entity class="face"
-              position="0 0.05 0"
-            >
-              <a-sphere class="eye"
-                color="#efefef"
-                position="0.16 0.1 -0.35"
-                scale="0.12 0.12 0.12"
-              >
-                <a-sphere class="pupil"
-                  color="#000"
-                  position="0 0 -1"
-                  scale="0.2 0.2 0.2"
-                ></a-sphere>
+            <a-sphere class="head" scale="0.45 0.5 0.4"></a-sphere>
+            <a-entity class="face" position="0 0.05 0">
+              <a-sphere class="eye" color="#efefef" position="0.16 0.1 -0.35" scale="0.12 0.12 0.12">
+                <a-sphere class="pupil" color="#000" position="0 0 -1" scale="0.2 0.2 0.2"></a-sphere>
               </a-sphere>
-              <a-sphere class="eye"
-                color="#efefef"
-                position="-0.16 0.1 -0.35"
-                scale="0.12 0.12 0.12"
-              >
-                <a-sphere class="pupil"
-                  color="#000"
-                  position="0 0 -1"
-                  scale="0.2 0.2 0.2"
-                ></a-sphere>
+              <a-sphere class="eye" color="#efefef" position="-0.16 0.1 -0.35" scale="0.12 0.12 0.12">
+                <a-sphere class="pupil" color="#000" position="0 0 -1" scale="0.2 0.2 0.2"></a-sphere>
               </a-sphere>
             </a-entity>
           </a-entity>
@@ -57,36 +63,28 @@
         <!-- /Templates -->
       </a-assets>
 
-      <a-entity id="player"
-        networked="template:#avatar-template;attachTemplateToLocal:false;"
-        camera
-        position="0 1.6 0"
-        spawn-in-circle="radius:3"
-        wasd-controls look-controls
+      <a-entity id="cameraRig">
+        <a-entity
+          id="player"
+          networked="template:#avatar-template;attachTemplateToLocal:false;"
+          camera
+          position="0 1.6 0"
+          spawn-in-circle="radius:3"
+          wasd-controls
+          look-controls
         >
-        <a-sphere class="head"
-          visible="false"
-          random-color
-        ></a-sphere>
+          <a-sphere class="head" visible="false" random-color></a-sphere>
+        </a-entity>
       </a-entity>
 
       <a-sky src="img/puydesancy.jpg" rotation="0 -130 0"></a-sky>
     </a-scene>
 
     <script>
-      // Define custom schema for syncing avatar color, set by random-color
-      NAF.schemas.add({
-        template: '#avatar-template',
-        components: [
-          'position',
-          'rotation',
-          {
-            selector: '.head',
-            component: 'material',
-            property: 'color'
-          }
-        ]
-      });
+      // Called by Networked-Aframe when connected to server
+      function onConnect() {
+        console.log('onConnect', new Date());
+      }
     </script>
   </body>
 </html>

@@ -1,8 +1,8 @@
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Tracked Controllers — Networked-Aframe</title>
-    <meta name="description" content="Tracked Controllers — Networked-Aframe">
+    <meta name="description" content="Tracked Controllers — Networked-Aframe" />
 
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.4.0/socket.io.slim.js"></script>
@@ -10,58 +10,58 @@
     <script src="/dist/networked-aframe.js"></script>
 
     <script>
-        // Note the way we're establishing the NAF schema here; this is a bit awkward
-        // because of a recent bug found in the original handling. This mitigates that bug for now,
-        // until a refactor in the future that should fix the issue more cleanly.
-        NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
+      // Note the way we're establishing the NAF schema here; this is a bit awkward
+      // because of a recent bug found in the original handling. This mitigates that bug for now,
+      // until a refactor in the future that should fix the issue more cleanly.
+      NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
 
-        // This one is necessary, because tracking the .head child component's material's color
-        // won't happen unless we tell NAF to keep it in sync, like here.
-        NAF.schemas.getComponents = (template) => {
-          if (!NAF.schemas.hasTemplate("#head-template")) {
-            NAF.schemas.add({
-              template: '#head-template',
-              components: [
-                // position and rotation are synced by default, but if we declare
-                // a custom schema, then ommitting them will cause them to go untracked.
-                'position',
-                'rotation',
+      // This one is necessary, because tracking the .head child component's material's color
+      // won't happen unless we tell NAF to keep it in sync, like here.
+      NAF.schemas.getComponents = (template) => {
+        if (!NAF.schemas.hasTemplate('#head-template')) {
+          NAF.schemas.add({
+            template: '#head-template',
+            components: [
+              // position and rotation are synced by default, but if we declare
+              // a custom schema, then ommitting them will cause them to go untracked.
+              'position',
+              'rotation',
 
-                // In our current example, we don't sync the material.color itself;
-                // we instead sync player-info, which includes color setting + updating.
-                // {
-                //   selector: '.head',
-                //   component: 'material',
-                //   property: 'color'
-                // },
+              // In our current example, we don't sync the material.color itself;
+              // we instead sync player-info, which includes color setting + updating.
+              // {
+              //   selector: '.head',
+              //   component: 'material',
+              //   property: 'color'
+              // },
 
-                // NOTICE THAT WE SYNC PLAYER INFO! this is where color and username are stored
-                'player-info'
-              ]
-            });
-          }
-
-          // We could theoretically add this one in as well, but
-          // since position and rotation are the default tracked components for
-          // networked entities, no schema declaration is necessary. If we did
-          // include it, though, it would look like this:
-
-          // if (!NAF.schemas.hasTemplate("#camera-rig-template")) {
-          //   NAF.schemas.add({
-          //     template: '#camera-rig-template',
-          //      components: [
-          //       'position',
-          //       'rotation',
-          //     ]
-          //   });
-          // }
-
-          // likewise for the left-hand-template and right-hand-template--since we're only
-          // syncing position/rotation, no schema declaration needed!
-
-          const components = NAF.schemas.getComponentsOriginal(template);
-          return components;
+              // NOTICE THAT WE SYNC PLAYER INFO! this is where color and username are stored
+              'player-info'
+            ]
+          });
         }
+
+        // We could theoretically add this one in as well, but
+        // since position and rotation are the default tracked components for
+        // networked entities, no schema declaration is necessary. If we did
+        // include it, though, it would look like this:
+
+        // if (!NAF.schemas.hasTemplate("#camera-rig-template")) {
+        //   NAF.schemas.add({
+        //     template: '#camera-rig-template',
+        //      components: [
+        //       'position',
+        //       'rotation',
+        //     ]
+        //   });
+        // }
+
+        // likewise for the left-hand-template and right-hand-template--since we're only
+        // syncing position/rotation, no schema declaration needed!
+
+        const components = NAF.schemas.getComponentsOriginal(template);
+        return components;
+      };
     </script>
 
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
@@ -77,16 +77,16 @@
           // add these with JS:
           // <a-entity hand-controls="hand:left" networked="template:#left-hand-template;attachTemplateToLocal:true;"></a-entity>
           // <a-entity hand-controls="hand:right" networked="template:#right-hand-template;attachTemplateToLocal:true;"></a-entity>
-          ['left', 'right'].forEach(side => {
-            const el = document.createElement('a-entity')
-            el.setAttribute('hand-controls', {hand: side});
-            el.setAttribute('networked', {template: `#${side}-hand-template`, attachTemplateToLocal: false});
+          ['left', 'right'].forEach((side) => {
+            const el = document.createElement('a-entity');
+            el.setAttribute('hand-controls', { hand: side });
+            el.setAttribute('networked', { template: `#${side}-hand-template`, attachTemplateToLocal: false });
             el.setAttribute('id', `my-tracked-${side}-hand`);
             // note that the ID will be applied to THIS client's hands,
             // but not other connected clients,
             // and not on the machine of other connected clients
             this.el.appendChild(el);
-          })
+          });
         },
         init() {
           this.el.sceneEl.addEventListener('enter-vr', this.onEnterVR.bind(this));
@@ -98,29 +98,35 @@
           // https://github.com/n5ro/aframe-extras/tree/master/src/loaders
           // could add as 'networked-hands' component within repo
         }
-      })
+      });
 
       AFRAME.registerComponent('player-info', {
         schema: {
-          name: { type: 'string', default: "user-" + Math.round(Math.random()*10000) },
-          color: { type: 'string', default: '#' + new THREE.Color( Math.random(), Math.random(), Math.random() ).getHexString() },
+          name: { type: 'string', default: 'user-' + Math.round(Math.random() * 10000) },
+          color: {
+            type: 'string',
+            default: '#' + new THREE.Color(Math.random(), Math.random(), Math.random()).getHexString()
+          }
         },
 
-        init: function() {
+        init: function () {
           this.head = this.el.querySelector('.head');
           this.nametag = this.el.querySelector('.nametag');
-          this.ownedByLocalUser = this.el.id === "local-avatar";
+          this.ownedByLocalUser = this.el.id === 'player';
           if (this.ownedByLocalUser) {
-            this.nametagInput = document.getElementById("username-overlay");
+            this.nametagInput = document.getElementById('username-overlay');
             this.nametagInput.value = this.data.name;
           }
         },
 
-        listUsers: function() {
-          console.log("userlist", [...document.querySelectorAll('[player-info]')].map(el => el.components['player-info'].data.name));
+        listUsers: function () {
+          console.log(
+            'userlist',
+            [...document.querySelectorAll('[player-info]')].map((el) => el.components['player-info'].data.name)
+          );
         },
 
-        update: function() {
+        update: function () {
           if (this.head) this.head.setAttribute('material', 'color', this.data.color);
           if (this.nametag) this.nametag.setAttribute('value', this.data.name);
         }
@@ -131,19 +137,20 @@
   <body>
     <input
       id="username-overlay"
-      style="z-index: 100; bottom: 24px; left: 24px; position:fixed;"
-      oninput="document.getElementById('local-avatar').setAttribute('player-info', 'name', this.value)"
+      style="z-index: 100; bottom: 24px; left: 24px; position: fixed"
+      oninput="document.getElementById('player').setAttribute('player-info', 'name', this.value)"
     />
     <a-scene
-      stats
       networked-scene="
         room: handcontrollers;
         debug: true;
-    ">
+        adapter: wseasyrtc;
+    "
+    >
       <a-assets>
         <!-- models are from a-frame repo; see bottom of page for downloads:  https://aframe.io/docs/1.2.0/components/hand-controls.html -->
-         <a-asset-item id="left-hand-model" src="./assets/leftHandHigh.glb"></a-asset-item>
-         <a-asset-item id="right-hand-model" src="./assets/rightHandHigh.glb"></a-asset-item>
+        <a-asset-item id="left-hand-model" src="./assets/leftHandHigh.glb"></a-asset-item>
+        <a-asset-item id="right-hand-model" src="./assets/rightHandHigh.glb"></a-asset-item>
 
         <!--
           NAF Templates
@@ -157,16 +164,23 @@
         <!--      a few spheres make a head + eyes + pupils    -->
         <template id="head-template">
           <a-entity class="avatar" player-info>
-            <a-sphere class="head" scale="0.2 0.22 0.2" ></a-sphere>
-            <a-entity class="face" position="0 0.05 0" >
-              <a-sphere class="eye" color="white" position="0.06 0.05 -0.16" scale="0.04 0.04 0.04" >
+            <a-sphere class="head" scale="0.2 0.22 0.2"></a-sphere>
+            <a-entity class="face" position="0 0.05 0">
+              <a-sphere class="eye" color="white" position="0.06 0.05 -0.16" scale="0.04 0.04 0.04">
                 <a-sphere class="pupil" color="black" position="0 0 -1" scale="0.2 0.2 0.2"></a-sphere>
               </a-sphere>
               <a-sphere class="eye" color="white" position="-0.06 0.05 -0.16" scale="0.04 0.04 0.04">
                 <a-sphere class="pupil" color="black" position="0 0 -1" scale="0.2 0.2 0.2"></a-sphere>
               </a-sphere>
             </a-entity>
-            <a-text class="nametag" value="?" rotation="0 180 0" position=".25 -.35 0" side="double" scale=".5 .5 .5"></a-text>
+            <a-text
+              class="nametag"
+              value="?"
+              rotation="0 180 0"
+              position=".25 -.35 0"
+              side="double"
+              scale=".5 .5 .5"
+            ></a-text>
           </a-entity>
         </template>
 
@@ -187,26 +201,33 @@
         -->
       </a-assets>
 
-      <a-entity environment="preset:starry; groundColor: #000000;"></a-entity>
-      <a-entity light="type:ambient; intensity:.5"></a-entity>
+      <a-entity environment="preset:starry;groundColor:#000000;"></a-entity>
+      <a-entity light="type:ambient;intensity:0.5"></a-entity>
 
       <!--   Here we declare only the local user's avatar, which we then broadcast to other users     -->
-      <!--   The 'spawn-in-circle' component will set the position and rotation of #camera-rig;
+      <!--   The 'spawn-in-circle' component will set the position and rotation of #cameraRig;
              because this entity also has the networked component, and position and rotation are tracked by default,
              the changes made by spawn-in-circle will be kept in sync with other networked users.
              Also note that by adding the networked component with a template reference, we generate that full template,
              including all applicable child elements. However, because we don't need to see our own avatar, we use the
              `attachTemplateToLocal:false` option. This makes our local copies invisible on our machine, but visible on everyone else's.
       -->
-      <a-entity id="camera-rig"
-                tracked-vr-hands
-                movement-controls="fly:true;"
-                spawn-in-circle="radius:3"
-                networked="template:#camera-rig-template;"
+      <a-entity
+        id="cameraRig"
+        tracked-vr-hands
+        movement-controls="fly:true;"
+        spawn-in-circle="radius:3"
+        networked="template:#camera-rig-template;"
       >
-        <a-entity id="local-avatar" camera position="0 1.6 0" look-controls
-                  networked="template:#head-template;" visible="false">
-        <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice.
+        <a-entity
+          id="player"
+          camera
+          position="0 1.6 0"
+          look-controls
+          networked="template:#head-template;"
+          visible="false"
+        >
+          <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice.
              We set the camera to head height for e.g. computer users, but otherwise never touch it again; if the user enters VR,
              its rotation and position will be updated by the headset in VR. If we need to touch the user's position
              or rotation, we always do that by adjusting the rig parent of the active camera. By making that rig--and the
@@ -225,15 +246,6 @@
         -->
       </a-entity>
     </a-scene>
-
-    <!-- GitHub Corner. -->
-    <a href="https://github.com/networked-aframe/networked-aframe" class="github-corner">
-      <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#222; color:#fff; position: absolute; top: 0; border: 0; right: 0;">
-        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
-      </svg>
-    </a>
-    <style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}
-    </style>
 
     <script>
       // old style sync schema declaration, can cause race condition glitch--use new style, shown at top of file
@@ -261,8 +273,8 @@
       // });
 
       // Called by Networked-Aframe when connected to server
-      function onConnect () {
-        console.log("onConnect", new Date());
+      function onConnect() {
+        console.log('onConnect', new Date());
       }
     </script>
   </body>
