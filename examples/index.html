@@ -41,23 +41,80 @@
     </style>
   </head>
   <body>
-    <h1>Επέλεξε την ιδιοτητά σου</h1>
+    <script>
+
+      document.addEventListener("DOMContentLoaded", function(event) {
+
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        const params = Object.fromEntries(urlSearchParams.entries());
+
+        var lang = "el";
+        if (params['lang']) {
+          lang = params['lang'];
+        }
+
+        _selectYourAttribute = [];
+        _selectYourAttribute['en'] = "Select your attribute";
+        _selectYourAttribute['el'] = "Διάλεξε την ιδιότητά σου";
+        document.getElementById("_selectYourAttribute").innerHTML = _selectYourAttribute[lang];
+
+        _actor = [];
+        _actor['en'] = "Actor";
+        _actor['el'] = "Ηθοποιός";
+        document.getElementById("_actor").innerHTML = _actor[lang];
+
+        _youNeed = [];
+        _youNeed['en'] = "You will need a smartphone, a tripod, and a green background";
+        _youNeed['el'] = "Θα χρειαστείς ένα κινητό, ένα τρίποδο για κινητό, και ένα πράσινο φόντο";
+        document.getElementById("_youNeed").innerHTML = _youNeed[lang];
+
+        _director = [];
+        _director['en'] = "Director";
+        _director['el'] = "Σκηνοθέτης";
+        document.getElementById("_director").innerHTML = _director[lang];
+
+
+        _youNeedDirector = [];
+        _youNeedDirector['en'] = "You will need a high-end PC, e.g. with an NVidia 3080 GPU";
+        _youNeedDirector['el'] = "Θα χρειαστείς ένα δυνατό PC desktop, π.χ. με κάρτα γραφικών NVidia 3080";
+        document.getElementById("_youNeedDirector").innerHTML = _youNeedDirector[lang];
+
+        if (lang === 'el') {
+          var link1 = document.createElement('a');
+          link1.href =  window.location.href.substring(0, window.location.href.indexOf("?")) + "?lang=en";
+          link1.innerHTML = "English";
+          document.getElementById("langButtons").appendChild(link1);
+        } else {
+          var link2 = document.createElement('a');
+          link2.href = window.location.href.substring(0, window.location.href.indexOf("?"));
+          link2.innerHTML = "Ελληνικά";
+          document.getElementById("langButtons").appendChild(link2);
+        }
+      });
+    </script>
+
+
+    <div id="langButtons" style="float:right; position: absolute; top: 5px; right: 25px;"></div>
+
+    <h1 id="_selectYourAttribute"></h1>
     <div id="wrapper">
       <div id="div1">
         <h2>
-        <a href="MediaVerse_Simple_Client.html">&#128241; Ηθοποιός
-        <div style="background: #2c70e0">
-          <img src="img/actor_icon.png" style="height:512px"/>
-        </div>
-        Θα χρειαστείς ένα κινητό, ένα τρίποδο για κινητό, και ένα πράσινο φόντο
+        <a href="MediaVerse_Simple_Client.html">&#128241;
+              <span id="_actor"></span>
+            <div style="background: #2c70e0">
+              <img src="img/actor_icon.png" style="height:512px"/>
+            </div>
+              <span id="_youNeed"></span>
         </a>
         </h2>
       </div>
       <div id="div2">
         <h2>
-        <a href="MediaVerse_Master_Client.html">&#128421; Σκηνοθέτης
-        <img src="img/director_icon.jpg" style="height:512px;"/>
-        <span>Θα χρειαστείς ένα δυνατό PC desktop, π.χ. με κάρτα γραφικών NVidia 3080</span>
+        <a href="MediaVerse_Master_Client.html">&#128421;
+              <span id="_director"></span>
+              <img src="img/director_icon.jpg" style="height:512px;"/>
+              <span id="_youNeedDirector"></span>
         </a>
         </h2>
       </div>
@@ -69,55 +126,55 @@
 
 
     <div>
-      <a href="basic.html">Basic</a>
+      <a href="embedded_examples/basic.html">Basic</a>
       <span>Simple avatars with synced color</span>
     </div>
     <div>
-      <a href="basic-4.html">4-in-one</a>
+      <a href="embedded_examples/basic-4.html">4-in-one</a>
       <span>Opens the basic example 4 times on one page using iframes</span>
     </div>
     <div>
-      <a href="webrtc.html">WebRTC</a>
+      <a href="embedded_examples/webrtc.html">WebRTC</a>
       <span>Basic example with WebRTC support</span>
     </div>
     <div>
-      <a href="basic-audio.html">Positional Audio</a>
+      <a href="embedded_examples/basic-audio.html">Positional Audio</a>
       <span>Example of using positional audio with WebRTC</span>
     </div>
     <div>
-      <a href="basic-video.html">Video Streaming</a>
+      <a href="embedded_examples/basic-video.html">Video Streaming</a>
       <span>Example of using texture video with WebRTC</span>
     </div>
     <div>
-      <a href="advanced-video-green-screen.html">Video Streaming with Green Screen effect</a>
+      <a href="embedded_examples/advanced-video-green-screen.html">Video Streaming with Green Screen effect</a>
       <span>Extends Video-Streaming with a custom shader that removes greenish pixels</span>
     </div>
     <div>
-      <a href="basic-multi-streams.html">Multi Streams</a>
+      <a href="embedded_examples/basic-multi-streams.html">Multi Streams</a>
       <span>Example of using texture video with WebRTC from multiple local streams</span>
     </div>
     <div>
-      <a href="shooter-2.html">Shooter</a>
+      <a href="embedded_examples/shooter-2.html">Shooter</a>
       <span>Press spacebar to shoot. Example for spawning networked entities at runtime.</span>
     </div>
     <div>
-      <a href="360.html">360 Image</a>
+      <a href="embedded_examples/360.html">360 Image</a>
       <span>Basic example with 360 image environment</span>
     </div>
     <div>
-      <a href="tracked-controllers.html">Tracked Controllers</a>
+      <a href="embedded_examples/tracked-controllers.html">Tracked Controllers</a>
       <span>Use with HTC Vive controllers or Oculus Touch</span>
     </div>
     <div>
-      <a href="google-blocks.html">Google Blocks</a>
+      <a href="embedded_examples/google-blocks.html">Google Blocks</a>
       <span>Scene and Avatars made entirely in <a href="https://vr.google.com/objects">Google Blocks</a></span>
     </div>
     <div>
-      <a href="basic-events.html">Basic with events</a>
+      <a href="embedded_examples/basic-events.html">Basic with events</a>
       <span>Example of listening to and logging NAF events</span>
     </div>
     <div>
-      <a href="ownership-transfer.html">Ownership Transfer</a>
+      <a href="embedded_examples/ownership-transfer.html">Ownership Transfer</a>
       <span>Demonstrates transfering ownership of entities</span>
     </div>
     <div>

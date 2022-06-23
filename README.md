@@ -307,7 +307,7 @@ Subscribe and unsubscribe callbacks to network messages specified by `dataType`.
 
 ### Transfer Entity Ownership
 
-The owner of an entity is responsible for syncing its component data. When a user wants to modify another user's entity they must first take ownership of that entity. The [ownership transfer example](./examples/ownership-transfer.html) and the [toggle-ownership component](./examples/js/toggle-ownership.component.js) show how to take ownership of an entity and update it.
+The owner of an entity is responsible for syncing its component data. When a user wants to modify another user's entity they must first take ownership of that entity. The [ownership transfer example](examples/embedded_examples/ownership-transfer.html) and the [toggle-ownership component](./examples/js/toggle-ownership.component.js) show how to take ownership of an entity and update it.
 
 ```javascript
 NAF.utils.takeOwnership(entityEl)

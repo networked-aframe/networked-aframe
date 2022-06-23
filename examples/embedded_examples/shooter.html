@@ -1,36 +1,31 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Shooter AR Example — Networked-Aframe</title>
-    <meta name="description" content="Shooter AR Example — Networked-Aframe">
+    <title>Shooter Example — Networked-Aframe</title>
+    <meta name="description" content="Shooter Example — Networked-Aframe">
 
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
 
-    <!-- AR -->
-    <script src="https://rawgit.com/jeromeetienne/ar.js/master/aframe/build/aframe-ar.js"></script>
-    <script>THREEx.ArToolkitContext.baseURL = 'https://rawgit.com/jeromeetienne/ar.js/master/three.js/'</script>
-
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+    <!--<script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>-->
     <script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@master/dist/aframe-particle-system-component.min.js"></script>
-    <script src="js/spawn-in-circle.component.js"></script>
-
-    <script>
-      function onARConnect () {
-        console.log('AR Client Connected');
-      }
-    </script>
+    <script src="../js/spawn-in-circle.component.js"></script>
+    <script src="../js/gun.component.js"></script>
+    <script src="../js/forward.component.js"></script>
+    <script src="../js/remove-in-seconds.component.js"></script>
   </head>
   <body>
-
-    <a-scene artoolkit='sourceType: webcam;' network-scene="
+    <a-scene networked-scene="
       room: shooter;
       debug: true;
-      onConnect: onARConnect;
     ">
       <a-assets>
+
+        <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
+        <img id="sky" src="https://img.gs/bbdkhfbzkk/2048x2048,stretch/https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
 
         <!-- Templates -->
 
@@ -81,19 +76,40 @@
 
         <!-- Bullet -->
         <template id="bullet-template">
-          <a-sphere class="bullet"
-            scale="0.1 0.1 0.1"
-            color="#fff"
-          ></a-sphere>
+          <a-entity>
+            <a-sphere class="bullet"
+              scale="0.1 0.1 0.1"
+              color="#fff"
+            ></a-sphere>
+          </a-entity>
         </template>
 
         <!-- /Templates -->
       </a-assets>
 
+      <a-entity id="player"
+        networked="template:#avatar-template;attachTemplateToLocal:false;"
+        camera
+        position="0 1.6 0"
+        spawn-in-circle="radius:3"
+        wasd-controls look-controls
+        gun="bulletTemplate:#bullet-template"
+        >
+        <a-sphere class="head"
+          visible="false"
+          random-color
+        ></a-sphere>
+      </a-entity>
+
+      <a-entity position="0 0 0"
+        geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
+        material="src: #grid; repeat: 10000 10000; transparent: true; metalness:0.6; roughness: 0.4; sphericalEnvMap: #sky;"></a-entity>
+
       <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>
       <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity>
 
-      <a-marker-camera preset='hiro'></a-marker-camera>
+      <a-sky src="#sky" rotation="0 -90 0"></a-sky>
+      <a-entity id="particles" particle-system="preset: snow"></a-entity>
     </a-scene>
 
     <!-- GitHub Corner. -->
@@ -106,7 +122,17 @@
     </style>
 
     <script>
-      // Define custom schema for syncing avatar components
+      // On mobile remove elements that are resource heavy
+      var isMobile = AFRAME.utils.device.isMobile();
+
+      if (isMobile) {
+        var particles = document.getElementById('particles');
+        particles.parentNode.removeChild(particles);
+      }
+    </script>
+
+    <script>
+      // Define custom schema for syncing avatar color, set by random-color
       NAF.schemas.add({
         template: '#avatar-template',
         components: [
@@ -114,7 +140,8 @@
           'rotation',
           {
             selector: '.head',
-            component: 'material'
+            component: 'material',
+            property: 'color'
           }
         ]
       });

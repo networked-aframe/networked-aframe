@@ -83,60 +83,60 @@ AFRAME.registerComponent('networked-video-source', {
           });
 
           this.materialIncoming.vertexShader = `
-                        varying vec2 vUv;
+                varying vec2 vUv;
 
-                        void main() {
-                            vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
-                            vec3 vWorldPosition = worldPosition.xyz;
-                            vUv = uv;
-                            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-                        }
+                void main() {
+                    vec4 worldPosition = modelViewMatrix * vec4( position, 1.0 );
+                    vec3 vWorldPosition = worldPosition.xyz;
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+                }
                       `;
 
           this.materialIncoming.fragmentShader = `
-                           varying vec2 vUv;
-                           uniform sampler2D uMap;
-                           uniform float ThresholdMin;
-                           uniform float ThresholdMax;
-                           uniform float red;
-                           uniform float green;
-                           uniform float blue;
-                           
-                           mat4 RGBtoYUV = mat4(0.257,  0.439, -0.148, 0.0,
-                                                 0.504, -0.368, -0.291, 0.0,
-                                                 0.098, -0.071,  0.439, 0.0,
-                                                 0.0625, 0.500,  0.500, 1.0 );
-                           
-                          void main() {
-                                vec2 uv = vUv;
-                                vec4 tex1 = texture2D(uMap, uv * 1.0);
+                   varying vec2 vUv;
+                   uniform sampler2D uMap;
+                   uniform float ThresholdMin;
+                   uniform float ThresholdMax;
+                   uniform float red;
+                   uniform float green;
+                   uniform float blue;
+                   
+                   mat4 RGBtoYUV = mat4(0.257,  0.439, -0.148, 0.0,
+                                         0.504, -0.368, -0.291, 0.0,
+                                         0.098, -0.071,  0.439, 0.0,
+                                         0.0625, 0.500,  0.500, 1.0 );
+                   
+                  void main() {
+                        vec2 uv = vUv;
+                        vec4 tex1 = texture2D(uMap, uv * 1.0);
 
-                                //color to be removed
-                                vec4 chromaKey = vec4(red / 255.0, green/255.0, blue/255.0, 1);
-                                        
-                                //convert from RGB to YCvCr/YUV
-                                vec4 keyYUV =  RGBtoYUV * chromaKey;
+                        //color to be removed
+                        vec4 chromaKey = vec4(red / 255.0, green/255.0, blue/255.0, 1);
                                 
-                                vec4 yuv = RGBtoYUV * tex1;
-                                
-                                float cc;
-                                
-                                float tmp = sqrt(pow(keyYUV.g - yuv.g, 2.0) + pow(keyYUV.b - yuv.b, 2.0));
-                                if (tmp < ThresholdMin)
-                                  cc = 0.0;
-                                else if (tmp < ThresholdMax)
-                                   cc = (tmp - ThresholdMin)/(ThresholdMax - ThresholdMin);
-                                else
-                                   cc=  1.0;
-                                
-                                gl_FragColor = max(tex1 - (1.0 - cc) * chromaKey, 0.0);
-                                                                
-                                 // if (tex1.g - tex1.r > greenThreshold)
-                                 //    discard; 
-                                 // else
-                                 //    gl_FragColor = fragColor;
-                            }
-                      `;
+                        //convert from RGB to YCvCr/YUV
+                        vec4 keyYUV =  RGBtoYUV * chromaKey;
+                        
+                        vec4 yuv = RGBtoYUV * tex1;
+                        
+                        float cc;
+                        
+                        float tmp = sqrt(pow(keyYUV.g - yuv.g, 2.0) + pow(keyYUV.b - yuv.b, 2.0));
+                        if (tmp < ThresholdMin)
+                          cc = 0.0;
+                        else if (tmp < ThresholdMax)
+                           cc = (tmp - ThresholdMin)/(ThresholdMax - ThresholdMin);
+                        else
+                           cc=  1.0;
+                        
+                        gl_FragColor = max(tex1 - (1.0 - cc) * chromaKey, 0.0);
+                                                        
+                         // if (tex1.g - tex1.r > greenThreshold)
+                         //    discard; 
+                         // else
+                         //    gl_FragColor = fragColor;
+                    }
+              `;
 
           this.materialIncoming.transparent = true;
           this.materialIncoming.side = THREE.DoubleSide;
