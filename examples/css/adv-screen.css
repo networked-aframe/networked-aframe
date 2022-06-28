@@ -1,3 +1,50 @@
+.actions {
+    position: absolute;
+    background: rgba(0,0,0,0.5);
+    display: block;
+    bottom: 3%;
+    left:50%;
+    width:250px;
+    transform: translate(-50%, 0%);
+    z-index:1000;
+    text-align: center;
+    color: white;
+}
+
+#directorline{
+    height:30px;
+    background: repeating-linear-gradient(
+            45deg,
+            rgba(255,255,255,0.5),
+            rgba(255,255,255,0.5) 10px,
+            rgba(0,0,0,0.5) 10px,
+            rgba(0,0,0,0.5) 20px
+    );
+}
+
+.wrapperControlElement{
+    position:relative;
+    display:block;
+    margin:5px;
+}
+
+
+.buttonMultiplaying {
+    display:block;
+    margin-top:10px;
+    padding:5px;
+    cursor: pointer;
+    background: #fff;
+    border-radius: 20px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+#positionShow{
+    font-size: 9pt;
+}
+
+
 .videoUI {
     border: 1px solid cyan;
     position: fixed;
