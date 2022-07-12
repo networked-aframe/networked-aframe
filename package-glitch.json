@@ -1,0 +1,26 @@
+{
+  "name": "naf-examples",
+  "version": "0.10.0",
+  "description": "Examples of networked-aframe",
+  "main": "./server/easyrtc-server.js",
+  "scripts": {
+    "prepare": "cp -r dist examples",
+    "start": "node ./server/easyrtc-server.js"
+  },
+  "dependencies": {
+    "networked-aframe": "^0.10.0"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "url": "https://glitch.com/edit/#!/naf-examples"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "glitch",
+    "express"
+  ]
+}
+
