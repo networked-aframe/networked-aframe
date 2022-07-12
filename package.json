@@ -10,18 +10,15 @@
     "url": "https://github.com/networked-aframe/networked-aframe/issues"
   },
   "scripts": {
-    "build": "npm run dist && shx cp -r dist examples",
     "dev": "cross-env NODE_ENV=development node ./server/easyrtc-server.js",
     "dev-socketio": "cross-env NODE_ENV=development node ./server/socketio-server.js",
     "dist": "npm run dist:min && npm run dist:max",
     "dist:max": "webpack --config webpack.config.js",
     "dist:min": "webpack --config webpack.prod.config.js",
     "lint": "eslint src examples server tests *.js",
-    "prepare": "npm run dist",
-    "preghpages": "npm run dist && shx rm -rf gh-pages && shx mkdir gh-pages && shx cp -r examples/* gh-pages && shx cp -r dist gh-pages",
-    "ghpages": "npm run preghpages && ghpages -p gh-pages",
-    "start": "npm run build && node ./server/easyrtc-server.js",
-    "start-socketio": "npm run build && node ./server/socketio-server.js",
+    "prepare": "npm run dist && shx cp -r dist examples",
+    "start": "node ./server/easyrtc-server.js",
+    "start-socketio": "node ./server/socketio-server.js",
     "test": "karma start ./tests/unit/karma.conf.js",
     "test:firefox": "karma start ./tests/unit/karma.conf.js --browsers Firefox",
     "test:chrome": "karma start ./tests/unit/karma.conf.js --browsers Chrome"
