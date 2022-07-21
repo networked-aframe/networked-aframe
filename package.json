@@ -28,7 +28,7 @@
     "buffered-interpolation": "github:Infinitelee/buffered-interpolation",
     "express": "^4.17.3",
     "open-easyrtc": "^2.0.13",
-    "socket.io": "^2.4.1"
+    "socket.io": "^2.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.18.5",
