@@ -5,7 +5,7 @@
 - If it's a major version, update the script tag in [README Basic Example](https://github.com/networked-aframe/networked-aframe#basic-example), in the [getting started tutorial](docs/getting-started-local.md) and the networked-aframe dependency version in the package.json snippet. Commit the changes.
 - `git tag 0.8.0` and `git push --tags`
 - `npm login && npm publish`
-- update the [naf-project](https://glitch.com/edit/#!/naf-project) base template on glitch (`package.json` and js links in the head, maybe update the `server.js`)
+- update the [naf-project](https://glitch.com/edit/#!/naf-project) base template on glitch (`package.json` and js links in the head, maybe update the `server.js`, and update all packages by executing `rm -rf package-lock.json node_modules/* && refresh`)
 - create a [github release](https://github.com/networked-aframe/networked-aframe/releases) and write the release notes there
 - resync the [naf-examples](https://glitch.com/edit/#!/naf-examples) project on glitch, in the bottom left, click on Tools then Terminal
 
