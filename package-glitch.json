@@ -1,6 +1,6 @@
 {
   "name": "naf-examples",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Examples of networked-aframe",
   "main": "./server/easyrtc-server.js",
   "scripts": {
