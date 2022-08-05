@@ -101,3 +101,20 @@
 .dg.ac{
     z-index: 1000;
 }
+
+
+#panelsSizeControlsDiv{
+    position:absolute;
+    height:350px;
+    left:20px;
+    bottom:350px;
+    z-index:10000;
+    scroll-behavior:auto;
+}
+
+.positionalButtons{
+    width:60px;
+    height:40px;
+    z-index: 10000;
+    cursor:pointer;
+}

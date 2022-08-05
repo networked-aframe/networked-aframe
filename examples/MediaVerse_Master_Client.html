@@ -13,6 +13,7 @@
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.slim.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+
   <script src="../easyrtc/easyrtc.js"></script>
   <script src="../dist/networked-aframe.js"></script>
   <script src="js/a-water.master.min.js"></script>
@@ -20,63 +21,95 @@
 
   <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
 
-  <!--<script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>-->
   <script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@master/dist/aframe-particle-system-component.min.js"></script>
 
-  <script src="/js/spawn-in-circle.component.js"></script>
+  <script src="js/spawn-in-circle.component.js"></script>
 
   <link rel="stylesheet" type="text/css" href="css/adv-screen.css" />
 
 </head>
 <body>
 
+<div class="actions">
+
+  <div id="directorline" style=""></div>
+
+  <div class="wrapperControlElement">
+    <label
+            for="roomNameShow"
+            title="Name of Room">&#127917;</label>
+    <span id="roomNameShow">roomname</span>
+  </div>
+
+  <div class="wrapperControlElement">
+    <label for="occupantsNumberShow" title="Number of actors">&#128101;</label>
+    <span id="occupantsNumberShow"/>
+  </div>
+
+  <div class="wrapperControlElement">
+    <button id="obtainStatusAndSetSizeControls"
+            class="buttonMultiplaying"
+            title="Obtain status and control green screens">
+      &#128260;  &#9989;
+    </button>
+  </div>
+
+  <div class="wrapperControlElement">
+    <button id="screen-btn-sendscreen"
+            class="buttonMultiplaying"
+            title="Send scene stream back to actors">
+      &#127909; &#9654;  &#128101;
+    </button>
+  </div>
+
+  <div class="wrapperControlElement">
+    <label for="positionShow" title="Camera Position">&#127909;</label>
+    <span id="positionShow"></span>
+  </div>
+
+  <div id="panelsSizeControlsDiv">
+  </div>
+</div>
 
 
 <a-scene
       fog="type: linear; color: #AAB; far: 230; near: 0"
       renderer="antialias: true; sortObjects: true;" networked-scene="
-      room: boat-scene;
+      room: roomname;
       debug: true;
       adapter: easyrtc;
       audio: true;
       video: false;
     ">
 
-  <!-- Lights -->
-  <a-entity light="type:directional; castShadow:true; intensity: 3; color: #ffffff" position="200 200 -60"  visible="">
-    <!-- A default sky -->
-    <a-sun-sky material="side:back; sunPosition: 1.0 1.0 0.0"></a-sun-sky>
-
-  </a-entity>
-
-  <a-entity light="type:point; castShadow:false; intensity: 1; color: #ffffff" position="-2 1.7 -7"  visible=""></a-entity>
-
-<!--  light="color: #ccccff; -->
-
-
-
-
   <a-assets>
-
-    <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
-    <img id="sky" src="https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
-
-    <a-asset-item id="ship" src="assets/Liberty_v7_candle.glb"></a-asset-item>
-
-    <!-- Avatar -->
+    <!-- Avatar Template -->
     <template id="avatar-template">
-      <a-entity class="avatar" networked-audio-source>
+      <a-entity class="avatar"
+                networked-audio-source>
 
         <a-plane id="videoPlaneGreen"
                  class="videoPlaneGreenClass"
-                 color="#FFF" width="1" height="0.75" position="0 0.6 -0.15" material="side: double"
-                 networked-video-source="useGreenScreen: true; greenThreshold: 0.04; streamName: video"></a-plane>
+                 color="#FFF"
+                 width="1"
+                 height="0.75"
+                 position="0 0.6 -0.15"
+                 material="side: double"
+                 networked-video-source="useGreenScreen: true; greenThreshold: 0.04; streamName: video">
+        </a-plane>
 
-        <a-plane id="screenPlane" color="#FFF" width="0" height="0" position="0 0.6 -0.15" material="side: double"
-                 networked-video-source="streamName:screen"></a-plane>
+        <a-plane id="screenPlane"
+                 color="#FFF"
+                 width="0"
+                 height="0"
+                 position="0 0.6 -0.15"
+                 material="side: double"
+                 networked-video-source="streamName:screen">
+        </a-plane>
       </a-entity>
     </template>
   </a-assets>
+
 
   <!-- Pawn -->
   <a-entity id="player"
@@ -89,43 +122,33 @@
 
             <a-sphere class="head"
                       visible="false"
-                      random-color
-            ></a-sphere>
-          <a-entity active="true" camera="near: 0.1; far: 7000.0;" position="0 0.6 0"></a-entity>
+                      random-color>
+            </a-sphere>
+
+            <a-entity
+                    active="true"
+                    camera="near: 0.1; far: 7000.0;"
+                    position="0 0.6 0">
+            </a-entity>
   </a-entity>
 
-  <a-gltf-model src="#ship" shadow="receive: true" clear-frustum-culling></a-gltf-model>
+
+  <!-- Fixed scenery items -->
+  <a-entity light="type:directional; castShadow:true; intensity: 3; color: #ffffff" position="200 200 -60"  visible="">
+
+  <a-sun-sky material="side:back; sunPosition: 1.0 1.0 0.0"></a-sun-sky>
+  </a-entity>
+
+  <a-entity light="type:point; castShadow:false; intensity: 1; color: #ffffff" position="-2 1.7 -7"  visible=""></a-entity>
+
+  <a-gltf-model src="url(assets/simpleboat.glb)" shadow="receive: true" clear-frustum-culling></a-gltf-model>
+  <!--    Liberty_v7_candle.glb-->
 
   <a-ocean ocean-state="wind_velocity: 0.25 0.25;" shadow="receive: true" ocean-depth></a-ocean>
+
 </a-scene>
 
-
-
-<div class="actions" style="background: #222222;">
-  <span id="infoshow" style="z-index: 1000; color:white;">
-    Position:<span id="positionShow" style="z-index: 1000; color:white;"></span>
-    <br />
-    Number of Players: <span id="occupantsNumberShow" style="z-index: 1000; color:white;"></span>
-    <br />
-  </span>
-  <br />
-  <br />
-  <button id="screen-btn-sendscreen" type="button" class="button" style="position:absolute;height:30px; left:300px; z-index: 10000">Send screen</button>
-
-
-  <button id="obtainStatusAndSetSizeControls" type="button" class="button"
-          style="position:absolute;height:30px; left:10px; bottom:60px; z-index: 10000">
-    Panels size controls
-  </button>
-  <div id="panelsSizeControlsDiv"
-       style="position:absolute;height:350px; left:20px; bottom:350px; z-index: 10000; scroll-behavior: auto;">
-  </div>
-
-
-</div>
-
-
-
+<!-- Javascript -->
 <script>
 
   AFRAME.registerComponent('show-position', {
@@ -206,6 +229,10 @@
         var buttonSubmit = [];
         var panel = {};
         for (let e in entities){
+
+          console.log("e", e);
+          console.log("window.NAF.connection.entities.entities[e].childNodes[1]", window.NAF.connection.entities.entities[e].childNodes[1])
+
           var h = window.NAF.connection.entities.entities[e].childNodes[1].getAttribute('height');
           if (h) {
             nActor++;

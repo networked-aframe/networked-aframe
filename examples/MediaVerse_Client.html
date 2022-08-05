@@ -20,97 +20,26 @@
 
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
 
-    <!--<script src="https://unpkg.com/aframe-particle-system-component@1.0.5/dist/aframe-particle-system-component.min.js"></script>-->
+
     <script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@master/dist/aframe-particle-system-component.min.js"></script>
 
-    <script src="/js/spawn-in-circle.component.js"></script>
+    <script src="js/spawn-in-circle.component.js"></script>
 
     <link rel="stylesheet" type="text/css" href="css/adv-screen.css" />
 
 </head>
 <body>
 
-<a-scene id="scene">
-
-    <a-assets>
-        <img id="grid"
-             src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png"
-             crossorigin="anonymous"/>
-
-        <img id="sky"
-             src="https://i.imgur.com/WqlqEkq.jpg"
-             crossorigin="anonymous" />
-
-        <a-asset-item
-                id="ship"
-                src="assets/simpleboat.glb">
-            <!-- Liberty_v7_candle -->
-        </a-asset-item>
-<!--        scene.childNodes[9].components["ocean-state"].oceanGrid.oceanMaterial.stencilWrite=false-->
-<!--        scene.childNodes[9].components["ocean-state"].oceanGrid.positionPassMaterial.depthWrite-->
-<!--        scene.childNodes[9].components["ocean-state"].oceanGrid.oceanMaterial-->
-
-        <!-- Avatar -->
-        <template id="avatar-template">
-            <a-entity class="avatar" networked-audio-source>
-
-                <a-plane id="videoPlaneGreen"
-                         class="videoPlaneGreenClass"
-                         color="#FFF"
-                         width="1"
-                         height="0.75"
-                         position="0 0.6 -0.15"
-                         material="side: double"
-                         networked-video-source="useGreenScreen: true; greenThreshold: 0.04; streamName: video">
-                </a-plane>
-
-                <a-plane id="screenPlane"
-                         color="#FFF"
-                         width="0"
-                         height="0"
-                         position="0 0.6 -0.15"
-                         material="side: double"
-                         networked-video-source="streamName:screen">
-                </a-plane>
-            </a-entity>
-        </template>
-    </a-assets>
-
-    <!-- Pawn -->
-    <a-entity id="player"
-              networked="template:#avatar-template;attachTemplateToLocal:false;"
-              position="0 0.6 0"
-              spawn-in-circle="radius:3"
-              wasd-controls="fly: true;"
-              show-position
-              look-controls>
-
-        <a-sphere class="head"
-                  visible="false"
-                  random-color>
-        </a-sphere>
-
-        <a-entity active="true"
-                  camera="near: 0.1; far: 7000.0;"
-                  position="0 0.6 0">
-        </a-entity>
-
-    </a-entity>
-
-
-</a-scene>
-
-
-
-
-<!-- Buttons -->
+<!--- Div elements -->
 <div class="actions">
 
     <div id="directorline" style=""></div>
 
     <div class="wrapperControlElement">
-        <label for="roomNameShow" title="Name of Room">&#127917;</label>
-        <span id="roomNameShow"/>
+        <label
+                for="roomNameShow"
+                title="Name of Room">&#127917;</label>
+        <span id="roomNameShow">roomname</span>
     </div>
 
     <div class="wrapperControlElement">
@@ -138,59 +67,95 @@
         <label for="positionShow" title="Camera Position">&#127909;</label>
         <span id="positionShow"></span>
     </div>
+
+    <div id="panelsSizeControlsDiv">
+    </div>
 </div>
 
 
 
+<!-- Aframe -->
+<a-scene id="scene"
+         fog="type: linear; color: #AAB; far: 230; near: 0"
+         renderer="antialias: true; sortObjects: true;" networked-scene="
+          room: boat-scene;
+          debug: true;
+          adapter: easyrtc;
+          audio: true;
+          video: false;
+        ">
+
+
+    <a-assets>
+        <!-- Avatar Template : Do not put comments inside the template-->
+        <template id="avatar-template">
+            <a-entity class="avatar"
+                      networked-audio-source>
+
+                <a-plane id="videoPlaneGreen"
+                         class="videoPlaneGreenClass"
+                         color="#FFF"
+                         width="1"
+                         height="0.75"
+                         position="0 0.6 -0.15"
+                         material="side: double"
+           networked-video-source="useGreenScreen: true; greenThreshold: 0.04; streamName: video">
+                </a-plane>
+                <a-plane id="screenPlane"
+                         color="#FFF"
+                         width="0"
+                         height="0"
+                         position="0 0.6 -0.15"
+                         material="side: double"
+             networked-video-source="streamName:screen">
+                </a-plane>
+            </a-entity>
+        </template>
+    </a-assets>
+
+    <!-- Pawn -->
+    <a-entity id="player"
+              networked="template:#avatar-template;attachTemplateToLocal:false;"
+              position="0 0.6 0"
+              spawn-in-circle="radius:3"
+              wasd-controls="fly: true;"
+              show-position
+              look-controls>
+
+        <a-sphere class="head"
+                  visible="false"
+                  random-color>
+        </a-sphere>
+
+        <a-entity active="true"
+                  camera="near: 0.1; far: 7000.0;"
+                  position="0 0.6 0">
+        </a-entity>
+
+    </a-entity>
+
+    <!-- Fixed scenery items -->
+    <a-entity light="type:directional; castShadow:true; intensity: 3; color: #ffffff" position="200 200 -60"  visible="">
+
+        <a-sun-sky material="side:back; sunPosition: 1.0 1.0 0.0"></a-sun-sky>
+    </a-entity>
+
+    <a-entity light="type:point; castShadow:false; intensity: 1; color: #ffffff" position="-2 1.7 -7"  visible=""></a-entity>
+
+
+    <a-gltf-model src="url(assets/simpleboat.glb)" shadow="receive: true" clear-frustum-culling material="side:double"></a-gltf-model>
+    <!--    Liberty_v7_candle.glb-->
+
+
+    <a-ocean ocean-state="wind_velocity: 0.25 0.25;" shadow="receive: true" ocean-depth></a-ocean>
+
+
+</a-scene>
+
+
+
+<!-- Javascript -->
 <script>
-
-    var isDirector = true;
-    var roomName = "boat-scene";
-
-    if (isDirector) {
-        sa(fe("scene"), "fog", "type: linear; color: #AAB; far: 230; near: 0");
-        sa(fe("scene"), "renderer", "antialias: true; sortObjects: true;");
-        sa(fe("scene"), "vr-mode-ui", "enabled: false");
-    }
-
-    sa(fe("scene"), "networked-scene", "room: " + roomName + ";" +
-                                       "debug: true;" +
-                                       "adapter: easyrtc;" +
-                                       "audio: true;" +
-                                       "video: false;");
-
-    ce("a-sun-sky",{material: "side:back; sunPosition: 1.0 1.0 0.0"},fe("scene"));
-    ce("a-ocean", {"ocean-state": "wind_velocity: 0.25 0.25;",
-                    "shadow": "receive: true", "ocean-depth":""},fe("scene"));
-
-    ce("a-gltf-model", {"src": "#ship",
-                        "shadow": "receive: true",
-                        "clear-frustum-culling":"",
-                        "position":"0 0.2 0",
-                        "material":"side: double"
-    },fe("scene"));
-
-
-    // <!--    <a-gltf-model src="#ship"-->
-    // <!--                  shadow="receive: true"-->
-    // <!--                  clear-frustum-culling>-->
-    // <!--    </a-gltf-model>-->
-
-
-    // ce("a-entity",{light: "type:directional; castShadow:true; intensity: 3; color: #ffffff",
-    //              position:"200 200 -60"},
-    //     fe("scene"));
-    //
-    // <!--    <a-entity light="type:point; castShadow:false; intensity: 1; color: #ffffff"-->
-    // <!--              position="-2 1.7 -7"-->
-    // <!--              visible="">-->
-    // <!--    </a-entity>-->
-
-
-
-
-
-
 
     // Display the name of the scene to the Directors panel
     document.getElementById("roomNameShow").innerHTML = roomName;
@@ -207,13 +172,13 @@
         el.setAttribute(attribute, value);
     }
 
+
+    // Create element
     function ce(tag,attributes,parent){
         var el = document.createElement(tag);
 
-
         for (const [key, value] of Object.entries(attributes)) {
-
-            console.log(key,value);
+            //console.log(key,value);
             sa(el, key, value);
         }
 
@@ -288,13 +253,16 @@
         var nActor = 0;
 
         if(entities) {
+
             // Canvas Size Controls
             var inputH = [];
             var inputW = [];
             var buttonSubmit = [];
             var panel = {};
             for (let e in entities){
+
                 var h = window.NAF.connection.entities.entities[e].childNodes[1].getAttribute('height');
+
                 if (h) {
                     nActor++;
 
@@ -394,5 +362,8 @@
     When participant A stops their screen share, the other participant will see a frozen screen, the last image received.
   - If participant A starts screen share, stops, and restarts the screen share, the other participant won't see it.
 -->
+
+
+
 </body>
 </html>

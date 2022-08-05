@@ -17,45 +17,55 @@
   <script src="easyrtc/easyrtc.js"></script>
   <script src="../dist/networked-aframe.js"></script>
 
-
-
-
-
-
-
-
-
   <link rel="stylesheet" type="text/css" href="css/adv-screen.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+        rel="stylesheet">
+
 </head>
 <body>
+
+<!-- Check ok -->
 
 <a-scene
       background="color: black"
       vr-mode-ui="enabled: false"
       networked-scene="
-      room: boat-scene;
+      room: roomname;
       debug: true;
       adapter: easyrtc;
       audio: true;
       video: true;
     ">
 
+  <!-- Check ok -->
+
   <a-assets>
-    <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous">
-    <img id="sky" src="https://i.imgur.com/WqlqEkq.jpg" crossorigin="anonymous" />
-
-    <!-- Avatar -->
+    <!-- Avatar Template -->
     <template id="avatar-template">
-      <a-entity class="avatar" networked-audio-source>
+      <a-entity class="avatar"
+                networked-audio-source>
 
-        <a-plane id="videoPlane" color="#FFF" width="1" height="0.75" position="0 0.6 0.5" material="side: double"
-                 networked-video-source="streamName:video"></a-plane>
-        <a-plane id="screenPlane" color="#FFF" width="8" height="6" position="0 0.6 0" material="side: double; shader:flat"
-                 networked-video-source="streamName:screen"></a-plane>
+        <a-plane id="videoPlane"
+                 color="#FFF"
+                 width="1"
+                 height="0.75"
+                 position="0 0.6 0.5" material="side: double"
+networked-video-source="streamName:video">
+        </a-plane>
+
+        <a-plane id="screenPlane"
+                 color="#FFF"
+                 width="8"
+                 height="6"
+                 position="0 0.6 0" material="side: double; shader:flat"
+networked-video-source="streamName:screen">
+          </a-plane>
 
       </a-entity>
     </template>
   </a-assets>
+
+
 
 
 
@@ -64,48 +74,51 @@
             networked="template:#avatar-template;attachTemplateToLocal:false;"
             position="0 0 0"
             wasd-controls="fly:true"
-            >
-            <a-entity active="true" camera="near: 0.1; far: 7000.0;" position="0 0 0"></a-entity>
+            look-controls>
+
+            <a-entity
+              active="true"
+              camera="near: 0.1; far: 7000.0;"
+              position="0 0 0">
+            </a-entity>
+
   </a-entity>
 
-  <a-entity position="0 0 0"
-            geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
-            material="src: #grid; repeat: 10000 10000; transparent: true; metalness:0.6; roughness: 0.4;"></a-entity>
+  <!-- Fixed scenery items -->
+  <a-entity
+          light="color: #ffaaff; intensity: 1.5"
+          position="5 5 5">
+  </a-entity>
 
-<!--  <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>-->
-  <a-entity light="color: #ffffff; intensity: 1.5" position="5 5 5"></a-entity>
-
-<!--  <a-sky src="#sky" rotation="0 -90 0"></a-sky>-->
-</a-scene>
 
 </a-scene>
 
 
+
+
+<!--- Div elements -->
 <div class="actions">
-  <button id="screen-btn-1" type="button" class="button" style="height:80px; z-index: 10000">1</button>
-  <button id="screen-btn-2" type="button" class="button" style="left:150px; height:80px; z-index: 10000">2</button>
-  <button id="screen-btn-3" type="button" class="button" style="left:180px; height:80px; z-index: 10000">3</button>
-<!--  <span id="rotationShow" style="z-index: 1000; color:white;"></span>-->
+
+
+
+  <div id="reporting" style="font-family: 'Courier New', monospace;"></div>
+
+  <button id="screen-btn-1" type="button" class="positionalButtons" onclick="alert('hi');">
+        <span class="material-icons">room</span>1
+  </button>
+
+  <button id="screen-btn-2" type="button" class="positionalButtons">
+    <span class="material-icons">room</span>2
+  </button>
+
+  <button id="screen-btn-3" type="button" class="positionalButtons">
+    <span class="material-icons">room</span>3
+  </button>
 </div>
 
 <script>
-  const screenBtnEle1 = document.getElementById('screen-btn-1');
-  const screenBtnEle2 = document.getElementById('screen-btn-2');
-  const screenBtnEle3 = document.getElementById('screen-btn-3');
 
-
-  // AFRAME.registerComponent('show-rotation', {
-  //   init: function () {
-  //     this.rotationShow = document.getElementById("rotationShow");
-  //   },
-  //   tick: function (time, timeDelta) {
-  //     var r = this.el.getAttribute('rotation');
-  //     this.rotationShow.innerHTML = Math.round(r.x*100)/100 + ", " + Math.round(r.y*100)/100 + ", " + Math.round(r.z*100)/100;
-  //   }
-  // });
-
-
-  // Define custom schema for syncing avatar color, set by random-color
+  // Syncing avatar
   NAF.schemas.add({
     template: '#avatar-template',
     components: [
@@ -114,53 +127,92 @@
     ]
   });
 
+  const screenBtnEle1 = document.getElementById('screen-btn-1');
+  const screenBtnEle2 = document.getElementById('screen-btn-2');
+  const screenBtnEle3 = document.getElementById('screen-btn-3');
+
   // Called by Networked-Aframe when connected to server
   function onConnect () {
-    screenBtnEle1.addEventListener('click', function() {
-        alert("Πήρες τη Θέση 1 : Καμπίνα, Γραφείο, καρέκλα, αριστερά");
-        var el = document.getElementById('player');
+
+    let username = Object.keys(window.NAF.entities.entities)[0];
+
+    function selectString(username, lang, key, position){
+
+        let str = "Error uknown string";
+
+        switch (key) {
+          case "_connected":
+            str = lang==="el" ? "έχεις συνδεθεί στον διακομιστή" : "you are now connected to server";
+            break;
+          case "_selectPosition":
+            str = lang==="el" ? "επέλεξε θέση στη σκηνή:" : "select a position in the scene:";
+            break;
+          case "_position":
+            str = (lang==="el" ? "έχεις πάρει τη Θέση " : "you are in position " ) + position;
+            break;
+        }
+
+
+
+      return username + ", " + str;
+    }
+
+
+
+    // Get system language
+    let userLang = navigator.language.substring(0,2);
+
+    // Show some initial messages
+    document.getElementById("reporting").innerText = selectString(username, userLang, "_connected");
+
+    setTimeout(function (){
+      document.getElementById("reporting").innerText = selectString(username, userLang, "_selectPosition");
+    }, 2000);
+
+
+    // Clicking any button for changing position
+    let buttonsArray = document.getElementsByClassName("positionalButtons");
+
+    for (let i=0; i < buttonsArray.length; i++){
+
+      let button = buttonsArray[i];
+      button.userLang = userLang;
+
+      let changeReporter = function(evt) {
+        document.getElementById("reporting").innerText = selectString(username, evt.explicitOriginalTarget.userLang, "_position", i+1);
+        let el = document.getElementById('player');
         el.removeAttribute('look-controls')
         el.setAttribute('rotation',{x:0,y:-180,z:0});
         el.setAttribute('position', {x: 0.6, y: 1.6, z: -13.74});
-    });
-    screenBtnEle2.addEventListener('click', function() {
-         alert("Πήρες τη Θέση 2 : Καμπίνα, Γραφείο, καρέκλα, δεξιά");
-         var el = document.getElementById('player');
-         el.setAttribute('rotation', {x: 0, y: -180, z: 0});
-         el.setAttribute('position', {x: -0.6, y: 1.6, z: -13.74});
+      };
 
-    });
-    screenBtnEle3.addEventListener('click', function() {
-      alert("Πήρες τη Θέση 3 : Καμπίνα, όρθιος");
-      var el = document.getElementById('player');
-      el.setAttribute('rotation', {x: 0, y: -180, z: 0});
-      el.setAttribute('position', {x: -1.33, y: 1.6, z: -12});
-    });
+      // bind the external function
+      changeReporter.bind(selectString);
+
+      //button.addEventListener('click', changeReporter);
+      button.addEventListener('touchend', changeReporter);
+    }
+
+
+
+
+
+    //
+    // screenBtnEle2.addEventListener('click', function() {
+    //      alert("Πήρες τη Θέση 2 : Καμπίνα, Γραφείο, καρέκλα, δεξιά");
+    //      var el = document.getElementById('player');
+    //      el.setAttribute('rotation', {x: 0, y: -180, z: 0});
+    //      el.setAttribute('position', {x: -0.6, y: 1.6, z: -13.74});
+    // });
+    //
+    // screenBtnEle3.addEventListener('click', function() {
+    //   alert("Πήρες τη Θέση 3 : Καμπίνα, όρθιος");
+    //   var el = document.getElementById('player');
+    //   el.setAttribute('rotation', {x: 0, y: -180, z: 0});
+    //   el.setAttribute('position', {x: -1.33, y: 1.6, z: -12});
+    // });
 
   }
 </script>
-
-<!-- Preview what stream you send -->
-<!--<div class="videoUI" style="text-align:center; color:white">-->
-<!--  <span style="font-size: small">This is what you send (Before, After processing)</span>-->
-
-<!--  <div class="video-canvas-container">-->
-<!--    &lt;!&ndash; Here we first put the data to process them &ndash;&gt;-->
-<!--    <canvas id="canvas_secret" class="output_canvas" width="800px" height="600px" style="width:160px; height:120px"></canvas>-->
-<!--  </div>-->
-
-<!--  <div class="video-canvas-container" style="left:200px">-->
-<!--    &lt;!&ndash; Here are the processed data &ndash;&gt;-->
-<!--    <canvas id="video_output_canvas" class="output_canvas" width="800px" height="600px" style="width:160px; height:120px"></canvas>-->
-<!--  </div>-->
-<!--</div>-->
-
-
-<!--
-  Known issues with this demo, some cases are not handled:
-  - If participant A shares their screen, the partipant B sees the other participant's screen.
-    When participant A stops their screen share, the other participant will see a frozen screen, the last image received.
-  - If participant A starts screen share, stops, and restarts the screen share, the other participant won't see it.
--->
 </body>
 </html>
