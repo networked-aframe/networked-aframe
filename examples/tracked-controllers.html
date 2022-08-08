@@ -5,11 +5,36 @@
     <meta name="description" content="Tracked Controllers — Networked-Aframe" />
 
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    
+    <!--   NAF basic requirements   -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
-
+    
+    <!--    used for flying in this demo  -->
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script> 
+    
+    <!--   used for the pretty environment   -->
+    <script src="https://unpkg.com/aframe-environment-component@1.3.1/dist/aframe-environment-component.min.js"></script>
+    
+    <!--   used to prevent players from spawning on top of each other so much  -->
+    <script src="/js/spawn-in-circle.component.js"></script>    
+    
     <script>
+      // Called by Networked-Aframe when connected to server (optional)
+      // (this api will change in future versions)
+      function onConnect() {
+        console.log('onConnect', new Date());
+      }
+      
+      window.vrcl = (() => {
+        let n = 0;
+        return function(msg) {
+          document.querySelector('#feedback-n').setAttribute('value',++n)
+          document.querySelector('#feedback').setAttribute('value',msg)
+        }
+      })()
+      
       // Note the way we're establishing the NAF schema here; this is a bit awkward
       // because of a recent bug found in the original handling. This mitigates that bug for now,
       // until a refactor in the future that should fix the issue more cleanly.
@@ -29,6 +54,7 @@
 
               // In our current example, we don't sync the material.color itself;
               // we instead sync player-info, which includes color setting + updating.
+              // if we did, though, this is what that would look like:
               // {
               //   selector: '.head',
               //   component: 'material',
@@ -55,51 +81,36 @@
         //     ]
         //   });
         // }
-
-        // likewise for the left-hand-template and right-hand-template--since we're only
-        // syncing position/rotation, no schema declaration needed!
+        
+        // here we add in the networked-hand-controls component; by syncing this component, 
+        // NAF will track the gestures and the visibility as specified in the schema
+        if (!NAF.schemas.hasTemplate("#left-hand-template")) {
+          NAF.schemas.add({
+            template: '#left-hand-template',
+             components: [
+              'position',
+              'rotation',
+              'networked-hand-controls', // optimization: could consider doing only visibility and gesture
+            ]
+          });
+        }
+        if (!NAF.schemas.hasTemplate("#right-hand-template")) {
+          NAF.schemas.add({
+            template: '#right-hand-template',
+             components: [
+              'position',
+              'rotation',
+              'networked-hand-controls',
+            ]
+          });
+        }        
 
         const components = NAF.schemas.getComponentsOriginal(template);
         return components;
       };
     </script>
-
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-    <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
-    <script src="https://unpkg.com/aframe-environment-component@1.3.1/dist/aframe-environment-component.min.js"></script>
-    <script src="/js/spawn-in-circle.component.js"></script>
+    
     <script>
-      // always register components before your scene
-      AFRAME.registerComponent('tracked-vr-hands', {
-        onEnterVR() {
-          if (AFRAME.utils.device.isMobile()) return; // exclude e.g. cardboard, which lacks tracked controllers
-          if (document.getElementById('my-tracked-right-hand')) return; // don't add them in more than once!
-          // add these with JS:
-          // <a-entity hand-controls="hand:left" networked="template:#left-hand-template;attachTemplateToLocal:true;"></a-entity>
-          // <a-entity hand-controls="hand:right" networked="template:#right-hand-template;attachTemplateToLocal:true;"></a-entity>
-          ['left', 'right'].forEach((side) => {
-            const el = document.createElement('a-entity');
-            el.setAttribute('hand-controls', { hand: side });
-            el.setAttribute('networked', { template: `#${side}-hand-template`, attachTemplateToLocal: false });
-            el.setAttribute('id', `my-tracked-${side}-hand`);
-            // note that the ID will be applied to THIS client's hands,
-            // but not other connected clients,
-            // and not on the machine of other connected clients
-            this.el.appendChild(el);
-          });
-        },
-        init() {
-          this.el.sceneEl.addEventListener('enter-vr', this.onEnterVR.bind(this));
-          // future improvements:
-          // pick up hand-controls events
-          // https://github.com/aframevr/aframe/blob/b164623dfa0d2548158f4b7da06157497cd4ea29/docs/components/hand-controls.md
-          // and broadcast the matching gestures to other connected clients
-          // possibly trigger the animation on the model itself using animation-mixer:
-          // https://github.com/n5ro/aframe-extras/tree/master/src/loaders
-          // could add as 'networked-hands' component within repo
-        }
-      });
-
       AFRAME.registerComponent('player-info', {
         schema: {
           name: { type: 'string', default: 'user-' + Math.round(Math.random() * 10000) },
@@ -148,10 +159,6 @@
     "
     >
       <a-assets>
-        <!-- models are from a-frame repo; see bottom of page for downloads:  https://aframe.io/docs/1.2.0/components/hand-controls.html -->
-        <a-asset-item id="left-hand-model" src="./assets/leftHandHigh.glb"></a-asset-item>
-        <a-asset-item id="right-hand-model" src="./assets/rightHandHigh.glb"></a-asset-item>
-
         <!--
           NAF Templates
         -->
@@ -186,15 +193,11 @@
 
         <!-- Hands -->
         <template id="left-hand-template">
-          <a-entity>
-            <a-gltf-model class="tracked-left-hand" rotation="0 0 90" src="#left-hand-model"></a-gltf-model>
-          </a-entity>
+          <a-entity networked-hand-controls="hand: left;"></a-entity>
         </template>
 
         <template id="right-hand-template">
-          <a-entity>
-            <a-gltf-model class="tracked-right-hand" rotation="0 0 -90" src="#right-hand-model"></a-gltf-model>
-          </a-entity>
+          <a-entity networked-hand-controls="hand: right;"></a-entity>
         </template>
         <!--
           /NAF Templates
@@ -214,7 +217,6 @@
       -->
       <a-entity
         id="cameraRig"
-        tracked-vr-hands
         movement-controls="fly:true;"
         spawn-in-circle="radius:3"
         networked="template:#camera-rig-template;"
@@ -232,19 +234,18 @@
              its rotation and position will be updated by the headset in VR. If we need to touch the user's position
              or rotation, we always do that by adjusting the rig parent of the active camera. By making that rig--and the
              active camera appended to it--both networked, we ensure all player movement is kept in sync.
-        -->
+            -->
         </a-entity>
-
-        <!-- Q: How about adding tracked hands here, like this below?
-             A: if you add hands directly here, like this, it will work! But camera-rigs without any tracked controllers (e.g., non-vr desktop users and phone users)
-             will have floating hands dragging on the floor under them.
-             instead, let's add them in an enter-vr event listener, which we put in a component called tracked-vr-hands at the top of this file.
-        -->
-        <!--
-        <a-entity hand-controls="hand:left" networked="template:#left-hand-template;attachTemplateToLocal:true;"></a-entity>
-        <a-entity hand-controls="hand:right" networked="template:#right-hand-template;attachTemplateToLocal:true;"></a-entity>
-        -->
+        
+          <!-- here we add the user's local hands! note the separate local-naf-hand class; that's required to function properly! -->
+          <!-- in the component init function is code that causes hands to only show up if a webXR 'controllerConnected' event fires -->
+        <a-entity id="my-tracked-left-hand" class="local-naf-hand" networked="template: #left-hand-template; attachTemplateToLocal: true;"></a-entity>
+        <a-entity id="my-tracked-right-hand" class="local-naf-hand" networked="template: #right-hand-template; attachTemplateToLocal: true;"></a-entity>
+        
       </a-entity>
+      
+      <a-text  scale=".5 .5 .5" id="feedback-n" side="double" position="-.4 1.8 0" value="0"></a-text>
+      <a-text  scale=".5 .5 .5" id="feedback" side="double" position="0 2 0" value="-"></a-text>
     </a-scene>
 
     <script>
@@ -271,11 +272,6 @@
       //     'rotation'
       //   ]
       // });
-
-      // Called by Networked-Aframe when connected to server
-      function onConnect() {
-        console.log('onConnect', new Date());
-      }
     </script>
   </body>
 </html>
