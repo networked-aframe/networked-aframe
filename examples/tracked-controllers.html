@@ -27,14 +27,6 @@
         console.log('onConnect', new Date());
       }
       
-      window.vrcl = (() => {
-        let n = 0;
-        return function(msg) {
-          document.querySelector('#feedback-n').setAttribute('value',++n)
-          document.querySelector('#feedback').setAttribute('value',msg)
-        }
-      })()
-      
       // Note the way we're establishing the NAF schema here; this is a bit awkward
       // because of a recent bug found in the original handling. This mitigates that bug for now,
       // until a refactor in the future that should fix the issue more cleanly.
@@ -243,9 +235,6 @@
         <a-entity id="my-tracked-right-hand" class="local-naf-hand" networked="template: #right-hand-template; attachTemplateToLocal: true;"></a-entity>
         
       </a-entity>
-      
-      <a-text  scale=".5 .5 .5" id="feedback-n" side="double" position="-.4 1.8 0" value="0"></a-text>
-      <a-text  scale=".5 .5 .5" id="feedback" side="double" position="0 2 0" value="-"></a-text>
     </a-scene>
 
     <script>
