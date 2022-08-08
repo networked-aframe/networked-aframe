@@ -274,13 +274,14 @@ AFRAME.registerComponent('networked-hand-controls', {
     );
   },
   
+  // mapping rather than function to reduce garbage collection
   eventNames: {
-    fist: {active: "fistStart", inactive: "fistEnd"},
-    thumbUp: {active: "thumbUpStart", inactive: "thumbUpEnd"},
-    point: {active: "pointStart", inactive: "pointEnd"},
-    hold: {active: "holdStart", inactive: "holdEnd"},
-    open: {active: "openStart", inactive: "openEnd"},
-    pistol: {active: "pistolStart", inactive: "pistolEnd"},
+    fist: {active: "fiststart", inactive: "fistend"},
+    thumbUp: {active: "thumbupstart", inactive: "thumbupend"},
+    point: {active: "pointstart", inactive: "pointend"},
+    hold: {active: "holdstart", inactive: "holdend"},
+    open: {active: "openstart", inactive: "openend"},
+    pistol: {active: "pistolstart", inactive: "pistolend"},
   },
   
   playAnimation() {
