@@ -1,4 +1,4 @@
-/* global THREE, AFRAME, NAF */
+/* global THREE, AFRAME */
 
 /**
  * Represent any 6dof controller as a hand with live tracked animated gestures and normalized events.
