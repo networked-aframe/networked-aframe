@@ -14,7 +14,7 @@
  * note that the events were incomplete/broken in prior implementation, and therefore a breaking change
  */
 
- AFRAME.registerComponent('networked-hand-controls', {
+AFRAME.registerComponent('networked-hand-controls', {
     schema: {
       color: { default: 'white', type: 'color' },
       hand: { type: "string", default: 'left' },
@@ -42,11 +42,9 @@
         
         this.el.addEventListener('controllerconnected', () => {
           this.el.setAttribute('networked-hand-controls', 'visible', true);
-          this.el.object3D.visible = true;
         });
         this.el.addEventListener('controllerdisconnected', () => {
           this.el.setAttribute('networked-hand-controls', 'visible', false);
-          this.el.object3D.visible = false;
         });
       }
       else {
@@ -61,7 +59,6 @@
       this.loader.load(this.data.handModelURL || handmodelUrl, 
                        gltf => {
         const newMesh = gltf.scene.children[0];
-        // const mesh = gltf.scene.children[0];
         const handModelOrientation = this.data.hand === 'left' ? Math.PI / 2 : -Math.PI / 2;
         newMesh.mixer = new THREE.AnimationMixer(newMesh);
         
@@ -110,7 +107,6 @@
     },
     
     update(oldData) {   
-      console.log(oldData, this.data)
       if (oldData.visible != this.data.visible) {
         this.el.object3D.visible = this.data.visible;     
       }
@@ -140,9 +136,7 @@
       // ^while this would be more ideal, NAF doesn't populate the owner until later
       // and we need to know this at init(), and we can't supply schema options
       // when instantiating a template instance--so, we require adding a class for now.
-      this.el.classList.forEach(aClass => {
-        if (aClass === "local-naf-hand") this.local = true;
-      })
+      if (this.el.classList.contains("local-naf-hand")) this.local = true;
     },
     
     clipNameToClip: {},
