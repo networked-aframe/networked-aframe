@@ -14,7 +14,6 @@
  * note that the events were incomplete/broken in prior implementation, and therefore a breaking change
  */
 
-(() => {
 // this is a way to bypass adding the template in to the HTML, 
 // as well as the already awkward NAF.schemas.add workaround
 // this makes the use of this component for the end user much simpler
@@ -392,5 +391,3 @@ AFRAME.registerComponent('networked-hand-controls', {
         controller.profiles[0] === 'htc-vive'));
   },
 });
-  
-})()
