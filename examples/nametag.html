@@ -117,7 +117,7 @@
         adapter: wseasyrtc;
     ">
       <a-assets>
-        <template id="camera-rig-template">
+        <template id="rig-template">
           <a-entity></a-entity>
         </template>
 
@@ -151,10 +151,10 @@
       <a-entity light="type:ambient;intensity:0.5"></a-entity>
 
       <a-entity
-        id="camera-rig"
+        id="rig"
         movement-controls="fly:true;"
         spawn-in-circle="radius:3"
-        networked="template:#camera-rig-template;"
+        networked="template:#rig-template;"
       >
         <a-entity
           id="player"
