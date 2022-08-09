@@ -84,7 +84,7 @@ AFRAME.registerComponent('networked-hand-controls', {
     
     const handmodelUrl = this.MODEL_BASE + this.MODEL_URLS[this.data.handModelStyle + this.data.hand.charAt(0).toUpperCase() + this.data.hand.slice(1)];
 
-    if (this.data.handModelStyle === "controller") {
+    if (this.local && this.data.handModelStyle === "controller") {
       // load the controller model
       this.addControls(true);
     }
@@ -116,6 +116,7 @@ AFRAME.registerComponent('networked-hand-controls', {
       });    
     }
   },
+
   controllerComponents: [
     'magicleap-controls',
     'vive-controls',
@@ -124,23 +125,31 @@ AFRAME.registerComponent('networked-hand-controls', {
     'hp-mixed-reality-controls',
   ],
 
-  addControls(model) {
-    const controlConfiguration = {
-      hand: this.data.hand,
-      model,
-    };
-    this.controllerComponents.forEach(ctrlComponent => {
-      this.el.setAttribute(ctrlComponent, controlConfiguration);
-    })
-    if (!this.local) {
+  addControls(useControllerModel) {
+    if (this.local) {
+      // these components will activate if they match, and if activated will pick up positional
+      // and button information and that will be used to generate gestures here
+      this.controllerComponents.forEach(ctrlComponent => {
+        this.el.setAttribute(ctrlComponent, {hand: this.data.hand, model: useControllerModel});
+      })
+      // if (useControllerModel) {
+        // this.el.setAttribute(this.str.nafHandControls, this.data.handModelURL, this.el.components['gltf-model'].data);
+      // }
+      this.isViveController();
+    }
+    else {
+      // this is another approach, however:
+      // if we add these components, then the local controller component will also control it
       // remove event listeners, hack component to only respond to NAF updates
       this.controllerComponents.forEach(ctrlComponent => {
         // todo: confirm all controller components corespond to this pattern
         this.el.components[ctrlComponent].removeEventListeners();
         this.el.components[ctrlComponent].removeControllersUpdateListener();
       })
+
+      // experimental: we don't want post and button data from local controller to affect networked controller
+      this.el.components['tracked-controls-webxr'].tick = () => {};
     }
-    this.isViveController();
   },
 
   play() {
