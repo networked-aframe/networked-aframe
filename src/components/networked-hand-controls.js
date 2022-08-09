@@ -118,7 +118,6 @@ AFRAME.registerComponent('networked-hand-controls', {
         this.isViveController();
       }
       
-      // debugger;
       const color = new THREE.Color(this.data.color);
       this.getMesh().children[1].material.emissive = color;
       this.getMesh().children[1].material.color = color;
