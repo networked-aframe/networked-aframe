@@ -36,9 +36,7 @@ function addHandTemplate(hand) {
       'networked-hand-controls', // optimization: could consider doing only visibility and gesture
     ]
   };
-
   NAF.schemas.templateCache[`#${hand}-hand-template`] = templateOuter;
-  NAF.schemas.templateExistsInScene = () => true;
 }
 ["left","right"].forEach(addHandTemplate);
 
@@ -46,7 +44,7 @@ AFRAME.registerComponent('networked-hand-controls', {
   schema: {
     color: { default: 'white', type: 'color' },
     hand: { type: "string", default: 'left', oneOf: ['right', 'left'] },
-    handModelStyle: { type: "string", default: 'highPoly', oneOf: ['lowPoly', 'highPoly', 'toon', 'controller'] },
+    handModelStyle: { type: "string", default: 'highPoly', oneOf: ['lowPoly', 'highPoly', 'toon'] },
     
     handModelURL: { type: "string", default: '' }, 
     // ^for specifying a custom model URL; only allowed at init, not via update
@@ -87,11 +85,13 @@ AFRAME.registerComponent('networked-hand-controls', {
     
     const handmodelUrl = this.MODEL_BASE + this.MODEL_URLS[this.data.handModelStyle + this.data.hand.charAt(0).toUpperCase() + this.data.hand.slice(1)];
 
-    if (this.data.handModelStyle === "controller") {
-      console.log("adding controls")
-      this.addControls(true);
-    }
-    else {
+    // could add tracked controller models here, too--but would need more work to complete, as just adding
+    // the controller components from A-Frame core directly would wire up a bunch of events that we don't want for
+    // networked controllers.
+    // if (this.data.handModelStyle === "controller") {
+    //   this.addControls(true);
+    // }
+    // else {
       this.loader.load(this.data.handModelURL || handmodelUrl, gltf => {
         const newMesh = gltf.scene.children[0];
         const handModelOrientation = this.data.hand === 'left' ? Math.PI / 2 : -Math.PI / 2;
@@ -116,7 +116,7 @@ AFRAME.registerComponent('networked-hand-controls', {
         this.getMesh().children[1].material.color = color;
         this.getMesh().children[1].material.metalness = 1;
       });    
-    }
+    // }
   },
 
   addControls(model) {
