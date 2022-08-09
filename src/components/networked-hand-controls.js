@@ -84,13 +84,12 @@ AFRAME.registerComponent('networked-hand-controls', {
     
     const handmodelUrl = this.MODEL_BASE + this.MODEL_URLS[this.data.handModelStyle + this.data.hand.charAt(0).toUpperCase() + this.data.hand.slice(1)];
 
-    // could add tracked controller models here, too--but would need more work to complete, as just adding
-    // the controller components from A-Frame core directly would wire up a bunch of events that we don't want for
-    // networked controllers.
-    // if (this.data.handModelStyle === "controller") {
-    //   this.addControls(true);
-    // }
-    // else {
+    if (this.data.handModelStyle === "controller") {
+      // load the controller model
+      this.addControls(true);
+    }
+    else {
+      // load the hand model
       this.loader.load(this.data.handModelURL || handmodelUrl, gltf => {
         const newMesh = gltf.scene.children[0];
         const handModelOrientation = this.data.hand === 'left' ? Math.PI / 2 : -Math.PI / 2;
@@ -115,22 +114,33 @@ AFRAME.registerComponent('networked-hand-controls', {
         this.getMesh().children[1].material.color = color;
         this.getMesh().children[1].material.metalness = 1;
       });    
-    // }
+    }
   },
+  controllerComponents: [
+    'magicleap-controls',
+    'vive-controls',
+    'oculus-touch-controls',
+    'windows-motion-controls',
+    'hp-mixed-reality-controls',
+  ],
 
   addControls(model) {
-    if (this.local) {
-      const controlConfiguration = {
-        hand: this.data.hand,
-        model,
-      };        
-      this.el.setAttribute('magicleap-controls', controlConfiguration);
-      this.el.setAttribute('vive-controls', controlConfiguration);
-      this.el.setAttribute('oculus-touch-controls', controlConfiguration);
-      this.el.setAttribute('windows-motion-controls', controlConfiguration);
-      this.el.setAttribute('hp-mixed-reality-controls', controlConfiguration);
-      this.isViveController();
+    const controlConfiguration = {
+      hand: this.data.hand,
+      model,
+    };
+    this.controllerComponents.forEach(ctrlComponent => {
+      this.el.setAttribute(ctrlComponent, controlConfiguration);
+    })
+    if (!this.local) {
+      // remove event listeners, hack component to only respond to NAF updates
+      this.controllerComponents.forEach(ctrlComponent => {
+        // todo: confirm all controller components corespond to this pattern
+        this.el.components[ctrlComponent].removeEventListeners();
+        this.el.components[ctrlComponent].removeControllersUpdateListener();
+      })
     }
+    this.isViveController();
   },
 
   play() {
