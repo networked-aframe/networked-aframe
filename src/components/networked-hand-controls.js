@@ -1,4 +1,4 @@
-/* global THREE, AFRAME */
+/* global THREE, AFRAME, NAF */
 
 /**
  * Represent any 6dof controller as a hand with live tracked animated gestures and normalized events.
@@ -14,10 +14,38 @@
  * note that the events were incomplete/broken in prior implementation, and therefore a breaking change
  */
 
+(() => {
+// this is a way to bypass adding the template in to the HTML, 
+// as well as the already awkward NAF.schemas.add workaround
+// this makes the use of this component for the end user much simpler
+function addHandTemplate(hand) {
+  let templateOuter = document.createElement('template');
+  let templateInner = document.createElement('a-entity');
+
+  templateOuter.id = `${hand}-hand-template`;
+  templateInner.setAttribute('networked-hand-controls',`hand: ${hand}`);
+
+  // aAssets.appendChild(templateOuter); // can't do this, called before dom tree creation
+  templateOuter.appendChild(templateInner);
+
+  NAF.schemas.schemaDict[`#${hand}-hand-template`] = {
+    template: `#${hand}-hand-template`,
+    components: [
+      'position',
+      'rotation',
+      'networked-hand-controls', // optimization: could consider doing only visibility and gesture
+    ]
+  };
+
+  NAF.schemas.templateCache[`#${hand}-hand-template`] = templateOuter;
+  NAF.schemas.templateExistsInScene = () => true;
+}
+["left","right"].forEach(addHandTemplate);
+
 AFRAME.registerComponent('networked-hand-controls', {
   schema: {
     color: { default: 'white', type: 'color' },
-    hand: { type: "string", default: 'left' },
+    hand: { type: "string", default: 'left', oneOf: ['right', 'left'] },
     handModelStyle: { type: "string", default: 'highPoly', oneOf: ['lowPoly', 'highPoly', 'toon'] },
     
     handModelURL: { type: "string", default: '' }, 
@@ -27,8 +55,11 @@ AFRAME.registerComponent('networked-hand-controls', {
     gesture: { type: "string", default: 'open' },
     visible: { type: "bool", default: false },
   },
-  
+
   init() {
+    this.el.setAttribute('networked', 'template', `#${this.data.hand}-hand-template`);
+    this.el.setAttribute('networked', 'attachTemplateToLocal', true);
+
     this.Z = Math.random();
     this.Y[this.Z] = { contact: {}, reverse: false, isContact: false };
     
@@ -86,7 +117,12 @@ AFRAME.registerComponent('networked-hand-controls', {
         this.el.setAttribute('hp-mixed-reality-controls', controlConfiguration);
         this.isViveController();
       }
-
+      
+      // debugger;
+      const color = new THREE.Color(this.data.color);
+      this.getMesh().children[1].material.emissive = color;
+      this.getMesh().children[1].material.color = color;
+      this.getMesh().children[1].material.metalness = 1;
     });    
   },
 
@@ -349,3 +385,4 @@ AFRAME.registerComponent('networked-hand-controls', {
   },
 });
   
+})()

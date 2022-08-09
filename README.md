@@ -96,14 +96,17 @@ More Examples
 
 Open in two tabs if nobody else is online, or [remix the code examples yourself](https://glitch.com/edit/#!/remix/naf-examples).
 
+**Updated:**
 * [Basic](https://naf-examples.glitch.me/basic.html)
 * [Basic with 4 clients](https://naf-examples.glitch.me/basic-4.html)
-* [Google Blocks](https://naf-examples.glitch.me/google-blocks.html)
-* [Tracked Controllers](https://naf-examples.glitch.me/tracked-controllers.html)
 * [Positional Audio](https://naf-examples.glitch.me/basic-audio.html)
-* [Nametags](https://glitch.com/edit/#!/naf-nametags) (not updated to latest version)
-* [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room) (not updated to latest version)
-* [Form to set room and username](https://glitch.com/edit/#!/naf-form-example) (not updated to latest version)
+* [Video Streaming](https://naf-examples.glitch.me/basic-video.html)
+* [Nametags](https://naf-examples.glitch.me/nametag.html)
+* [Tracked Controllers](https://naf-examples.glitch.me/tracked-controllers.html)
+
+**Not updated to latest version:**
+* [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
+* [Form to set room and username](https://glitch.com/edit/#!/naf-form-example)
 * [More...](https://naf-examples.glitch.me)
 
 Made something awesome with Networked-Aframe? [Let us know](https://github.com/networked-aframe/networked-aframe/issues) and we'll include it here.
@@ -455,11 +458,36 @@ part.
 
 See also the document [NAF adapters comparison](https://github.com/networked-aframe/networked-aframe/wiki/NAF-adapters-comparison).
 
+
+### Tracked Controllers w/ Synced Gestures
+
+NAF now allows easily adding hand models that show gestures matching to which buttons are touched--so you can point and give a thumbs up or make a fist to other people in the room. 
+
+All you have to do is use the built in `networked-hand-controls` component, by adding these two lines as children of your camera rig:
+
+```html
+        <a-entity id="my-tracked-left-hand" class="local-naf-hand" networked-hand-controls="hand:left;"></a-entity>
+        <a-entity id="my-tracked-right-hand" class="local-naf-hand" networked-hand-controls="hand:right;"></a-entity>
+```        
+
+To see a working demo, check out the [Glitch NAF Tracked Controllers Example](https://naf-examples.glitch.me/tracked-controllers.html).
+
+The public schema properties you can set are:
+
+| ---- | color | hand | handModelStyle | handModelUrl |
+| ---- | ----- | ---- | -------------- | ------------ |
+| info | will be set as material color | - | available built-in models from A-Frame | optional custom hand model url |
+| default | 'white' | 'left' | 'highPoly' | '' |
+| type | 'color' | 'string' |  'string' | 'string' |
+| oneOf | N/A | ['right', 'left'] | ['highPoly', 'lowPoly', 'toon'] | N/A |
+
+
+
 ### Audio
 
 After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3D space from that entity's position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
 
-To quickly get started, try the [Glitch NAF Audio Example](https://glitch.com/edit/#!/networked-aframe-audio?path=public/index.html) (not updated to latest version).
+To quickly get started, try the [Glitch NAF Audio Example]((https://naf-examples.glitch.me/basic-audio.html)).
 
 To mute/unmute the microphone, you can use the following API (easyrtc and janus adapters):
 
