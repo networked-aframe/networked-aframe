@@ -32,7 +32,7 @@ function addHandTemplate(hand) {
     components: [
       'position',
       'rotation',
-      'networked-hand-controls', // optimization: could consider doing only visibility and gesture
+      'networked-hand-controls',
     ]
   };
   NAF.schemas.templateCache[`#${hand}-hand-template`] = templateOuter;
@@ -225,7 +225,7 @@ AFRAME.registerComponent('networked-hand-controls', {
     })
   },
 
-  // to minimize garbage collection, prevents generating huge numbers of generated strings
+  // to minimize garbage collection, prevents generating huge numbers of one-time-use strings
   str: {
     nafHandControls: "networked-hand-controls",
     gesture: "gesture",

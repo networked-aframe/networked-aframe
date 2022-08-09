@@ -64,13 +64,13 @@
             this.nametagInput = document.getElementById('username-overlay');
             this.nametagInput.value = this.data.name;
 
-            // add the initial color tot he html overlay color picker button
+            // add the initial color to the html overlay color picker button
             document.querySelector('button').style.backgroundColor = this.data.color;
             document.querySelector('button').style.color = this.data.color;
           }
         },
 
-        // here as an example, not used in current demo. Could build a room list, expanding on this.
+        // here as an example, not used in current demo. Could build a user list, expanding on this.
         listUsers: function () {
           console.log(
             'userlist',
@@ -91,20 +91,18 @@
   </head>
 
   <body>
-    <!-- this <input> and <button> will overlay on top of the A-Frame canvas--this style is all you need
-         note the oninput and onclick attributes; on every call, they will run .setAttribute() for the player-info
-         component's data. NAF will keep that property in sync, since 'name' is declared in the schema
+    <!-- This <button> and <input> will overlay on top of the A-Frame canvas--this style is all you need.
+         Note the onclick and oninput attributes; on every call, they will run .setAttribute() for the player-info
+         component's data. NAF will keep that property in sync, since 'name' and 'color' are declared in the schema
          of the 'player-info' component
     -->
     <button id="color-changer"
     style="z-index: 100; bottom: 24px; left: 24px; position: fixed;"
-    onclick="
-              let newColor = window.ntExample.randomColor();
-              document.getElementById('player').setAttribute('player-info', 'color', newColor); 
-              document.querySelector('button').style.backgroundColor = newColor;
-              document.querySelector('button').style.color = newColor;
-            "
-    >■</button>
+    onclick="let newColor = window.ntExample.randomColor();
+             document.getElementById('player').setAttribute('player-info', 'color', newColor); 
+             document.querySelector('button').style.backgroundColor = newColor;
+             document.querySelector('button').style.color = newColor;
+    ">■</button>
     <input id="username-overlay"
            style="z-index: 100; bottom: 24px; left: 48px; position: fixed"
            oninput="document.getElementById('player').setAttribute('player-info', 'name', this.value)"
