@@ -46,7 +46,7 @@ AFRAME.registerComponent('networked-hand-controls', {
   schema: {
     color: { default: 'white', type: 'color' },
     hand: { type: "string", default: 'left', oneOf: ['right', 'left'] },
-    handModelStyle: { type: "string", default: 'highPoly', oneOf: ['lowPoly', 'highPoly', 'toon'] },
+    handModelStyle: { type: "string", default: 'highPoly', oneOf: ['lowPoly', 'highPoly', 'toon', 'controller'] },
     
     handModelURL: { type: "string", default: '' }, 
     // ^for specifying a custom model URL; only allowed at init, not via update
@@ -87,42 +87,51 @@ AFRAME.registerComponent('networked-hand-controls', {
     
     const handmodelUrl = this.MODEL_BASE + this.MODEL_URLS[this.data.handModelStyle + this.data.hand.charAt(0).toUpperCase() + this.data.hand.slice(1)];
 
-    this.loader.load(this.data.handModelURL || handmodelUrl, 
-                      gltf => {
-      const newMesh = gltf.scene.children[0];
-      const handModelOrientation = this.data.hand === 'left' ? Math.PI / 2 : -Math.PI / 2;
-      newMesh.mixer = new THREE.AnimationMixer(newMesh);
-      
-      this.clips = gltf.animations;
-      this.clips.forEach((clip, clipIndex) => {
+    if (this.data.handModelStyle === "controller") {
+      console.log("adding controls")
+      this.addControls(true);
+    }
+    else {
+      this.loader.load(this.data.handModelURL || handmodelUrl, gltf => {
+        const newMesh = gltf.scene.children[0];
+        const handModelOrientation = this.data.hand === 'left' ? Math.PI / 2 : -Math.PI / 2;
+        newMesh.mixer = new THREE.AnimationMixer(newMesh);
+
+        this.clips = gltf.animations;
+        this.clips.forEach((clip, clipIndex) => {
         this.clipNameToClip[clip.name] = clip;
-      })      
-      
-      this.el.setObject3D('mesh', newMesh);
+        })      
 
-      const handMaterial = newMesh.children[1].material;
-      handMaterial.color = new THREE.Color(this.data.handColor);
-      newMesh.position.set(0, 0, 0);
-      newMesh.rotation.set(0, 0, handModelOrientation);
+        this.el.setObject3D('mesh', newMesh);
 
-      if (this.local) {
-        const controlConfiguration = {
-          hand: this.data.hand,
-          model: false,
-        }        
-        this.el.setAttribute('magicleap-controls', controlConfiguration);
-        this.el.setAttribute('vive-controls', controlConfiguration);
-        this.el.setAttribute('oculus-touch-controls', controlConfiguration);
-        this.el.setAttribute('windows-motion-controls', controlConfiguration);
-        this.el.setAttribute('hp-mixed-reality-controls', controlConfiguration);
-        this.isViveController();
-      }
-      
-      const color = new THREE.Color(this.data.color);
-      this.getMesh().children[1].material.emissive = color;
-      this.getMesh().children[1].material.color = color;
-      this.getMesh().children[1].material.metalness = 1;
-    });    
+        const handMaterial = newMesh.children[1].material;
+        handMaterial.color = new THREE.Color(this.data.handColor);
+        newMesh.position.set(0, 0, 0);
+        newMesh.rotation.set(0, 0, handModelOrientation);
+
+        this.addControls(false);
+
+        const color = new THREE.Color(this.data.color);
+        this.getMesh().children[1].material.emissive = color;
+        this.getMesh().children[1].material.color = color;
+        this.getMesh().children[1].material.metalness = 1;
+      });    
+    }
+  },
+
+  addControls(model) {
+    if (this.local) {
+      const controlConfiguration = {
+        hand: this.data.hand,
+        model,
+      };        
+      this.el.setAttribute('magicleap-controls', controlConfiguration);
+      this.el.setAttribute('vive-controls', controlConfiguration);
+      this.el.setAttribute('oculus-touch-controls', controlConfiguration);
+      this.el.setAttribute('windows-motion-controls', controlConfiguration);
+      this.el.setAttribute('hp-mixed-reality-controls', controlConfiguration);
+      this.isViveController();
+    }
   },
 
   play() {
