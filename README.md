@@ -103,11 +103,12 @@ Open in two tabs if nobody else is online, or [remix the code examples yourself]
 * [Video Streaming](https://naf-examples.glitch.me/basic-video.html)
 * [Nametags](https://naf-examples.glitch.me/nametag.html)
 * [Tracked Controllers](https://naf-examples.glitch.me/tracked-controllers.html)
+* [More...](https://naf-examples.glitch.me)
+
 
 **Not updated to latest version:**
 * [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
 * [Form to set room and username](https://glitch.com/edit/#!/naf-form-example)
-* [More...](https://naf-examples.glitch.me)
 
 Made something awesome with Networked-Aframe? [Let us know](https://github.com/networked-aframe/networked-aframe/issues) and we'll include it here.
 
