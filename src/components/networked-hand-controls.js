@@ -237,7 +237,13 @@ AFRAME.registerComponent('networked-hand-controls', {
     this.el.pause();
 
     // we add the actual component, to get the model generated and hopefully to grab button model updates in the future
-    this.el.setAttribute(this.data.controllerComponent, {hand: this.data.hand, model: true});
+    this.el.setAttribute(this.data.controllerComponent, {
+      hand: this.data.hand, 
+      model: true,
+      buttonColor: '#999',  // Off-white.
+      buttonTouchColor: '#ff985fF',
+      buttonHighlightColor: 'red',  // medium blue.
+    });
 
     // we don't want the remote model to listen to local button/trigger/joystick events, though 
     this.el.components[this.data.controllerComponent].removeEventListeners();
