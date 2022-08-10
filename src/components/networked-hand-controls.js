@@ -157,10 +157,7 @@ AFRAME.registerComponent('networked-hand-controls', {
         this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerEvent);
       } else {
         console.log("Don't update model", this.data, ...this.data.controllerEvent)
-        console.log(oldData, Array.isArray(oldData.controllerEvent),
-         {old0: oldData.controllerEvent[0], new0:this.data.controllerEvent[0]}, 
-         {old1:oldData.controllerEvent[1],new1: this.data.controllerEvent[1]}
-         )
+        console.log(oldData.controllerEvent, this.data.controllerEvent,)
       }
     }
   },
