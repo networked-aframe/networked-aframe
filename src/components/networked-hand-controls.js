@@ -46,6 +46,7 @@ AFRAME.registerComponent('networked-hand-controls', {
     
     controllerComponent: { type: "string", default: '' },
     webxrControllerProfiles: { type: "string", default: '' },
+    controllerEvent: {type:'array'},
     // these are set internally if we use type 'controller' for handModelStyle
     
     handModelURL: { type: "string", default: '' }, 
@@ -82,17 +83,15 @@ AFRAME.registerComponent('networked-hand-controls', {
       this.el.classList.add('naf-remote-hand');
     }
         
-    this.loader = new THREE.GLTFLoader();
-    this.loader.setCrossOrigin('anonymous');
-    
-    const handmodelUrl = this.MODEL_BASE + this.MODEL_URLS[this.data.handModelStyle + this.data.hand.charAt(0).toUpperCase() + this.data.hand.slice(1)];
-
     if (this.data.handModelStyle === "controller") {
       // load the controller model
       this.addControls(true);
     }
     else {
-      // load the hand model
+      this.loader = new THREE.GLTFLoader();
+      this.loader.setCrossOrigin('anonymous');
+      const handmodelUrl = this.MODEL_BASE + this.MODEL_URLS[this.data.handModelStyle + this.data.hand.charAt(0).toUpperCase() + this.data.hand.slice(1)];
+      
       this.loader.load(this.data.handModelURL || handmodelUrl, gltf => {
         const newMesh = gltf.scene.children[0];
         const handModelOrientation = this.data.hand === 'left' ? Math.PI / 2 : -Math.PI / 2;
@@ -145,9 +144,18 @@ AFRAME.registerComponent('networked-hand-controls', {
       if (this.data.handModelStyle !== this.str.controller && this.data.gesture !== oldData.gesture) {
         this.handleGesture(this.data.gesture, oldData.gesture);
       }
-      if (!this.Y[this.Z].injectedController && this.data.handModelStyle === this.str.controller && this.data.controllerComponent) {
+      if (this.data.handModelStyle === this.str.controller && this.data.controllerComponent && !this.Y[this.Z].injectedController) {
         console.log("IN UPDATE")
         this.injectRemoteControllerModel();
+      }
+
+      // untested controller event passing
+      console.log("update model?")
+      if (Array.isArray(oldData.controllerEvent) && oldData.controllerEvent[0] !== this.data.controllerEvent[0] && oldData.controllerEvent[1] !== this.data.controllerEvent[1]) {
+        console.log("updating model")
+        this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerEvent);
+      } else {
+        console.log("not updating model")
       }
     }
   },
@@ -172,35 +180,45 @@ AFRAME.registerComponent('networked-hand-controls', {
   injectControlsWrapper(originalFn, controllerComponentName, webxrControllerSymbol) {
     // lets us peek at the model argument passed in by AFRAME.utils.trackedControls.findMatchingControllerWebXR
     // (first two are curried, third is passed in)
-    console.log("CONTROLLER INJETION INTERCEPTED!", controllerComponentName, webxrControllerSymbol, this)
+    console.log("CONTROLLER INJECTION INTERCEPTED!", controllerComponentName, webxrControllerSymbol, this)
     this.el.setAttribute('networked-hand-controls', {
       controllerComponent: controllerComponentName,
-      webxrControllerProfiles: JSON.stringify(webxrControllerSymbol.profiles), // this seems to be the only part that matters.
+      webxrControllerProfiles: JSON.stringify(webxrControllerSymbol.profiles),
+      // unfortunately, it's a symbol, so we can't just send it;
+      // luckily, this is the only part that is actually used, so we're good.
     });
     originalFn(webxrControllerSymbol);
+    
+    this.el.components[controllerComponentName].updateModel = 
+      this.updateModelWrapper.bind(
+        this, 
+        this.el.components[controllerComponentName].updateModel.bind(
+          this.el.components[controllerComponentName]
+        )
+      );
+  },
+
+  updateModelWrapper(originalFn, buttonName, evtName) {
+    // intercept events and broadcast them to remote versions
+    this.el.setAttribute('networked-hand-controls', controllerEvent, `${buttonName}, ${evtName}`);
+    originalFn(buttonName, evtName);
   },
 
   addControls(useControllerModel) {
-    if (this.local) {
-      this.controllerComponents.forEach(ctrlComponent => {
-        this.el.setAttribute(ctrlComponent, {hand: this.data.hand, model: useControllerModel});
+    if (!this.local) {return;}
 
-        // here we inject a wrapper that allows us to extract enough info to replicate this controller to an NAF instance.
-        this.el.components[ctrlComponent].injectTrackedControls = 
-          this.injectControlsWrapper.bind(
-            this.el.components[ctrlComponent],
-            this.el.components[ctrlComponent].injectTrackedControls.bind(this.el.components[ctrlComponent]),
-            ctrlComponent,
-          );
-      })
-      this.isViveController();
-      
-      // todo: track and broadcast controller model changes
-    }
-    else if (useControllerModel && this.data.controllerComponent) {
-      console.log("IN INIT")
-      this.injectRemoteControllerModel();
-    }
+    this.controllerComponents.forEach(controllerComponentName => {
+      this.el.setAttribute(controllerComponentName, {hand: this.data.hand, model: useControllerModel});
+
+      // here we inject a wrapper that allows us to extract enough info to replicate this controller to an NAF instance.
+      this.el.components[controllerComponentName].injectTrackedControls = 
+        this.injectControlsWrapper.bind(
+          this, // this.el.components[controllerComponentName],
+          this.el.components[controllerComponentName].injectTrackedControls.bind(this.el.components[controllerComponentName]),
+          controllerComponentName,
+        );
+    })
+    this.isViveController();
   },
 
   injectRemoteControllerModel() {
@@ -209,44 +227,35 @@ AFRAME.registerComponent('networked-hand-controls', {
     // A) convince it to show without relation to whether it is actually connected, and 
     // B) to not track _local_ pose data (so, no tracked-controller component)
 
-    // adding the actual component itself, to get the model generated and hopefully to grab button model updates in the future
-    console.log("data for remote controller?", this.data) // looks like we may need to do this in update, so we receive initial data?
+    // we pause it so we can hack the component a bit before we let it init()
     this.el.pause();
+
+    // we add the actual component, to get the model generated and hopefully to grab button model updates in the future
     this.el.setAttribute(this.data.controllerComponent, {hand: this.data.hand, model: true});
 
+    // we don't want the remote model to listen to local button/trigger/joystick events, though 
     this.el.components[this.data.controllerComponent].removeEventListeners();
     this.el.components[this.data.controllerComponent].removeControllersUpdateListener();
 
-    console.log("LOADING REMOTE CONTROLLER?",this.data.controllerComponent,this.data)
+    // we load the model indicated by the remote user's headset
     this.el.components[this.data.controllerComponent].loadModel({profiles:JSON.parse(this.data.webxrControllerProfiles)});
 
-    // since this is a bit of a hack, we include a fallback and logging and self-detection of hack success
-    if (!this.el.components[this.data.controllerComponent].checkIfControllerPresent) {
-      console.error("likely error, seems like path used to bypass local pose tracking failed; will use crude fallback");
-      // crude fallback
-      let attempts = 0;
-      const crudePoseTrackingRemovalInterval = setInterval(() => {
-        try {
-          this.el.components['tracked-controls-webxr'].remove()
-          console.log("crude fallback pose removal successful!");
-        } catch (e) {
-          if (attempts > 9) {
-            this.el.components[this.data.controllerComponent].remove();
-            throw new Error('seems that crude fallback to remove pose tracking also failed');
-          }
-          console.warn("failed to remove pose tracking via fallback, trying again....");
-          attempts++;
-        }
-      },500);
+    if (!this.el.components[this.data.controllerComponent].checkIfControllerPresent && 
+        !this.el.components[this.data.controllerComponent].injectTrackedControls) {
+      // since this is a bit of a hack, we include a fallback and logging and self-detection of hack success
+      // this is pretty robust, however, as A-Frame treats injectTrackedControls() as required on all controller components
+      console.error("likely error, seems like path used to bypass local pose tracking failed; please notify NAF maintainers.");
+      console.log(this.el, this.el.components);
+      this.el.components[this.data.controllerComponent].remove();
+    } else {
+      // this prevents injectTrackedControllers from running, which prevents the 
+      // tracked-controls-webxr component from being added, which is responsible for pose tracking,
+      // which we don't want, since we want this controller to follow this NAF entity instead
+      this.el.components[this.data.controllerComponent].checkIfControllerPresent = x => x;
+      this.el.components[this.data.controllerComponent].injectTrackedControls = x => x;
     }
-    // this prevents injectTrackedControllers from running, which prevents injection of the 
-    // tracked-controls-webxr component, which is responsible for pose tracking
-    this.el.components[this.data.controllerComponent].checkIfControllerPresent = () => {
-      console.log("checkIfControllerPresent hack succeeded")
-    };
     this.el.play();
-
-    this.Y[this.Z].injectedController = true;
+    this.Y[this.Z].injectedController = true; // we don't want the function to run again in the update(), whether successful or not.
   },
 
   getMesh() {
