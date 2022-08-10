@@ -152,7 +152,10 @@ AFRAME.registerComponent('networked-hand-controls', {
       }
 
       // untested controller event passing
-      if (Array.isArray(oldData.controllerEvent) && oldData.controllerEvent[0] !== this.data.controllerEvent[0] || oldData.controllerEvent[1] !== this.data.controllerEvent[1]) {
+      if (Array.isArray(oldData.controllerEvent) && (
+          oldData.controllerEvent[0] !== this.data.controllerEvent[0] || 
+          oldData.controllerEvent[1] !== this.data.controllerEvent[1])
+          ) {
         console.log("Will update model", this.data, ...this.data.controllerEvent)
         this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerEvent);
       } else {
