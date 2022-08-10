@@ -142,10 +142,11 @@ AFRAME.registerComponent('networked-hand-controls', {
     }
     
     if (!this.local) {
-      if (this.data.gesture != oldData.gesture) {
+      if (this.data.handModelStyle !== this.str.controller && this.data.gesture !== oldData.gesture) {
         this.handleGesture(this.data.gesture, oldData.gesture);
       }
-      if (this.data.handModelStyle === this.str.controller && this.data.controllerComponent) {
+      if (!this.Y[this.Z].injectedController && this.data.handModelStyle === this.str.controller && this.data.controllerComponent) {
+        console.log("IN UPDATE")
         this.injectRemoteControllerModel();
       }
     }
@@ -197,6 +198,7 @@ AFRAME.registerComponent('networked-hand-controls', {
       // todo: track and broadcast controller model changes
     }
     else if (useControllerModel && this.data.controllerComponent) {
+      console.log("IN INIT")
       this.injectRemoteControllerModel();
     }
   },
@@ -209,6 +211,7 @@ AFRAME.registerComponent('networked-hand-controls', {
 
     // adding the actual component itself, to get the model generated and hopefully to grab button model updates in the future
     console.log("data for remote controller?", this.data) // looks like we may need to do this in update, so we receive initial data?
+    this.el.pause();
     this.el.setAttribute(this.data.controllerComponent, {hand: this.data.hand, model: true});
 
     this.el.components[this.data.controllerComponent].removeEventListeners();
@@ -236,10 +239,14 @@ AFRAME.registerComponent('networked-hand-controls', {
         }
       },500);
     }
-
     // this prevents injectTrackedControllers from running, which prevents injection of the 
     // tracked-controls-webxr component, which is responsible for pose tracking
-    this.el.components[this.data.controllerComponent].checkIfControllerPresent = () => {};
+    this.el.components[this.data.controllerComponent].checkIfControllerPresent = () => {
+      console.log("checkIfControllerPresent hack succeeded")
+    };
+    this.el.play();
+
+    this.Y[this.Z].injectedController = true;
   },
 
   getMesh() {
