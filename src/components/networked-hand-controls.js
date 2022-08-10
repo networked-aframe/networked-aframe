@@ -24,7 +24,6 @@ function addHandTemplate(hand) {
   templateOuter.id = `${hand}-hand-template`;
   templateInner.setAttribute('networked-hand-controls',`hand: ${hand}`);
 
-  // aAssets.appendChild(templateOuter); // can't do this, called before dom tree creation
   templateOuter.appendChild(templateInner);
 
   NAF.schemas.schemaDict[`#${hand}-hand-template`] = {
@@ -44,8 +43,11 @@ AFRAME.registerComponent('networked-hand-controls', {
     color: { default: 'white', type: 'color' },
     hand: { type: "string", default: 'left', oneOf: ['right', 'left'] },
     handModelStyle: { type: "string", default: 'highPoly', oneOf: ['lowPoly', 'highPoly', 'toon'] },
+    
     controllerComponent: { type: "string", default: '' },
     webxrControllerProfiles: { type: "string", default: '' },
+    // these are set internally if we use type 'controller' for handModelStyle
+    
     handModelURL: { type: "string", default: '' }, 
     // ^for specifying a custom model URL; only allowed at init, not via update
     // (must correspond to existing models and have matching animations to work properly)
@@ -118,108 +120,6 @@ AFRAME.registerComponent('networked-hand-controls', {
     }
   },
 
-  controllerComponents: [
-    'magicleap-controls',
-    'vive-controls',
-    'oculus-touch-controls',
-    'windows-motion-controls',
-    'hp-mixed-reality-controls',
-    'valve-index-controls', // added... should we add this?
-  ],
-
-  injectControlsWrapper(originalFn, controllerComponentName, webxrControllerSymbol) {
-    // lets us peak at the model argument passed in by AFRAME.utils.trackedControls.findMatchingControllerWebXR
-    // (first two are curried, third is passed in)
-    console.log("CONTROLLER INJETION INTERCEPTED!", controllerComponentName, webxrControllerSymbol, this)
-    this.el.setAttribute('networked-hand-controls', {
-      controllerComponent: controllerComponentName,
-      webxrControllerProfiles: JSON.stringify(webxrControllerSymbol.profiles), // this seems to be the only part that matters.
-    });
-    originalFn(webxrControllerSymbol);
-  },
-
-  addControls(useControllerModel) {
-    // if (!this.local) this.el.pause(); 
-    // experiment: pause so we can modify the added components before they play, to prevent listeners and hooks to local controller being made
-    
-
-    
-    if (this.local) {
-      // these components will activate if they match, and if activated will pick up positional
-      // and button information and that will be used to generate gestures here
-      // if (useControllerModel) {
-        // this.el.setAttribute(this.str.nafHandControls, this.data.handModelURL, this.el.components['gltf-model'].data);
-      // }
-      this.controllerComponents.forEach(ctrlComponent => {
-        this.el.setAttribute(ctrlComponent, {hand: this.data.hand, model: useControllerModel});
-        console.log(ctrlComponent, this.el.components[ctrlComponent].controllerPresent)
-        // this doesn't work, always false, too early I guess--probably because not in VR, would need to fire on update. :(
-        this.el.components[ctrlComponent].injectTrackedControls = 
-          this.injectControlsWrapper.bind(
-            this.el.components[ctrlComponent],
-            this.el.components[ctrlComponent].injectTrackedControls.bind(this.el.components[ctrlComponent]),
-            ctrlComponent,
-          );
-
-        // if (this.el.components[ctrlComponent].controllerPresent) {
-        //   this.setAttribute(this.str.nafHandControls, 'controllerComponent', ctrlComponent);
-
-        //   // TODO: we need to get the output of this function and save it as well?
-        //   // findMatchingControllerWebXR
-        //   // -> // AFRAME.utils.trackedControls.findMatchingControllerWebXR
-        //   // find where that output gets stored / a way to access it
-        //   // worst case, copy/paste it
-        //   // bleh, messy. passed in as argument to injectTrackedControllers I think.
-        //   // wait... we could wrap that and get it from there???
-        //   this.setAttribute(this.str.nafHandControls, 'webxrControllerSymbol', 'todo: get this');
-        // }
-      })
-      this.isViveController();
-      
-      // TODO: set model to this.data
-      // this.setAttribute(this.str.nafHandControls, 'controllerComponent', 'todo: determine model and add here')
-    }
-    else if (useControllerModel && this.data.controllerComponent) {
-      // this is for a networked controller entity, where we want to show a non-hand controller model
-      // we only add the component we need, but we need to hack it to 
-      // A) convince it to show, and 
-      // B) to not track pose data (so, no tracked-controller component)
-
-      // adding the actual component itself, to get the model generated and hopefully to grab button model updates
-      console.log("data for remote controller?", this.data) // looks like we may need to do this in update, so we receive initial data?
-      this.el.setAttribute(this.data.controllerComponent, {hand: this.data.hand, model: useControllerModel});
-
-      // todo: confirm all controller components corespond to this pattern
-      // a: seems like this is successful.
-      this.el.components[this.data.controllerComponent].removeEventListeners();
-      this.el.components[this.data.controllerComponent].removeControllersUpdateListener();
-
-      // TODO: we need to get the output of this function and save it as well?
-      // findMatchingControllerWebXR
-      // then we need to call loadModel with it as an argument?
-      console.log("LOADING REMOTE CONTROLLER?",this.data.controllerComponent,this.data)
-      this.el.components[this.data.controllerComponent].loadModel({profiles:JSON.parse(this.data.webxrControllerProfiles)});
-      // problem is the model findMatchingControllerWebXR is in utils... oh nm, that's here:
-      // AFRAME.utils.trackedControls.findMatchingControllerWebXR
-      // needs quite the argument list though... could try going down this path again, we'll see
-
-      // doing this prevents injectTrackedControllers from running, which prevents the tracked-controls-webxr copmonent from being added...
-      // but it also prevents the model, which is deteced in utils, from being passed in. Because of how it is written, can't get one without the other.
-      // so, trying a different method.
-      console.log(this.el.components[this.data.controllerComponent].checkIfControllerPresent ? "f exists" : 'f does not exist', this.data.controllerComponent);
-      this.el.components[this.data.controllerComponent].checkIfControllerPresent = () => { console.log("was successful") };
-      
-      // instead, we'll just try removing tracked-controls-webxr itself.
-      
-      // this.el.components['tracked-controls-webxr'].pause(); // probably not necessary, but let's do this first
-      // this.el.components['tracked-controls-webxr'].remove();
-      console.log("bypassed tracked-controls-webxr... did it work?")
-      
-      
-      // this.el.play(); // experiment: now that we've removed the relevant events, we can allow it to play?
-    }
-  },
-
   play() {
     if (this.local) {
         this.addEventListeners(); 
@@ -241,8 +141,13 @@ AFRAME.registerComponent('networked-hand-controls', {
       this.el.object3D.visible = this.data.visible;     
     }
     
-    if (!this.local && (this.data.gesture != oldData.gesture)) {
-      this.handleGesture(this.data.gesture, oldData.gesture);
+    if (!this.local) {
+      if (this.data.gesture != oldData.gesture) {
+        this.handleGesture(this.data.gesture, oldData.gesture);
+      }
+      if (this.data.handModelStyle === this.str.controller && this.data.controllerComponent) {
+        this.injectRemoteControllerModel();
+      }
     }
   },
 
@@ -253,7 +158,90 @@ AFRAME.registerComponent('networked-hand-controls', {
   // cache system, protection from A-Frame optimization behavior while reducing garbage collection overhead  
   Z: 0,
   Y: {},
-  
+
+  controllerComponents: [
+    'magicleap-controls',
+    'vive-controls',
+    'oculus-touch-controls',
+    'windows-motion-controls',
+    'hp-mixed-reality-controls',
+    'valve-index-controls', // added, but not tested.
+  ],
+
+  injectControlsWrapper(originalFn, controllerComponentName, webxrControllerSymbol) {
+    // lets us peek at the model argument passed in by AFRAME.utils.trackedControls.findMatchingControllerWebXR
+    // (first two are curried, third is passed in)
+    console.log("CONTROLLER INJETION INTERCEPTED!", controllerComponentName, webxrControllerSymbol, this)
+    this.el.setAttribute('networked-hand-controls', {
+      controllerComponent: controllerComponentName,
+      webxrControllerProfiles: JSON.stringify(webxrControllerSymbol.profiles), // this seems to be the only part that matters.
+    });
+    originalFn(webxrControllerSymbol);
+  },
+
+  addControls(useControllerModel) {
+    if (this.local) {
+      this.controllerComponents.forEach(ctrlComponent => {
+        this.el.setAttribute(ctrlComponent, {hand: this.data.hand, model: useControllerModel});
+
+        // here we inject a wrapper that allows us to extract enough info to replicate this controller to an NAF instance.
+        this.el.components[ctrlComponent].injectTrackedControls = 
+          this.injectControlsWrapper.bind(
+            this.el.components[ctrlComponent],
+            this.el.components[ctrlComponent].injectTrackedControls.bind(this.el.components[ctrlComponent]),
+            ctrlComponent,
+          );
+      })
+      this.isViveController();
+      
+      // todo: track and broadcast controller model changes
+    }
+    else if (useControllerModel && this.data.controllerComponent) {
+      this.injectRemoteControllerModel();
+    }
+  },
+
+  injectRemoteControllerModel() {
+    // this is for a networked controller entity, where we want to show a non-hand controller model
+    // we add the relevant controller component, and then hack it just a bit to:
+    // A) convince it to show without relation to whether it is actually connected, and 
+    // B) to not track _local_ pose data (so, no tracked-controller component)
+
+    // adding the actual component itself, to get the model generated and hopefully to grab button model updates in the future
+    console.log("data for remote controller?", this.data) // looks like we may need to do this in update, so we receive initial data?
+    this.el.setAttribute(this.data.controllerComponent, {hand: this.data.hand, model: true});
+
+    this.el.components[this.data.controllerComponent].removeEventListeners();
+    this.el.components[this.data.controllerComponent].removeControllersUpdateListener();
+
+    console.log("LOADING REMOTE CONTROLLER?",this.data.controllerComponent,this.data)
+    this.el.components[this.data.controllerComponent].loadModel({profiles:JSON.parse(this.data.webxrControllerProfiles)});
+
+    // since this is a bit of a hack, we include a fallback and logging and self-detection of hack success
+    if (!this.el.components[this.data.controllerComponent].checkIfControllerPresent) {
+      console.error("likely error, seems like path used to bypass local pose tracking failed; will use crude fallback");
+      // crude fallback
+      let attempts = 0;
+      const crudePoseTrackingRemovalInterval = setInterval(() => {
+        try {
+          this.el.components['tracked-controls-webxr'].remove()
+          console.log("crude fallback pose removal successful!");
+        } catch (e) {
+          if (attempts > 9) {
+            this.el.components[this.data.controllerComponent].remove();
+            throw new Error('seems that crude fallback to remove pose tracking also failed');
+          }
+          console.warn("failed to remove pose tracking via fallback, trying again....");
+          attempts++;
+        }
+      },500);
+    }
+
+    // this prevents injectTrackedControllers from running, which prevents injection of the 
+    // tracked-controls-webxr component, which is responsible for pose tracking
+    this.el.components[this.data.controllerComponent].checkIfControllerPresent = () => {};
+  },
+
   getMesh() {
     return this.el.getObject3D(this.str.mesh)
   },
@@ -325,6 +313,7 @@ AFRAME.registerComponent('networked-hand-controls', {
     pistol: "pistol",
     hold: "hold",
     open: "open",
+    controller: "controller",
   },
 
   handleButton(button, evt) {    
