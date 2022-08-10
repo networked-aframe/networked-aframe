@@ -68,9 +68,11 @@ AFRAME.registerComponent('networked-hand-controls', {
     
     this.checkLocalHand();
     if (this.local) {
-      Object.keys(this.buttonEventMap).forEach(evtName => {
-        this.eventFunctionMap[this.data.hand][evtName] = this.handleButton.bind(this, ...this.buttonEventMap[evtName])
-      })      
+      if (this.data.handModelStyle !== 'controller') {
+        Object.keys(this.buttonEventMap).forEach(evtName => {
+          this.eventFunctionMap[this.data.hand][evtName] = this.handleButton.bind(this, ...this.buttonEventMap[evtName])
+        })      
+      }
       
       this.el.addEventListener('controllerconnected', () => {
         this.el.setAttribute('networked-hand-controls', 'visible', true);
@@ -154,7 +156,7 @@ AFRAME.registerComponent('networked-hand-controls', {
         console.log("Will update model", this.data, ...this.data.controllerEvent)
         this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerEvent);
       } else {
-        console.log("Don't update model")
+        console.log("Don't update model", this.data, ...this.data.controllerEvent)
       }
     }
   },
