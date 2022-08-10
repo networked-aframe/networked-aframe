@@ -146,21 +146,20 @@ AFRAME.registerComponent('networked-hand-controls', {
       if (this.data.handModelStyle !== this.str.controller && this.data.gesture !== oldData.gesture) {
         this.handleGesture(this.data.gesture, oldData.gesture);
       }
-      if (this.data.handModelStyle === this.str.controller && this.data.controllerComponent && !this.Y[this.Z].injectedController) {
-        console.log("IN UPDATE")
-        this.injectRemoteControllerModel();
-      }
 
-      // untested controller event passing
-      if (Array.isArray(oldData.controllerEvent) && (
+      if (this.data.handModelStyle === this.str.controller && this.data.controllerComponent) {
+        if (!this.Y[this.Z].injectedController) {
+          this.injectRemoteControllerModel();
+        }
+        
+        // receiving controller events
+        if (Array.isArray(oldData.controllerEvent) && (
           oldData.controllerEvent[0] !== this.data.controllerEvent[0] || 
           oldData.controllerEvent[1] !== this.data.controllerEvent[1])
           ) {
-        console.log("Will update model", this.data, ...this.data.controllerEvent)
-        this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerEvent);
-      } else {
-        console.log("Don't update model", this.data, ...this.data.controllerEvent)
-        console.log(oldData.controllerEvent, this.data.controllerEvent,)
+          console.log("Will update model", this.data, ...this.data.controllerEvent)
+          this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerEvent);
+        } 
       }
     }
   },
@@ -240,9 +239,10 @@ AFRAME.registerComponent('networked-hand-controls', {
     this.el.setAttribute(this.data.controllerComponent, {
       hand: this.data.hand, 
       model: true,
-      buttonColor: '#999',  // Off-white.
-      buttonTouchColor: '#ff985fF',
-      buttonHighlightColor: 'red',  // medium blue.
+      buttonColor: '#34eb4f',  // green
+      buttonTouchColor: '#ff985fF', // medium blue
+      buttonHighlightColor: 'red',  // red
+      orientationOffset: {x:0,y:0,z:0}, // offset already applied at origin, we don't want to re-offset.
     });
 
     // we don't want the remote model to listen to local button/trigger/joystick events, though 
