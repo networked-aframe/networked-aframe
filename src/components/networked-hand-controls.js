@@ -200,7 +200,8 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   updateModelWrapper(originalFn, buttonName, evtName) {
     // intercept events and broadcast them to remote versions
-    this.el.setAttribute('networked-hand-controls', controllerEvent, `${buttonName}, ${evtName}`);
+    console.log("wrapped model event capture fire", buttonName, evtName)
+    this.el.setAttribute('networked-hand-controls', this.str.controllerEvent, `${buttonName}, ${evtName}`);
     originalFn(buttonName, evtName);
   },
 
@@ -330,6 +331,7 @@ AFRAME.registerComponent('networked-hand-controls', {
     hold: "hold",
     open: "open",
     controller: "controller",
+    controllerEvent: "controllerEvent",
   },
 
   handleButton(button, evt) {    
