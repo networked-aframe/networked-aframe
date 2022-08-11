@@ -157,7 +157,7 @@ AFRAME.registerComponent('networked-hand-controls', {
           oldData.controllerEvent[0] !== this.data.controllerEvent[0] || 
           oldData.controllerEvent[1] !== this.data.controllerEvent[1])
           ) {
-          console.log("Will update model", this.data, ...this.data.controllerEvent)
+          console.log("will update controller model with received button event", this.data, this.data.controllerEvent, this.el.components[this.data.controllerComponent])
           this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerEvent);
         } 
       }
@@ -239,15 +239,26 @@ AFRAME.registerComponent('networked-hand-controls', {
     this.el.setAttribute(this.data.controllerComponent, {
       hand: this.data.hand, 
       model: true,
-      buttonColor: '#34eb4f',  // green
-      buttonTouchColor: '#ff985fF', // medium blue
-      buttonHighlightColor: 'red',  // red
-      orientationOffset: {x:0,y:0,z:0}, // offset already applied at origin, we don't want to re-offset.
+      buttonColor: 'green', 
+      buttonTouchColor: 'yellow',
+      buttonHighlightColor: 'red', 
+      // orientationOffset: {x:0,y:0,z:0},
+      // for some reason, orientationOffset seems to not be doing anything here
     });
 
     // we don't want the remote model to listen to local button/trigger/joystick events, though 
     this.el.components[this.data.controllerComponent].removeEventListeners();
     this.el.components[this.data.controllerComponent].removeControllersUpdateListener();
+
+    // however, we do still want _one_ event listener:
+    //
+    this.el.addEventListener('model-loaded', this.el.components[this.data.controllerComponent].onModelLoaded);
+    // note that it is already bound within that component's 'init'.
+
+    // manually, we could also do it this way:
+    // this.el.components['oculus-touch-controls'].onModelLoaded({
+    //   detail: { model: this.getMesh() }
+    // })
 
     // we load the model indicated by the remote user's headset
     this.el.components[this.data.controllerComponent].loadModel({profiles:JSON.parse(this.data.webxrControllerProfiles)});
