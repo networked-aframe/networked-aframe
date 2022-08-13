@@ -57,12 +57,16 @@ AFRAME.registerComponent('networked-hand-controls', {
     visible: { type: "bool", default: false },
   },
 
+  // cache system, protection from A-Frame optimization behavior while reducing garbage collection overhead  
+  // Z: 0,
+  // Y: {},  
+
   init() {
     this.el.setAttribute('networked', 'template', `#${this.data.hand}-hand-template`);
     this.el.setAttribute('networked', 'attachTemplateToLocal', true);
 
-    this.Z = Math.random();
-    this.Y[this.Z] = { contact: {}, reverse: false, isContact: false };
+    // this.Z = Math.random();
+    // this.Y[this.Z] = { contact: {}, reverse: false, isContact: false };
     
     this.el.object3D.visible = this.data.visible;
     
@@ -113,7 +117,7 @@ AFRAME.registerComponent('networked-hand-controls', {
         newMesh.position.set(0, 0, 0);
         newMesh.rotation.set(0, 0, handModelOrientation);
 
-        this.addControls(false);
+        if (this.local) this.addControls(false);
 
         const color = new THREE.Color(this.data.color);
         this.getMesh().children[1].material.emissive = color;
@@ -172,10 +176,6 @@ AFRAME.registerComponent('networked-hand-controls', {
   remove() {
     this.el.removeObject3D('mesh');
   },
-
-  // cache system, protection from A-Frame optimization behavior while reducing garbage collection overhead  
-  Z: 0,
-  Y: {},
 
   controllerComponents: [
     'magicleap-controls',
@@ -271,8 +271,9 @@ AFRAME.registerComponent('networked-hand-controls', {
       this.el.components[this.data.controllerComponent].injectTrackedControls = x => x;
     }
     this.el.play();
-    this.Y[this.Z].injectedController = true;
+    this.injectedController = true;
   },
+
 
   getMesh() {
     return this.el.getObject3D(this.str.mesh)
@@ -343,68 +344,68 @@ AFRAME.registerComponent('networked-hand-controls', {
   },
 
   handleButton(button, evt) {    
-    this.Y[this.Z].isContact = evt === this.str.down || evt === this.str.touchstart;
+    this.isContact = evt === this.str.down || evt === this.str.touchstart;
 
-    if (this.Y[this.Z].isContact === this.Y[this.Z].contact[button]) {
+    if (this.isContact === this.contact[button]) {
       return;
     }
-    this.Y[this.Z].contact[button] = this.Y[this.Z].isContact;
+    this.contact[button] = this.isContact;
 
-    this.Y[this.Z].lastGesture = this.data.gesture;
+    this.lastGesture = this.data.gesture;
     this.determineGesture();
-    if (this.Y[this.Z].gesture === this.Y[this.Z].lastGesture) { return; }
+    if (this.gesture === this.lastGesture) { return; }
 
     // set new gesture into schema to propagate via NAF
-    this.el.setAttribute(this.str.nafHandControls, this.str.gesture, this.Y[this.Z].gesture);
+    this.el.setAttribute(this.str.nafHandControls, this.str.gesture, this.gesture);
 
     this.handleGesture();
   },
 
   handleGesture() {
-    if (this.data.gesture === this.Y[this.Z].lastGesture) { return; } 
+    if (this.data.gesture === this.lastGesture) { return; } 
     
     this.playAnimation();
 
     this.emitGestureEvents();
   },
-  
+
   // note: using preserved references to reduce garbage collection, as this function can fire thousands of times.
   determineGesture() {
-    this.Y[this.Z].gripIsActive = this.Y[this.Z].contact.grip;
-    this.Y[this.Z].triggerIsActive = this.Y[this.Z].contact.trigger
-    this.Y[this.Z].thumbIsEngaged = 
-          this.Y[this.Z].contact.trackpad || this.Y[this.Z].contact.surface 
-          this.Y[this.Z].contact.AorX || this.Y[this.Z].contact.BorY;
+    this.gripIsActive = this.contact.grip;
+    this.triggerIsActive = this.contact.trigger
+    this.thumbIsActive = 
+          this.contact.trackpad || this.contact.surface 
+          this.contact.AorX || this.contact.BorY;
     
     if (!this.isVive) {
-      this.Y[this.Z].gesture = 
-          this.Y[this.Z].gripIsActive && 
-          this.Y[this.Z].thumbIsEngaged &&
-          this.Y[this.Z].triggerIsActive ?
+      this.gesture = 
+          this.gripIsActive && 
+          this.thumbIsActive &&
+          this.triggerIsActive ?
                           this.str.fist :
-          this.Y[this.Z].gripIsActive && 
-          this.Y[this.Z].thumbIsEngaged && 
-        !this.Y[this.Z].triggerIsActive ?
+          this.gripIsActive && 
+          this.thumbIsActive && 
+        !this.triggerIsActive ?
                           this.str.point :
-          this.Y[this.Z].gripIsActive && 
-        !this.Y[this.Z].thumbIsEngaged && 
-          this.Y[this.Z].triggerIsActive ?
+          this.gripIsActive && 
+        !this.thumbIsActive && 
+          this.triggerIsActive ?
                           this.str.thumbUp :
-          this.Y[this.Z].gripIsActive && 
-        !this.Y[this.Z].thumbIsEngaged && 
-        !this.Y[this.Z].triggerIsActive ?
+          this.gripIsActive && 
+        !this.thumbIsActive && 
+        !this.triggerIsActive ?
                           this.str.pistol :
-          this.Y[this.Z].triggerIsActive ?
+          this.triggerIsActive ?
                           this.str.hold :
                           this.str.open ;
     }
     else { // Vive handling was supposedly left incomplete
-      this.Y[this.Z].gesture = 
-        this.Y[this.Z].gripIsActive || 
-        this.Y[this.Z].triggerIsActive ?
+      this.gesture = 
+        this.gripIsActive || 
+        this.triggerIsActive ?
                           this.str.fist :
-        this.Y[this.Z].contact.trackpad ||
-        this.Y[this.Z].contact.trackpad ?
+        this.contact.trackpad ||
+        this.contact.trackpad ?
                           this.str.point :
                           this.str.open ;
     }
@@ -412,7 +413,7 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   emitGestureEvents() {
     this.el.emit(
-      this.eventNames[this.Y[this.Z].lastGesture]?.inactive    
+      this.eventNames[this.lastGesture]?.inactive    
     );
     this.el.emit(
       this.eventNames[this.data.gesture]?.active
@@ -439,30 +440,30 @@ AFRAME.registerComponent('networked-hand-controls', {
     this.getMesh().mixer.stopAllAction();
   
     // Grab clip action.
-    this.Y[this.Z].clip = this.clipNameToClip[this.ANIMATIONS[this.data.gesture]];
-    this.Y[this.Z].toAction = this.getMesh().mixer.clipAction(this.Y[this.Z].clip);
-    this.Y[this.Z].toAction.clampWhenFinished = true;
-    this.Y[this.Z].toAction.loop = THREE.LoopRepeat;
-    this.Y[this.Z].toAction.repetitions = 0;
-    this.Y[this.Z].toAction.timeScale = this.Y[this.Z].reverse ? -1 : 1;
-    this.Y[this.Z].toAction.time = this.Y[this.Z].reverse ? this.Y[this.Z].clip.duration : 0;
-    this.Y[this.Z].toAction.weight = 1;
+    this.clip = this.clipNameToClip[this.ANIMATIONS[this.data.gesture]];
+    this.toAction = this.getMesh().mixer.clipAction(this.clip);
+    this.toAction.clampWhenFinished = true;
+    this.toAction.loop = THREE.LoopRepeat;
+    this.toAction.repetitions = 0;
+    this.toAction.timeScale = this.reverse ? -1 : 1;
+    this.toAction.time = this.reverse ? this.clip.duration : 0;
+    this.toAction.weight = 1;
 
-    if (!this.Y[this.Z].lastGesture || this.data.gesture === this.Y[this.Z].lastGesture) {
+    if (!this.lastGesture || this.data.gesture === this.lastGesture) {
       this.getMesh().mixer.stopAllAction();
-      this.Y[this.Z].toAction.play();
+      this.toAction.play();
       return;
     }
 
     // Animate or crossfade from gesture to gesture.
-    this.Y[this.Z].clip = this.clipNameToClip[this.ANIMATIONS[this.Y[this.Z].lastGesture]];
-    this.Y[this.Z].fromAction = this.getMesh().mixer.clipAction(this.Y[this.Z].clip);
-    this.Y[this.Z].fromAction.weight = 0.15;
-    this.Y[this.Z].fromAction.play();
-    this.Y[this.Z].toAction.play();
-    this.Y[this.Z].fromAction.crossFadeTo(this.Y[this.Z].toAction, 0.15, true);
+    this.clip = this.clipNameToClip[this.ANIMATIONS[this.lastGesture]];
+    this.fromAction = this.getMesh().mixer.clipAction(this.clip);
+    this.fromAction.weight = 0.15;
+    this.fromAction.play();
+    this.toAction.play();
+    this.fromAction.crossFadeTo(this.toAction, 0.15, true);
   },
-  
+
   // see https://github.com/aframevr/assets.
   MODEL_BASE: 'https://cdn.aframe.io/controllers/hands/',
   MODEL_URLS: {
@@ -492,4 +493,25 @@ AFRAME.registerComponent('networked-hand-controls', {
         controller.profiles[0] &&
         controller.profiles[0] === 'htc-vive'));
   },
+
+  // preventing garbage collection by establishing these as part of the prototype:
+  contact: {
+    grip: false,
+    trigger: false,
+    surface: false,
+    trackpad: false,
+    AorX: false,
+    BorY: false,
+  },
+  reverse: false,
+  isContract: false, 
+  injectedController: false,
+  lastGesture: null,
+  gesture: null,
+  gripIsActive: false,
+  triggerIsActive: false,
+  thumbIsActive: false,
+  clip: null,
+  toAction: null,
+  fromAction: null,  
 });
