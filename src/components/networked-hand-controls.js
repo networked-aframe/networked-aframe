@@ -14,9 +14,8 @@
  * note that the events were incomplete/broken in prior implementation, and therefore a breaking change
  */
 
-// this is a way to bypass adding the template in to the HTML, 
-// as well as the already awkward NAF.schemas.add workaround
-// this makes the use of this component for the end user much simpler
+// this is a way to bypass adding the template in to the HTML, as well as the already awkward NAF.schemas.add 
+// workaround. this makes the use of this component for the end user much simpler.
 function addHandTemplate(hand) {
   let templateOuter = document.createElement('template');
   let templateInner = document.createElement('a-entity');
@@ -44,86 +43,45 @@ AFRAME.registerComponent('networked-hand-controls', {
     hand: { type: "string", default: 'left', oneOf: ['right', 'left'] },
     handModelStyle: { type: "string", default: 'highPoly', oneOf: ['lowPoly', 'highPoly', 'toon', 'controller'] },
     
+    // these are set internally if we use type 'controller' for handModelStyle
     controllerComponent: { type: "string", default: '' },
     webxrControllerProfiles: { type: "string", default: '' },
     controllerEvent: {type:'array'},
-    // these are set internally if we use type 'controller' for handModelStyle
     
-    handModelURL: { type: "string", default: '' }, 
-    // ^for specifying a custom model URL; only allowed at init, not via update
+    // these are for specifying a custom hand model URL; only allowed at init, not via update
     // (must correspond to existing models and have matching animations to work properly)
+    customHandModelURL: { type: "string", default: '' }, 
 
+    // this is set internally when using a hand model
     gesture: { type: "string", default: 'open' },
+
+    // this is set internally, hands are invisible until webxr controller is connected
     visible: { type: "bool", default: false },
   },
-
-  // cache system, protection from A-Frame optimization behavior while reducing garbage collection overhead  
-  // Z: 0,
-  // Y: {},  
 
   init() {
     this.el.setAttribute('networked', 'template', `#${this.data.hand}-hand-template`);
     this.el.setAttribute('networked', 'attachTemplateToLocal', true);
-
-    // this.Z = Math.random();
-    // this.Y[this.Z] = { contact: {}, reverse: false, isContact: false };
-    
-    this.el.object3D.visible = this.data.visible;
     
     this.local = this.el.components.networked.createdByMe();
 
     if (this.local) {
-      if (this.data.handModelStyle !== 'controller') {
-        Object.keys(this.buttonEventMap).forEach(evtName => {
-          this.eventFunctionMap[this.data.hand][evtName] = this.handleButton.bind(this, ...this.buttonEventMap[evtName])
-        })      
-      }
-      
-      this.el.addEventListener('controllerconnected', () => {
-        this.el.setAttribute('networked-hand-controls', 'visible', true);
-      });
-      this.el.addEventListener('controllerdisconnected', () => {
-        this.el.setAttribute('networked-hand-controls', 'visible', false);
-      });
+      Object.keys(this.buttonEventMap).forEach(evtName => {
+        this.eventFunctionMap[this.data.hand][evtName] = this.handleButton.bind(this, ...this.buttonEventMap[evtName])
+      })
+      Object.keys(this.visibleListeners).forEach(evtName => {
+        this.eventFunctionMap[this.data.hand][evtName] = this.visibleListeners[evtName].bind(this)
+      })
     }
     else {
       this.el.classList.add('naf-remote-hand');
     }
-        
-    if (this.data.handModelStyle === "controller") {
-      // load the controller model
-      if (this.local) this.addControls(true);
-      // else, will be added in update();
+
+    if (this.data.handModelStyle !== "controller") {
+      this.addHandModel();
     }
-    else {
-      this.loader = new THREE.GLTFLoader();
-      this.loader.setCrossOrigin('anonymous');
-      const handmodelUrl = this.MODEL_BASE + this.MODEL_URLS[this.data.handModelStyle + this.data.hand.charAt(0).toUpperCase() + this.data.hand.slice(1)];
-      
-      this.loader.load(this.data.handModelURL || handmodelUrl, gltf => {
-        const newMesh = gltf.scene.children[0];
-        const handModelOrientation = this.data.hand === 'left' ? Math.PI / 2 : -Math.PI / 2;
-        newMesh.mixer = new THREE.AnimationMixer(newMesh);
-
-        this.clips = gltf.animations;
-        this.clips.forEach((clip, clipIndex) => {
-        this.clipNameToClip[clip.name] = clip;
-        })      
-
-        this.el.setObject3D('mesh', newMesh);
-
-        const handMaterial = newMesh.children[1].material;
-        handMaterial.color = new THREE.Color(this.data.handColor);
-        newMesh.position.set(0, 0, 0);
-        newMesh.rotation.set(0, 0, handModelOrientation);
-
-        if (this.local) this.addControls(false);
-
-        const color = new THREE.Color(this.data.color);
-        this.getMesh().children[1].material.emissive = color;
-        this.getMesh().children[1].material.color = color;
-        this.getMesh().children[1].material.metalness = 1;
-      });    
+    if (this.local) {
+      this.addControllerComponents(this.data.handModelStyle == "controller");
     }
   },
 
@@ -147,26 +105,67 @@ AFRAME.registerComponent('networked-hand-controls', {
     if (oldData.visible != this.data.visible) {
       this.el.object3D.visible = this.data.visible;     
     }
+
+    // this block is for handling updates() from hand model to controller model, or vice versa.
+    if (oldData.handModelStyle &&
+        oldData.handModelStyle !== this.data.handModelStyle
+      ) {
+      // first, remove old model
+      this.el.removeObject3D('mesh');
+      ['gltf-model','obj-model'].forEach(modelComponent => {
+        if (this.el.components[modelComponent]) {
+          this.el.components[modelComponent].pause();
+          this.el.components[modelComponent].remove();
+          this.el.removeAttribute(modelComponent);
+        }
+      })
+      // then, add correct model
+      if (this.data.handModelStyle !== "controller") {
+        this.addHandModel();
+      }
+      else {
+        // it would be nice if this worked, but those components don't handle this option in their update() methods:
+        // this.el.setAttribute(this.data.controllerComponent, 'model', true)
+
+        // so we first remove the controller component as best we can
+        if (this.el.components[this.data.controllerComponent]) {
+          // there is generally no remove() specified, but they do have pause(), which is close enough:
+          try {
+            this.el.components[this.data.controllerComponent].pause();
+            this.el.components[this.data.controllerComponent].remove();
+          } catch(e) {
+            console.error("NAF: possible problem while updating handModelStyle to controller", e)
+          }
+          this.el.removeAttribute(this.data.controllerComponent);
+        }
+
+        if (!this.local) {
+          this.injectRemoteControllerModel();
+        }
+        else {
+          this.addControllerComponents(true);
+          // controllerconnected event won't fire again, so we have to call this manually:
+          this.el.components[this.data.controllerComponent].injectTrackedControls({profiles:JSON.parse(this.data.webxrControllerProfiles)}) // have to call this manually, since the controller isn't newly connected
+        }
+      }
+    }
     
+    // this block is for receiving+handling networked hand gestures and button events for controller model updates
+    // and for initial injection of remote controller model
     if (!this.local) {
       if (this.data.handModelStyle !== this.str.controller && this.data.gesture !== oldData.gesture) {
         this.handleGesture(this.data.gesture, oldData.gesture);
       }
 
       if (this.data.handModelStyle === this.str.controller) {
-        if (this.data.controllerComponent &&
-            (this.data.controllerComponent !== oldData.controllerComponent || 
-            this.data.webxrControllerProfiles[0] !== oldData.webxrControllerProfiles[0])
-        ) {
+        if (!this.injectedController && this.data.controllerComponent && this.data.webxrControllerProfiles[0]) {
           this.injectRemoteControllerModel();
         }
 
-        // receiving controller events
         if (Array.isArray(oldData.controllerEvent) && (
-          oldData.controllerEvent[0] !== this.data.controllerEvent[0] || 
-          oldData.controllerEvent[1] !== this.data.controllerEvent[1])
+            oldData.controllerEvent[0] !== this.data.controllerEvent[0] || 
+            oldData.controllerEvent[1] !== this.data.controllerEvent[1] )
           ) {
-          console.log("will update controller model with received button event", this.data, this.data.controllerEvent, this.el.components[this.data.controllerComponent])
           this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerEvent);
         } 
       }
@@ -175,6 +174,36 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   remove() {
     this.el.removeObject3D('mesh');
+    this.removeEventListeners();
+  },
+
+  addHandModel() {
+    this.loader = new THREE.GLTFLoader();
+    this.loader.setCrossOrigin('anonymous');
+    const handmodelUrl = this.MODEL_BASE + this.MODEL_NAMES[this.data.handModelStyle + this.data.hand.charAt(0).toUpperCase() + this.data.hand.slice(1)];
+    
+    this.loader.load(this.data.customHandModelURL || handmodelUrl, gltf => {
+      const newMesh = gltf.scene.children[0];
+      const handModelOrientation = this.data.hand === 'left' ? Math.PI / 2 : -Math.PI / 2;
+      newMesh.mixer = new THREE.AnimationMixer(newMesh);
+
+      this.clips = gltf.animations;
+      this.clips.forEach((clip, clipIndex) => {
+        this.clipNameToClip[clip.name] = clip;
+      })      
+
+      this.el.setObject3D('mesh', newMesh);
+
+      const handMaterial = newMesh.children[1].material;
+      handMaterial.color = new THREE.Color(this.data.handColor);
+      newMesh.position.set(0, 0, 0);
+      newMesh.rotation.set(0, 0, handModelOrientation);
+
+      const color = new THREE.Color(this.data.color);
+      this.getMesh().children[1].material.emissive = color;
+      this.getMesh().children[1].material.color = color;
+      this.getMesh().children[1].material.metalness = 1;
+    });
   },
 
   controllerComponents: [
@@ -183,16 +212,40 @@ AFRAME.registerComponent('networked-hand-controls', {
     'oculus-touch-controls',
     'windows-motion-controls',
     'hp-mixed-reality-controls',
-    'valve-index-controls', // added, but not tested.
+    // these were missing from the original hand-controls component:
+    
+    'valve-index-controls',
+    // some older models that it doesn't hurt to include:
+    'oculus-go-controls',
+    'gearvr-controls',
+    'daydream-controls',
+    'vive-focus-controls',
   ],
 
+  addControllerComponents(useControllerModel) {    
+    // this adds all controller components, with wrappers set up to capture and broadcast model found and relevant button presses
+    this.controllerComponents.forEach(controllerComponentName => {
+      if (this.data.controllerComponent && this.data.controllerComponent !== controllerComponentName) {return;}
+      
+      this.el.setAttribute(controllerComponentName, {hand: this.data.hand, model: useControllerModel});
+
+      // (note: this could possibly be rewritten to rely on the controllerconnected event)
+      this.el.components[controllerComponentName].injectTrackedControls = 
+        this.injectControlsWrapper.bind(
+          this,
+          this.el.components[controllerComponentName].injectTrackedControls.bind(this.el.components[controllerComponentName]),
+          controllerComponentName,
+      );
+    })
+
+    this.isViveController();
+  },
+
   injectControlsWrapper(originalFn, controllerComponentName, webxrControllerSymbol) {
-    // lets us peek at the model argument passed in by AFRAME.utils.trackedControls.findMatchingControllerWebXR
-    // (first two are curried, third is passed in)
+    // captures and rebroadcasts the model found by AFRAME.utils.trackedControls.findMatchingControllerWebXR
     this.el.setAttribute('networked-hand-controls', {
       controllerComponent: controllerComponentName,
       webxrControllerProfiles: JSON.stringify(webxrControllerSymbol.profiles),
-        // this is the only part that is actually used, so we're send that and reconstruct it.
     });
     originalFn(webxrControllerSymbol);
     
@@ -206,86 +259,99 @@ AFRAME.registerComponent('networked-hand-controls', {
   },
 
   updateModelWrapper(originalFn, buttonName, evtName) {
-    // intercept events and broadcast them to remote versions
+    // capture and rebroadcast controller events (only used if using controller model instead of hand)
     this.el.setAttribute('networked-hand-controls', this.str.controllerEvent, `${buttonName}, ${evtName}`);
+    // possible future enhancement: add more detailed thumbstick info
     originalFn(buttonName, evtName);
-  },
-
-  addControls(useControllerModel) {
-    this.controllerComponents.forEach(controllerComponentName => {
-      this.el.setAttribute(controllerComponentName, {hand: this.data.hand, model: useControllerModel});
-
-      // here we inject a wrapper that allows us to extract enough info to replicate this controller to an NAF instance.
-      this.el.components[controllerComponentName].injectTrackedControls = 
-        this.injectControlsWrapper.bind(
-          this,
-          this.el.components[controllerComponentName].injectTrackedControls.bind(this.el.components[controllerComponentName]),
-          controllerComponentName,
-        );
-    })
-    this.isViveController();
   },
 
   injectRemoteControllerModel() {
     // this is for a networked controller entity, where we want to show a non-hand controller model
     // we add the relevant controller component, and then hack it just a bit to:
-    // A) convince it to show without relation to whether it is actually connected, and 
-    // B) to not track _local_ pose data (so, no tracked-controller component)
+    // A) convince it the model show without relation to whether one is actually locally connected, and 
+    // B) to not track _local_ pose data (so, no prevent/remove tracked-controller component)
 
-    // we pause it so we can hack the component a bit before we let it init()
+    // we pause the element so we can prevent pose tracking from being added.
     this.el.pause();
 
-    // we add the actual component, to get the model generated and hopefully to grab button model updates in the future
+    // we add the actual component, to get the model generated and button meshes and event handling
     this.el.setAttribute(this.data.controllerComponent, {
       hand: this.data.hand, 
       model: true,
-      buttonColor: 'green', 
-      buttonTouchColor: 'yellow',
-      buttonHighlightColor: 'red', 
+      // could also optionally support buttonColor, buttonTouchColor, buttonHighlightColor 
     });
 
     // we don't want the remote model to listen to local button/trigger/joystick events, though 
     this.el.components[this.data.controllerComponent].removeEventListeners();
     this.el.components[this.data.controllerComponent].removeControllersUpdateListener();
 
-    // however, we do still want _one_ event listener:
-    this.el.addEventListener('model-loaded', this.el.components[this.data.controllerComponent].onModelLoaded);
-    // (note that it is already bound within that component's 'init'.)
+    // some older controller components aren't as well written, and so we have to allow pose tracking to be added and then remove it
+    if (!this.el.components[this.data.controllerComponent].checkIfControllerPresent ||
+        !this.el.components[this.data.controllerComponent].loadModel
+        ) {
+      console.warn("fallback path: will add and then disable pose tracking", this.data.controllerComponent, this.el, this.el.components);
 
-    // we load the model indicated by the remote user's headset
-    this.el.components[this.data.controllerComponent].loadModel({profiles:JSON.parse(this.data.webxrControllerProfiles)});
+      // however, we do still want _one_ event listener, so we add the button meshes
+      this.el.addEventListener('model-loaded', this.el.components[this.data.controllerComponent].onModelLoaded);
 
-    if (!this.el.components[this.data.controllerComponent].checkIfControllerPresent && 
-        !this.el.components[this.data.controllerComponent].injectTrackedControls) {
-      // since this is a _bit_ of a hack, we include a fallback and logging and self-detection of hack success
-      // this is pretty robust, however, as A-Frame treats injectTrackedControls() as a psuedo-standard among all controller components
-      // (it must be in order to be called by utils/trackedControllers.js, which is needed to look up the controller model ID)
-      console.error("likely error, seems like path used to bypass local pose tracking failed; please notify NAF maintainers.");
-      console.log(this.el, this.el.components);
-      this.el.components[this.data.controllerComponent].remove();
-    } else {
+      // here we have no loadModel() to use directly, so we fully inject (bypassing controller detection)
+      this.el.components[this.data.controllerComponent].injectTrackedControls({profiles:JSON.parse(this.data.webxrControllerProfiles)});
+      this.disableLoadedPoseTracking();
+    } 
+    else {
+      // ideal, default path, for controller components (like oculus-touch-controls), that have separate loadModel() function
+
       // this prevents injectTrackedControllers from running, which prevents the 
       // tracked-controls-webxr component from being added, which is responsible for pose tracking
       // (which we are disabling, since we want this controller to follow this NAF entity instead)
       this.el.components[this.data.controllerComponent].checkIfControllerPresent = x => x;
       this.el.components[this.data.controllerComponent].injectTrackedControls = x => x;
+      
+      // we load the model indicated by the remote user's headset
+      this.el.components[this.data.controllerComponent].loadModel({profiles:JSON.parse(this.data.webxrControllerProfiles)});      
+      this.el.play();
     }
-    this.el.play();
+
     this.injectedController = true;
   },
 
+  disableLoadedPoseTracking() {
+    // handling for older controller components (like vive-controls) that lack the cleaner hooks 
+    // to block local post tracking. We allow pose tracking to start (so we can get loaded model), 
+    // and then stop it. Note: we do not attempt to handle older tracked-controls-webvr.
+    let counter = 0;
+    let disableInterval = setInterval(() => {
+      counter++;
+      if (this.el.components['tracked-controls-webxr']) {
+        // there is no remove on this function in current iteration, so we kill it with pause and tick first.
+        this.el.components['tracked-controls-webxr'].pause(); 
+        this.el.components['tracked-controls-webxr'].tick = () => {};
+        this.el.removeAttribute('tracked-controls-webxr'); // just some cleanup for inspector, etc.
+
+        clearInterval(disableInterval);
+        this.el.play();
+      }
+      if (counter > 1000) {
+        // 25 seconds, don't want the possiblity of this running forever in the background
+        clearInterval(disableInterval);
+        try {
+          this.el.components[this.data.controllerComponent].remove();
+        } catch(e) {
+          console.error("error removing controller component", e);
+        }
+        throw new Error("never found tracked-controls-webxr, cancelling interval that was waiting to remove it and removing controller components")
+      }
+    },25)
+  },
 
   getMesh() {
     return this.el.getObject3D(this.str.mesh)
   },
   
-  // local hands are controlled by one's controllers
-  // non-local hands are controlled by updates via NAF
+  // local hands are controlled by one's controllers, non-local hands are controlled by updates via NAF
   local: false,
   
-  clipNameToClip: {},
   eventFunctionMap: {left:{}, right: {}},
-
   buttonEventMap: {
     gripdown: ['grip', 'down'],
     gripup: ['grip', 'up'],
@@ -308,22 +374,41 @@ AFRAME.registerComponent('networked-hand-controls', {
     ybuttontouchstart: ['BorY', 'touchstart'],
     ybuttontouchend: ['BorY', 'touchend'],
     surfacetouchstart: ['surface', 'touchstart'],
-    surfacetouchend: ['surface', 'touchend'], 
-    // these seem to not be used
+    surfacetouchend: ['surface', 'touchend'],
+
+    // these are not used for normal gestures
     // thumbstickdown: ['thumbstick', 'down'],
     // thumbstickup: ['thumbstick', 'up'],  
+  },
+
+  visibleListeners: {
+    // (note: while `this.el` looks wrong here, we use .bind() on it within init())
+    controllerconnected() {
+      console.log("visible on!", this.el)
+      this.el.setAttribute('networked-hand-controls', 'visible', true);
+    },
+    controllerdisconnected() {
+      console.log("visible off!")
+      this.el.setAttribute('networked-hand-controls', 'visible', false);
+    }
   },
 
   addEventListeners() {
     Object.keys(this.buttonEventMap).forEach(evtName => {
       this.el.addEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName])
-    })
+    });
+    Object.keys(this.visibleListeners).forEach(evtName => {
+      this.el.addEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName])
+    });
   },
 
   removeEventListeners() {
     Object.keys(this.buttonEventMap).forEach(evtName => {
       this.el.removeEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName])
-    })
+    });
+    Object.keys(this.visibleListeners).forEach(evtName => {
+      this.el.removeEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName])
+    });
   },
 
   // to minimize garbage collection, prevents generating huge numbers of one-time-use strings
@@ -343,17 +428,18 @@ AFRAME.registerComponent('networked-hand-controls', {
     controllerEvent: "controllerEvent",
   },
 
-  handleButton(button, evt) {    
+  handleButton(button, evt) {
+    // this function is only for generating networked gestures with hand model
+    if (this.data.handModelStyle === 'controller') {return}
+
     this.isContact = evt === this.str.down || evt === this.str.touchstart;
 
-    if (this.isContact === this.contact[button]) {
-      return;
-    }
+    if (this.isContact === this.contact[button]) {return}
     this.contact[button] = this.isContact;
 
     this.lastGesture = this.data.gesture;
     this.determineGesture();
-    if (this.gesture === this.lastGesture) { return; }
+    if (this.gesture === this.lastGesture) {return}
 
     // set new gesture into schema to propagate via NAF
     this.el.setAttribute(this.str.nafHandControls, this.str.gesture, this.gesture);
@@ -362,14 +448,11 @@ AFRAME.registerComponent('networked-hand-controls', {
   },
 
   handleGesture() {
-    if (this.data.gesture === this.lastGesture) { return; } 
-    
+    if (this.data.gesture === this.lastGesture) {return} 
     this.playAnimation();
-
     this.emitGestureEvents();
   },
 
-  // note: using preserved references to reduce garbage collection, as this function can fire thousands of times.
   determineGesture() {
     this.gripIsActive = this.contact.grip;
     this.triggerIsActive = this.contact.trigger
@@ -399,7 +482,8 @@ AFRAME.registerComponent('networked-hand-controls', {
                           this.str.hold :
                           this.str.open ;
     }
-    else { // Vive handling was supposedly left incomplete
+    else {
+      // Vive handling was supposedly left incomplete
       this.gesture = 
         this.gripIsActive || 
         this.triggerIsActive ?
@@ -436,10 +520,10 @@ AFRAME.registerComponent('networked-hand-controls', {
 
     if (!this.getMesh()) { return; }
 
-    // Stop all current animations.
+    // Stop all current animations
     this.getMesh().mixer.stopAllAction();
   
-    // Grab clip action.
+    // Grab clip action
     this.clip = this.clipNameToClip[this.ANIMATIONS[this.data.gesture]];
     this.toAction = this.getMesh().mixer.clipAction(this.clip);
     this.toAction.clampWhenFinished = true;
@@ -455,7 +539,7 @@ AFRAME.registerComponent('networked-hand-controls', {
       return;
     }
 
-    // Animate or crossfade from gesture to gesture.
+    // Animate or crossfade from gesture to gesture
     this.clip = this.clipNameToClip[this.ANIMATIONS[this.lastGesture]];
     this.fromAction = this.getMesh().mixer.clipAction(this.clip);
     this.fromAction.weight = 0.15;
@@ -464,9 +548,9 @@ AFRAME.registerComponent('networked-hand-controls', {
     this.fromAction.crossFadeTo(this.toAction, 0.15, true);
   },
 
-  // see https://github.com/aframevr/assets.
+  // see https://github.com/aframevr/assets
   MODEL_BASE: 'https://cdn.aframe.io/controllers/hands/',
-  MODEL_URLS: {
+  MODEL_NAMES: {
     toonLeft: 'leftHand.glb',
     toonRight: 'rightHand.glb',
     lowPolyLeft: 'leftHandLow.glb',
@@ -474,6 +558,8 @@ AFRAME.registerComponent('networked-hand-controls', {
     highPolyLeft: 'leftHandHigh.glb',
     highPolyRight: 'rightHandHigh.glb',
   },
+
+  clipNameToClip: {},
 
   // map from internal state names to the names of the clips as specified within the models
   ANIMATIONS: {

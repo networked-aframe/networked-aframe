@@ -55,7 +55,7 @@
         </template>
 
         <template id="head-template">
-          <a-entity class="avatar" player-info>
+          <a-entity class="avatar">
             <a-sphere class="head" scale="0.2 0.22 0.2" random-color></a-sphere>
             <a-entity class="face" position="0 0.05 0">
               <a-sphere class="eye" color="white" position="0.06 0.05 -0.16" scale="0.04 0.04 0.04">
@@ -88,8 +88,8 @@
         >
         </a-entity>
           <!-- here we add the user's local hands! These two lines are all that is needed. -->
-        <a-entity id="my-tracked-left-hand" networked-hand-controls="hand:left; handModelStyle: controller; color:white;"></a-entity>
-        <a-entity id="my-tracked-right-hand" networked-hand-controls="hand:right; handModelStyle: toon; color:white;"></a-entity>
+        <a-entity id="my-tracked-left-hand" networked-hand-controls="hand:left; handModelStyle: lowPoly; color:gold;"></a-entity>
+        <a-entity id="my-tracked-right-hand" networked-hand-controls="hand:right; handModelStyle: controller;"></a-entity>
       </a-entity>
     </a-scene>
   </body>
