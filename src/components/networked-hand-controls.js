@@ -111,7 +111,7 @@ AFRAME.registerComponent('networked-hand-controls', {
         oldData.handModelStyle !== this.data.handModelStyle
       ) {
       // first, remove old model
-      this.el.removeObject3D('mesh');
+      this.el.removeObject3D(this.str.mesh);
       ['gltf-model','obj-model'].forEach(modelComponent => {
         if (this.el.components[modelComponent]) {
           this.el.components[modelComponent].pause();
@@ -173,7 +173,7 @@ AFRAME.registerComponent('networked-hand-controls', {
   },
 
   remove() {
-    this.el.removeObject3D('mesh');
+    this.el.removeObject3D(this.str.mesh);
     this.removeEventListeners();
   },
 
@@ -192,7 +192,7 @@ AFRAME.registerComponent('networked-hand-controls', {
         this.clipNameToClip[clip.name] = clip;
       })      
 
-      this.el.setObject3D('mesh', newMesh);
+      this.el.setObject3D(this.str.mesh, newMesh);
 
       const handMaterial = newMesh.children[1].material;
       handMaterial.color = new THREE.Color(this.data.handColor);
@@ -411,8 +411,8 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   // to minimize garbage collection, prevents generating huge numbers of one-time-use strings
   str: {
-    mesh: "mesh",
     nafHandControls: "networked-hand-controls",
+    mesh: "mesh",
     gesture: "gesture",
     down: 'down',
     touchstart: 'touchstart',
