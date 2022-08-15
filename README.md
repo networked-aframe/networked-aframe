@@ -467,8 +467,8 @@ NAF now allows easily adding hand models that show gestures matching to which bu
 All you have to do is use the built in `networked-hand-controls` component, by adding these two lines as children of your camera rig:
 
 ```html
-        <a-entity id="my-tracked-left-hand" class="local-naf-hand" networked-hand-controls="hand:left;"></a-entity>
-        <a-entity id="my-tracked-right-hand" class="local-naf-hand" networked-hand-controls="hand:right;"></a-entity>
+        <a-entity id="my-tracked-left-hand" networked-hand-controls="hand:left;"></a-entity>
+        <a-entity id="my-tracked-right-hand" networked-hand-controls="hand:right;"></a-entity>
 ```        
 
 To see a working demo, check out the [Glitch NAF Tracked Controllers Example](https://naf-examples.glitch.me/tracked-controllers.html).
@@ -480,7 +480,7 @@ The public schema properties you can set are:
 | info | will be set as material color | - | available built-in models from A-Frame | optional custom hand model url |
 | default | 'white' | 'left' | 'highPoly' | '' |
 | type | 'color' | 'string' |  'string' | 'string' |
-| oneOf | N/A | ['right', 'left'] | ['highPoly', 'lowPoly', 'toon'] | N/A |
+| oneOf | N/A | ['right', 'left'] | ['highPoly', 'lowPoly', 'toon', 'controller'] | N/A |
 
 
 
