@@ -482,7 +482,7 @@ The public schema properties you can set are:
 | type | 'color' | 'string' |  'string' | 'string' |
 | oneOf | N/A | ['right', 'left'] | ['highPoly', 'lowPoly', 'toon', 'controller'] | N/A |
 
-
+Note the 'controller' option--that will use a model of the controller itself, automatically set correctly according to your platform--it will also broadcast model-supported button mesh updates. (Unfortunately, there's currently a bug with the Quest 2 model button meshes, so that one doesn't show any updates.)
 
 ### Audio
 
