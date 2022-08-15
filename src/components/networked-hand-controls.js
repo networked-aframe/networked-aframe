@@ -66,12 +66,12 @@ AFRAME.registerComponent('networked-hand-controls', {
     this.local = this.el.components.networked.createdByMe();
 
     if (this.local) {
-      Object.keys(this.buttonEventMap).forEach(evtName => {
-        this.eventFunctionMap[this.data.hand][evtName] = this.handleButton.bind(this, ...this.buttonEventMap[evtName])
-      })
-      Object.keys(this.visibleListeners).forEach(evtName => {
-        this.eventFunctionMap[this.data.hand][evtName] = this.visibleListeners[evtName].bind(this)
-      })
+      for (const evtName in this.buttonEventMap) {
+        this.eventFunctionMap[this.data.hand][evtName] = this.handleButton.bind(this, ...this.buttonEventMap[evtName]);
+      }
+      for (const evtName in this.visibleListeners) {
+        this.eventFunctionMap[this.data.hand][evtName] = this.visibleListeners[evtName].bind(this);
+      }
     }
     else {
       this.el.classList.add('naf-remote-hand');
@@ -384,38 +384,36 @@ AFRAME.registerComponent('networked-hand-controls', {
   visibleListeners: {
     // (note: while `this.el` looks wrong here, we use .bind() on it within init())
     controllerconnected() {
-      console.log("visible on!", this.el)
       this.el.setAttribute('networked-hand-controls', 'visible', true);
     },
     controllerdisconnected() {
-      console.log("visible off!")
       this.el.setAttribute('networked-hand-controls', 'visible', false);
     }
   },
 
   addEventListeners() {
-    Object.keys(this.buttonEventMap).forEach(evtName => {
-      this.el.addEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName])
-    });
-    Object.keys(this.visibleListeners).forEach(evtName => {
-      this.el.addEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName])
-    });
+    for (const evtName in this.buttonEventMap) {
+      this.el.addEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName]);
+    }
+    for (const evtName in this.visibleListeners) {
+      this.el.addEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName]);
+    }
   },
 
   removeEventListeners() {
-    Object.keys(this.buttonEventMap).forEach(evtName => {
-      this.el.removeEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName])
-    });
-    Object.keys(this.visibleListeners).forEach(evtName => {
-      this.el.removeEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName])
-    });
+    for (const evtName in this.buttonEventMap) {
+      this.el.removeEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName]);
+    }
+    for (const evtName in this.visibleListeners) {
+      this.el.removeEventListener(evtName, this.eventFunctionMap[this.data.hand][evtName]);
+    }
   },
 
   // to minimize garbage collection, prevents generating huge numbers of one-time-use strings
   str: {
+    mesh: "mesh",
     nafHandControls: "networked-hand-controls",
     gesture: "gesture",
-    mesh: "mesh",
     down: 'down',
     touchstart: 'touchstart',
     fist: "fist",
