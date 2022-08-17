@@ -60,6 +60,7 @@ AFRAME.registerComponent('networked-hand-controls', {
   },
 
   init() {
+    this.setup();
     this.el.setAttribute('networked', 'template', `#${this.data.hand}-hand-template`);
     this.el.setAttribute('networked', 'attachTemplateToLocal', true);
     
@@ -149,6 +150,12 @@ AFRAME.registerComponent('networked-hand-controls', {
         }
       }
     }
+
+    if (oldData.color &&
+        this.data.handModelStyle !== this.str.controller &&
+        oldData.color !== this.data.color) {
+      this.updateHandMeshColor();
+    }
     
     // this block is for receiving+handling networked hand gestures and button events for controller model updates
     // and for initial injection of remote controller model
@@ -199,11 +206,15 @@ AFRAME.registerComponent('networked-hand-controls', {
       newMesh.position.set(0, 0, 0);
       newMesh.rotation.set(0, 0, handModelOrientation);
 
-      const color = new THREE.Color(this.data.color);
-      this.getMesh().children[1].material.emissive = color;
-      this.getMesh().children[1].material.color = color;
-      this.getMesh().children[1].material.metalness = 1;
+      this.updateHandMeshColor();
     });
+  },
+
+  updateHandMeshColor() {
+    const color = new THREE.Color(this.data.color);
+    this.getMesh().children[1].material.emissive = color;
+    this.getMesh().children[1].material.color = color;
+    this.getMesh().children[1].material.metalness = 1;
   },
 
   controllerComponents: [
@@ -486,7 +497,6 @@ AFRAME.registerComponent('networked-hand-controls', {
         this.gripIsActive || 
         this.triggerIsActive ?
                           this.str.fist :
-        this.contact.trackpad ||
         this.contact.trackpad ?
                           this.str.point :
                           this.str.open ;
@@ -578,24 +588,26 @@ AFRAME.registerComponent('networked-hand-controls', {
         controller.profiles[0] === 'htc-vive'));
   },
 
-  // preventing garbage collection by establishing these as part of the prototype:
-  contact: {
-    grip: false,
-    trigger: false,
-    surface: false,
-    trackpad: false,
-    AorX: false,
-    BorY: false,
-  },
-  reverse: false,
-  isContract: false, 
-  injectedController: false,
-  lastGesture: null,
-  gesture: null,
-  gripIsActive: false,
-  triggerIsActive: false,
-  thumbIsActive: false,
-  clip: null,
-  toAction: null,
-  fromAction: null,  
+  setup() {
+    // preventing garbage collection by making sure these don't end up as part of the prototype
+    this.contact = {
+      grip: false,
+      trigger: false,
+      surface: false,
+      trackpad: false,
+      AorX: false,
+      BorY: false,
+    };
+    this.reverse = false;
+    this.isContact = false; 
+    this.injectedController = false;
+    this.lastGesture = "";
+    this.gesture = "";
+    this.gripIsActive = false;
+    this.triggerIsActive = false;
+    this.thumbIsActive = false;
+    this.clip = null;
+    this.toAction = null;
+    this.fromAction = null;  
+  }
 });
