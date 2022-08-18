@@ -212,9 +212,15 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   updateHandMeshColor() {
     const color = new THREE.Color(this.data.color);
-    this.getMesh().children[1].material.emissive = color;
-    this.getMesh().children[1].material.color = color;
-    this.getMesh().children[1].material.metalness = 1;
+
+    // a different way to set color that we aren't using:
+    // this.getMesh().children[1].material.emissive = color;
+    // this.getMesh().children[1].material.color = color;
+    // this.getMesh().children[1].material.metalness = 1;
+
+    // this method is instead borrowed from the oculus-touch-controls component
+    this.getMesh().children[1].material.color.set(color);
+    this.el.sceneEl.systems.renderer.applyColorCorrection(this.getMesh().children[1].material.color);
   },
 
   controllerComponents: [
