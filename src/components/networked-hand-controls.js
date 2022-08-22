@@ -298,7 +298,7 @@ AFRAME.registerComponent('networked-hand-controls', {
       // could also optionally support buttonColor, buttonTouchColor, buttonHighlightColor 
     });
 
-    // we don't want the remote model to listen to local button/trigger/joystick events, though 
+    // we don't want the remote model to listen to local button/trigger/thumbstick events, though 
     this.el.components[this.data.controllerComponent].removeEventListeners();
     this.el.components[this.data.controllerComponent].removeControllersUpdateListener();
 
@@ -336,29 +336,34 @@ AFRAME.registerComponent('networked-hand-controls', {
     // handling for older controller components (like vive-controls) that lack the cleaner hooks 
     // to block local post tracking. We allow pose tracking to start (so we can get loaded model), 
     // and then stop it. Note: we do not attempt to handle older tracked-controls-webvr.
-    let counter = 0;
-    let disableInterval = setInterval(() => {
-      counter++;
-      if (this.el.components['tracked-controls-webxr']) {
-        // there is no remove on this function in current iteration, so we kill it with pause and tick first.
-        this.el.components['tracked-controls-webxr'].pause(); 
-        this.el.components['tracked-controls-webxr'].tick = () => {};
-        this.el.removeAttribute('tracked-controls-webxr'); // just some cleanup for inspector, etc.
+    let intervalCounter = 0;
 
-        clearInterval(disableInterval);
-        this.el.play();
-      }
-      if (counter > 1000) {
-        // 25 seconds, don't want the possiblity of this running forever in the background
-        clearInterval(disableInterval);
+    const disablePostTracking = () => {
+      intervalCounter++;
+      if (intervalCounter > 1000) { // 7-17 seconds, assuming 140hz-60hz refresh rate
+        // don't want the possiblity of this running forever in the background
         try {
+          this.el.components[this.data.controllerComponent].pause();
           this.el.components[this.data.controllerComponent].remove();
         } catch(e) {
           console.error("error removing controller component", e);
         }
         throw new Error("never found tracked-controls-webxr, cancelling interval that was waiting to remove it and removing controller components")
       }
-    },25)
+      else if (this.el.components['tracked-controls-webxr']) {
+        // there is no remove on this component in current version of A-Frame, so we kill it with pause and tick first.
+        this.el.components['tracked-controls-webxr'].pause();  // remove its event listeners
+        this.el.components['tracked-controls-webxr'].tick = () => {}; // remove on-tick pose tracking in the component
+        this.el.components['tracked-controls-webxr'].remove(); // in case support is added in the future
+        this.el.removeAttribute('tracked-controls-webxr'); // just some cleanup for inspector, etc.
+        this.el.play();
+      }
+      else {
+        requestAnimationFrame(disablePostTracking);
+      }
+    };
+
+    requestAnimationFrame(disablePostTracking);
   },
 
   getMesh() {
@@ -393,7 +398,7 @@ AFRAME.registerComponent('networked-hand-controls', {
     surfacetouchstart: ['surface', 'touchstart'],
     surfacetouchend: ['surface', 'touchend'],
 
-    // these are not used for normal gestures
+    // these are not used for any existing gestures
     // thumbstickdown: ['thumbstick', 'down'],
     // thumbstickup: ['thumbstick', 'up'],  
   },
