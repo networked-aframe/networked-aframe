@@ -277,8 +277,14 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   updateModelWrapper(originalFn, buttonName, evtName) {
     // capture and rebroadcast controller events (only used if using controller model instead of hand)
-    this.el.setAttribute('networked-hand-controls', this.str.controllerEvent, `${buttonName}, ${evtName}`);
-    // possible future enhancement: add more detailed thumbstick info
+    if (!this.btnEvtMap[buttonName]) {
+      // dynamically create strings only once per combo, future proofing safe optimization
+      this.btnEvtMap[buttonName] = {};
+    }
+    if (!this.btnEvtMap[buttonName][evtName]) {
+      this.btnEvtMap[buttonName][evtName] = `${buttonName}, ${evtName}`;
+    }
+    this.el.setAttribute('networked-hand-controls', this.str.controllerEvent, this.btnEvtMap[buttonName][evtName]);
     originalFn(buttonName, evtName);
   },
 
@@ -598,6 +604,8 @@ AFRAME.registerComponent('networked-hand-controls', {
         controller.profiles[0] &&
         controller.profiles[0] === 'htc-vive'));
   },
+
+  btnEvtMap: {}, // dynamically populated, but actually helpful if prototype is modified
 
   setup() {
     // preventing garbage collection by making sure these don't end up as part of the prototype
