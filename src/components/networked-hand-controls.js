@@ -342,15 +342,14 @@ AFRAME.registerComponent('networked-hand-controls', {
     // handling for older controller components (like vive-controls) that lack the cleaner hooks 
     // to block local post tracking. We allow pose tracking to start (so we can get loaded model), 
     // and then stop it. Note: we do not attempt to handle older tracked-controls-webvr.
-    let intervalCounter = 0;
+    let loops = 0;
 
-    const disablePostTracking = () => {
-      intervalCounter++;
-      if (intervalCounter > 1000) { // 7-17 seconds, assuming 140hz-60hz refresh rate
+    const disablePoseTracking = () => {
+      loops++;
+      if (loops > 1000) { // 7-17~ seconds, assuming 140hz-60hz refresh rate
         // don't want the possiblity of this running forever in the background
         try {
-          this.el.components[this.data.controllerComponent].pause();
-          this.el.components[this.data.controllerComponent].remove();
+          this.el.removeAttribute(this.data.controllerComponent);
         } catch(e) {
           console.error("error removing controller component", e);
         }
@@ -358,18 +357,24 @@ AFRAME.registerComponent('networked-hand-controls', {
       }
       else if (this.el.components['tracked-controls-webxr']) {
         // there is no remove on this component in current version of A-Frame, so we kill it with pause and tick first.
-        this.el.components['tracked-controls-webxr'].pause();  // remove its event listeners
-        this.el.components['tracked-controls-webxr'].tick = () => {}; // remove on-tick pose tracking in the component
-        this.el.components['tracked-controls-webxr'].remove(); // in case support is added in the future
         this.el.removeAttribute('tracked-controls-webxr'); // just some cleanup for inspector, etc.
         this.el.play();
       }
       else {
-        requestAnimationFrame(disablePostTracking);
+        this.requestAnimationFrame(disablePoseTracking);
       }
     };
+    this.requestAnimationFrame(disablePoseTracking);
+  },
 
-    requestAnimationFrame(disablePostTracking);
+  requestAnimationFrame(f) {
+    // see: https://developer.mozilla.org/en-US/docs/Web/API/XRSession/requestAnimationFrame
+    // https://github.com/immersive-web/webxr/pull/1033/files#diff-5e793325cd2bfc452e268a4aa2f02b4024dd9584bd1db3c2595f61f1ecf7b985
+    if (AFRAME.scenes[0].xrSession?.requestAnimationFrame) {
+      AFRAME.scenes[0].xrSession.requestAnimationFrame(f);
+    } else {
+      window.requestAnimationFrame(f);
+    }
   },
 
   getMesh() {
