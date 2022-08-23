@@ -286,6 +286,18 @@ AFRAME.registerComponent('networked-hand-controls', {
     originalFn(buttonName, evtName);
   },
 
+  catchPostTrackingInitialization() {
+    this.el.addEventListener('componentinitialized', (function catchAndRemoveWebXRTracking (evt) {
+      if (evt.detail.name !== 'tracked-controls-webxr') { return; }
+      this.el.removeEventListener('componentinitialized', catchAndRemoveWebXRTracking);
+      this.el.components['tracked-controls-webxr'].pause();
+      setTimeout(() => {
+        // if I don't use this setTimeout here, I get an infinite loop. :/
+        this.el.removeAttribute('tracked-controls-webxr');
+      },1)
+    }).bind(this));
+  },
+
   injectRemoteControllerModel() {
     // this is for a networked controller entity, where we want to show a non-hand controller model
     // we add the relevant controller component, and then hack it just a bit to:
@@ -315,9 +327,11 @@ AFRAME.registerComponent('networked-hand-controls', {
       // however, we do still want _one_ event listener, so we add the button meshes
       this.el.addEventListener('model-loaded', this.el.components[this.data.controllerComponent].onModelLoaded);
 
+      this.catchPostTrackingInitialization();
       // here we have no loadModel() to use directly, so we fully inject (bypassing controller detection)
       this.el.components[this.data.controllerComponent].injectTrackedControls({profiles:JSON.parse(this.data.webxrControllerProfiles)});
-      this.disableLoadedPoseTracking();
+      // this.disableLoadedPoseTracking();
+      this.el.play();
     } 
     else {
       // ideal, default path, for controller components (like oculus-touch-controls), that have separate loadModel() function
@@ -338,7 +352,7 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   disableLoadedPoseTracking() {
     // handling for older controller components (like vive-controls) that lack the cleaner hooks 
-    // to block local post tracking. We allow pose tracking to start (so we can get loaded model), 
+    // to block local pose tracking. We allow pose tracking to start (so we can get loaded model), 
     // and then stop it. Note: we do not attempt to handle older tracked-controls-webvr.
     let loops = 0;
 
