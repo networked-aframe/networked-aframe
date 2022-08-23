@@ -115,8 +115,6 @@ AFRAME.registerComponent('networked-hand-controls', {
       this.el.removeObject3D(this.str.mesh);
       ['gltf-model','obj-model'].forEach(modelComponent => {
         if (this.el.components[modelComponent]) {
-          this.el.components[modelComponent].pause();
-          this.el.components[modelComponent].remove();
           this.el.removeAttribute(modelComponent);
         }
       })
