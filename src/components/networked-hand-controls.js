@@ -329,8 +329,7 @@ AFRAME.registerComponent('networked-hand-controls', {
       // here we have no loadModel() to use directly, so we fully inject (bypassing controller detection)
       // and catch and remove pose tracking once it is added.
       this.el.components[this.data.controllerComponent].injectTrackedControls({profiles:JSON.parse(this.data.webxrControllerProfiles)});
-      this.el.play();
-    } 
+    }
     else {
       // ideal, default path, for controller components (like oculus-touch-controls), that have separate loadModel() function
 
@@ -342,9 +341,9 @@ AFRAME.registerComponent('networked-hand-controls', {
       
       // we load the model indicated by the remote user's headset
       this.el.components[this.data.controllerComponent].loadModel({profiles:JSON.parse(this.data.webxrControllerProfiles)});      
-      this.el.play();
     }
 
+    this.el.play();
     this.injectedController = true;
   },
 
