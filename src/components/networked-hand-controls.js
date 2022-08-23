@@ -286,16 +286,14 @@ AFRAME.registerComponent('networked-hand-controls', {
     originalFn(buttonName, evtName);
   },
 
-  catchPostTrackingInitialization() {
-    this.el.addEventListener('componentinitialized', (function catchAndRemoveWebXRTracking (evt) {
+  catchPoseTrackingInitialization() {
+    this.catchAndRemoveWebXRTracking = (function catchAndRemoveWebXRTracking (evt) {
       if (evt.detail.name !== 'tracked-controls-webxr') { return; }
-      this.el.removeEventListener('componentinitialized', catchAndRemoveWebXRTracking);
+      this.el.removeEventListener('componentinitialized', this.catchAndRemoveWebXRTracking);
       this.el.components['tracked-controls-webxr'].pause();
-      setTimeout(() => {
-        // if I don't use this setTimeout here, I get an infinite loop. :/
-        this.el.removeAttribute('tracked-controls-webxr');
-      },1)
-    }).bind(this));
+      this.el.removeAttribute('tracked-controls-webxr');
+    }).bind(this);
+    this.el.addEventListener('componentinitialized', this.catchAndRemoveWebXRTracking);
   },
 
   injectRemoteControllerModel() {
@@ -327,10 +325,10 @@ AFRAME.registerComponent('networked-hand-controls', {
       // however, we do still want _one_ event listener, so we add the button meshes
       this.el.addEventListener('model-loaded', this.el.components[this.data.controllerComponent].onModelLoaded);
 
-      this.catchPostTrackingInitialization();
+      this.catchPoseTrackingInitialization();
       // here we have no loadModel() to use directly, so we fully inject (bypassing controller detection)
+      // and catch and remove pose tracking once it is added.
       this.el.components[this.data.controllerComponent].injectTrackedControls({profiles:JSON.parse(this.data.webxrControllerProfiles)});
-      // this.disableLoadedPoseTracking();
       this.el.play();
     } 
     else {
@@ -348,45 +346,6 @@ AFRAME.registerComponent('networked-hand-controls', {
     }
 
     this.injectedController = true;
-  },
-
-  disableLoadedPoseTracking() {
-    // handling for older controller components (like vive-controls) that lack the cleaner hooks 
-    // to block local pose tracking. We allow pose tracking to start (so we can get loaded model), 
-    // and then stop it. Note: we do not attempt to handle older tracked-controls-webvr.
-    let loops = 0;
-
-    const disablePoseTracking = () => {
-      loops++;
-      if (loops > 1000) { // 7-17~ seconds, assuming 140hz-60hz refresh rate
-        // don't want the possiblity of this running forever in the background
-        try {
-          this.el.removeAttribute(this.data.controllerComponent);
-        } catch(e) {
-          console.error("error removing controller component", e);
-        }
-        throw new Error("never found tracked-controls-webxr, cancelling interval that was waiting to remove it and removing controller components")
-      }
-      else if (this.el.components['tracked-controls-webxr']) {
-        // there is no remove on this component in current version of A-Frame, so we kill it with pause and tick first.
-        this.el.removeAttribute('tracked-controls-webxr'); // just some cleanup for inspector, etc.
-        this.el.play();
-      }
-      else {
-        this.requestAnimationFrame(disablePoseTracking);
-      }
-    };
-    this.requestAnimationFrame(disablePoseTracking);
-  },
-
-  requestAnimationFrame(f) {
-    // see: https://developer.mozilla.org/en-US/docs/Web/API/XRSession/requestAnimationFrame
-    // https://github.com/immersive-web/webxr/pull/1033/files#diff-5e793325cd2bfc452e268a4aa2f02b4024dd9584bd1db3c2595f61f1ecf7b985
-    if (AFRAME.scenes[0].xrSession?.requestAnimationFrame) {
-      AFRAME.scenes[0].xrSession.requestAnimationFrame(f);
-    } else {
-      window.requestAnimationFrame(f);
-    }
   },
 
   getMesh() {
