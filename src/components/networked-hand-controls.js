@@ -46,8 +46,15 @@ AFRAME.registerComponent('networked-hand-controls', {
     // these are set internally if we use type 'controller' for handModelStyle
     controllerComponent: { type: "string", default: '' },
     webxrControllerProfiles: { type: "string", default: '' },
-    controllerEvent: {type:'array'},
-    
+    controllerEvent: {
+      default: JSON.stringify({}),
+      type: "string",
+    },
+    controllerModelUpdate: {
+      default: [],
+      type: "array",
+    },
+
     // these are for specifying a custom hand model URL; only allowed at init, not via update
     // (must correspond to existing models and have matching animations to work properly)
     customHandModelURL: { type: "string", default: '' }, 
@@ -165,12 +172,19 @@ AFRAME.registerComponent('networked-hand-controls', {
         if (!this.injectedController && this.data.controllerComponent && this.data.webxrControllerProfiles[0]) {
           this.injectRemoteControllerModel();
         }
-        if (Array.isArray(oldData.controllerEvent) && (
-            oldData.controllerEvent[0] !== this.data.controllerEvent[0] || 
-            oldData.controllerEvent[1] !== this.data.controllerEvent[1] )
-          ) {
-          this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerEvent);
-        } 
+        if (oldData.controllerEvent && oldData.controllerEvent !== this.data.controllerEvent) {
+          const controllerEvent = JSON.parse(this.data.controllerEvent);
+          console.log(controllerEvent);
+          console.log("applying NAF received controller update:",controllerEvent.type === 'thumbstickmoved' ? 'onThumbstickMoved' : 'onButtonChanged',controllerEvent)
+          this.el.components[this.data.controllerComponent][controllerEvent.type === 'thumbstickmoved' ? 'onThumbstickMoved' : 'onButtonChanged'](controllerEvent);
+        }
+        if (oldData.controllerModelUpdate && (
+          oldData.controllerModelUpdate[0] !== this.data.controllerModelUpdate[0] ||
+          oldData.controllerModelUpdate[1] !== this.data.controllerModelUpdate[1] 
+        )) {
+          console.log("applying model update", this.data.controllerModelUpdate)
+          this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerModelUpdate)
+        }
       }
     }
   },
@@ -191,7 +205,7 @@ AFRAME.registerComponent('networked-hand-controls', {
       newMesh.mixer = new THREE.AnimationMixer(newMesh);
 
       this.clips = gltf.animations;
-      this.clips.forEach((clip, clipIndex) => {
+      this.clips.forEach((clip) => {
         this.clipNameToClip[clip.name] = clip;
       })      
 
@@ -222,7 +236,8 @@ AFRAME.registerComponent('networked-hand-controls', {
   controllerComponents: [
     'magicleap-controls',
     'vive-controls',
-    'oculus-touch-controls',
+    // 'oculus-touch-controls',
+    'meta-touch-controls', // TODO! REMOVE ME! ONLY FOR TESTING, DO NOT MERGE WITH THIS LINE!
     'windows-motion-controls',
     'hp-mixed-reality-controls',
     // these were missing from the original hand-controls component:
@@ -262,6 +277,10 @@ AFRAME.registerComponent('networked-hand-controls', {
     });
     originalFn(webxrControllerSymbol);
     
+    this.el.addEventListener('onbuttonchanged',evt => {
+      console.log("captured event",evt);
+    })
+    // this function handles mesh color updates
     this.el.components[controllerComponentName].updateModel = 
       this.updateModelWrapper.bind(
         this, 
@@ -269,13 +288,46 @@ AFRAME.registerComponent('networked-hand-controls', {
           this.el.components[controllerComponentName]
         )
       );
+
+    this.el.components[controllerComponentName].onButtonChanged = 
+      this.onButtonChangedWrapper.bind(
+        this,
+        this.el.components[controllerComponentName].onButtonChanged
+      )
+
+    this.el.components[controllerComponentName].onThumbstickMoved = 
+      this.onThumbstickMovedWrapper.bind(
+        this,
+        this.el.components[controllerComponentName].onThumbstickMoved
+      )
+
+    // we want to strip the listeners pointing to the original functions, and then re-add them with our wrapped functions
+    this.el.components[controllerComponentName].removeEventListeners()
+    this.el.components[controllerComponentName].addEventListeners()
+  },
+
+  onButtonChangedWrapper(originalFn, evt) {
+    console.log(`will rebroadcast: ${JSON.stringify({detail:evt.detail,type:evt.type},null,2)}`,evt)
+
+    this.el.setAttribute('networked-hand-controls', this.str.controllerEvent, JSON.stringify({detail:evt.detail,type:evt.type}));
+
+    originalFn(evt);
+  },
+
+  onThumbstickMovedWrapper(originalFn, evt) {
+    console.log(`will rebroadcast: ${JSON.stringify({detail:evt.detail,type:evt.type},null,2)}`,evt)
+
+    this.el.setAttribute('networked-hand-controls', this.str.controllerEvent, JSON.stringify({detail:evt.detail,type:evt.type}));    
+
+    originalFn(evt);
   },
 
   updateModelWrapper(originalFn, buttonName, evtName) {
     // capture and rebroadcast controller events (only used if using controller model instead of hand)
     if (!this.btnEvtMap[buttonName]) {this.btnEvtMap[buttonName] = {};}
-    if (!this.btnEvtMap[buttonName][evtName]) {this.btnEvtMap[buttonName][evtName] = `${buttonName}, ${evtName}`;}
-    this.el.setAttribute('networked-hand-controls', this.str.controllerEvent, this.btnEvtMap[buttonName][evtName]);
+    if (!this.btnEvtMap[buttonName][evtName]) {this.btnEvtMap[buttonName][evtName] = `${buttonName},${evtName}`}
+    console.log('modelupdate',this.btnEvtMap[buttonName][evtName], "",buttonName, evtName)
+    this.el.setAttribute('networked-hand-controls', "controllerModelUpdate", this.btnEvtMap[buttonName][evtName]);
     
     originalFn(buttonName, evtName);
   },
@@ -305,8 +357,11 @@ AFRAME.registerComponent('networked-hand-controls', {
       // could also optionally support custom buttonColor, buttonTouchColor, buttonHighlightColor 
     });
 
+    // in new design, we leave this, as the controller needs to emit some of these events to itself
+    // in order to get mesh color updates
+    // this.el.components[this.data.controllerComponent].removeEventListeners();
+
     // we don't want the remote model to listen to local button/trigger/thumbstick events, though 
-    this.el.components[this.data.controllerComponent].removeEventListeners();
     this.el.components[this.data.controllerComponent].removeControllersUpdateListener();
 
     // some older controller components aren't as well written, and so we have to allow pose tracking to be added and then remove it
@@ -332,6 +387,8 @@ AFRAME.registerComponent('networked-hand-controls', {
       this.el.components[this.data.controllerComponent].checkIfControllerPresent = x => x;
       this.el.components[this.data.controllerComponent].injectTrackedControls = x => x;
       
+      // we need to fire this listener to load the button meshes
+      this.el.addEventListener('model-loaded', this.el.components[this.data.controllerComponent].onModelLoaded);
       // we load the model indicated by the remote user's headset
       this.el.components[this.data.controllerComponent].loadModel({profiles:JSON.parse(this.data.webxrControllerProfiles)});      
     }
