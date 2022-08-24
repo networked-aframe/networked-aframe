@@ -133,15 +133,8 @@ AFRAME.registerComponent('networked-hand-controls', {
         // it would be nice if this worked, but those components don't handle this option in their update() methods:
         // this.el.setAttribute(this.data.controllerComponent, 'model', true)
 
-        // so we first remove the controller component as best we can
+        // so we first remove the controller component
         if (this.el.components[this.data.controllerComponent]) {
-          // there is generally no remove() specified, but they do have pause(), which is close enough:
-          try {
-            this.el.components[this.data.controllerComponent].pause();
-            this.el.components[this.data.controllerComponent].remove();
-          } catch(e) {
-            console.error("NAF: possible problem while updating handModelStyle to controller", e)
-          }
           this.el.removeAttribute(this.data.controllerComponent);
         }
 
@@ -151,7 +144,7 @@ AFRAME.registerComponent('networked-hand-controls', {
         else {
           this.addControllerComponents(true);
           // controllerconnected event won't fire again, so we have to call this manually:
-          this.el.components[this.data.controllerComponent].injectTrackedControls({profiles:JSON.parse(this.data.webxrControllerProfiles)}) // have to call this manually, since the controller isn't newly connected
+          this.el.components[this.data.controllerComponent].injectTrackedControls({profiles:JSON.parse(this.data.webxrControllerProfiles)})
         }
       }
     }
@@ -188,7 +181,6 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   remove() {
     this.el.removeObject3D(this.str.mesh);
-    this.removeEventListeners();
   },
 
   addHandModel() {
@@ -218,15 +210,7 @@ AFRAME.registerComponent('networked-hand-controls', {
   },
 
   updateHandMeshColor() {
-    const color = new THREE.Color(this.data.color);
-
-    // a different way to set color that we aren't using:
-    // this.getMesh().children[1].material.emissive = color;
-    // this.getMesh().children[1].material.color = color;
-    // this.getMesh().children[1].material.metalness = 1;
-
-    // this method is instead borrowed from the oculus-touch-controls component
-    this.getMesh().children[1].material.color.set(color);
+    this.getMesh().children[1].material.color.set(this.data.color);
     this.el.sceneEl.systems.renderer.applyColorCorrection(this.getMesh().children[1].material.color);
   },
 
@@ -234,11 +218,10 @@ AFRAME.registerComponent('networked-hand-controls', {
     'magicleap-controls',
     'vive-controls',
     'oculus-touch-controls',
-    // 'meta-touch-controls', // TODO! REMOVE ME! ONLY FOR TESTING, DO NOT MERGE WITH THIS LINE UNCOMMENTED
     'windows-motion-controls',
     'hp-mixed-reality-controls',
-    // these were missing from the original hand-controls component:
     
+    // these were missing from the original hand-controls component:
     'valve-index-controls',
     // some older models that it doesn't hurt to include:
     'oculus-go-controls',
