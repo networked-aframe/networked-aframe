@@ -174,15 +174,12 @@ AFRAME.registerComponent('networked-hand-controls', {
         }
         if (oldData.controllerEvent && oldData.controllerEvent !== this.data.controllerEvent) {
           const controllerEvent = JSON.parse(this.data.controllerEvent);
-          console.log(controllerEvent);
-          console.log("applying NAF received controller update:",controllerEvent.type === 'thumbstickmoved' ? 'onThumbstickMoved' : 'onButtonChanged',controllerEvent)
           this.el.components[this.data.controllerComponent][controllerEvent.type === 'thumbstickmoved' ? 'onThumbstickMoved' : 'onButtonChanged'](controllerEvent);
         }
         if (oldData.controllerModelUpdate && (
           oldData.controllerModelUpdate[0] !== this.data.controllerModelUpdate[0] ||
           oldData.controllerModelUpdate[1] !== this.data.controllerModelUpdate[1] 
         )) {
-          console.log("applying model update", this.data.controllerModelUpdate)
           this.el.components[this.data.controllerComponent].updateModel(...this.data.controllerModelUpdate)
         }
       }
@@ -236,8 +233,8 @@ AFRAME.registerComponent('networked-hand-controls', {
   controllerComponents: [
     'magicleap-controls',
     'vive-controls',
-    // 'oculus-touch-controls',
-    'meta-touch-controls', // TODO! REMOVE ME! ONLY FOR TESTING, DO NOT MERGE WITH THIS LINE!
+    'oculus-touch-controls',
+    // 'meta-touch-controls', // TODO! REMOVE ME! ONLY FOR TESTING, DO NOT MERGE WITH THIS LINE UNCOMMENTED
     'windows-motion-controls',
     'hp-mixed-reality-controls',
     // these were missing from the original hand-controls component:
@@ -277,9 +274,6 @@ AFRAME.registerComponent('networked-hand-controls', {
     });
     originalFn(webxrControllerSymbol);
     
-    this.el.addEventListener('onbuttonchanged',evt => {
-      console.log("captured event",evt);
-    })
     // this function handles mesh color updates
     this.el.components[controllerComponentName].updateModel = 
       this.updateModelWrapper.bind(
@@ -307,18 +301,12 @@ AFRAME.registerComponent('networked-hand-controls', {
   },
 
   onButtonChangedWrapper(originalFn, evt) {
-    console.log(`will rebroadcast: ${JSON.stringify({detail:evt.detail,type:evt.type},null,2)}`,evt)
-
     this.el.setAttribute('networked-hand-controls', this.str.controllerEvent, JSON.stringify({detail:evt.detail,type:evt.type}));
-
     originalFn(evt);
   },
 
   onThumbstickMovedWrapper(originalFn, evt) {
-    console.log(`will rebroadcast: ${JSON.stringify({detail:evt.detail,type:evt.type},null,2)}`,evt)
-
     this.el.setAttribute('networked-hand-controls', this.str.controllerEvent, JSON.stringify({detail:evt.detail,type:evt.type}));    
-
     originalFn(evt);
   },
 
@@ -326,9 +314,7 @@ AFRAME.registerComponent('networked-hand-controls', {
     // capture and rebroadcast controller events (only used if using controller model instead of hand)
     if (!this.btnEvtMap[buttonName]) {this.btnEvtMap[buttonName] = {};}
     if (!this.btnEvtMap[buttonName][evtName]) {this.btnEvtMap[buttonName][evtName] = `${buttonName},${evtName}`}
-    console.log('modelupdate',this.btnEvtMap[buttonName][evtName], "",buttonName, evtName)
     this.el.setAttribute('networked-hand-controls', "controllerModelUpdate", this.btnEvtMap[buttonName][evtName]);
-    
     originalFn(buttonName, evtName);
   },
 
