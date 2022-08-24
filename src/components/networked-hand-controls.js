@@ -161,12 +161,10 @@ AFRAME.registerComponent('networked-hand-controls', {
       if (this.data.handModelStyle !== this.str.controller && this.data.gesture !== oldData.gesture) {
         this.handleGesture(this.data.gesture, oldData.gesture);
       }
-
-      if (this.data.handModelStyle === this.str.controller) {
+      else if (this.data.handModelStyle === this.str.controller) {
         if (!this.injectedController && this.data.controllerComponent && this.data.webxrControllerProfiles[0]) {
           this.injectRemoteControllerModel();
         }
-
         if (Array.isArray(oldData.controllerEvent) && (
             oldData.controllerEvent[0] !== this.data.controllerEvent[0] || 
             oldData.controllerEvent[1] !== this.data.controllerEvent[1] )
@@ -275,14 +273,10 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   updateModelWrapper(originalFn, buttonName, evtName) {
     // capture and rebroadcast controller events (only used if using controller model instead of hand)
-    if (!this.btnEvtMap[buttonName]) {
-      // dynamically create strings only once per combo, future proofing safe optimization
-      this.btnEvtMap[buttonName] = {};
-    }
-    if (!this.btnEvtMap[buttonName][evtName]) {
-      this.btnEvtMap[buttonName][evtName] = `${buttonName}, ${evtName}`;
-    }
+    if (!this.btnEvtMap[buttonName]) {this.btnEvtMap[buttonName] = {};}
+    if (!this.btnEvtMap[buttonName][evtName]) {this.btnEvtMap[buttonName][evtName] = `${buttonName}, ${evtName}`;}
     this.el.setAttribute('networked-hand-controls', this.str.controllerEvent, this.btnEvtMap[buttonName][evtName]);
+    
     originalFn(buttonName, evtName);
   },
 
@@ -290,7 +284,6 @@ AFRAME.registerComponent('networked-hand-controls', {
     this.catchAndRemoveWebXRTracking = (function catchAndRemoveWebXRTracking (evt) {
       if (evt.detail.name !== 'tracked-controls-webxr') { return; }
       this.el.removeEventListener('componentinitialized', this.catchAndRemoveWebXRTracking);
-      this.el.components['tracked-controls-webxr'].pause();
       this.el.removeAttribute('tracked-controls-webxr');
     }).bind(this);
     this.el.addEventListener('componentinitialized', this.catchAndRemoveWebXRTracking);
@@ -309,7 +302,7 @@ AFRAME.registerComponent('networked-hand-controls', {
     this.el.setAttribute(this.data.controllerComponent, {
       hand: this.data.hand, 
       model: true,
-      // could also optionally support buttonColor, buttonTouchColor, buttonHighlightColor 
+      // could also optionally support custom buttonColor, buttonTouchColor, buttonHighlightColor 
     });
 
     // we don't want the remote model to listen to local button/trigger/thumbstick events, though 
