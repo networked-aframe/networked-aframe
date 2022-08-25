@@ -48,6 +48,10 @@
         debug: true;
         adapter: wseasyrtc;
     "
+      renderer="antialias: true;
+      colorManagement: true;
+      sortObjects: true;
+      physicallyCorrectLights: true;"
     >
       <a-assets>
         <template id="rig-template">
@@ -55,7 +59,7 @@
         </template>
 
         <template id="head-template">
-          <a-entity class="avatar" player-info>
+          <a-entity class="avatar">
             <a-sphere class="head" scale="0.2 0.22 0.2" random-color></a-sphere>
             <a-entity class="face" position="0 0.05 0">
               <a-sphere class="eye" color="white" position="0.06 0.05 -0.16" scale="0.04 0.04 0.04">
@@ -69,8 +73,8 @@
         </template>
       </a-assets>
 
-      <a-entity environment="preset:starry;groundColor:#000000;"></a-entity>
-      <a-entity light="type:ambient;intensity:0.5"></a-entity>
+      <a-entity environment="preset:arches;groundColor:#000000;"></a-entity>
+      <a-entity light="type:ambient;intensity:0.9" position="0 2 0"></a-entity>
 
       <a-entity id="rig" movement-controls="fly:true;" spawn-in-circle="radius:3" networked="template:#rig-template;">
         <a-entity
@@ -82,17 +86,11 @@
           visible="false"
         >
         </a-entity>
-
         <!-- here we add the user's local hands! These two lines are all that is needed. -->
-        <a-entity
-          id="my-tracked-left-hand"
-          class="local-naf-hand"
-          networked-hand-controls="hand:left; handModelStyle: highPoly; color:white;"
-        ></a-entity>
+        <a-entity id="my-tracked-left-hand" networked-hand-controls="hand:left; color:gold;"></a-entity>
         <a-entity
           id="my-tracked-right-hand"
-          class="local-naf-hand"
-          networked-hand-controls="hand:right; handModelStyle: highPoly; color:white;"
+          networked-hand-controls="hand:right; handModelStyle: controller;"
         ></a-entity>
       </a-entity>
     </a-scene>
