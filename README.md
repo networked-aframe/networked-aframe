@@ -226,12 +226,11 @@ Templates must only have one root element. When `attachTemplateToLocal` is set t
 </a-entity>
 ```
 
-| Parameter | Description | Default
-| -------- | ------------ | --------------
-| template  | A css selector to a template tag stored in `<a-assets>` | ''
-| attachTemplateToLocal  | Does not attach the template for the local user when set to false. This is useful when there is different behavior locally and remotely. | true
-| persistent | On remote creator (not owner) disconnect, attempts to take ownership of persistent entities rather than delete them | false
-
+| Property              | Description                                                                                                                              | Default Value |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| template              | A css selector to a template tag stored in `<a-assets>`                                                                                  | ''            |
+| attachTemplateToLocal | Does not attach the template for the local user when set to false. This is useful when there is different behavior locally and remotely. | true          |
+| persistent            | On remote creator (not owner) disconnect, attempts to take ownership of persistent entities rather than delete them                      | false         |
 
 ### Deleting Networked Entities
 
@@ -371,12 +370,12 @@ To see a working demo, check out the [Glitch NAF Tracked Controllers Example](ht
 
 The public schema properties you can set are:
 
-| ---- | color | hand | handModelStyle | customHandModelURL |
-| ---- | ----- | ---- | -------------- | ------------ |
-| info | will be set as material color | - | available built-in models from A-Frame | optional custom hand model url |
-| default | 'white' | 'left' | 'highPoly' | '' |
-| type | 'color' | 'string' |  'string' | 'string' |
-| oneOf | N/A | ['right', 'left'] | ['highPoly', 'lowPoly', 'toon', 'controller'] | N/A |
+| Property           | Description                                 | Default Value | Values                              |
+| ------------------ | ------------------------------------------- | ------------- | ----------------------------------- |
+| color              | Will be set as material color               | white         |
+| hand               | Specify if entity is for left or right hand | left          | left, right                         |
+| handModelStyle     | Available built-in models from A-Frame      | highPoly      | highPoly, lowPoly, toon, controller |
+| customHandModelURL | Optional custom hand model url              |               |                                     |
 
 Note the 'controller' option--that will use a model of the controller itself, automatically set correctly according to your platform--it will also broadcast model-supported button mesh updates. (Unfortunately, there's currently a bug with the Quest 2 model button meshes, so that one doesn't show any updates.)
 
