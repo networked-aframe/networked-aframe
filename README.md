@@ -353,9 +353,12 @@ To sync nested templates setup your HTML nodes like so:
 
 In this example the head/camera, left and right hands will spawn their own templates which will be networked independently of the root player. Note: this parent-child relationship only works between one level, ie. a child entity's direct parent must have the `networked` component.
 
+You need to define your left and right hand templates yourself to show hand models for the other users. Only the position and rotation will be synced to the other users. To sync the hand gesture, see the `networked-hand-controls` component below.
+
 ### Tracked Controllers w/ Synced Gestures
 
-NAF now allows easily adding hand models that show gestures matching to which buttons are touched--so you can point and give a thumbs up or make a fist to other people in the room.
+This is a much simpler alternative to the above.
+NAF allows easily adding hand models visible to the others that show gestures matching to which buttons are touched--so you can point and give a thumbs up or make a fist to other people in the room.
 
 All you have to do is use the built in `networked-hand-controls` component, by adding these two lines as children of your camera rig:
 
@@ -376,6 +379,52 @@ The public schema properties you can set are:
 | oneOf | N/A | ['right', 'left'] | ['highPoly', 'lowPoly', 'toon', 'controller'] | N/A |
 
 Note the 'controller' option--that will use a model of the controller itself, automatically set correctly according to your platform--it will also broadcast model-supported button mesh updates. (Unfortunately, there's currently a bug with the Quest 2 model button meshes, so that one doesn't show any updates.)
+
+The `networked-hand-controls` is replacing completely `hand-controls`, don't use both.
+Also you don't need to define a template, networked schema and add the `networked` component to it, this is all done for you.
+For you to understand, the following is done automatically. You don't need to add that yourself.
+
+```html
+<template id="left-hand-template">
+  <a-entity networked-hand-controls="hand:left"></a-entity>
+</template>
+<template id="right-hand-template">
+  <a-entity networked-hand-controls="hand:right"></a-entity>
+</template>
+```
+
+```javascript
+NAF.schemas.add({
+  template: '#left-hand-template'
+  components: [
+    'position',
+    'rotation',
+    'networked-hand-controls'
+  ]
+});
+NAF.schemas.add({
+  template: '#right-hand-template'
+  components: [
+    'position',
+    'rotation',
+    'networked-hand-controls'
+  ]
+});
+```
+
+and the `networked-hand-controls` component is auto setting
+
+```html
+networked="template:#left-hand-template;attachTemplateToLocal:true"
+```
+
+and
+
+```html
+networked="template:#right-hand-template;attachTemplateToLocal:true"
+```
+
+on the corresponding entity.
 
 ### Sending Custom Messages
 
