@@ -55,7 +55,7 @@ Follow [the NAF Getting Started tutorial](https://github.com/networked-aframe/ne
 
 To run the examples on your own PC:
 
- ```sh
+```sh
 git clone https://github.com/networked-aframe/networked-aframe.git  # Clone the repository.
 cd networked-aframe
 npm install  # Install dependencies.
@@ -81,7 +81,7 @@ Basic Example
     <a-scene networked-scene>
       <a-assets>
         <template id="avatar-template">
-           <a-sphere></a-sphere>
+          <a-sphere></a-sphere>
         </template>
       </a-assets>
       <a-entity id="player" networked="template:#avatar-template;attachTemplateToLocal:false;" camera wasd-controls look-controls>
@@ -181,7 +181,7 @@ Completely removing `a-scene` from your page will also handle cleanly disconnect
       <a-sphere color="#f00"></a-sphere>
     </a-entity>
   </template>
-<a-assets>
+</a-assets>
 
 <!-- Attach local template by default -->
 <a-entity networked="template: #my-template">
@@ -343,7 +343,7 @@ and rotation precision of 0.5 degree, use it like this:
 
 To sync nested templates setup your HTML nodes like so:
 
-```HTML
+```html
 <a-entity id="player" networked="template:#player-template;attachTemplateToLocal:false;" wasd-controls>
   <a-entity camera look-controls networked="template:#head-template;attachTemplateToLocal:false;"></a-entity>
   <a-entity hand-controls="hand:left" networked="template:#left-hand-template"></a-entity>
@@ -467,9 +467,9 @@ NAF now allows easily adding hand models that show gestures matching to which bu
 All you have to do is use the built in `networked-hand-controls` component, by adding these two lines as children of your camera rig:
 
 ```html
-        <a-entity id="my-tracked-left-hand" networked-hand-controls="hand:left;"></a-entity>
-        <a-entity id="my-tracked-right-hand" networked-hand-controls="hand:right;"></a-entity>
-```        
+<a-entity id="my-tracked-left-hand" networked-hand-controls="hand:left;"></a-entity>
+<a-entity id="my-tracked-right-hand" networked-hand-controls="hand:right;"></a-entity>
+```
 
 To see a working demo, check out the [Glitch NAF Tracked Controllers Example](https://naf-examples.glitch.me/tracked-controllers.html).
 
@@ -488,7 +488,7 @@ Note the 'controller' option--that will use a model of the controller itself, au
 
 After adding `audio: true` to the `networked-scene` component (and using an adapter that supports it) you will not hear any audio by default. Though the audio will be streaming, it will not be audible until an entity with a `networked-audio-source` is created. The audio from the owner of this entity will be emitted in 3D space from that entity's position. The `networked-audio-source` component must be added to an entity (or a child of an entity) with the `networked` component.
 
-To quickly get started, try the [Glitch NAF Audio Example]((https://naf-examples.glitch.me/basic-audio.html)).
+To quickly get started, try the [Glitch NAF Audio Example](https://naf-examples.glitch.me/basic-audio.html).
 
 To mute/unmute the microphone, you can use the following API (easyrtc and janus adapters):
 
