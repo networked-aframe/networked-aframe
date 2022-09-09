@@ -353,6 +353,30 @@ To sync nested templates setup your HTML nodes like so:
 
 In this example the head/camera, left and right hands will spawn their own templates which will be networked independently of the root player. Note: this parent-child relationship only works between one level, ie. a child entity's direct parent must have the `networked` component.
 
+### Tracked Controllers w/ Synced Gestures
+
+NAF now allows easily adding hand models that show gestures matching to which buttons are touched--so you can point and give a thumbs up or make a fist to other people in the room.
+
+All you have to do is use the built in `networked-hand-controls` component, by adding these two lines as children of your camera rig:
+
+```html
+<a-entity id="my-tracked-left-hand" networked-hand-controls="hand:left;"></a-entity>
+<a-entity id="my-tracked-right-hand" networked-hand-controls="hand:right;"></a-entity>
+```
+
+To see a working demo, check out the [Glitch NAF Tracked Controllers Example](https://naf-examples.glitch.me/tracked-controllers.html).
+
+The public schema properties you can set are:
+
+| ---- | color | hand | handModelStyle | handModelUrl |
+| ---- | ----- | ---- | -------------- | ------------ |
+| info | will be set as material color | - | available built-in models from A-Frame | optional custom hand model url |
+| default | 'white' | 'left' | 'highPoly' | '' |
+| type | 'color' | 'string' |  'string' | 'string' |
+| oneOf | N/A | ['right', 'left'] | ['highPoly', 'lowPoly', 'toon', 'controller'] | N/A |
+
+Note the 'controller' option--that will use a model of the controller itself, automatically set correctly according to your platform--it will also broadcast model-supported button mesh updates. (Unfortunately, there's currently a bug with the Quest 2 model button meshes, so that one doesn't show any updates.)
+
 ### Sending Custom Messages
 
 ```javascript
@@ -458,31 +482,6 @@ WebRTC in the table means that component updates is using WebRTC Datachannels
 part.
 
 See also the document [NAF adapters comparison](https://github.com/networked-aframe/networked-aframe/wiki/NAF-adapters-comparison).
-
-
-### Tracked Controllers w/ Synced Gestures
-
-NAF now allows easily adding hand models that show gestures matching to which buttons are touched--so you can point and give a thumbs up or make a fist to other people in the room. 
-
-All you have to do is use the built in `networked-hand-controls` component, by adding these two lines as children of your camera rig:
-
-```html
-<a-entity id="my-tracked-left-hand" networked-hand-controls="hand:left;"></a-entity>
-<a-entity id="my-tracked-right-hand" networked-hand-controls="hand:right;"></a-entity>
-```
-
-To see a working demo, check out the [Glitch NAF Tracked Controllers Example](https://naf-examples.glitch.me/tracked-controllers.html).
-
-The public schema properties you can set are:
-
-| ---- | color | hand | handModelStyle | handModelUrl |
-| ---- | ----- | ---- | -------------- | ------------ |
-| info | will be set as material color | - | available built-in models from A-Frame | optional custom hand model url |
-| default | 'white' | 'left' | 'highPoly' | '' |
-| type | 'color' | 'string' |  'string' | 'string' |
-| oneOf | N/A | ['right', 'left'] | ['highPoly', 'lowPoly', 'toon', 'controller'] | N/A |
-
-Note the 'controller' option--that will use a model of the controller itself, automatically set correctly according to your platform--it will also broadcast model-supported button mesh updates. (Unfortunately, there's currently a bug with the Quest 2 model button meshes, so that one doesn't show any updates.)
 
 ### Audio
 
