@@ -368,7 +368,7 @@ To see a working demo, check out the [Glitch NAF Tracked Controllers Example](ht
 
 The public schema properties you can set are:
 
-| ---- | color | hand | handModelStyle | handModelUrl |
+| ---- | color | hand | handModelStyle | customHandModelURL |
 | ---- | ----- | ---- | -------------- | ------------ |
 | info | will be set as material color | - | available built-in models from A-Frame | optional custom hand model url |
 | default | 'white' | 'left' | 'highPoly' | '' |
