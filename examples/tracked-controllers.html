@@ -86,11 +86,16 @@
           visible="false"
         >
         </a-entity>
-        <!-- here we add the user's local hands! These two lines are all that is needed. -->
-        <a-entity id="my-tracked-left-hand" networked-hand-controls="hand:left; color:gold;"></a-entity>
+        <!-- here we add the user's local hands! These two entities are all that is needed. -->
+        <a-entity
+          id="my-tracked-left-hand"
+          networked-hand-controls="hand:left;color:gold;"
+          networked="template:#left-hand-default-template"
+        ></a-entity>
         <a-entity
           id="my-tracked-right-hand"
-          networked-hand-controls="hand:right; handModelStyle: controller;"
+          networked-hand-controls="hand:right;handModelStyle:controller;"
+          networked="template:#right-hand-default-template"
         ></a-entity>
       </a-entity>
     </a-scene>

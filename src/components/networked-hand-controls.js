@@ -20,20 +20,20 @@ function addHandTemplate(hand) {
   let templateOuter = document.createElement('template');
   let templateInner = document.createElement('a-entity');
 
-  templateOuter.id = `${hand}-hand-template`;
-  templateInner.setAttribute('networked-hand-controls',`hand: ${hand}`);
+  templateOuter.id = `${hand}-hand-default-template`;
+  templateInner.setAttribute('networked-hand-controls', `hand: ${hand}`);
 
   templateOuter.appendChild(templateInner);
 
-  NAF.schemas.schemaDict[`#${hand}-hand-template`] = {
-    template: `#${hand}-hand-template`,
+  NAF.schemas.schemaDict[`#${hand}-hand-default-template`] = {
+    template: `#${hand}-hand-default-template`,
     components: [
       'position',
       'rotation',
       'networked-hand-controls',
     ]
   };
-  NAF.schemas.templateCache[`#${hand}-hand-template`] = templateOuter;
+  NAF.schemas.templateCache[`#${hand}-hand-default-template`] = templateOuter;
 }
 ["left","right"].forEach(addHandTemplate);
 
@@ -68,39 +68,39 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   init() {
     this.setup();
-    this.el.setAttribute('networked', 'template', `#${this.data.hand}-hand-template`);
-    this.el.setAttribute('networked', 'attachTemplateToLocal', true);
-    
-    this.local = this.el.components.networked.createdByMe();
 
-    if (this.local) {
-      for (const evtName in this.buttonEventMap) {
-        this.eventFunctionMap[this.data.hand][evtName] = this.handleButton.bind(this, ...this.buttonEventMap[evtName]);
-      }
-      for (const evtName in this.visibleListeners) {
-        this.eventFunctionMap[this.data.hand][evtName] = this.visibleListeners[evtName].bind(this);
-      }
+    for (const evtName in this.buttonEventMap) {
+      this.eventFunctionMap[this.data.hand][evtName] = this.handleButton.bind(this, ...this.buttonEventMap[evtName]);
     }
-    else {
-      this.el.classList.add('naf-remote-hand');
+    for (const evtName in this.visibleListeners) {
+      this.eventFunctionMap[this.data.hand][evtName] = this.visibleListeners[evtName].bind(this);
     }
 
     if (this.data.handModelStyle !== "controller") {
       this.addHandModel();
     }
-    if (this.local) {
-      this.addControllerComponents(this.data.handModelStyle == "controller");
-    }
+
+    NAF.utils.getNetworkedEntity(this.el).then((networkedEl) => {
+      // Here networkedEl may be different than this.el if we don't use nested
+      // networked components for hands.
+      this.local = networkedEl.components.networked.createdByMe();
+    }).catch(() => {
+      this.local = true;
+    }).then(() => {
+      if (this.local) {
+        this.addControllerComponents(this.data.handModelStyle === "controller");
+      }
+    });
   },
 
   play() {
     if (this.local) {
-        this.addEventListeners(); 
+      this.addEventListeners();
     }
   },
 
   pause() {
-    if (this.local) {    
+    if (this.local) {
       this.removeEventListeners();
     }
   },
@@ -119,7 +119,7 @@ AFRAME.registerComponent('networked-hand-controls', {
         oldData.handModelStyle !== this.data.handModelStyle
       ) {
       // first, remove old model
-      this.el.removeObject3D(this.str.mesh);
+      if (this.getMesh()) this.el.removeObject3D(this.str.mesh);
       ['gltf-model','obj-model'].forEach(modelComponent => {
         if (this.el.components[modelComponent]) {
           this.el.removeAttribute(modelComponent);
@@ -134,12 +134,14 @@ AFRAME.registerComponent('networked-hand-controls', {
         // this.el.setAttribute(this.data.controllerComponent, 'model', true)
 
         // so we first remove the controller component
-        if (this.el.components[this.data.controllerComponent]) {
+        if (this.data.controllerComponent && this.el.components[this.data.controllerComponent]) {
           this.el.removeAttribute(this.data.controllerComponent);
         }
 
         if (!this.local) {
-          this.injectRemoteControllerModel();
+          if (!this.injectedController && this.data.controllerComponent && this.data.webxrControllerProfiles[0]) {
+            this.injectRemoteControllerModel();
+          }
         }
         else {
           this.addControllerComponents(true);
@@ -201,17 +203,19 @@ AFRAME.registerComponent('networked-hand-controls', {
       this.el.setObject3D(this.str.mesh, newMesh);
 
       const handMaterial = newMesh.children[1].material;
-      handMaterial.color = new THREE.Color(this.data.handColor);
+      handMaterial.color = new THREE.Color(this.data.color);
+      this.el.sceneEl.systems.renderer.applyColorCorrection(handMaterial.color);
       newMesh.position.set(0, 0, 0);
       newMesh.rotation.set(0, 0, handModelOrientation);
-
-      this.updateHandMeshColor();
     });
   },
 
   updateHandMeshColor() {
-    this.getMesh().children[1].material.color.set(this.data.color);
-    this.el.sceneEl.systems.renderer.applyColorCorrection(this.getMesh().children[1].material.color);
+    const mesh = this.getMesh();
+    if (!mesh) return;
+    const handMaterial = mesh.children[1].material;
+    handMaterial.color.set(this.data.color);
+    this.el.sceneEl.systems.renderer.applyColorCorrection(handMaterial.color);
   },
 
   controllerComponents: [
