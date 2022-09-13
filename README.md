@@ -226,12 +226,11 @@ Templates must only have one root element. When `attachTemplateToLocal` is set t
 </a-entity>
 ```
 
-| Parameter | Description | Default
-| -------- | ------------ | --------------
-| template  | A css selector to a template tag stored in `<a-assets>` | ''
-| attachTemplateToLocal  | Does not attach the template for the local user when set to false. This is useful when there is different behavior locally and remotely. | true
-| persistent | On remote creator (not owner) disconnect, attempts to take ownership of persistent entities rather than delete them | false
-
+| Property              | Description                                                                                                                              | Default Value |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| template              | A css selector to a template tag stored in `<a-assets>`                                                                                  | ''            |
+| attachTemplateToLocal | Does not attach the template for the local user when set to false. This is useful when there is different behavior locally and remotely. | true          |
+| persistent            | On remote creator (not owner) disconnect, attempts to take ownership of persistent entities rather than delete them                      | false         |
 
 ### Deleting Networked Entities
 
@@ -353,29 +352,72 @@ To sync nested templates setup your HTML nodes like so:
 
 In this example the head/camera, left and right hands will spawn their own templates which will be networked independently of the root player. Note: this parent-child relationship only works between one level, ie. a child entity's direct parent must have the `networked` component.
 
+You need to define your left and right hand templates yourself to show hand models for the other users. Only the position and rotation will be synced to the other users. To sync the hand gesture, see the `networked-hand-controls` component below.
+
 ### Tracked Controllers w/ Synced Gestures
 
-NAF now allows easily adding hand models that show gestures matching to which buttons are touched--so you can point and give a thumbs up or make a fist to other people in the room.
+This is a much simpler alternative to the above.
+NAF allows easily adding hand models visible to the others that show gestures matching to which buttons are touched--so you can point and give a thumbs up or make a fist to other people in the room.
 
-All you have to do is use the built in `networked-hand-controls` component, by adding these two lines as children of your camera rig:
+All you have to do is use the built in `networked-hand-controls` component, by adding these two entities as children of your camera rig:
 
 ```html
-<a-entity id="my-tracked-left-hand" networked-hand-controls="hand:left;"></a-entity>
-<a-entity id="my-tracked-right-hand" networked-hand-controls="hand:right;"></a-entity>
+<a-entity
+  id="my-tracked-left-hand"
+  networked-hand-controls="hand:left"
+  networked="template:#left-hand-default-template"
+></a-entity>
+<a-entity
+  id="my-tracked-right-hand"
+  networked-hand-controls="hand:right"
+  networked="template:#right-hand-default-template"
+></a-entity
 ```
 
 To see a working demo, check out the [Glitch NAF Tracked Controllers Example](https://naf-examples.glitch.me/tracked-controllers.html).
 
 The public schema properties you can set are:
 
-| ---- | color | hand | handModelStyle | customHandModelURL |
-| ---- | ----- | ---- | -------------- | ------------ |
-| info | will be set as material color | - | available built-in models from A-Frame | optional custom hand model url |
-| default | 'white' | 'left' | 'highPoly' | '' |
-| type | 'color' | 'string' |  'string' | 'string' |
-| oneOf | N/A | ['right', 'left'] | ['highPoly', 'lowPoly', 'toon', 'controller'] | N/A |
+| Property           | Description                                 | Default Value | Values                              |
+| ------------------ | ------------------------------------------- | ------------- | ----------------------------------- |
+| color              | Will be set as material color               | white         |
+| hand               | Specify if entity is for left or right hand | left          | left, right                         |
+| handModelStyle     | Available built-in models from A-Frame      | highPoly      | highPoly, lowPoly, toon, controller |
+| customHandModelURL | Optional custom hand model url              |               |                                     |
 
 Note the 'controller' option--that will use a model of the controller itself, automatically set correctly according to your platform--it will also broadcast model-supported button mesh updates. (Unfortunately, there's currently a bug with the Quest 2 model button meshes, so that one doesn't show any updates.)
+
+The `networked-hand-controls` is replacing completely `hand-controls`, don't use both.
+If you use the networked component as described above, you don't need to define the template and the networked schema for each hand.
+Default templates and networked schemas are already defined as follow:
+
+```html
+<template id="left-hand-default-template">
+  <a-entity networked-hand-controls="hand:left"></a-entity>
+</template>
+<template id="right-hand-default-template">
+  <a-entity networked-hand-controls="hand:right"></a-entity>
+</template>
+```
+
+```javascript
+NAF.schemas.add({
+  template: '#left-hand-default-template'
+  components: [
+    'position',
+    'rotation',
+    'networked-hand-controls'
+  ]
+});
+NAF.schemas.add({
+  template: '#right-hand-default-template'
+  components: [
+    'position',
+    'rotation',
+    'networked-hand-controls'
+  ]
+});
+```
 
 ### Sending Custom Messages
 
