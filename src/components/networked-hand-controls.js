@@ -69,13 +69,6 @@ AFRAME.registerComponent('networked-hand-controls', {
   init() {
     this.setup();
 
-    for (const evtName in this.buttonEventMap) {
-      this.eventFunctionMap[this.data.hand][evtName] = this.handleButton.bind(this, ...this.buttonEventMap[evtName]);
-    }
-    for (const evtName in this.visibleListeners) {
-      this.eventFunctionMap[this.data.hand][evtName] = this.visibleListeners[evtName].bind(this);
-    }
-
     if (this.data.handModelStyle !== "controller") {
       this.addHandModel();
     }
@@ -89,6 +82,13 @@ AFRAME.registerComponent('networked-hand-controls', {
     }).then(() => {
       if (this.local) {
         this.addControllerComponents(this.data.handModelStyle === "controller");
+        // Bind all functions, the listeners are only registered later for local avatar.
+        for (const evtName in this.buttonEventMap) {
+          this.eventFunctionMap[this.data.hand][evtName] = this.handleButton.bind(this, ...this.buttonEventMap[evtName]);
+        }
+        for (const evtName in this.visibleListeners) {
+          this.eventFunctionMap[this.data.hand][evtName] = this.visibleListeners[evtName].bind(this);
+        }
       } else {
         // Adding a class to easily see what the entity is in the aframe
         // inspector. This is shown in the class field in the panel after you
