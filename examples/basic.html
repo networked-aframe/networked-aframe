@@ -5,20 +5,19 @@
     <title>Basic Example — Networked-Aframe</title>
     <meta name="description" content="Basic Example — Networked-Aframe" />
 
-
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    
+
     <!--   NAF basic requirements   -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
-    
+
     <!--    used for flying in this demo  -->
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script> 
     
     <!--   used for the pretty environment   -->
     <script src="https://unpkg.com/aframe-environment-component@1.3.1/dist/aframe-environment-component.min.js"></script>
-    
+
     <!--   used to prevent players from spawning on top of each other so much  -->
     <script src="/js/spawn-in-circle.component.js"></script>
 
@@ -28,12 +27,12 @@
       function onConnect() {
         console.log('onConnect', new Date());
       }
-      
+
       // Note the way we're establishing the NAF schema here; this is a bit awkward
       // because of a recent bug found in the original handling. This mitigates that bug for now,
       // until a refactor in the future that should fix the issue more cleanly.
       // see issue https://github.com/networked-aframe/networked-aframe/issues/267
-      
+
       // This one is necessary, because tracking the .head child component's material's color
       // won't happen unless we tell NAF to keep it in sync, like here.
       NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
@@ -42,18 +41,18 @@
           NAF.schemas.add({
             template: '#avatar-template',
             components: [
-              // position and rotation are added by default if we don't include a template, but since 
-              // we also want to sync the color, we need to specify a custom template; if we didn't 
-              // include position and rotation in this custom template, they'd not be synced. 
+              // position and rotation are added by default if we don't include a template, but since
+              // we also want to sync the color, we need to specify a custom template; if we didn't
+              // include position and rotation in this custom template, they'd not be synced.
               'position',
               'rotation',
 
               // this is how we sync a particular property of a particular component for a particular
               // child element of template instances.
               {
-                selector:'.head',
-                component:'material',
-                property:'color', // property is optional; if excluded, syncs everything in the component schema
+                selector: '.head',
+                component: 'material',
+                property: 'color' // property is optional; if excluded, syncs everything in the component schema
               }
             ]
           });
@@ -109,12 +108,7 @@
              including all applicable child elements. However, because we don't need to see our own avatar, we use the
              `attachTemplateToLocal:false` option. This makes our local copies invisible on our machine, but visible on everyone else's.
       -->
-      <a-entity
-        id="rig"
-        movement-controls="fly:true;"
-        spawn-in-circle="radius:3"
-        networked="template:#rig-template;"
-      >
+      <a-entity id="rig" movement-controls="fly:true;" spawn-in-circle="radius:3" networked="template:#rig-template;">
         <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice.
          We set the camera to head height for e.g. computer users, but otherwise never touch it again; if the user enters VR,
          its rotation and position will be updated by the headset in VR. If we need to touch the user's position
@@ -129,6 +123,7 @@
           networked="template:#avatar-template;"
           visible="false"
         >
+        </a-entity>
       </a-entity>
     </a-scene>
 
