@@ -69,6 +69,7 @@ AFRAME.registerComponent('networked-hand-controls', {
 
   init() {
     this.setup();
+    this.rendererSystem = this.el.sceneEl.systems.renderer;
 
     if (this.data.handModelStyle !== "controller") {
       this.addHandModel();
@@ -210,7 +211,7 @@ AFRAME.registerComponent('networked-hand-controls', {
 
       const handMaterial = newMesh.children[1].material;
       handMaterial.color = new THREE.Color(this.data.color);
-      this.el.sceneEl.systems.renderer.applyColorCorrection(handMaterial.color);
+      this.rendererSystem.applyColorCorrection(handMaterial.color);
       newMesh.position.set(0, 0, 0);
       newMesh.rotation.set(0, 0, handModelOrientation);
     });
@@ -221,7 +222,7 @@ AFRAME.registerComponent('networked-hand-controls', {
     if (!mesh) return;
     const handMaterial = mesh.children[1].material;
     handMaterial.color.set(this.data.color);
-    this.el.sceneEl.systems.renderer.applyColorCorrection(handMaterial.color);
+    this.rendererSystem.applyColorCorrection(handMaterial.color);
   },
 
   controllerComponents: [
