@@ -25,15 +25,16 @@ function addHandTemplate(hand) {
 
   templateOuter.appendChild(templateInner);
 
-  NAF.schemas.schemaDict[`#${hand}-hand-default-template`] = {
-    template: `#${hand}-hand-default-template`,
+  const refTemplateId = `#${templateOuter.id}`;
+  NAF.schemas.schemaDict[refTemplateId] = {
+    template: refTemplateId,
     components: [
       'position',
       'rotation',
       'networked-hand-controls',
     ]
   };
-  NAF.schemas.templateCache[`#${hand}-hand-default-template`] = templateOuter;
+  NAF.schemas.templateCache[refTemplateId] = templateOuter;
 }
 ["left","right"].forEach(addHandTemplate);
 
