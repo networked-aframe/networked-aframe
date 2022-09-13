@@ -362,8 +362,16 @@ NAF allows easily adding hand models visible to the others that show gestures ma
 All you have to do is use the built in `networked-hand-controls` component, by adding these two entities as children of your camera rig:
 
 ```html
-<a-entity networked-hand-controls="hand:left" networked="template:#left-hand-default-template"></a-entity>
-<a-entity networked-hand-controls="hand:right" networked="template:#right-hand-default-template"></a-entity>
+<a-entity
+  id="my-tracked-left-hand"
+  networked-hand-controls="hand:left"
+  networked="template:#left-hand-default-template"
+></a-entity>
+<a-entity
+  id="my-tracked-right-hand"
+  networked-hand-controls="hand:right"
+  networked="template:#right-hand-default-template"
+></a-entity
 ```
 
 To see a working demo, check out the [Glitch NAF Tracked Controllers Example](https://naf-examples.glitch.me/tracked-controllers.html).
