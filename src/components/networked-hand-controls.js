@@ -89,6 +89,11 @@ AFRAME.registerComponent('networked-hand-controls', {
     }).then(() => {
       if (this.local) {
         this.addControllerComponents(this.data.handModelStyle === "controller");
+      } else {
+        // Adding a class to easily see what the entity is in the aframe
+        // inspector. This is shown in the class field in the panel after you
+        // click the entity.
+        this.el.classList.add('naf-remote-hand');
       }
     });
   },
