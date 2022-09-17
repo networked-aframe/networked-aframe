@@ -11,10 +11,18 @@ const karma_conf = {
     'TEST_ENV'
   ],
   webpack: {
-    mode: "none",
+    mode: 'none',
     module: {
       rules: [
-        { test: /\.js$/, loader: "babel-loader", exclude: /node_modules/, options: { presets: ['@babel/preset-env'] }, }
+        {
+          test: /\.js$/,
+          loader: 'babel-loader',
+          exclude: /node_modules/,
+          options: {
+            presets: ['@babel/preset-env'],
+            plugins: [['istanbul', { exclude: ['**/node_modules/**', '**/tests/**'] }]]
+          }
+        }
       ]
     }
   },
@@ -34,7 +42,6 @@ const karma_conf = {
   frameworks: ['mocha', 'sinon-chai', 'webpack'],
   preprocessors: {
     'tests/unit/**/*.js': ['webpack', 'env'],
-    'src/**/*.js': ['webpack', 'coverage']
   },
   plugins: [
     'karma-webpack',
@@ -47,6 +54,14 @@ const karma_conf = {
     'karma-env-preprocessor'
   ],
   reporters: ['mocha', 'coverage'],
+  coverageReporter: {
+    dir: 'tests/coverage',
+    includeAllSources: true,
+    reporters: [
+      {'type': 'html', subdir: 'report'},
+      {'type': 'lcov', subdir: '.'}
+    ]
+  },
   logLevel: 'INFO',
   colors: true,
   singleRun: true
