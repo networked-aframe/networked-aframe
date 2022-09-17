@@ -2,9 +2,8 @@
 var naf = require('../NafIndex');
 
 AFRAME.registerComponent('networked-video-source', {
-
   schema: {
-    streamName: { default: 'video' },
+    streamName: { default: 'video' }
   },
 
   dependencies: ['material'],
@@ -20,7 +19,8 @@ AFRAME.registerComponent('networked-video-source', {
       const ownerId = networkedEl.components.networked.data.owner;
 
       if (ownerId) {
-        NAF.connection.adapter.getMediaStream(ownerId, this.data.streamName)
+        NAF.connection.adapter
+          .getMediaStream(ownerId, this.data.streamName)
           .then(this._setMediaStream)
           .catch((e) => naf.log.error(`Error getting media stream for ${ownerId}`, e));
       } else {
@@ -30,12 +30,11 @@ AFRAME.registerComponent('networked-video-source', {
   },
 
   _setMediaStream(newStream) {
-
-    if(!this.video) {
+    if (!this.video) {
       this.setupVideo();
     }
 
-    if(newStream != this.stream) {
+    if (newStream != this.stream) {
       if (this.stream) {
         this._clearMediaStream();
       }
@@ -64,11 +63,9 @@ AFRAME.registerComponent('networked-video-source', {
   },
 
   _clearMediaStream() {
-
     this.stream = null;
 
     if (this.videoTexture) {
-
       if (this.videoTexture.image instanceof HTMLVideoElement) {
         // Note: this.videoTexture.image === this.video
         const video = this.videoTexture.image;
@@ -82,11 +79,11 @@ AFRAME.registerComponent('networked-video-source', {
     }
   },
 
-  remove: function() {
-      this._clearMediaStream();
+  remove: function () {
+    this._clearMediaStream();
   },
 
-  setupVideo: function() {
+  setupVideo: function () {
     if (!this.video) {
       const video = document.createElement('video');
       video.setAttribute('autoplay', true);
