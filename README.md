@@ -327,16 +327,18 @@ and rotation precision of 0.5 degree, use it like this:
   template: '#avatar-template',
   components: [
     {
-      component: "position",
+      component: 'position',
       requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
     },
     {
-      component: "rotation",
+      component: 'rotation',
       requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
     }
   ]
 }
 ```
+
+The default schema that sync position and rotation uses the above optimization since version 0.11.0.
 
 ### Syncing nested templates - eg. hands
 
@@ -404,16 +406,28 @@ Default templates and networked schemas are already defined as follow:
 NAF.schemas.add({
   template: '#left-hand-default-template'
   components: [
-    'position',
-    'rotation',
+    {
+      component: 'position',
+      requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+    },
+    {
+      component: 'rotation',
+      requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+    },
     'networked-hand-controls'
   ]
 });
 NAF.schemas.add({
   template: '#right-hand-default-template'
   components: [
-    'position',
-    'rotation',
+    {
+      component: 'position',
+      requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+    },
+    {
+      component: 'rotation',
+      requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+    },
     'networked-hand-controls'
   ]
 });

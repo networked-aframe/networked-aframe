@@ -29,9 +29,15 @@ function addHandTemplate(hand) {
   NAF.schemas.schemaDict[refTemplateId] = {
     template: refTemplateId,
     components: [
-      'position',
-      'rotation',
-      'networked-hand-controls',
+      {
+        component: 'position',
+        requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+      },
+      {
+        component: 'rotation',
+        requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+      },
+      'networked-hand-controls'
     ]
   };
   NAF.schemas.templateCache[refTemplateId] = templateOuter;
