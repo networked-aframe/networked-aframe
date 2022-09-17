@@ -1,7 +1,6 @@
 /* global AFRAME, NAF, THREE */
 var deepEqual = require('../DeepEquals');
 var InterpolationBuffer = require('buffered-interpolation');
-var DEG2RAD = THREE.MathUtils.DEG2RAD;
 var OBJECT3D_COMPONENTS = ['position', 'rotation', 'scale'];
 
 function defaultRequiresUpdate() {
@@ -139,8 +138,6 @@ AFRAME.registerComponent('networked', {
       el: this.el
     };
 
-    this.conversionEuler = new THREE.Euler();
-    this.conversionEuler.order = "YXZ";
     this.bufferInfos = [];
     this.bufferPosition = new THREE.Vector3();
     this.bufferQuaternion = new THREE.Quaternion();
@@ -411,6 +408,21 @@ AFRAME.registerComponent('networked', {
       // Call networkUpdatePredicate first so that it can update any cached values in the event of a fullSync.
       if (this.networkUpdatePredicates[i](syncedComponentData) || fullSync) {
         componentsData = componentsData || {};
+        if (componentName === 'rotation') {
+          // We compared the rotation, but we are sending actually the quaternion.
+          // JSON.stringify(new THREE.Quaternion(0,1,0,1)) gives '{"_x": 0,"_y": 1,"_z": 0,"_w": 1}' with "_" for each key
+          // so we need to create an object for it to work properly. THREE.Vector3 doesn't have this issue.
+          const q = componentElement.object3D.quaternion;
+          if (!componentElement.quaternionObj) {
+            componentElement.quaternionObj = {};
+          }
+          const qObj = componentElement.quaternionObj;
+          qObj.x = q.x;
+          qObj.y = q.y;
+          qObj.z = q.z;
+          qObj.w = q.w;
+          syncedComponentData = qObj;
+        }
         componentsData[i] = syncedComponentData;
       }
     }
@@ -560,8 +572,8 @@ AFRAME.registerComponent('networked', {
         buffer.setPosition(this.bufferPosition.set(data.x, data.y, data.z));
         return;
       case 'rotation':
-        this.conversionEuler.set(DEG2RAD * data.x, DEG2RAD * data.y, DEG2RAD * data.z);
-        buffer.setQuaternion(this.bufferQuaternion.setFromEuler(this.conversionEuler));
+        this.bufferQuaternion.copy(data);
+        buffer.setQuaternion(this.bufferQuaternion);
         return;
       case 'scale':
         buffer.setScale(this.bufferScale.set(data.x, data.y, data.z));

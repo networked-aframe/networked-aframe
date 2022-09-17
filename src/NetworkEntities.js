@@ -41,7 +41,8 @@ class NetworkEntities {
     var hasRotation = componentData['rotation'];
     if (hasRotation) {
       var rotation = componentData.rotation;
-      entity.setAttribute('rotation', rotation);
+      // rotation is really the quaternion here
+      entity.object3D.quaternion.copy(rotation);
     }
   }
 
