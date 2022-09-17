@@ -11,8 +11,14 @@ class Schemas {
     return {
       template: name,
       components: [
-        'position',
-        'rotation',
+        {
+          component: 'position',
+          requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+        },
+        {
+          component: 'rotation',
+          requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+        }
       ]
     }
   }
