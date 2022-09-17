@@ -4,6 +4,15 @@ const path = require("path");
 const express = require("express");           // web framework external module
 const socketIo = require("socket.io");        // web socket external module
 const easyrtc = require("open-easyrtc");      // EasyRTC external module
+// To generate a certificate for local development with https, you can use
+// https://github.com/FiloSottile/mkcert
+// Then to enable https on the node server, uncomment the next lines
+// and the webServer line down below.
+// const https = require("https");
+// const fs = require("fs");
+// const privateKey = fs.readFileSync("key.pem", "utf8");
+// const certificate = fs.readFileSync("cert.pem", "utf8");
+// const credentials = { key: privateKey, cert: certificate };
 
 // Set process name
 process.title = "networked-aframe-server";
@@ -32,6 +41,8 @@ app.use(express.static(path.resolve(__dirname, "..", "examples")));
 
 // Start Express http server
 const webServer = http.createServer(app);
+// To enable https on the node server, comment the line above and uncomment the line below
+// const webServer = https.createServer(credentials, app);
 
 // Start Socket.io so it attaches itself to Express server
 const socketServer = socketIo.listen(webServer, {"log level": 1});
