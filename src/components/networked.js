@@ -409,7 +409,7 @@ AFRAME.registerComponent('networked', {
       if (this.networkUpdatePredicates[i](syncedComponentData) || fullSync) {
         componentsData = componentsData || {};
         if (componentName === 'rotation') {
-          // We compared the rotation, but we are sending actually the quaternion.
+          // We compared the rotation, but we actually send the quaternion.
           // JSON.stringify(new THREE.Quaternion(0,1,0,1)) gives '{"_x": 0,"_y": 1,"_z": 0,"_w": 1}' with "_" for each key
           // so we need to create an object for it to work properly. THREE.Vector3 doesn't have this issue.
           const q = componentElement.object3D.quaternion;
