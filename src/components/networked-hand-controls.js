@@ -21,6 +21,7 @@ function addHandTemplate(hand) {
   let templateInner = document.createElement('a-entity');
 
   templateOuter.id = `${hand}-hand-default-template`;
+  templateInner.setAttribute('rotation', '0 0 0'); // to set the YXZ order
   templateInner.setAttribute('networked-hand-controls', `hand: ${hand}`);
 
   templateOuter.appendChild(templateInner);
