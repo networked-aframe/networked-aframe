@@ -404,7 +404,7 @@ Default templates and networked schemas are already defined as follow:
 
 ```javascript
 NAF.schemas.add({
-  template: '#left-hand-default-template'
+  template: '#left-hand-default-template',
   components: [
     {
       component: 'position',
@@ -418,7 +418,7 @@ NAF.schemas.add({
   ]
 });
 NAF.schemas.add({
-  template: '#right-hand-default-template'
+  template: '#right-hand-default-template',
   components: [
     {
       component: 'position',
