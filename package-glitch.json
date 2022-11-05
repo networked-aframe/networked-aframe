@@ -8,7 +8,7 @@
     "start": "node ./server/easyrtc-server.js"
   },
   "dependencies": {
-    "networked-aframe": "^0.10.0"
+    "networked-aframe": "^0.11.0"
   },
   "engines": {
     "node": ">=16"
