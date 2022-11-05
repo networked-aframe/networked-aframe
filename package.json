@@ -25,9 +25,9 @@
   },
   "repository": "networked-aframe/networked-aframe",
   "dependencies": {
-    "buffered-interpolation": "github:Infinitelee/buffered-interpolation",
+    "buffered-interpolation": "Infinitelee/buffered-interpolation#5bb18421ebf2bf11664645cdc7a15bd77ee2156b",
     "express": "^4.17.3",
-    "open-easyrtc": "^2.0.14",
+    "open-easyrtc": "^2.0.17",
     "socket.io": "^2.5.0"
   },
   "devDependencies": {
