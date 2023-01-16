@@ -80,9 +80,9 @@ AFRAME.registerComponent('toggle-ownership', {
 
     const rotation = this.el.object3D.rotation;
     this.el.setAttribute('rotation', {
-      x: THREE.Math.radToDeg(rotation.x),
-      y: THREE.Math.radToDeg(rotation.y),
-      z: THREE.Math.radToDeg(rotation.z),
+      x: THREE.MathUtils.radToDeg(rotation.x),
+      y: THREE.MathUtils.radToDeg(rotation.y),
+      z: THREE.MathUtils.radToDeg(rotation.z),
     });
   }
 });
