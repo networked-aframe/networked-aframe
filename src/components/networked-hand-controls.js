@@ -17,8 +17,8 @@
 // this is a way to bypass adding the template in to the HTML, as well as the already awkward NAF.schemas.add 
 // workaround. this makes the use of this component for the end user much simpler.
 function addHandTemplate(hand) {
-  let templateOuter = document.createElement('template');
-  let templateInner = document.createElement('a-entity');
+  const templateOuter = document.createElement('template');
+  const templateInner = document.createElement('a-entity');
 
   templateOuter.id = `${hand}-hand-default-template`;
   templateInner.setAttribute('rotation', '0 0 0'); // to set the YXZ order
