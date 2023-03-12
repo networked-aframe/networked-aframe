@@ -100,6 +100,7 @@
       <a-entity environment="preset:starry;groundColor:#000000;"></a-entity>
       <a-entity light="type:ambient;intensity:0.5"></a-entity>
 
+      <!-- Networked entities will be added as children of the platform -->
       <a-box id="platform" color="tomato" depth="10" height=".5" width="10" position="0 10 0">
 
       <!--   Here we declare only the local user's avatar, which we then broadcast to other users     -->
@@ -111,6 +112,7 @@
              `attachTemplateToLocal:false` option. This makes our local copies invisible on our machine, but visible on everyone else's.
       -->
       <a-entity id="rig" movement-controls="fly:true;" spawn-in-circle="radius:3" networked="template:#rig-template; attachToParentId:platform;">
+        <!-- We add attachToParentId:platform because we want networked entities to end up as a child of platform entity not the root a-scene. -->
         <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice.
          We set the camera to head height for e.g. computer users, but otherwise never touch it again; if the user enters VR,
          its rotation and position will be updated by the headset in VR. If we need to touch the user's position
