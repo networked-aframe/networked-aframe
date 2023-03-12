@@ -117,6 +117,7 @@ AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
     attachTemplateToLocal: { default: true },
+    attachToParentId: { default: '' },
     persistent: { default: false },
 
     networkId: {default: ''},
@@ -427,6 +428,7 @@ AFRAME.registerComponent('networked', {
     syncData.template = data.template;
     syncData.persistent = data.persistent;
     syncData.parent = this.getParentId();
+    syncData.attachToParentId = data.attachToParentId;
     syncData.components = components;
     syncData.isFirstSync = !!isFirstSync;
     return syncData;

@@ -88,6 +88,7 @@ class NetworkEntities {
 
   receiveFirstUpdateFromEntity(entityData) {
     var parent = entityData.parent;
+    var attachToParentId = entityData.attachToParentId;
     var networkId = entityData.networkId;
 
     var parentNotCreatedYet = parent && !this.hasEntity(parent);
@@ -96,7 +97,7 @@ class NetworkEntities {
     } else {
       var remoteEntity = this.createRemoteEntity(entityData);
       this.createAndAppendChildren(networkId, remoteEntity);
-      this.addEntityToPage(remoteEntity, parent);
+      this.addEntityToPage(remoteEntity, parent, attachToParentId);
     }
   }
 
@@ -121,9 +122,11 @@ class NetworkEntities {
     }
   }
 
-  addEntityToPage(entity, parentId) {
+  addEntityToPage(entity, parentId, attachToParentId) {
     if (this.hasEntity(parentId)) {
       this.addEntityToParent(entity, parentId);
+    } else if (attachToParentId) {
+      this.addEntityToParentId(entity, attachToParentId)
     } else {
       this.addEntityToSceneRoot(entity);
     }
@@ -131,6 +134,16 @@ class NetworkEntities {
 
   addEntityToParent(entity, parentId) {
     this.entities[parentId].appendChild(entity);
+  }
+
+  addEntityToParentId(el, attachToParentId) {
+    var parent = document.querySelector(`#${attachToParentId}`);
+    if (!parent) {
+      NAF.log.warn('Tried to add entity to parent, but parent with id', attachToParentId,
+        'is not in the scene');
+      return;
+    }
+    parent.appendChild(el);
   }
 
   addEntityToSceneRoot(el) {
