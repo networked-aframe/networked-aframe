@@ -137,7 +137,7 @@ class NetworkEntities {
   }
 
   addEntityToParentId(el, attachToParentId) {
-    var parent = document.querySelector(`#${attachToParentId}`);
+    var parent = document.querySelector(attachToParentId);
     if (!parent) {
       NAF.log.warn('Tried to add entity to parent, but parent with id', attachToParentId,
         'is not in the scene');

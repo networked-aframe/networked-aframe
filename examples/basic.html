@@ -111,7 +111,7 @@
              including all applicable child elements. However, because we don't need to see our own avatar, we use the
              `attachTemplateToLocal:false` option. This makes our local copies invisible on our machine, but visible on everyone else's.
       -->
-      <a-entity id="rig" movement-controls="fly:true;" spawn-in-circle="radius:3" networked="template:#rig-template; attachToParentId:platform;">
+      <a-entity id="rig" movement-controls="fly:true;" spawn-in-circle="radius:3" networked="template:#rig-template; attachToParentId:#platform;">
         <!-- We add attachToParentId:platform because we want networked entities to end up as a child of platform entity not the root a-scene. -->
         <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice.
          We set the camera to head height for e.g. computer users, but otherwise never touch it again; if the user enters VR,
