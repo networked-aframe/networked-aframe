@@ -156,7 +156,8 @@
           spawn-in-circle="radius:3"
           networked="template:#rig-template; allowNonNetworkedParent:true;"
         >
-          <!-- We add allowNonNetworkedParent because we want networked entities to end up as a child of platform entity not the root a-scene. -->
+          <!-- We add allowNonNetworkedParent because we want networked entities to end up as a child of platform entity not the root a-scene.
+          -->
           <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice.
          We set the camera to head height for e.g. computer users, but otherwise never touch it again; if the user enters VR,
          its rotation and position will be updated by the headset in VR. If we need to touch the user's position
@@ -172,9 +173,6 @@
             visible="false"
           >
           </a-entity>
-
-          <!-- <a-entity id="upButton" position="0 0 -1" text="value: Move Up" scale="2 2 2" material="color: blue; shader: flat" geometry="primitive: box" onclick="movePlatformUp()"></a-entity>
-      <a-entity id="downButton" position="0 0 -2" text="value: Move Down" scale="2 2 2" material="color: red; shader: flat" geometry="primitive: box" onclick="movePlatformDown()"></a-entity> -->
         </a-entity>
       </a-box>
     </a-scene>
