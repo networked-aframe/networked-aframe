@@ -88,16 +88,26 @@ class NetworkEntities {
 
   receiveFirstUpdateFromEntity(entityData) {
     var parent = entityData.parent;
-    var attachToParentId = entityData.attachToParentId;
     var networkId = entityData.networkId;
 
-    var parentNotCreatedYet = parent && !this.hasEntity(parent);
+    var parentNotCreatedYet
+    var firstChar = parent.toString()[0]
+    var firstCharIsLetter = /^[A-Za-z#]$/.test(firstChar)
+
+    if (!parent) {
+      parentNotCreatedYet = false
+    } else if (firstCharIsLetter && document.querySelector(`#${parent}`)) {
+      parentNotCreatedYet = false
+    } else if (!this.hasEntity(parent)) {
+      parentNotCreatedYet = true
+    }
+
     if (parentNotCreatedYet) {
       this.childCache.addChild(parent, entityData);
     } else {
       var remoteEntity = this.createRemoteEntity(entityData);
       this.createAndAppendChildren(networkId, remoteEntity);
-      this.addEntityToPage(remoteEntity, parent, attachToParentId);
+      this.addEntityToPage(remoteEntity, parent);
     }
   }
 
@@ -122,11 +132,12 @@ class NetworkEntities {
     }
   }
 
-  addEntityToPage(entity, parentId, attachToParentId) {
+  addEntityToPage(entity, parentId) {
+    var nonNetworkedParent = document.querySelector(`#${parentId}`)
     if (this.hasEntity(parentId)) {
       this.addEntityToParent(entity, parentId);
-    } else if (attachToParentId) {
-      this.addEntityToParentId(entity, attachToParentId)
+    } else if (nonNetworkedParent) {
+      nonNetworkedParent.appendChild(entity);
     } else {
       this.addEntityToSceneRoot(entity);
     }
@@ -134,16 +145,6 @@ class NetworkEntities {
 
   addEntityToParent(entity, parentId) {
     this.entities[parentId].appendChild(entity);
-  }
-
-  addEntityToParentId(el, attachToParentId) {
-    var parent = document.querySelector(attachToParentId);
-    if (!parent) {
-      NAF.log.warn('Tried to add entity to parent, but parent with id', attachToParentId,
-        'is not in the scene');
-      return;
-    }
-    parent.appendChild(el);
   }
 
   addEntityToSceneRoot(el) {

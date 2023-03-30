@@ -60,10 +60,50 @@
         const components = NAF.schemas.getComponentsOriginal(template);
         return components;
       };
+
+      // Move the platform up
+      function movePlatformUp() {
+        platform.setAttribute('position', { y: platform.getAttribute('position').y + 5 });
+      }
+
+      // Move the platform down
+      function movePlatformDown() {
+        platform.setAttribute('position', { y: platform.getAttribute('position').y - 5 });
+      }
+
+      // Move the platform back to the starting height
+      function restPlatformHeight() {
+        platform.setAttribute('position', { y: 10 });
+      }
     </script>
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+    <style>
+      button {
+        font-size: 24px;
+        padding: 12px 24px;
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        position: relative;
+        z-index: 10;
+      }
+
+      #resetButton {
+        background-color: rgb(126, 102, 102);
+      }
+
+      button:hover {
+        background-color: #0b7dda;
+      }
+    </style>
   </head>
   <body>
+    <button id="upButton" onclick="movePlatformUp()" class="button">Move Up</button>
+    <button id="downButton" onclick="movePlatformDown()" class="button">Move Down</button>
+    <button id="resetButton" onclick="restPlatformHeight()" class="button resetButton">Reset</button>
+
     <a-scene
       networked-scene="
       room: basic;
@@ -100,31 +140,43 @@
       <a-entity environment="preset:starry;groundColor:#000000;"></a-entity>
       <a-entity light="type:ambient;intensity:0.5"></a-entity>
 
-      <!--   Here we declare only the local user's avatar, which we then broadcast to other users     -->
-      <!--   The 'spawn-in-circle' component will set the position and rotation of #rig;
+      <!-- Networked entities will be added as children of the platform -->
+      <a-box id="platform" color="tomato" depth="10" height=".5" width="10" position="0 10 0">
+        <!--   Here we declare only the local user's avatar, which we then broadcast to other users     -->
+        <!--   The 'spawn-in-circle' component will set the position and rotation of #rig;
              because this entity also has the networked component, and position and rotation are tracked by default,
              the changes made by spawn-in-circle will be kept in sync with other networked users.
              Also note that by adding the networked component with a template reference, we generate that full template,
              including all applicable child elements. However, because we don't need to see our own avatar, we use the
              `attachTemplateToLocal:false` option. This makes our local copies invisible on our machine, but visible on everyone else's.
       -->
-      <a-entity id="rig" movement-controls="fly:true;" spawn-in-circle="radius:3" networked="template:#rig-template;">
-        <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice.
+        <a-entity
+          id="rig"
+          movement-controls="fly:true;"
+          spawn-in-circle="radius:3"
+          networked="template:#rig-template; allowNonNetworkedParent:true;"
+        >
+          <!-- We add allowNonNetworkedParent because we want networked entities to end up as a child of platform entity not the root a-scene. -->
+          <!-- Here we add the camera. Adding the camera within a 'rig' is standard practice.
          We set the camera to head height for e.g. computer users, but otherwise never touch it again; if the user enters VR,
          its rotation and position will be updated by the headset in VR. If we need to touch the user's position
          or rotation, we always do that by adjusting the rig parent of the active camera. By making that rig--and the
          active camera appended to it--both networked, we ensure all player movement is kept in sync.
         -->
-        <a-entity
-          id="player"
-          camera
-          position="0 1.6 0"
-          look-controls
-          networked="template:#avatar-template;"
-          visible="false"
-        >
+          <a-entity
+            id="player"
+            camera
+            position="0 1.6 0"
+            look-controls
+            networked="template:#avatar-template;"
+            visible="false"
+          >
+          </a-entity>
+
+          <!-- <a-entity id="upButton" position="0 0 -1" text="value: Move Up" scale="2 2 2" material="color: blue; shader: flat" geometry="primitive: box" onclick="movePlatformUp()"></a-entity>
+      <a-entity id="downButton" position="0 0 -2" text="value: Move Down" scale="2 2 2" material="color: red; shader: flat" geometry="primitive: box" onclick="movePlatformDown()"></a-entity> -->
         </a-entity>
-      </a-entity>
+      </a-box>
     </a-scene>
 
     <script>
