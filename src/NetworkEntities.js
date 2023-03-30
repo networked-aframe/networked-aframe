@@ -91,12 +91,11 @@ class NetworkEntities {
     var networkId = entityData.networkId;
 
     var parentNotCreatedYet
-    var firstChar = parent.toString()[0]
-    var firstCharIsLetter = /^[A-Za-z#]$/.test(firstChar)
-
+    var cssIdentifierRegex = /^-?(?=[a-zA-Z0-9\xA0-\uFFFF])([a-zA-Z0-9_\u00A0-\uFFFF]*)(-[a-zA-Z0-9_\u00A0-\uFFFF]+)*$/;
+    var isValidCssClass = cssIdentifierRegex.test(parent)
     if (!parent) {
       parentNotCreatedYet = false
-    } else if (firstCharIsLetter && document.querySelector(`#${parent}`)) {
+    } else if (isValidCssClass && document.querySelector(`#${parent}`)) {
       parentNotCreatedYet = false
     } else if (!this.hasEntity(parent)) {
       parentNotCreatedYet = true
