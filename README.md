@@ -352,14 +352,14 @@ To sync nested templates setup your HTML nodes like so:
 </a-entity>
 ```
 
-In this example the head/camera, left and right hands will spawn their own templates which will be networked independently of the root player. Note: this parent-child relationship only works between one level, ie. a child entity's direct parent must have the `networked` component.
+In this example the head/camera, left and right hands of controllers will spawn their own templates which will be networked independently of the root player. Note: this is not related to hand tracking which is currently not supported. This parent-child relationship only works between one level, ie. a child entity's direct parent must have the `networked` component.
 
 You need to define your left and right hand templates yourself to show hand models for the other users. Only the position and rotation will be synced to the other users. To sync the hand gesture, see the `networked-hand-controls` component below.
 
 ### Tracked Controllers w/ Synced Gestures
 
 This is a much simpler alternative to the above.
-NAF allows easily adding hand models visible to the others that show gestures matching to which buttons are touched--so you can point and give a thumbs up or make a fist to other people in the room.
+NAF allows easily adding hand models visible to the others that show emulated gestures (not hand tracking) matching to which buttons are touched--so you can point and give a thumbs up or make a fist to other people in the room.
 
 All you have to do is use the built in `networked-hand-controls` component, by adding these two entities as children of your camera rig:
 
