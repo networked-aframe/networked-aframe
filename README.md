@@ -617,6 +617,11 @@ NAF.options.useLerp
 
 By default when an entity is created the [`buffered-interpolation`](https://github.com/InfiniteLee/buffered-interpolation) library is used to smooth out position, rotation and scale network updates. Set this to false if you don't want this feature to be used on creation.
 
+Offline usage
+-------------
+
+NAF already includes easyrtc thus running `npm run dev` will provide a fully working solution without accessing an external server. The examples though do rely on both AFrame and other dependencies that not packaged with NAF. Consequently one would have to first [adapt AFrame to work offline](https://aframe.io/docs/1.4.0/introduction/faq.html#can-i-use-a-frame-offline-or-self-hosted) then do the same for all additional components. This basically boils down to downloading the scripts used and their content, e.g assets like 3D models, fonts, etc. It is recommended to load the page while the network console open and identify what requests go outside of the host.
+
 Stay in Touch
 -------------
 
