@@ -622,6 +622,8 @@ Offline usage
 
 NAF already includes easyrtc thus running `npm run dev` will provide a fully working solution without accessing an external server. The examples though do rely on both AFrame and other dependencies that not packaged with NAF. Consequently one would have to first [adapt AFrame to work offline](https://aframe.io/docs/1.4.0/introduction/faq.html#can-i-use-a-frame-offline-or-self-hosted) then do the same for all additional components. This basically boils down to downloading the scripts used and their content, e.g assets like 3D models, fonts, etc. It is recommended to load the page while the network console open and identify what requests go outside of the host.
 
+For VR you will also need https as browsers require it for immersive mode. Instructions are provided in the `server/easyrtc-server.js` file. Namely you will have to generate a key and certificate, add them to your local CA then load them via the express server provided by NAF. Make sure to configure that properly at the top of `server/easyrtc-server.js` and enable https itself further down via `https.createServer` as instructed. Once you connect to the NAF server in VR the browser will still complain that the certificate is unknown. You can click on advanced and proceed.
+
 Stay in Touch
 -------------
 
