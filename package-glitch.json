@@ -11,7 +11,7 @@
     "networked-aframe": "^0.11.0"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "repository": {
     "url": "https://glitch.com/edit/#!/naf-examples"
