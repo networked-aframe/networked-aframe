@@ -72,7 +72,7 @@ Basic Example
 <html>
   <head>
     <title>My Networked-Aframe Scene</title>
-    <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="https://unpkg.com/networked-aframe@^0.11.0/dist/networked-aframe.min.js"></script>
