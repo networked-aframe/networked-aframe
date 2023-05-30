@@ -27,13 +27,13 @@
   "dependencies": {
     "buffered-interpolation": "Infinitelee/buffered-interpolation#5bb18421ebf2bf11664645cdc7a15bd77ee2156b",
     "express": "^4.17.3",
-    "open-easyrtc": "^2.0.18",
+    "open-easyrtc": "^2.0.20",
     "socket.io": "^2.5.0"
   },
   "devDependencies": {
     "@babel/core": "^7.18.5",
     "@babel/preset-env": "^7.18.2",
-    "aframe": "~1.3.0",
+    "aframe": "~1.4.0",
     "babel-loader": "^8.2.5",
     "babel-plugin-istanbul": "^6.1.1",
     "chai": "^4.3.6",
