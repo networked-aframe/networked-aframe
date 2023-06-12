@@ -329,11 +329,15 @@ class EasyRtcAdapter extends NoOpAdapter {
     });
 
     if (that.easyrtc.audioEnabled || that.easyrtc.videoEnabled) {
+      // See https://bugs.webkit.org/show_bug.cgi?id=236219 and workaround described in comment
+      // https://bugs.webkit.org/show_bug.cgi?id=218012#c37 to fix low volume on Safari iOS 16.5 compared to Chrome iOS
+      if (navigator.audioSession) navigator.audioSession.type = 'play-and-record';
       navigator.mediaDevices.getUserMedia({
         video: that.easyrtc.videoEnabled,
         audio: that.easyrtc.audioEnabled
       }).then(
         function(stream) {
+          if (navigator.audioSession) navigator.audioSession.type = 'playback';
           that.addLocalMediaStream(stream, "default");
           that.easyrtc.connect(that.app, connectSuccess, connectFailure);
         },
