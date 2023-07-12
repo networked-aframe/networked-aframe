@@ -14,7 +14,11 @@ AFRAME.registerComponent('networked-video-source', {
     this.stream = null;
 
     this._setMediaStream = this._setMediaStream.bind(this);
+    this._waitForMediaStream = this._waitForMediaStream.bind(this);
+    this._waitForMediaStream();
+  },
 
+  _waitForMediaStream() {
     NAF.utils.getNetworkedEntity(this.el).then((networkedEl) => {
       const ownerId = networkedEl.components.networked.data.owner;
 
@@ -34,7 +38,7 @@ AFRAME.registerComponent('networked-video-source', {
       this.setupVideo();
     }
 
-    if (newStream != this.stream) {
+    if (newStream !== this.stream) {
       if (this.stream) {
         this._clearMediaStream();
       }
@@ -56,6 +60,13 @@ AFRAME.registerComponent('networked-video-source', {
         const mesh = this.el.getObject3D('mesh');
         mesh.material.map = this.videoTexture;
         mesh.material.needsUpdate = true;
+
+        // Listen for the 'removetrack' event on the MediaStream
+        // that is emitted when the remote screen sharing stops.
+        newStream.addEventListener('removetrack', () => {
+          this._clearMediaStream();
+          this._waitForMediaStream();
+        });
       }
 
       this.stream = newStream;
@@ -76,6 +87,9 @@ AFRAME.registerComponent('networked-video-source', {
 
       this.videoTexture.dispose();
       this.videoTexture = null;
+      const mesh = this.el.getObject3D('mesh');
+      mesh.material.map = null;
+      mesh.material.needsUpdate = true;
     }
   },
 

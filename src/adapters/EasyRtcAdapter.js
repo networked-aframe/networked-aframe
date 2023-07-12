@@ -271,6 +271,7 @@ class EasyRtcAdapter extends NoOpAdapter {
       // Resolve the promise for the user's media stream by StreamName if it exists.
       if (pendingMediaRequests && pendingMediaRequests[streamName]) {
         pendingMediaRequests[streamName].resolve(stream);
+        delete pendingMediaRequests[streamName];
       }
     }
   }
