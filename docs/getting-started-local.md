@@ -297,7 +297,7 @@ By default NAF uses WebSockets to send packets to other users. This follows a cl
 
 ### Voice Chat / Audio Streaming
 
-NAF has built in voice chat when you're using WebRTC. Change `adapter` and `audio` properties of the `networked-scene` component to `easyrtc` and `true` respectively and your users will be able to speak to each other. This is a little hard to test locally because the audio feedback will destroy your ears, so try it with headphones and you'll hear your voice being echoed back to you without the feedback. Note: in order for audio streaming to work on a hosted server you'll need to be using HTTPS. 
+NAF has built in voice chat when you're using WebRTC. Change `adapter` and `audio` properties of the `networked-scene` component to `easyrtc` and `true` respectively, and change your avatag entity tag to `<a-entity class="avatar" networked-audio-source>`, and voila, your users will be able to speak to each other. This is a little hard to test locally because the audio feedback will destroy your ears, so try it with headphones and you'll hear your voice being echoed back to you without the feedback. Note: in order for audio streaming to work on a hosted server you'll need to be using HTTPS. 
 
 **Using HTTPS locally**:
 
