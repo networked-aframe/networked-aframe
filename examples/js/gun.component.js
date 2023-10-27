@@ -6,11 +6,20 @@ AFRAME.registerComponent('gun', {
   },
 
   init: function() {
-    var that = this;
-    document.body.onkeyup = function(e){
-      if(e.keyCode == that.data.triggerKeyCode){
-        that.shoot();
-      }
+    this.keyupListener = this.keyupListener.bind(this);
+  },
+
+  play: function() {
+    document.body.addEventListener('keyup', this.keyupListener);
+  },
+
+  pause: function() {
+    document.body.removeEventListener('keyup', this.keyupListener);
+  },
+
+  keyupListener: function(e) {
+    if (e.keyCode === this.data.triggerKeyCode) {
+      this.shoot();
     }
   },
 
@@ -22,7 +31,7 @@ AFRAME.registerComponent('gun', {
     var el = document.createElement('a-entity');
     el.setAttribute('networked', 'template:' + this.data.bulletTemplate);
     el.setAttribute('remove-in-seconds', 3);
-    el.setAttribute('forward', 'speed:0.3');
+    el.setAttribute('forward', 'speed:0.2');
 
     var tip = document.querySelector('#player');
     el.setAttribute('position', this.getInitialBulletPosition(tip));
