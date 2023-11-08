@@ -13,7 +13,7 @@ Below the three example hosting services is extra information if you're using NA
 
 Cost: Free!
 
-Custom domain: [Not yet](https://glitch.com/faq#domain)
+Custom domain: [Not yet](https://help.glitch.com/hc/en-us/articles/16287558909965-Adding-a-Custom-Domain)
 
 Steps:
 1. Sign up for a Glitch.com account (you can sign in with GitHub)
@@ -25,7 +25,7 @@ That's it! You can then click "Show" and you have a working example of NAF runni
 
 ## Heroku (~2 hours setup time)
 
-Cost: [Free tier](https://www.heroku.com/pricing)
+Cost: [$5/mo](https://www.heroku.com/pricing)
 
 Custom domain: Yes
 
