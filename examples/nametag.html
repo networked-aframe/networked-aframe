@@ -67,8 +67,8 @@
             this.nametagInput.value = this.data.name;
 
             // add the initial color to the html overlay color picker button
-            document.querySelector('button').style.backgroundColor = this.data.color;
-            document.querySelector('button').style.color = this.data.color;
+            document.querySelector('#color-changer').style.backgroundColor = this.data.color;
+            document.querySelector('#color-changer').style.color = this.data.color;
           }
         },
 
@@ -103,8 +103,8 @@
       style="z-index: 100; bottom: 24px; left: 24px; position: fixed"
       onclick="let newColor = window.ntExample.randomColor();
              document.getElementById('player').setAttribute('player-info', 'color', newColor); 
-             document.querySelector('button').style.backgroundColor = newColor;
-             document.querySelector('button').style.color = newColor;
+             document.querySelector('#color-changer').style.backgroundColor = newColor;
+             document.querySelector('#color-changer').style.color = newColor;
     "
     >
       ■
