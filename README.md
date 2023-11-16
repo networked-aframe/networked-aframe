@@ -102,6 +102,7 @@ Open in two tabs if nobody else is online, or [remix the code examples yourself]
 * [Positional Audio](https://naf-examples.glitch.me/basic-audio.html)
 * [Video Streaming](https://naf-examples.glitch.me/basic-video.html)
 * [Nametags](https://naf-examples.glitch.me/nametag.html)
+* [Nametags with UI in SolidJS/Tailwind CSS](https://naf-nametag-solidjs.glitch.me/) ([GitHub](https://github.com/networked-aframe/naf-nametag-solidjs))
 * [Tracked Controllers](https://naf-examples.glitch.me/tracked-controllers.html)
 * [More...](https://naf-examples.glitch.me)
 
