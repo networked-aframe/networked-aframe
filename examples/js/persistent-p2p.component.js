@@ -49,7 +49,7 @@ AFRAME.registerComponent('persistent-p2p', {
     // Sending the networked data are done by NAF already with the same logic.
     document.body.addEventListener('clientConnected', (evt) => {
       const targetClientId = evt.detail.clientId;
-      for (let id in NAF.entities.entities) {
+      for (const id in NAF.entities.entities) {
         if (NAF.entities.entities[id]) {
           const networkedComponent = NAF.entities.entities[id].components.networked;
           const networkedData = networkedComponent.data;
@@ -83,5 +83,3 @@ AFRAME.registerComponent('persistent-p2p', {
     });
   }
 });
-
-

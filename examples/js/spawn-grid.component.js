@@ -30,7 +30,7 @@ AFRAME.registerComponent('spawn-grid', {
     this.el.appendChild(cloned);
 
     var id = cloned.getAttribute('id');
-    var newId = id + '-' + row + '-'+ col;
+    var newId = id + '-' + row + '-' + col;
     cloned.setAttribute('id', newId);
 
     var position = x + ' ' + y + ' ' + z;
