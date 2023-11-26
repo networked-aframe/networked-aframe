@@ -21,58 +21,48 @@
     <!--   used to prevent players from spawning on top of each other so much  -->
     <script src="/js/spawn-in-circle.component.js"></script>
 
-<style>
+    <style>
+      .chat {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 300px;
 
-.chat {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 300px;
-            
-    
-            overflow: hidden;
-          
-            z-index: 100;
-        }
+        overflow: hidden;
 
-        #input {
-            width: 70%;
-            padding: 10px;
-            border: none;
-            outline: none;
-            border-bottom: 1px solid #ccc;
-            box-sizing: border-box;
-        }
+        z-index: 100;
+      }
 
-        #send-btn {
-            width: 30%;
-            padding: 10px;
-            border: none;
-            background-color: #4caf50;
-            color: #fff;
-            cursor: pointer;
-            border-radius: 0 8px 8px 0;
-        }
+      #input {
+        width: 70%;
+        padding: 10px;
+        border: none;
+        outline: none;
+        border-bottom: 1px solid #ccc;
+        box-sizing: border-box;
+      }
 
-        .messages {
-            max-height: 200px;
-            overflow-y: auto;
-            padding: 10px;
-            color: #fff;
-        }
+      #send-btn {
+        width: 30%;
+        padding: 10px;
+        border: none;
+        background-color: #4caf50;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 0 8px 8px 0;
+      }
+      #send-btn:hover {
+        background-color: #43a047;
+      }
 
-        .message {
-            background-color: #4caf50;
-            color: #fff;
-            border-radius: 8px;
-            padding: 5px 10px;
-            margin-bottom: 8px;
-            max-width: 70%;
-            align-self: flex-end;
-        }
-
-</style>
-
+      .messages {
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 10px;
+        color: #fff;
+        white-space: pre-wrap;
+      }
+    </style>
 
     <script>
       // Called by Networked-Aframe when connected to server (optional)
@@ -114,71 +104,65 @@
         return components;
       };
 
+      document.addEventListener('DOMContentLoaded', () => {
+        const form = document.querySelector('#form'); // form
+        const btn = document.querySelector('#send-btn'); // SEND btn
+        const input = document.querySelector('#input'); // input field with the text
+        const log = document.querySelector('.messages'); // message log
+        const username = document.querySelector('#user-name');
+        username.value = 'user-' + Math.round(Math.random() * 10000);
 
+        // when you want to send a message
+        form.addEventListener('submit', (evt) => {
+          evt.preventDefault();
 
-document.addEventListener("DOMContentLoaded", () => {
+          // log your own messages
+          if (input.value === '') {
+            alert('Please enter a message');
+          } else {
+            log.textContent += username.value + ': ' + input.value + '\n';
+          }
 
-    
-    
-    
-    const btn = document.querySelector("#send-btn");      // SEND btn
-    const input = document.querySelector("#input");     // input field with the text
-    const log = document.querySelector(".messages")    // message log
-    
-    console.log(btn, input, log)    
-    // when you want to send a message
-    btn.addEventListener("click", evt => {
-        
-        
+          // broadcast the text as some unique dataType (like "chat")
+          NAF.connection.broadcastData('chat', {
+            txt: input.value,
+            // Assign the name as username
+            name: username.value
+          });
+          // clear the input field
+          input.value = '';
+        });
 
-
-        // log your own messages
-        log.innerHTML += NAF.clientId + ": " + input.value + '<br>'
-        // broadcast the text as some unique dataType (like "chat")
-        NAF.connection.broadcastData("chat", {txt: input.value}) 
-
-
-console.log(NAF.clientId , input.value)
-
-    })
-    
-    // when a "chat" type message arrives
-    NAF.connection.subscribeToDataChannel("chat", (senderId, dataType, data, targetId) => {
-        // append the data.txt to the message log
-        log.innerHTML += senderId + ": " + data.txt + '<br>'
-    })
-    
-})
-
-
-
+        // when a "chat" type message arrives
+        NAF.connection.subscribeToDataChannel('chat', (senderId, dataType, data, targetId) => {
+          // append the data.txt to the message log and data.name as username
+          log.textContent += data.name + ': ' + data.txt + '\n';
+        });
+      });
     </script>
     <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
   </head>
   <body>
-
-
-
-
-
+    <!-- Chat Element //// -->
     <div class="chat">
-        <div style="display: flex;">
-            <input type="text" name="" id="input">
-            <button id="send-btn">Send</button>
+      <form id="form">
+        <div style="display: flex">
+          <input type="text" name="" id="input" />
+          <button id="send-btn">Send</button>
         </div>
-        <div class="messages">
-    
-        </div>
+      </form>
+      <div class="messages"></div>
     </div>
-    
 
-
-
-
+    <!-- Name Input //// -->
+    <div style="z-index: 100; bottom: 24px; left: 48px; position: fixed">
+      <h3 style="color: #fff">Your Name :</h3>
+      <input id="user-name" />
+    </div>
 
     <a-scene
       networked-scene="
-      room: basic;
+      room: basicchat;
       debug: true;
       adapter: wseasyrtc;
     "
@@ -238,11 +222,6 @@ console.log(NAF.clientId , input.value)
         </a-entity>
       </a-entity>
     </a-scene>
-
-
-
-
-
 
     <script>
       // Called by Networked-Aframe when connected to server
