@@ -140,6 +140,8 @@
         NAF.connection.subscribeToDataChannel('chat', (senderId, dataType, data, targetId) => {
           // append the data.txt to the message log and data.name as username
           log.textContent += data.name + ': ' + data.txt + '\n';
+           // Scroll to the bottom of the chat
+           log.scrollTop = log.scrollHeight;
         });
       });
     </script>
