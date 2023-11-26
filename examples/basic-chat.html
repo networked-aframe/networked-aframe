@@ -131,6 +131,9 @@
           });
           // clear the input field
           input.value = '';
+
+          // Scroll to the bottom of the chat
+          log.scrollTop = log.scrollHeight;
         });
 
         // when a "chat" type message arrives
