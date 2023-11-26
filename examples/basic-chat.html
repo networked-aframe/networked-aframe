@@ -27,9 +27,6 @@
         top: 0;
         left: 0;
         width: 300px;
-
-        overflow: hidden;
-
         z-index: 100;
       }
 
@@ -48,8 +45,8 @@
         border: none;
         background-color: #4caf50;
         color: #fff;
-        cursor: pointer;
         border-radius: 0 8px 8px 0;
+        cursor: pointer;
       }
       #send-btn:hover {
         background-color: #43a047;
@@ -119,12 +116,13 @@
           // log your own messages
           if (input.value === '') {
             alert('Please enter a message');
+            return; // Add this line to stop further execution
           } else {
             log.textContent += username.value + ': ' + input.value + '\n';
           }
 
           // broadcast the text as some unique dataType (like "chat")
-          NAF.connection.broadcastData('chat', {
+          NAF.connection.broadcastDataGuaranteed('chat', {
             txt: input.value,
             // Assign the name as username
             name: username.value
@@ -140,8 +138,8 @@
         NAF.connection.subscribeToDataChannel('chat', (senderId, dataType, data, targetId) => {
           // append the data.txt to the message log and data.name as username
           log.textContent += data.name + ': ' + data.txt + '\n';
-           // Scroll to the bottom of the chat
-           log.scrollTop = log.scrollHeight;
+          // Scroll to the bottom of the chat
+          log.scrollTop = log.scrollHeight;
         });
       });
     </script>
@@ -152,7 +150,7 @@
     <div class="chat">
       <form id="form">
         <div style="display: flex">
-          <input type="text" name="" id="input" />
+          <input type="text" name="" autocomplete="off" id="input" />
           <button id="send-btn">Send</button>
         </div>
       </form>
