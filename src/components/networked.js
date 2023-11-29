@@ -117,6 +117,7 @@ AFRAME.registerComponent('networked', {
   schema: {
     template: {default: ''},
     attachTemplateToLocal: { default: true },
+    allowNonNetworkedParent: { default: false },
     persistent: { default: false },
 
     networkId: {default: ''},
@@ -158,7 +159,7 @@ AFRAME.registerComponent('networked', {
     // Fill cachedElements array with null elements
     this.invalidateCachedElements();
 
-    this.initNetworkParent();
+    this.initParent();
 
     let networkId;
 
@@ -237,9 +238,12 @@ AFRAME.registerComponent('networked', {
     return !!this.el.firstUpdateData;
   },
 
-  initNetworkParent: function() {
+  initParent: function() {
     var parentEl = this.el.parentElement;
     if (parentEl['components'] && parentEl.components['networked']) {
+      this.parent = parentEl;
+    } else if (parentEl['components'] && this.data.allowNonNetworkedParent && parentEl.id) {
+      // Parent is non-networked
       this.parent = parentEl;
     } else {
       this.parent = null;
@@ -454,12 +458,13 @@ AFRAME.registerComponent('networked', {
   },
 
   getParentId: function() {
-    this.initNetworkParent(); // TODO fix calling this each network tick
+    this.initParent(); // TODO fix calling this each network tick
     if (!this.parent) {
       return null;
     }
     var netComp = this.parent.getAttribute('networked');
-    return netComp.networkId;
+    // If the parent is networked return the networkedId, otherwise the html element id.
+    return netComp ? netComp.networkId: this.parent.id;
   },
 
   /* Receiving updates */
