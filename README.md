@@ -96,16 +96,17 @@ More Examples
 
 Open in two tabs if nobody else is online, or [remix the code examples yourself](https://glitch.com/edit/#!/remix/naf-examples).
 
-**Updated:**
 * [Basic](https://naf-examples.glitch.me/basic.html)
 * [Basic with 4 clients](https://naf-examples.glitch.me/basic-4.html)
 * [Positional Audio](https://naf-examples.glitch.me/basic-audio.html)
 * [Video Streaming](https://naf-examples.glitch.me/basic-video.html)
 * [Nametags](https://naf-examples.glitch.me/nametag.html)
-* [Nametags with UI in SolidJS/Tailwind CSS](https://naf-nametag-solidjs.glitch.me/) ([GitHub](https://github.com/networked-aframe/naf-nametag-solidjs))
 * [Tracked Controllers](https://naf-examples.glitch.me/tracked-controllers.html)
 * [More...](https://naf-examples.glitch.me)
 
+More complete examples:
+* [Nametags with UI in SolidJS/Tailwind CSS](https://naf-nametag-solidjs.glitch.me/) ([GitHub](https://github.com/networked-aframe/naf-nametag-solidjs))
+* [Realistic animated avatars with UI to choose your avatar](https://naf-valid-avatars.glitch.me/) ([GitHub](https://github.com/networked-aframe/naf-valid-avatars))
 
 **Not updated to latest version:**
 * [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
