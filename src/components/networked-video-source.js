@@ -59,6 +59,7 @@ AFRAME.registerComponent('networked-video-source', {
 
         const mesh = this.el.getObject3D('mesh');
         mesh.material.map = this.videoTexture;
+        mesh.material.map.colorSpace = THREE.SRGBColorSpace;
         mesh.material.needsUpdate = true;
 
         // Listen for the 'removetrack' event on the MediaStream
