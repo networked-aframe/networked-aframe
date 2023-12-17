@@ -232,17 +232,17 @@ AFRAME.registerComponent('spawn-in-circle', {
 
     var angleDeg = angleRad * 180 / Math.PI;
     var angleToCenter = -1 * angleDeg + 90;
-    var rotationStr = '0 ' + angleToCenter + ' 0';
-    el.setAttribute('rotation', rotationStr);
+    angleRad = THREE.MathUtils.degToRad(angleToCenter);
+    el.object3D.rotation.set(0, angleRad, 0);
   },
 
   getRandomAngleInRadians: function() {
-    return Math.random()*Math.PI*2;
+    return Math.random() * Math.PI * 2;
   },
 
   randomPointOnCircle: function (radius, angleRad) {
-    x = Math.cos(angleRad)*radius;
-    y = Math.sin(angleRad)*radius;
+    var x = Math.cos(angleRad) * radius;
+    var y = Math.sin(angleRad) * radius;
     return {x: x, y: y};
   }
 });
