@@ -36,7 +36,7 @@ Now let's setup the required dependencies. Create a file called `package.json` a
   },
   "author": "YOUR_NAME",
   "dependencies": {
-    "networked-aframe": "^0.11.0"
+    "networked-aframe": "^0.12.0"
   }
 }
 ```
@@ -110,10 +110,10 @@ Here's the template we'll start with:
 ```html
 <html>
   <head>
-    <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
-    <script src="https://unpkg.com/networked-aframe@^0.11.0/dist/networked-aframe.min.js"></script>
+    <script src="https://unpkg.com/networked-aframe@^0.12.0/dist/networked-aframe.min.js"></script>
   </head>
   <body>
     <a-scene></a-scene>
@@ -122,8 +122,8 @@ Here's the template we'll start with:
 ```
 
 Please don't use `https://unpkg.com/networked-aframe/dist/networked-aframe.min.js` for production, this will download the latest major release that may contain breaking changes.
-It's ok for a testing environment to specify "@^0.11.0" in the url so it downloads the latest minor version that shouldn't have breaking changes.
-For production you want to pin to a specific version like `https://unpkg.com/networked-aframe@0.11.0/dist/networked-aframe.min.js`.
+It's ok for a testing environment to specify "@^0.12.0" in the url so it downloads the latest minor version that shouldn't have breaking changes.
+For production you want to pin to a specific version like `https://unpkg.com/networked-aframe@0.12.0/dist/networked-aframe.min.js`.
 
 If you want to use a more recent build from github master that is not released yet, you can use:
 
@@ -232,17 +232,17 @@ AFRAME.registerComponent('spawn-in-circle', {
 
     var angleDeg = angleRad * 180 / Math.PI;
     var angleToCenter = -1 * angleDeg + 90;
-    var rotationStr = '0 ' + angleToCenter + ' 0';
-    el.setAttribute('rotation', rotationStr);
+    angleRad = THREE.MathUtils.degToRad(angleToCenter);
+    el.object3D.rotation.set(0, angleRad, 0);
   },
 
   getRandomAngleInRadians: function() {
-    return Math.random()*Math.PI*2;
+    return Math.random() * Math.PI * 2;
   },
 
   randomPointOnCircle: function (radius, angleRad) {
-    x = Math.cos(angleRad)*radius;
-    y = Math.sin(angleRad)*radius;
+    var x = Math.cos(angleRad) * radius;
+    var y = Math.sin(angleRad) * radius;
     return {x: x, y: y};
   }
 });
@@ -313,7 +313,7 @@ I'm planning on writing a follow-up tutorial to this one that will explain how t
 
 ### Syncing Custom Components
 
-Components are synchronized by comparing the state of a component [provided by A-Frame](https://aframe.io/docs/0.7.0/core/entity.html#getattribute-componentname) on a network 'tick'. How quickly this tick happens can be defined in the [NAF Options](https://github.com/networked-aframe/networked-aframe#options), but the default is 15 times per second. On each tick the state is checked against its previous value, and if it changed it's sent over the network to the other users.
+Components are synchronized by comparing the state of a component [provided by A-Frame](https://aframe.io/docs/1.5.0/core/entity.html#getattribute-componentname) on a network 'tick'. How quickly this tick happens can be defined in the [NAF Options](https://github.com/networked-aframe/networked-aframe#options), but the default is 15 times per second. On each tick the state is checked against its previous value, and if it changed it's sent over the network to the other users.
 
 So how do we choose which components to sync? By default, the `position` and `rotation` components are synced but NAF lets you specify any component that you wish to sync, included child components found in the deep depths of your templates.
 
