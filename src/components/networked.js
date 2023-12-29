@@ -1,8 +1,13 @@
 /* global AFRAME, NAF, THREE */
 var deepEqual = require('../DeepEquals');
 var InterpolationBuffer = require('buffered-interpolation');
+// InterpolationBuffer.MODE_LERP is not exported, it's undefined
+var MODE_LERP = 0;
 var DEG2RAD = THREE.MathUtils.DEG2RAD;
 var OBJECT3D_COMPONENTS = ['position', 'rotation', 'scale'];
+
+// Expose InterpolationBuffer on NAF global
+NAF.InterpolationBuffer = InterpolationBuffer;
 
 function defaultRequiresUpdate() {
   let cachedData = null;
@@ -543,7 +548,7 @@ AFRAME.registerComponent('networked', {
     }
 
     if (!bufferInfo) {
-      bufferInfo = { buffer: new InterpolationBuffer(InterpolationBuffer.MODE_LERP, 0.1),
+      bufferInfo = { buffer: new InterpolationBuffer(MODE_LERP, 0.1),
                      object3D: el.object3D,
                      componentNames: [componentName] };
       this.bufferInfos.push(bufferInfo);
