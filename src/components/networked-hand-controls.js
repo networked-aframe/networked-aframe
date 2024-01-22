@@ -203,7 +203,6 @@ AFRAME.registerComponent('networked-hand-controls', {
     this.loader = new THREE.GLTFLoader();
     this.loader.setCrossOrigin('anonymous');
     const handmodelUrl = this.MODEL_BASE + this.MODEL_NAMES[this.data.handModelStyle + this.data.hand.charAt(0).toUpperCase() + this.data.hand.slice(1)];
-    
     this.loader.load(this.data.customHandModelURL || handmodelUrl, gltf => {
       const newMesh = gltf.scene.children[0];
       const handModelOrientation = this.data.hand === 'left' ? Math.PI / 2 : -Math.PI / 2;
@@ -212,13 +211,17 @@ AFRAME.registerComponent('networked-hand-controls', {
       this.clips = gltf.animations;
       this.clips.forEach((clip) => {
         this.clipNameToClip[clip.name] = clip;
-      })      
+      })
 
       this.el.setObject3D(this.str.mesh, newMesh);
 
-      const handMaterial = newMesh.children[1].material;
-      handMaterial.color = new THREE.Color(this.data.color);
-      this.rendererSystem.applyColorCorrection(handMaterial.color);
+      const handColor = this.data.color;
+      newMesh.traverse(function (object) {
+          if (!object.isMesh) { 
+            return; 
+          }
+          object.material.color = new THREE.Color(handColor);
+      });
       newMesh.position.set(0, 0, 0);
       newMesh.rotation.set(0, 0, handModelOrientation);
     });
@@ -243,8 +246,6 @@ AFRAME.registerComponent('networked-hand-controls', {
     'valve-index-controls',
     // some older models that it doesn't hurt to include:
     'oculus-go-controls',
-    'gearvr-controls',
-    'daydream-controls',
     'vive-focus-controls',
   ],
 
