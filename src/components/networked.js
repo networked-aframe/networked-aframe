@@ -580,6 +580,7 @@ AFRAME.registerComponent('networked', {
   },
 
   remove: function () {
+    document.body.removeEventListener('connected', this.onConnected, false);
     if (this.isMine() && NAF.connection.isConnected()) {
       var syncData = { networkId: this.data.networkId };
       if (NAF.entities.hasEntity(this.data.networkId)) {
