@@ -1,10 +1,11 @@
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
     <title>Shooter AR Example — Networked-Aframe</title>
     <meta name="description" content="Shooter AR Example — Networked-Aframe" />
 
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
@@ -15,8 +16,8 @@
       THREEx.ArToolkitContext.baseURL = 'https://rawgit.com/jeromeetienne/ar.js/master/three.js/';
     </script>
 
-    <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/IdeaSpaceVR/aframe-particle-system-component@master/dist/aframe-particle-system-component.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-randomizer-components@3.0.2/dist/aframe-randomizer-components.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-particle-system-component@1.1.4/dist/aframe-particle-system-component.min.js"></script>
     <script src="js/spawn-in-circle.component.js"></script>
 
     <script>
@@ -34,6 +35,7 @@
       adapter: wseasyrtc;
       onConnect: onARConnect;
     "
+      renderer="physicallyCorrectLights: true;"
     >
       <a-assets>
         <!-- Templates -->

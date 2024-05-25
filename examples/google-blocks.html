@@ -5,7 +5,7 @@
     <title>Basic Example — Networked-Aframe</title>
     <meta name="description" content="Basic Example — Networked-Aframe" />
 
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="/dist/networked-aframe.js"></script>
@@ -23,17 +23,17 @@
         return components;
       };
     </script>
-    <script src="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-randomizer-components@3.0.2/dist/aframe-randomizer-components.min.js"></script>
     <script src="/js/spawn-in-circle.component.js"></script>
   </head>
   <body>
     <a-scene
-      renderer="colorManagement: true"
       networked-scene="
       room: blocks;
       debug: true;
       adapter: wseasyrtc;
     "
+      renderer="physicallyCorrectLights: true;"
     >
       <a-assets>
         <a-asset-item id="raccoon-obj" src="./assets/Raccoon_Blocks/model.obj"></a-asset-item>
