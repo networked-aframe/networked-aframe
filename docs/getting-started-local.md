@@ -110,7 +110,7 @@ Here's the template we'll start with:
 ```html
 <html>
   <head>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.5.0/socket.io.slim.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
     <script src="https://unpkg.com/networked-aframe@^0.12.0/dist/networked-aframe.min.js"></script>
