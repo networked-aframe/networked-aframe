@@ -152,7 +152,7 @@ suite('Schemas', function() {
 
       var result = schemas.getComponents('wrong');
 
-      assert.deepEqual(result, ['position', 'rotation']);
+      assert.deepEqual(result.map(e => e.component), ['position', 'rotation']);
     });
   });
 
