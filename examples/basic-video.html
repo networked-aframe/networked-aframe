@@ -16,7 +16,16 @@
         if (!NAF.schemas.hasTemplate('#avatar-template')) {
           NAF.schemas.add({
             template: '#avatar-template',
-            components: ['position', 'rotation']
+            components: [
+              {
+                component: 'position',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+              },
+              {
+                component: 'rotation',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+              }
+            ]
           });
         }
         const components = NAF.schemas.getComponentsOriginal(template);
