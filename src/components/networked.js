@@ -82,13 +82,15 @@ AFRAME.registerSystem("networked", {
   },
 
   tick: (function() {
+    // "d" is an array of entity datas per entity in this.components.
+    const data = { d: [] };
 
     return function() {
       if (!NAF.connection.adapter) return;
       if (this.el.clock.elapsedTime < this.nextSyncTime) return;
 
-      // "d" is an array of entity datas per entity in this.components.
-      const data = { d: [] };
+      // Reset the "d" array
+      data.d.length = 0;
 
       for (let i = 0, l = this.components.length; i < l; i++) {
         const c = this.components[i];
