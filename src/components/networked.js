@@ -62,6 +62,11 @@ function warnOnInvalidNetworkUpdate() {
   NAF.log.warn(`Received invalid network update.`);
 }
 
+function clearObject(obj) {
+  for (const key in obj) { delete obj[key]; }
+  return obj;
+}
+
 AFRAME.registerSystem("networked", {
   init() {
     // An array of "networked" component instances.
@@ -158,6 +163,7 @@ AFRAME.registerComponent('networked', {
     this.onConnected = this.onConnected.bind(this);
 
     this.syncData = {};
+    this.componentsData = {};
     this.componentSchemas =  NAF.schemas.getComponents(this.data.template);
     this.cachedElements = new Array(this.componentSchemas.length);
     this.networkUpdatePredicates = this.componentSchemas.map(x => (x.requiresNetworkUpdate && x.requiresNetworkUpdate()) || defaultRequiresUpdate());
@@ -395,7 +401,7 @@ AFRAME.registerComponent('networked', {
 
       if (!componentElement) {
         if (fullSync) {
-          componentsData = componentsData || {};
+          componentsData = componentsData || clearObject(this.componentsData);
           componentsData[i] = null;
         }
         continue;
@@ -406,7 +412,7 @@ AFRAME.registerComponent('networked', {
 
       if (componentData === null) {
         if (fullSync) {
-          componentsData = componentsData || {};
+          componentsData = componentsData || clearObject(this.componentsData);
           componentsData[i] = null;
         }
         continue;
@@ -417,7 +423,7 @@ AFRAME.registerComponent('networked', {
       // Use networkUpdatePredicate to check if the component needs to be updated.
       // Call networkUpdatePredicate first so that it can update any cached values in the event of a fullSync.
       if (this.networkUpdatePredicates[i](syncedComponentData) || fullSync) {
-        componentsData = componentsData || {};
+        componentsData = componentsData || clearObject(this.componentsData);
         componentsData[i] = syncedComponentData;
       }
     }
