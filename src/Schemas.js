@@ -1,16 +1,4 @@
 /* global NAF */
-var utils = require('./utils');
-
-const DEFAULT_SCHEMA_COMPONENTS = [
-  {
-    component: 'position',
-    requiresNetworkUpdate: utils.vectorRequiresUpdate(0.001)
-  },
-  {
-    component: 'rotation',
-    requiresNetworkUpdate: utils.vectorRequiresUpdate(0.5)
-  }
-];
 
 class Schemas {
 
@@ -22,7 +10,16 @@ class Schemas {
   createDefaultSchema(name) {
     return {
       template: name,
-      components: DEFAULT_SCHEMA_COMPONENTS
+      components: [
+        {
+          component: 'position',
+          requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+        },
+        {
+          component: 'rotation',
+          requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+        }
+      ]
     }
   }
 
@@ -60,7 +57,7 @@ class Schemas {
   }
 
   getComponents(template) {
-    var components = DEFAULT_SCHEMA_COMPONENTS;
+    var components = ['position', 'rotation'];
     if (this.hasTemplate(template)) {
       components = this.schemaDict[template].components;
     }
