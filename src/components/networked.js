@@ -1,4 +1,5 @@
 /* global AFRAME, NAF, THREE */
+var deepEqual = require('../DeepEquals');
 var InterpolationBuffer = require('buffered-interpolation');
 // InterpolationBuffer.MODE_LERP is not exported, it's undefined
 var MODE_LERP = 0;
@@ -12,7 +13,7 @@ function defaultRequiresUpdate() {
   let cachedData = null;
 
   return (newData) => {
-    if (cachedData === null || !AFRAME.utils.deepEqual(cachedData, newData)) {
+    if (cachedData === null || !deepEqual(cachedData, newData)) {
       cachedData = AFRAME.utils.clone(newData);
       return true;
     }
