@@ -10,16 +10,7 @@ class Schemas {
   createDefaultSchema(name) {
     return {
       template: name,
-      components: [
-        {
-          component: 'position',
-          requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
-        },
-        {
-          component: 'rotation',
-          requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
-        }
-      ]
+      components: ['position', 'rotation']
     }
   }
 
