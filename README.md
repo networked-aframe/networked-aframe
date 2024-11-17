@@ -340,8 +340,6 @@ and rotation precision of 0.5 degree, use it like this:
 }
 ```
 
-The default schema that sync position and rotation uses the above optimization since version 0.11.0.
-
 ### Syncing nested templates - eg. hands
 
 To sync nested templates setup your HTML nodes like so:
