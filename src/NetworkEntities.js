@@ -90,7 +90,17 @@ class NetworkEntities {
     var parent = entityData.parent;
     var networkId = entityData.networkId;
 
-    var parentNotCreatedYet = parent && !this.hasEntity(parent);
+    var parentNotCreatedYet
+    var cssIdentifierRegex = /^-?(?=[a-zA-Z\xA0-\uFFFF])([a-zA-Z0-9_\u00A0-\uFFFF]*)(-[a-zA-Z0-9_\u00A0-\uFFFF]+)*$/;
+    var isValidCssClass = cssIdentifierRegex.test(parent)
+    if (!parent) {
+      parentNotCreatedYet = false
+    } else if (isValidCssClass && document.querySelector(`#${parent}`)) {
+      parentNotCreatedYet = false
+    } else if (!this.hasEntity(parent)) {
+      parentNotCreatedYet = true
+    }
+
     if (parentNotCreatedYet) {
       this.childCache.addChild(parent, entityData);
     } else {
@@ -122,8 +132,11 @@ class NetworkEntities {
   }
 
   addEntityToPage(entity, parentId) {
+    var nonNetworkedParent = document.querySelector(`#${parentId}`)
     if (this.hasEntity(parentId)) {
       this.addEntityToParent(entity, parentId);
+    } else if (nonNetworkedParent) {
+      nonNetworkedParent.appendChild(entity);
     } else {
       this.addEntityToSceneRoot(entity);
     }
