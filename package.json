@@ -34,7 +34,7 @@
     "@babel/core": "^7.18.5",
     "@babel/preset-env": "^7.18.2",
     "aframe": "~1.6.0",
-    "babel-loader": "^8.2.5",
+    "babel-loader": "^9.2.1",
     "babel-plugin-istanbul": "^6.1.1",
     "chai": "^4.3.6",
     "cross-env": "^7.0.3",
