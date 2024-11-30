@@ -9,6 +9,7 @@ class EasyRtcAdapter extends NoOpAdapter {
     this.easyrtc = easyrtc || window.easyrtc;
     this.app = "default";
     this.room = "default";
+    this.destination = {targetRoom: this.room};
 
     this.mediaStreams = {};
     this.remoteClients = {};
@@ -46,6 +47,7 @@ class EasyRtcAdapter extends NoOpAdapter {
 
   setRoom(roomName) {
     this.room = roomName;
+    this.destination.targetRoom = this.room;
     this.easyrtc.joinRoom(roomName, null);
   }
 
@@ -175,8 +177,7 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   broadcastDataGuaranteed(dataType, data) {
-    var destination = { targetRoom: this.room };
-    this.easyrtc.sendDataWS(destination, dataType, data);
+    this.easyrtc.sendDataWS(this.destination, dataType, data);
   }
 
   getConnectStatus(clientId) {

@@ -9,6 +9,7 @@ class WsEasyRtcInterface extends NoOpAdapter {
     this.easyrtc = easyrtc || window.easyrtc;
     this.app = 'default';
     this.room = 'default';
+    this.destination = {targetRoom: this.room};
 
     this.connectedClients = [];
 
@@ -28,6 +29,7 @@ class WsEasyRtcInterface extends NoOpAdapter {
 
   setRoom(roomName) {
     this.room = roomName;
+    this.destination.targetRoom = this.room;
     this.easyrtc.joinRoom(roomName, null);
   }
 
@@ -118,8 +120,7 @@ class WsEasyRtcInterface extends NoOpAdapter {
   }
 
   broadcastData(dataType, data) {
-    var destination = {targetRoom: this.room};
-    this.easyrtc.sendDataWS(destination, dataType, data);
+    this.easyrtc.sendDataWS(this.destination, dataType, data);
   }
 
   broadcastDataGuaranteed(dataType, data) {
