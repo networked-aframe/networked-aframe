@@ -17,8 +17,14 @@
           NAF.schemas.add({
             template: '#avatar-template',
             components: [
-              'position',
-              'rotation',
+              {
+                component: 'position',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+              },
+              {
+                component: 'rotation',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+              },
               {
                 selector: '.head',
                 component: 'material',

@@ -23,8 +23,14 @@
           NAF.schemas.add({
             template: '#head-template',
             components: [
-              'position',
-              'rotation',
+              {
+                component: 'position',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+              },
+              {
+                component: 'rotation',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+              },
 
               // In this example, we don't sync the material.color itself, like the basic example;
               // we instead sync player-info, which includes color setting + updating.

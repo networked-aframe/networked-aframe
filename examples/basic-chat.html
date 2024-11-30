@@ -84,8 +84,14 @@
               // position and rotation are added by default if we don't include a template, but since
               // we also want to sync the color, we need to specify a custom template; if we didn't
               // include position and rotation in this custom template, they'd not be synced.
-              'position',
-              'rotation',
+              {
+                component: 'position',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+              },
+              {
+                component: 'rotation',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+              },
 
               // this is how we sync a particular property of a particular component for a particular
               // child element of template instances.
