@@ -101,7 +101,8 @@ module.exports.isMine = function(entity) {
   }
 
   // When remote networked entities are initially created, there's a frame delay before they are completely instantiated.
-  // On that frame, data is undefined so we can't check the owner. In this instance we assume that the user is not the owner of the entity.
+  // On that frame, data is undefined in aframe lower than 1.6.0 so we can't check the owner. In this instance we assume that the user is not the owner of the entity.
+  // That's not an issue anymore with aframe 1.6.0, this.data can't be undefined and is initialized to an empty object for a multi properties component.
   if (!curEntity.components.networked.data) {
     return false;
   }

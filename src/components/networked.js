@@ -158,7 +158,7 @@ AFRAME.registerComponent('networked', {
     this.bufferQuaternion = new THREE.Quaternion();
     this.bufferScale = new THREE.Vector3();
 
-    var wasCreatedByNetwork = this.wasCreatedByNetwork();
+    var wasCreatedByNetwork = !!this.el.firstUpdateData;
 
     this.onConnected = this.onConnected.bind(this);
 
@@ -246,10 +246,6 @@ AFRAME.registerComponent('networked', {
     return false;
   },
 
-  wasCreatedByNetwork: function() {
-    return !!this.el.firstUpdateData;
-  },
-
   initNetworkParent: function() {
     var parentEl = this.el.parentElement;
     if (parentEl['components'] && parentEl.components['networked']) {
@@ -275,6 +271,7 @@ AFRAME.registerComponent('networked', {
   firstUpdate: function() {
     var entityData = this.el.firstUpdateData;
     this.networkUpdate(entityData);
+    this.el.firstUpdateData = undefined;
   },
 
   onConnected: function() {
@@ -478,14 +475,20 @@ AFRAME.registerComponent('networked', {
   /* Receiving updates */
 
   networkUpdate: function(entityData) {
-    // Avoid updating components if the entity data received did not come from the current owner.
-    if (entityData.lastOwnerTime < this.lastOwnerTime ||
-          (this.lastOwnerTime === entityData.lastOwnerTime && this.data.owner > entityData.owner)) {
+    // We received a network update but the component is not initialized yet,
+    // merge this.el.firstUpdateData with latest received entityData and return.
+    // The component initialization will call this.firstUpdate() that will call networkUpdate(this.el.firstUpdateData)
+    // https://github.com/networked-aframe/networked-aframe/issues/476
+    if (this.componentSchemas === undefined) {
+      if (this.el.firstUpdateData && this.el.firstUpdateData !== entityData) {
+        this.el.firstUpdateData.components = {...this.el.firstUpdateData.components, ...entityData.components};
+      }
       return;
     }
 
-    // Hack to solve this bug: https://github.com/networked-aframe/networked-aframe/issues/200
-    if (this.data === undefined) {
+    // Avoid updating components if the entity data received did not come from the current owner.
+    if (entityData.lastOwnerTime < this.lastOwnerTime ||
+          (this.lastOwnerTime === entityData.lastOwnerTime && this.data.owner > entityData.owner)) {
       return;
     }
 

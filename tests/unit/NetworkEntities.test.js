@@ -126,11 +126,39 @@ suite('NetworkEntities', function() {
     });
 
     test('entity sets correct first update data', function(done) {
-      var entity = entities.createRemoteEntity(entityData);
+      var entity = entities.createRemoteEntity(firstUpdateData);
+      assert.equal(entity.firstUpdateData, firstUpdateData);
       scene.appendChild(entity);
 
       naf.utils.whenEntityLoaded(entity, function() {
-        assert.equal(entity.firstUpdateData, entityData);
+        // entity.firstUpdateData was freed
+        assert.equal(entity.firstUpdateData, undefined);
+        done();
+      });
+    });
+
+    test('entity sets correct first update data with updated data', function(done) {
+      var entity = entities.createRemoteEntity(firstUpdateData);
+      assert.equal(entity.firstUpdateData, firstUpdateData);
+      scene.appendChild(entity);
+      var entityDataUpdate = { // same as firstUpdateData with components changes and isFirstSync: false
+        networkId: 'test1',
+        owner: 'abcdefg',
+        parent: null,
+        template: '#template1',
+        components: {
+          0: '1 2 4', // changed from "1 2 3" to "1 2 4"
+          // 1: '4 3.5 2'
+        },
+        isFirstSync: false
+      };
+      // simulate receiving a network update before the networked component is initialized
+      entities.updateEntity(entityDataUpdate.owner, 'u', entityDataUpdate, undefined);
+      var mergedData = {...firstUpdateData, components: {...firstUpdateData.components, ...entityDataUpdate.components}};
+      assert.deepEqual(entity.firstUpdateData, mergedData);
+
+      naf.utils.whenEntityLoaded(entity, function() {
+        assert.equal(entity.firstUpdateData, undefined);
         done();
       });
     });
