@@ -37,12 +37,12 @@ const io = require("socket.io")(webServer);
 
 const rooms = new Map();
 
-io.on("connection", socket => {
+io.on("connection", (socket) => {
   console.log("user connected", socket.id);
 
   let curRoom = null;
 
-  socket.on("joinRoom", data => {
+  socket.on("joinRoom", (data) => {
     const { room } = data;
 
     curRoom = room;
@@ -82,7 +82,7 @@ io.on("connection", socket => {
           occupants: {},
           occupantsCount: 0
         };
-        rooms.set(curRoom, roomInfo)
+        rooms.set(curRoom, roomInfo);
       }
     }
 
@@ -98,16 +98,16 @@ io.on("connection", socket => {
     io.in(curRoom).emit("occupantsChanged", { occupants });
   });
 
-  socket.on("send", data => {
+  socket.on("send", (data) => {
     io.to(data.to).emit("send", data);
   });
 
-  socket.on("broadcast", data => {
+  socket.on("broadcast", (data) => {
     socket.to(curRoom).broadcast.emit("broadcast", data);
   });
 
   socket.on("disconnect", () => {
-    console.log('disconnected: ', socket.id, curRoom);
+    console.log("disconnected: ", socket.id, curRoom);
     const roomInfo = rooms.get(curRoom);
     if (roomInfo) {
       console.log("user disconnected", socket.id);
