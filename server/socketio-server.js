@@ -1,7 +1,16 @@
-// Load required modules
-const http = require("http"); // http server core module
-const path = require("path");
-const express = require("express"); // web framework external module
+const express = require("express");
+const path = require("node:path");
+const http = require("node:http");
+// To generate a certificate for local development with https, you can use
+// npx webpack serve --server-type https
+// and stop it with ctrl+c, it will generate the file node_modules/.cache/webpack-dev-server/server.pem
+// Then to enable https on the node server, uncomment the next lines
+// and the webServer line down below.
+// const https = require("node:https");
+// const fs = require("node:fs");
+// const privateKey = fs.readFileSync("node_modules/.cache/webpack-dev-server/server.pem", "utf8");
+// const certificate = fs.readFileSync("node_modules/.cache/webpack-dev-server/server.pem", "utf8");
+// const credentials = { key: privateKey, cert: certificate };
 
 // Set process name
 process.title = "networked-aframe-server";
@@ -33,16 +42,18 @@ app.use(express.static(path.resolve(__dirname, "..", "examples")));
 
 // Start Express http server
 const webServer = http.createServer(app);
+// To enable https on the node server, comment the line above and uncomment the line below
+// const webServer = https.createServer(credentials, app);
 const io = require("socket.io")(webServer);
 
 const rooms = new Map();
 
-io.on("connection", socket => {
+io.on("connection", (socket) => {
   console.log("user connected", socket.id);
 
   let curRoom = null;
 
-  socket.on("joinRoom", data => {
+  socket.on("joinRoom", (data) => {
     const { room } = data;
 
     curRoom = room;
@@ -82,7 +93,7 @@ io.on("connection", socket => {
           occupants: {},
           occupantsCount: 0
         };
-        rooms.set(curRoom, roomInfo)
+        rooms.set(curRoom, roomInfo);
       }
     }
 
@@ -98,16 +109,16 @@ io.on("connection", socket => {
     io.in(curRoom).emit("occupantsChanged", { occupants });
   });
 
-  socket.on("send", data => {
+  socket.on("send", (data) => {
     io.to(data.to).emit("send", data);
   });
 
-  socket.on("broadcast", data => {
-    socket.to(curRoom).broadcast.emit("broadcast", data);
+  socket.on("broadcast", (data) => {
+    socket.to(curRoom).emit("broadcast", data);
   });
 
   socket.on("disconnect", () => {
-    console.log('disconnected: ', socket.id, curRoom);
+    console.log("disconnected: ", socket.id, curRoom);
     const roomInfo = rooms.get(curRoom);
     if (roomInfo) {
       console.log("user disconnected", socket.id);
@@ -115,7 +126,7 @@ io.on("connection", socket => {
       delete roomInfo.occupants[socket.id];
       roomInfo.occupantsCount--;
       const occupants = roomInfo.occupants;
-      socket.to(curRoom).broadcast.emit("occupantsChanged", { occupants });
+      socket.to(curRoom).emit("occupantsChanged", { occupants });
 
       if (roomInfo.occupantsCount === 0) {
         console.log("everybody left room");
