@@ -1,7 +1,16 @@
-// Load required modules
-const http = require("http"); // http server core module
-const path = require("path");
-const express = require("express"); // web framework external module
+const express = require("express");
+const path = require("node:path");
+const http = require("node:http");
+// To generate a certificate for local development with https, you can use
+// npx webpack serve --server-type https
+// and stop it with ctrl+c, it will generate the file node_modules/.cache/webpack-dev-server/server.pem
+// Then to enable https on the node server, uncomment the next lines
+// and the webServer line down below.
+// const https = require("node:https");
+// const fs = require("node:fs");
+// const privateKey = fs.readFileSync("node_modules/.cache/webpack-dev-server/server.pem", "utf8");
+// const certificate = fs.readFileSync("node_modules/.cache/webpack-dev-server/server.pem", "utf8");
+// const credentials = { key: privateKey, cert: certificate };
 
 // Set process name
 process.title = "networked-aframe-server";
@@ -33,6 +42,8 @@ app.use(express.static(path.resolve(__dirname, "..", "examples")));
 
 // Start Express http server
 const webServer = http.createServer(app);
+// To enable https on the node server, comment the line above and uncomment the line below
+// const webServer = https.createServer(credentials, app);
 const io = require("socket.io")(webServer);
 
 const rooms = new Map();
