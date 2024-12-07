@@ -63,6 +63,23 @@
             ]
           });
         }
+
+        if (!NAF.schemas.hasTemplate('#rig-template')) {
+          NAF.schemas.add({
+            template: '#rig-template',
+            components: [
+              {
+                component: 'position',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+              },
+              {
+                component: 'rotation',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
+              }
+            ]
+          });
+        }
+
         const components = NAF.schemas.getComponentsOriginal(template);
         return components;
       };
