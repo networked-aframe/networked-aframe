@@ -140,12 +140,12 @@ class SocketioAdapter {
   }
 
   closeStreamConnection(clientId) {
-    this.connectedClients = this.connectedClients.filter(c => c != clientId);
+    this.connectedClients = this.connectedClients.filter(c => c !== clientId);
     this.closedListener(clientId);
   }
 
   getConnectStatus(clientId) {
-    var connected = this.connectedClients.indexOf(clientId) != -1;
+    const connected = this.connectedClients.indexOf(clientId) !== -1;
 
     if (connected) {
       return NAF.adapters.IS_CONNECTED;
@@ -197,11 +197,11 @@ class SocketioAdapter {
 
     return fetch(document.location.href, { method: "HEAD", cache: "no-cache" })
       .then(res => {
-        var precision = 1000;
-        var serverReceivedTime = new Date(res.headers.get("Date")).getTime() + (precision / 2);
-        var clientReceivedTime = Date.now();
-        var serverTime = serverReceivedTime + ((clientReceivedTime - clientSentTime) / 2);
-        var timeOffset = serverTime - clientReceivedTime;
+        const precision = 1000;
+        const serverReceivedTime = new Date(res.headers.get("Date")).getTime() + (precision / 2);
+        const clientReceivedTime = Date.now();
+        const serverTime = serverReceivedTime + ((clientReceivedTime - clientSentTime) / 2);
+        const timeOffset = serverTime - clientReceivedTime;
 
         this.serverTimeRequests++;
 
@@ -247,7 +247,5 @@ class SocketioAdapter {
     this.onDisconnect();
   }
 }
-
-// NAF.adapters.register("socketio", SocketioAdapter);
 
 module.exports = SocketioAdapter;
