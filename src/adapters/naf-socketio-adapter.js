@@ -71,6 +71,11 @@ class SocketioAdapter {
       const socket = self.socket = io(self.wsUrl);
 
       socket.on("connect", () => {
+        if (NAF.clientId) {
+          // The server restarted quickly and we got a new socket without
+          // getting in the error handler.
+          self.onDisconnect();
+        }
         NAF.log.write("User connected", socket.id);
         self.myId = socket.id;
         self.joinRoom();
@@ -85,9 +90,9 @@ class SocketioAdapter {
         self.connectSuccess(self.myId);
       });
 
-      socket.on("error", err => {
+      socket.io.on("error", err => {
         console.error("Socket connection failure", err);
-        self.connectFailure();
+        this.onDisconnect();
       });
 
       socket.on("occupantsChanged", data => {
@@ -219,8 +224,26 @@ class SocketioAdapter {
     return new Date().getTime() + this.avgTimeOffset;
   }
 
+  onDisconnect() {
+    if (NAF.clientId === '') return;
+    // Properly remove connected clients and remote entities
+    this.receivedOccupants([]);
+    // For entities I'm the creator, reset to empty owner and register
+    // again the onConnected callback to send my entities to all
+    // the participants upon reconnect.
+    for (const entity of Object.values(NAF.entities.entities)) {
+      if (entity.components.networked.data.creator === NAF.clientId) {
+        // The creator and owner will be set to the new NAF.clientId upon reconnect
+        entity.setAttribute('networked', { owner: '', creator: '' });
+        document.body.addEventListener('connected', entity.components.networked.onConnected, false)
+      }
+    }
+    NAF.clientId = '';
+  }
+
   disconnect() {
     this.socket.disconnect();
+    this.onDisconnect();
   }
 }
 
