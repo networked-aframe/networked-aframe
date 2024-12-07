@@ -19,7 +19,6 @@
     <script>
       // Temporary workaround for template declaration; see issue 167
       NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
-
       NAF.schemas.getComponents = (template) => {
         if (!NAF.schemas.hasTemplate('#head-template')) {
           NAF.schemas.add({
@@ -37,6 +36,22 @@
                 selector: '.head',
                 component: 'material',
                 property: 'color'
+              }
+            ]
+          });
+        }
+
+        if (!NAF.schemas.hasTemplate('#rig-template')) {
+          NAF.schemas.add({
+            template: '#rig-template',
+            components: [
+              {
+                component: 'position',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.001)
+              },
+              {
+                component: 'rotation',
+                requiresNetworkUpdate: NAF.utils.vectorRequiresUpdate(0.5)
               }
             ]
           });
