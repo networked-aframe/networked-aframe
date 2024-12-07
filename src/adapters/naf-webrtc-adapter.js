@@ -280,6 +280,12 @@ class WebrtcAdapter {
     this.occupantListener = null;
     this.myRoomJoinTime = null;
     this.myId = null;
+    this.packet = {
+      from: undefined,
+      to: undefined,
+      type: undefined,
+      data: undefined
+    };
 
     this.peers = {}; // id -> WebRtcPeer
     this.occupants = {}; // id -> joinTimestamp
@@ -515,15 +521,16 @@ class WebrtcAdapter {
   }
 
   sendDataGuaranteed(to, type, data) {
-    const packet = {
-      from: this.myId,
-      to,
-      type,
-      data,
-      sending: true,
-    };
+    this.packet.from = this.myId;
+    this.packet.to = to;
+    this.packet.type = type;
+    this.packet.data = data;
 
-    this.socket.emit("send", packet);
+    if (this.socket) {
+      this.socket.emit("send", this.packet);
+    } else {
+      NAF.log.warn('SocketIO socket not created yet');
+    }
   }
 
   broadcastData(type, data) {
@@ -533,13 +540,16 @@ class WebrtcAdapter {
   }
 
   broadcastDataGuaranteed(type, data) {
-    const packet = {
-      from: this.myId,
-      type,
-      data,
-      broadcasting: true
-    };
-    this.socket.emit("broadcast", packet);
+    this.packet.from = this.myId;
+    this.packet.to = undefined;
+    this.packet.type = type;
+    this.packet.data = data;
+
+    if (this.socket) {
+      this.socket.emit("broadcast", this.packet);
+    } else {
+      NAF.log.warn('SocketIO socket not created yet');
+    }
   }
 
   storeAudioStream(clientId, stream) {
