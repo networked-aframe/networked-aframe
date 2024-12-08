@@ -228,7 +228,7 @@ class SocketioAdapter {
   onDisconnect() {
     if (NAF.clientId === '') return;
     // Properly remove connected clients and remote entities
-    this.receivedOccupants([]);
+    this.receivedOccupants({});
     // For entities I'm the creator, reset to empty owner and register
     // again the onConnected callback to send my entities to all
     // the participants upon reconnect.
