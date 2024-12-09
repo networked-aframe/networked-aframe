@@ -222,7 +222,7 @@ class SocketioAdapter {
   }
 
   getServerTime() {
-    return new Date().getTime() + this.avgTimeOffset;
+    return Date.now() + this.avgTimeOffset;
   }
 
   onDisconnect() {
