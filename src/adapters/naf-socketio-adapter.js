@@ -189,7 +189,7 @@ class SocketioAdapter {
   }
 
   getMediaStream(clientId) {
-    // Do not support WebRTC
+    return Promise.reject('Interface method not implemented: getMediaStream');
   }
 
   updateTimeOffset() {
