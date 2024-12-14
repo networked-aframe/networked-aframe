@@ -531,7 +531,7 @@ List of the supported adapters:
 | socketio | SocketIO implementation without external library (server supports [room instancing](https://github.com/networked-aframe/networked-aframe/pull/458)) | No | WebSockets | `npm run dev-socketio` |
 | webrtc | Native WebRTC implementation without external library (work in progress, currently no maintainer) | Audio | WebRTC | `npm run dev-socketio` |
 | Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling (currently no maintainer) | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
-| uWS | Implementation of [uWebSockets](https://github.com/uNetworking/uWebSockets) (currently no maintainer) | No | WebSockets | See [naf-uws-adapter](https://github.com/networked-aframe/naf-uws-adapter) |
+| uws | Uses the highly performant [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | See comments in [server/uws-server.cjs](./server/uws-server.cjs) |
 
 WebRTC in the table means that component updates is using WebRTC Datachannels
 (UDP) instead of the WebSocket (TCP). You still have a WebSocket for the signaling
