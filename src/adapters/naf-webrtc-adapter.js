@@ -434,8 +434,7 @@ class WebrtcAdapter {
           from: localId,
           to: remoteId,
           type: 'ice-candidate',
-          data,
-          sending: true
+          data
         });
       });
       peer.setDatachannelListeners(
