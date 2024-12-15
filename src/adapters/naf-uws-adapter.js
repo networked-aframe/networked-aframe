@@ -150,7 +150,7 @@ class UWSAdapter {
           if (this.onReconnectionError) {
             return this.onReconnectionError(error);
           } else {
-            console.error(error);
+            console.warn(error);
             return;
           }
         }
