@@ -34,7 +34,6 @@ class UWSAdapter {
     this.maxReconnectionAttempts = 10;
     this.reconnectionAttempts = 0;
     this.isReconnecting = false;
-    this.reconnectionTimeout = null;
 
     window.addEventListener('offline', () => {
       console.log('Browser went offline - closing WebSocket');
