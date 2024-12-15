@@ -103,12 +103,6 @@ class UWSAdapter {
 
   onWebsocketOpen() {
     console.log('WebSocket connected');
-    this.reconnectionDelay = this.initialReconnectionDelay;
-    this.reconnectAttempts = 0;
-    if (this.isReconnecting && this.onReconnected) {
-      this.onReconnected();
-    }
-    this.isReconnecting = false;
     this.joinRoom();
   }
 
@@ -139,6 +133,7 @@ class UWSAdapter {
       .then(() => {
         this.reconnectionDelay = this.initialReconnectionDelay;
         this.reconnectionAttempts = 0;
+        this.isReconnecting = false;
 
         if (this.onReconnected) {
           this.onReconnected();
