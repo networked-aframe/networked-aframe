@@ -25,10 +25,15 @@
   },
   "repository": "networked-aframe/networked-aframe",
   "dependencies": {
+    "@socket.io/cluster-adapter": "^0.2.2",
+    "@socket.io/redis-streams-adapter": "^0.2.2",
+    "@socket.io/sticky": "^1.0.4",
     "buffered-interpolation": "Infinitelee/buffered-interpolation#5bb18421ebf2bf11664645cdc7a15bd77ee2156b",
     "express": "^4.17.3",
     "open-easyrtc": "^2.1.0",
-    "socket.io": "^4.8.1"
+    "redis": "^4.7.0",
+    "socket.io": "^4.8.1",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.51.0"
   },
   "devDependencies": {
     "@babel/core": "^7.18.5",
