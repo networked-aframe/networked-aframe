@@ -519,25 +519,23 @@ NAF can be used with multiple network libraries and services. An adapter is a cl
 
 By default the `wseasyrtc` adapter is used, which does not support audio and uses a TCP connection. This is not ideal for production deployments however due to inherent connection issues with WebRTC we've set it as the default. To support audio via WebRTC be sure the server is using https and change the adapter to `easyrtc` (this uses UDP).
 
-If you're interested in contributing to NAF a great opportunity is to add support for more adapters and send a pull request.
-
-List of the supported adapters:
+Read the page [NAF adapters comparison](https://github.com/networked-aframe/networked-aframe/wiki/NAF-adapters-comparison) to know more about the different use cases and tradeoffs of the supported adapters:
 
 | Adapter | Description | Supports Audio/Video | WebSockets or WebRTC | How to start |
 | -------- | ----------- | ------------- | ----------- | ---------- |
-| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | No | WebSockets | `npm run dev` |
-| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library | Audio and Video (camera and screen share) | WebRTC | `npm run dev` |
-| janus | Uses the [Janus WebRTC server](https://github.com/meetecho/janus-gateway) and [janus-plugin-sfu](https://github.com/networked-aframe/janus-plugin-sfu) | Audio and Video (camera OR screen share) | WebRTC | See [naf-janus-adapter](https://github.com/networked-aframe/naf-janus-adapter/tree/3.0.x) |
-| socketio | SocketIO implementation without external library (server supports [room instancing](https://github.com/networked-aframe/networked-aframe/pull/458)) | No | WebSockets | `npm run dev-socketio` |
-| webrtc | Native WebRTC implementation without external library (work in progress, currently no maintainer) | Audio | WebRTC | `npm run dev-socketio` |
-| Firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling (currently no maintainer) | No | WebRTC | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
-| uws | Uses the highly performant [uWebSockets](https://github.com/uNetworking/uWebSockets) | No | WebSockets | See comments in [server/uws-server.cjs](./server/uws-server.cjs) |
+| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library based on old socket.io 2.5.0 | No | WebSockets | `npm run dev` |
+| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library based on old socket.io 2.5.0 | Audio and Video (camera and screen share) | WebRTC (peer to peer) (1) | `npm run dev` |
+| janus | Uses the [Janus WebRTC server](https://github.com/meetecho/janus-gateway) and [janus-plugin-sfu](https://github.com/networked-aframe/janus-plugin-sfu) | Audio and Video (camera OR screen share) | WebRTC (SFU) | See [naf-janus-adapter](https://github.com/networked-aframe/naf-janus-adapter/tree/3.0.x) |
+| uws | Uses the highly performant [uWebSockets](https://github.com/uNetworking/uWebSockets) (supports room instancing (2)) | No | WebSockets | See comments in [server/uws-server.cjs](./server/uws-server.cjs) |
+| socketio | SocketIO implementation compatible with recent socketio 4.8.x (supports [room instancing](https://github.com/networked-aframe/networked-aframe/pull/458)) | No | WebSockets | `npm run dev-socketio` |
+| webrtc | Native WebRTC implementation without external library excepted socketio (work in progress, currently no maintainer) | Audio | WebRTC (peer to peer) | `npm run dev-socketio` |
+| firebase | [Firebase](https://firebase.google.com/) for WebRTC signalling (currently no maintainer) | No | WebRTC  (peer to peer) | See [naf-firebase-adapter](https://github.com/networked-aframe/naf-firebase-adapter) |
 
-WebRTC in the table means that component updates is using WebRTC Datachannels
+(1) WebRTC in the table means that component updates is using WebRTC Datachannels
 (UDP) instead of the WebSocket (TCP). You still have a WebSocket for the signaling
 part.
 
-See also the document [NAF adapters comparison](https://github.com/networked-aframe/networked-aframe/wiki/NAF-adapters-comparison).
+(2) Room instancing means the server is creating a new room for the same scene if the number of participants reach a maximum threshold, instead of accepting infinite participants in the same room that may hurt server and browser performance. Some adapters like janus will just reject the participant connection if a threshold is reached.
 
 ### Audio
 
