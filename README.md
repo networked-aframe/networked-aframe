@@ -523,8 +523,8 @@ Read the page [NAF adapters comparison](https://github.com/networked-aframe/netw
 
 | Adapter | Description | Supports Audio/Video | WebSockets or WebRTC | How to start |
 | -------- | ----------- | ------------- | ----------- | ---------- |
-| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library based on old socket.io 2.5.0 | No | WebSockets | `npm run dev` |
-| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library based on old socket.io 2.5.0 | Audio and Video (camera and screen share) | WebRTC (peer to peer) (1) | `npm run dev` |
+| wseasyrtc | DEFAULT - Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library socket.io-4 branch | No | WebSockets | `npm run dev` |
+| easyrtc | Uses the [open-easyrtc](https://github.com/open-easyrtc/open-easyrtc) library socket.io-4 branch | Audio and Video (camera and screen share) | WebRTC (peer to peer) (1) | `npm run dev` |
 | janus | Uses the [Janus WebRTC server](https://github.com/meetecho/janus-gateway) and [janus-plugin-sfu](https://github.com/networked-aframe/janus-plugin-sfu) | Audio and Video (camera OR screen share) | WebRTC (SFU) | See [naf-janus-adapter](https://github.com/networked-aframe/naf-janus-adapter/tree/3.0.x) |
 | uws | Uses the highly performant [uWebSockets](https://github.com/uNetworking/uWebSockets) (supports room instancing (2)) | No | WebSockets | See comments in [server/uws-server.cjs](./server/uws-server.cjs) |
 | socketio | SocketIO implementation compatible with recent socketio 4.8.x (supports [room instancing](https://github.com/networked-aframe/networked-aframe/pull/458)) | No | WebSockets | `npm run dev-socketio` |
