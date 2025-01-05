@@ -27,8 +27,8 @@
   "dependencies": {
     "buffered-interpolation": "Infinitelee/buffered-interpolation#5bb18421ebf2bf11664645cdc7a15bd77ee2156b",
     "express": "^4.17.3",
-    "open-easyrtc": "^2.0.20",
-    "socket.io": "^2.5.0"
+    "open-easyrtc": "open-easyrtc/open-easyrtc#9e2e0002ddc939daa36a5b1f499fa8568f3438af",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@babel/core": "^7.18.5",
