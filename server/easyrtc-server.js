@@ -46,7 +46,7 @@ const webServer = http.createServer(app);
 // const webServer = https.createServer(credentials, app);
 
 // Start Socket.io so it attaches itself to Express server
-const socketServer = socketIo.listen(webServer, {"log level": 1});
+const socketServer = socketIo(webServer, {"log level": 1});
 const myIceServers = [
   {"urls":"stun:stun1.l.google.com:19302"},
   {"urls":"stun:stun2.l.google.com:19302"},
