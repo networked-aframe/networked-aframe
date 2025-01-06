@@ -1,6 +1,6 @@
 {
   "name": "naf-examples",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "Examples of networked-aframe",
   "main": "./server/easyrtc-server.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "start": "node ./server/easyrtc-server.js"
   },
   "dependencies": {
-    "networked-aframe": "^0.13.0"
+    "networked-aframe": "^0.14.0"
   },
   "engines": {
     "node": ">=16"

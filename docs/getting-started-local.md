@@ -36,7 +36,7 @@ Now let's setup the required dependencies. Create a file called `package.json` a
   },
   "author": "YOUR_NAME",
   "dependencies": {
-    "networked-aframe": "^0.13.0"
+    "networked-aframe": "^0.14.0"
   }
 }
 ```
@@ -113,7 +113,7 @@ Here's the template we'll start with:
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
     <script src="/easyrtc/easyrtc.js"></script>
-    <script src="https://unpkg.com/networked-aframe@^0.13.0/dist/networked-aframe.min.js"></script>
+    <script src="https://unpkg.com/networked-aframe@^0.14.0/dist/networked-aframe.min.js"></script>
   </head>
   <body>
     <a-scene></a-scene>
@@ -122,8 +122,8 @@ Here's the template we'll start with:
 ```
 
 Please don't use `https://unpkg.com/networked-aframe/dist/networked-aframe.min.js` for production, this will download the latest major release that may contain breaking changes.
-It's ok for a testing environment to specify "@^0.13.0" in the url so it downloads the latest minor version that shouldn't have breaking changes.
-For production you want to pin to a specific version like `https://unpkg.com/networked-aframe@0.13.0/dist/networked-aframe.min.js`.
+It's ok for a testing environment to specify "@^0.14.0" in the url so it downloads the latest minor version that shouldn't have breaking changes.
+For production you want to pin to a specific version like `https://unpkg.com/networked-aframe@0.14.0/dist/networked-aframe.min.js`.
 
 If you want to use a more recent build from github master that is not released yet, you can use:
 
