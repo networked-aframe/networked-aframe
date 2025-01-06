@@ -27,7 +27,7 @@
   "dependencies": {
     "buffered-interpolation": "Infinitelee/buffered-interpolation#5bb18421ebf2bf11664645cdc7a15bd77ee2156b",
     "express": "^4.17.3",
-    "open-easyrtc": "open-easyrtc/open-easyrtc#9e2e0002ddc939daa36a5b1f499fa8568f3438af",
+    "open-easyrtc": "^2.1.0",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
