@@ -108,10 +108,6 @@ More complete examples:
 * [Nametags with UI in SolidJS/Tailwind CSS](https://naf-nametag-solidjs.glitch.me/) ([GitHub](https://github.com/networked-aframe/naf-nametag-solidjs))
 * [Realistic animated avatars with UI to choose your avatar](https://naf-valid-avatars.glitch.me/) ([GitHub](https://github.com/networked-aframe/naf-valid-avatars))
 
-**Not updated to latest version:**
-* [Dynamic Room Name](https://glitch.com/edit/#!/naf-dynamic-room)
-* [Form to set room and username](https://glitch.com/edit/#!/naf-form-example)
-
 Made something awesome with Networked-Aframe? [Let us know](https://github.com/networked-aframe/networked-aframe/issues) and we'll include it here.
 
 
