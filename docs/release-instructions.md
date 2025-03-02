@@ -11,10 +11,12 @@
 
 and type:
 
-    git remote add upstream https://github.com/networked-aframe/networked-aframe.git
-    git fetch upstream
-    git reset --hard upstream/master
-    mv package.json package-repo.json
-    mv package-glitch.json package.json
-    rm -rf package-lock.json node_modules/*
-    refresh
+```
+git remote add upstream https://github.com/networked-aframe/networked-aframe.git
+git fetch upstream
+git reset --hard upstream/master
+mv package.json package-repo.json
+mv package-glitch.json package.json
+rm -rf package-lock.json node_modules/*
+refresh
+```
