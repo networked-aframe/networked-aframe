@@ -1,5 +1,6 @@
-[slack]: https://aframevr.slack.com/join/shared_invite/zt-f6rne3ly-ekVaBU~Xu~fsZHXr56jacQ
+[discord]: https://discord.gg/jJxvuW97c4
 [issues]: https://github.com/networked-aframe/networked-aframe/issues
+[discussions]: https://github.com/networked-aframe/networked-aframe/discussions
 
 Interested in contributing? As an open source project, we'd appreciate any help
 and contributions! On top of the Networked-Aframe framework itself, you can also
@@ -7,16 +8,14 @@ contribute to this related component:
 
 - [buffered-interpolation](https://github.com/InfiniteLee/buffered-interpolation)
 
-# Join the Community on Slack
+# Join the Community on Discord
 
-1. [Invite yourself][slack] to the A-Frame Slack channel.
-2. [Join the A-Frame slack](https://aframevr.slack.com)
-3. Join the #networked-aframe channel
+1. [Join the WebXR Discord][discord]
+2. Select the #a-frame channel
 
 # Get Help or Ask a Question
 
-If you're not sure how to do something with Networked-Aframe, please post a question
-(and any code you've tried so far) to [Github Issues][issues]. <!-- Questions there will automatically create notifications in [Slack][slack], and are easier for others to find so new developers can learn from your questions too. -->
+If you're not sure how to do something with Networked-Aframe, please post a message on Discord.
 
 # File an Issue
 
@@ -24,7 +23,7 @@ If you're not sure how to do something with Networked-Aframe, please post a ques
 2. Specify the version of Networked-Aframe in which the bug occurred.
 3. Specify information about your browser and system (e.g., "Firefox Nightly on OS X")
 4. Describe the problem in detail (i.e., what happened and what you expected would happen).
-5. If possible, provide a small test case with [Glitch](http://glitch.com), a link to your application, and/or a screenshot. You can fork/remix this [Glitch project](https://glitch.com/edit/#!/naf-project).
+5. If possible, provide a small test case with StackBlitz, a link to your application, and/or a screenshot. You can fork the [naf-project](https://stackblitz.com/github/networked-aframe/naf-project) on StackBlitz.
 
 # Contribute Code to Networked-Aframe
 
@@ -57,29 +56,21 @@ under the [MIT License](LICENSE).
 
 1. Create something awesome with networked-aframe
 2. Publish your work to Github (and GitHub pages) so everyone can learn from your work.
-3. Share it on [Slack][slack] on the #projects channel.
-4. Let A-Frame know about it so they can feature it on their blog: [A Week of A-Frame](https://aframe.io/blog/). For this just tweet your project with a small video to @aframevr
+3. Share it on Discord on the #a-frame channel.
+4. Let A-Frame know about it so they can retweet it. For this just tweet your project with a small video to @aframevr
 4. For bonus points, write and publish a case study to explain how you built it.
 
 # Help Your Fellow A-Framers
 
-## On Slack
+## On Discord
 
-1. [Invite yourself][slack] to the A-Frame Slack channel.
-2. Join the #networked-aframe channel
+1. [Invite yourself][discord] to the WebXR Discord.
+2. Select the #a-frame channel
 3. Help answer questions that people might have and welcome new people.
 
 ## On GitHub
 
-1. Help respond to [newly-filed GitHub issues][issues]
-
-# Curate and Make Efforts Known
-
-Every week, the A-Frame team rounds up all the cool stuff happening with A-Frame on their
-[blog](https://aframe.io/blog). If you tweeted about it and added a comment on Slack,
-there is a good chance for it to be included in the next blog post.
-
-Also feel free to message us on #networked-aframe channel on [Slack][slack].
+1. Help respond to [newly-filed GitHub discussions][discussions]
 
 # Spread the Word
 
