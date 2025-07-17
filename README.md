@@ -1,4 +1,4 @@
-[slack]: https://aframevr.slack.com/join/shared_invite/zt-f6rne3ly-ekVaBU~Xu~fsZHXr56jacQ
+[discord]: https://discord.gg/jJxvuW97c4
 
 <img src="http://i.imgur.com/7ddbE0q.gif" width="300">
 
@@ -49,7 +49,7 @@ You can read [the release notes](https://github.com/networked-aframe/networked-a
 Getting Started
 ---------------
 
-[![Remix on Glitch](https://cdn.glitch.com/2703baf2-b643-4da7-ab91-7ee2a2d00b5b%2Fremix-button.svg)](https://glitch.com/edit/#!/remix/naf-project)
+[Fork naf-project on StackBlitz](https://stackblitz.com/github/networked-aframe/naf-project)
 
 Follow [the NAF Getting Started tutorial](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md) to build your own example from scratch, including setting up a local server.
 
@@ -94,7 +94,7 @@ Basic Example
 More Examples
 -------------
 
-Open in two tabs if nobody else is online, or [remix the code examples yourself](https://glitch.com/edit/#!/remix/naf-examples).
+Open in two tabs to see the other avatar.
 
 * [Basic](https://naf-examples.glitch.me/basic.html)
 * [Basic with 4 clients](https://naf-examples.glitch.me/basic-4.html)
@@ -614,14 +614,14 @@ By default when an entity is created the [`buffered-interpolation`](https://gith
 Offline usage
 -------------
 
-NAF already includes easyrtc thus running `npm run dev` will provide a fully working solution without accessing an external server. The examples though do rely on both AFrame and other dependencies that not packaged with NAF. Consequently one would have to first [adapt AFrame to work offline](https://aframe.io/docs/1.4.0/introduction/faq.html#can-i-use-a-frame-offline-or-self-hosted) then do the same for all additional components. This basically boils down to downloading the scripts used and their content, e.g assets like 3D models, fonts, etc. It is recommended to load the page while the network console open and identify what requests go outside of the host.
+NAF already includes easyrtc thus running `npm run dev` will provide a fully working solution without accessing an external server. The examples though do rely on both AFrame and other dependencies that not packaged with NAF. Consequently one would have to first [adapt AFrame to work offline](https://aframe.io/docs/1.7.0/introduction/faq.html#can-i-use-a-frame-offline-or-self-hosted) then do the same for all additional components. This basically boils down to downloading the scripts used and their content, e.g assets like 3D models, fonts, etc. It is recommended to load the page while the network console open and identify what requests go outside of the host.
 
 For VR you will also need https as browsers require it for immersive mode. Instructions are provided in the `server/easyrtc-server.js` file. Namely you will have to generate a key and certificate, add them to your local CA then load them via the express server provided by NAF. Make sure to configure that properly at the top of `server/easyrtc-server.js` and enable https itself further down via `https.createServer` as instructed. Once you connect to the NAF server in VR the browser will still complain that the certificate is unknown. You can click on advanced and proceed.
 
 Stay in Touch
 -------------
 
-- Join the [A-Frame Slack][slack] and add the #networked-aframe channel
+- Join the [WebXR Discord][discord] and select the #a-frame channel
 - Follow changes on [GitHub](https://github.com/networked-aframe/networked-aframe/subscription)
 - Let us know if you've made something with Networked-Aframe. We'd love to see it!
 
@@ -630,7 +630,7 @@ Help and More Information
 ------------------------------
 
 * [Getting started tutorial](https://github.com/networked-aframe/networked-aframe/blob/master/docs/getting-started-local.md)
-* [Edit live example on glitch.com](https://glitch.com/~naf-project)
+* [Edit live example on StackBlitz](https://stackblitz.com/github/networked-aframe/naf-project)
 * [Live demo site](https://naf-examples.glitch.me)
 * [Networked-Aframe Adapters](https://github.com/networked-aframe)
 * [A-Frame](https://aframe.io/)

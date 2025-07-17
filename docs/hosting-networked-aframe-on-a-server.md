@@ -1,4 +1,4 @@
-[slack]: https://aframevr.slack.com/join/shared_invite/zt-f6rne3ly-ekVaBU~Xu~fsZHXr56jacQ
+[discord]: https://discord.gg/jJxvuW97c4
 
 # How to Host Networked-Aframe on a Server
 
@@ -6,21 +6,7 @@ Once you've followed Networked-Aframe's [getting started guide](https://github.c
 
 There are many ways to host your experience, ranging from super simple but without much customization, to quite complex with lots of customization. This post will describe the various methods from simplest to most complex. The setup times listed are for people with no experience with the platform in question, ie. people with experience using AWS should be able to setup the server much quicker, however newbies will have a harder time.
 
-Below the three example hosting services is extra information if you're using NAF with WebRTC. As always, if you find any errors with this post or run into any problems, please post a comment in the #networked-aframe channel of the [A-Frame Slack][slack] or reach out to me directly [on twitter](https://twitter.com/haydenlee37).
-
-
-## Glitch.com (~5 minute setup time)
-
-Cost: Free!
-
-Custom domain: [Not yet](https://help.glitch.com/hc/en-us/articles/16287558909965-Adding-a-Custom-Domain)
-
-Steps:
-1. Sign up for a Glitch.com account (you can sign in with GitHub)
-2. Open the [Networked-Aframe Glitch Starter Pack](https://glitch.com/~naf-project)
-3. Click "Remix your own"
-
-That's it! You can then click "Show" and you have a working example of NAF running at that URL. Open the URL in multiple tabs and you'll see the other avatars. If you're just in proof of concept phase I highly recommend you stop reading here and just use Glitch. It's also the defacto way the A-Frame community shares bugs and shows off examples, so its worth becoming familiar with it.
+Below the three example hosting services is extra information if you're using NAF with WebRTC. As always, if you find any errors with this post or run into any problems, please post a comment in the #a-frame channel of the [WebXR Discord][discord].
 
 
 ## Heroku (~2 hours setup time)
