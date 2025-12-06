@@ -2,7 +2,6 @@
 var ChildEntityCache = require('./ChildEntityCache');
 
 class NetworkEntities {
-
   constructor() {
     this.entities = {};
     this.childCache = new ChildEntityCache();
@@ -16,20 +15,34 @@ class NetworkEntities {
 
   createRemoteEntity(entityData) {
     NAF.log.write('Creating remote entity', entityData);
+    const { networkId, template, components } = entityData;
 
-    var networkId = entityData.networkId;
-    var el = NAF.schemas.getCachedTemplate(entityData.template);
+    try {
+      const exists = document.getElementById(networkId);
+      const el = exists || NAF.schemas.getCachedTemplate(template);
 
-    this.initPosition(el, entityData.components);
-    this.initRotation(el, entityData.components);
-    this.addNetworkComponent(el, entityData);
+      if (!el) {
+        throw new Error(`Failed to create element for template: ${template}`);
+      }
 
-    this.registerEntity(networkId, el);
+      if (entityData.isFirstSync) {
+        this.initPosition(el, components);
+        this.initRotation(el, components);
+      }
 
-    return el;
+      this.addNetworkComponent(el, entityData);
+
+      this.registerEntity(networkId, el);
+
+      return exists ? null : el;
+    } catch (error) {
+      console.error('Error creating remote entity:', error);
+      return null;
+    }
   }
 
   initPosition(entity, componentData) {
+    if (!entity) return;
     var hasPosition = componentData['position'];
     if (hasPosition) {
       var position = componentData.position;
@@ -38,6 +51,7 @@ class NetworkEntities {
   }
 
   initRotation(entity, componentData) {
+    if (!entity) return;
     var hasRotation = componentData['rotation'];
     if (hasRotation) {
       var rotation = componentData.rotation;
@@ -76,13 +90,14 @@ class NetworkEntities {
         NAF.log.write('Ignoring first sync from disallowed source', source);
       } else {
         if (entityData.persistent) {
-          // If we receive a firstSync for a persistent entity that we don't have yet,
-          // we assume the scene will create it at some point, so stash the update for later use.
+          // If we receive a firstSync for a persistent entity that we don't have yet, we
+          // assume the scene will create it at some point, so stash the update for later use.
           this._persistentFirstSyncs[networkId] = entityData;
-        } else {
-          this.receiveFirstUpdateFromEntity(entityData);
         }
+        this.receiveFirstUpdateFromEntity(entityData);
       }
+    } else {
+      console.error('else');
     }
   }
 
@@ -95,8 +110,10 @@ class NetworkEntities {
       this.childCache.addChild(parent, entityData);
     } else {
       var remoteEntity = this.createRemoteEntity(entityData);
-      this.createAndAppendChildren(networkId, remoteEntity);
-      this.addEntityToPage(remoteEntity, parent);
+      if (remoteEntity) {
+        this.createAndAppendChildren(networkId, remoteEntity);
+        this.addEntityToPage(remoteEntity, parent);
+      }
     }
   }
 
@@ -155,11 +172,11 @@ class NetworkEntities {
   removeEntitiesOfClient(clientId) {
     const removedEntities = [];
     for (var id in this.entities) {
-      const entity = this.entities[id]
+      const entity = this.entities[id];
       const creator = NAF.utils.getCreator(entity);
       const owner = NAF.utils.getNetworkOwner(entity);
       if (creator === clientId || (!creator && owner === clientId)) {
-        const component = this.entities[id].getAttribute("networked")
+        const component = this.entities[id].getAttribute('networked');
         if (component && component.persistent) {
           // everyone will attempt to take ownership, someone will win, it does not particularly matter who
           NAF.utils.takeOwnership(entity);
@@ -185,16 +202,16 @@ class NetworkEntities {
     }
   }
 
-  forgetEntity(id){
+  forgetEntity(id) {
     delete this.entities[id];
     this.forgetPersistentFirstSync(id);
   }
 
-  getPersistentFirstSync(id){
+  getPersistentFirstSync(id) {
     return this._persistentFirstSyncs[id];
   }
 
-  forgetPersistentFirstSync(id){
+  forgetPersistentFirstSync(id) {
     delete this._persistentFirstSyncs[id];
   }
 
