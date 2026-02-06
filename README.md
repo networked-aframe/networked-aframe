@@ -100,13 +100,13 @@ Open in two tabs to see the other avatar.
 * [Basic with 4 clients](https://cf9dc236-8b31-41d7-a0f0-3a87c89c70ea.pub.instances.scw.cloud/basic-4.html)
 * [Positional Audio](https://cf9dc236-8b31-41d7-a0f0-3a87c89c70ea.pub.instances.scw.cloud/basic-audio.html)
 * [Video Streaming](https://cf9dc236-8b31-41d7-a0f0-3a87c89c70ea.pub.instances.scw.cloud/basic-video.html)
-* [Nametags][(https://naf-examples.glitch.me/](https://cf9dc236-8b31-41d7-a0f0-3a87c89c70ea.pub.instances.scw.cloud/)nametag.html)
-* [Tracked Controllers]([https://naf-examples.glitch.me/](https://cf9dc236-8b31-41d7-a0f0-3a87c89c70ea.pub.instances.scw.cloud/)tracked-controllers.html)
-* [More...]([https://naf-examples.glitch.me](https://cf9dc236-8b31-41d7-a0f0-3a87c89c70ea.pub.instances.scw.cloud/))
+* [Nametags](https://cf9dc236-8b31-41d7-a0f0-3a87c89c70ea.pub.instances.scw.cloud/nametag.html)
+* [Tracked Controllers](https://cf9dc236-8b31-41d7-a0f0-3a87c89c70ea.pub.instances.scw.cloud/tracked-controllers.html)
+* [More...](https://cf9dc236-8b31-41d7-a0f0-3a87c89c70ea.pub.instances.scw.cloud/)
 
 More complete examples:
-* [Nametags with UI in SolidJS/Tailwind CSS] [GitHub](https://github.com/networked-aframe/naf-nametag-solidjs)
-* [Realistic animated avatars with UI to choose your avatar] [GitHub](https://github.com/networked-aframe/naf-valid-avatars)
+* [Nametags with UI in SolidJS/Tailwind CSS](https://github.com/networked-aframe/naf-nametag-solidjs)
+* [Realistic animated avatars with UI to choose your avatar](https://github.com/networked-aframe/naf-valid-avatars)
 
 Made something awesome with Networked-Aframe? [Let us know](https://github.com/networked-aframe/networked-aframe/issues) and we'll include it here.
 
