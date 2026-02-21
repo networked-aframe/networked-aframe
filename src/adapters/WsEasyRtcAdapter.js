@@ -30,7 +30,6 @@ class WsEasyRtcInterface extends NoOpAdapter {
   setRoom(roomName) {
     this.room = roomName;
     this.destination.targetRoom = this.room;
-    this.easyrtc.joinRoom(roomName, null);
   }
 
   setWebRtcOptions(options) {
@@ -90,7 +89,10 @@ class WsEasyRtcInterface extends NoOpAdapter {
         this.easyrtc.connect(this.app, resolve, reject);
       })
     ]).then(([_, clientId]) => {
-      this.connectSuccess(clientId);
+      this.easyrtc.joinRoom(this.room, null,
+        () => { this.connectSuccess(clientId); },
+        (errorCode, errorText) => { this.connectFailure(errorCode, errorText); }
+      );
     }).catch(this.connectFailure);
   }
 
