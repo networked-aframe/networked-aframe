@@ -69,12 +69,10 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   setRoomOccupantListener(occupantListener) {
-    this.easyrtc.setRoomOccupantListener(function(
-      roomName,
-      occupants,
-      primary
-    ) {
-      occupantListener(occupants);
+    this.easyrtc.setRoomOccupantListener((roomName, occupants, primary) => {
+      if (roomName === this.room) {
+        occupantListener(occupants);
+      }
     });
   }
 
@@ -122,7 +120,6 @@ class EasyRtcAdapter extends NoOpAdapter {
     ]).then(([_, clientId]) => {
       this.easyrtc.joinRoom(this.room, null,
         () => {
-          this._myRoomJoinTime = this._getRoomJoinTime(clientId);
           this.connectSuccess(clientId);
         },
         (errorCode, errorText) => { this.connectFailure(errorCode, errorText); }
@@ -131,6 +128,9 @@ class EasyRtcAdapter extends NoOpAdapter {
   }
 
   shouldStartConnectionTo(client) {
+    if (this._myRoomJoinTime === undefined) {
+      this._myRoomJoinTime = this._getRoomJoinTime(this.easyrtc.myEasyrtcid);
+    }
     return this._myRoomJoinTime <= client.roomJoinTime;
   }
 

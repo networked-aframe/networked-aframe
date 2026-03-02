@@ -42,8 +42,10 @@ class WsEasyRtcInterface extends NoOpAdapter {
   }
 
   setRoomOccupantListener(occupantListener){
-    this.easyrtc.setRoomOccupantListener(function(roomName, occupants, primary) {
-      occupantListener(occupants);
+    this.easyrtc.setRoomOccupantListener((roomName, occupants, primary) => {
+      if (roomName === this.room) {
+        occupantListener(occupants);
+      }
     });
   }
 
