@@ -112,20 +112,18 @@ suite('networked', function() {
 
     test('syncs if need to', sinon.test(function() {
       this.stub(networked, 'syncDirty');
-      networkedSystem.el.clock.elapsedTime = 4;
-      networkedSystem.nextSyncTime = 4;
+      networkedSystem.nextSyncTime = 4000;
 
-      networkedSystem.tick();
+      networkedSystem.tick(4000);
 
       assert.isTrue(networked.syncDirty.calledOnce);
     }));
 
     test('does not sync if does not need to', sinon.test(function() {
       this.stub(networked, 'syncDirty');
-      networked.el.sceneEl.clock.elapsedTime = 3.9;
-      networked.nextSyncTime = 4;
+      networkedSystem.nextSyncTime = 4000;
 
-      networked.tick();
+      networkedSystem.tick(3900);
 
       assert.isFalse(networked.syncDirty.calledOnce);
     }));
@@ -189,8 +187,7 @@ suite('networked', function() {
 
       networked.el.setAttribute("rotation", { x: 9, y: 8, z: 7 });
 
-      networkedSystem.el.clock.elapsedTime = 4;
-      networkedSystem.tick();
+      networkedSystem.tick(4000);
 
       var called = naf.connection.broadcastData.calledWithExactly('um', expected);
       assert.isTrue(called, `called with ${JSON.stringify(naf.connection.broadcastData.getCall(0).args[1])}, expected ${JSON.stringify(expected)}`);
