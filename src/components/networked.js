@@ -90,9 +90,9 @@ AFRAME.registerSystem("networked", {
     // "d" is an array of entity datas per entity in this.components.
     const data = { d: [] };
 
-    return function() {
+    return function(time) {
       if (!NAF.connection.adapter) return;
-      if (this.el.clock.elapsedTime < this.nextSyncTime) return;
+      if (time < this.nextSyncTime) return;
 
       // Reset the "d" array
       data.d.length = 0;
@@ -116,12 +116,12 @@ AFRAME.registerSystem("networked", {
         NAF.connection.broadcastData('um', data);
       }
 
-      this.updateNextSyncTime();
+      this.updateNextSyncTime(time);
     };
   })(),
 
-  updateNextSyncTime() {
-    this.nextSyncTime = this.el.clock.elapsedTime + 1 / NAF.options.updateRate;
+  updateNextSyncTime(time) {
+    this.nextSyncTime = time + 1000 / NAF.options.updateRate;
   }
 });
 
@@ -209,6 +209,38 @@ AFRAME.registerComponent('networked', {
     this.el.sceneEl.systems.networked.register(this);
   },
 
+  update: function(oldData) {
+    const data = this.data;
+
+    // If owner has changed
+    if (oldData.owner !== data.owner) {
+      const wasMine = oldData.owner === NAF.clientId;
+      const isMine = this.isMine();
+
+      if (isMine && !wasMine) { // Gained ownership
+        this.removeLerp();
+        this.syncAll(undefined, true);
+        this.onOwnershipGainedEvent.oldOwner = oldData.owner;
+        this.el.emit(this.OWNERSHIP_GAINED, this.onOwnershipGainedEvent);
+      } else if (!isMine && wasMine) { // Lost ownership
+        this.onOwnershipLostEvent.newOwner = data.owner;
+        this.el.emit(this.OWNERSHIP_LOST, this.onOwnershipLostEvent);
+      }
+
+      this.onOwnershipChangedEvent.oldOwner = oldData.owner;
+      this.onOwnershipChangedEvent.newOwner = data.owner;
+      this.el.emit(this.OWNERSHIP_CHANGED, this.onOwnershipChangedEvent);
+    }
+
+    // If persistent flag has changed and we are the owner, sync it.
+    if (oldData.persistent !== data.persistent && this.isMine()) {
+      // A sync is only triggered by syncDirty if a component's data has changed.
+      // Changing 'persistent' does not trigger this. We need to force a sync.
+      // syncAll() is the most reliable way to do this.
+      this.syncAll();
+    }
+  },
+
   attachTemplateToLocal: function() {
     const template = NAF.schemas.getCachedTemplate(this.data.template);
     const elAttrs = template.attributes;
@@ -230,17 +262,8 @@ AFRAME.registerComponent('networked', {
     const now = NAF.connection.getServerTime();
     if (owner && !this.isMine() && lastOwnerTime < now) {
       this.lastOwnerTime = now;
-      this.removeLerp();
+      // Let the 'update' method handle the consequences of this change.
       this.el.setAttribute('networked', { owner: NAF.clientId });
-      this.syncAll();
-
-      this.onOwnershipGainedEvent.oldOwner = owner;
-      this.el.emit(this.OWNERSHIP_GAINED, this.onOwnershipGainedEvent);
-
-      this.onOwnershipChangedEvent.oldOwner = owner;
-      this.onOwnershipChangedEvent.newOwner = NAF.clientId;
-      this.el.emit(this.OWNERSHIP_CHANGED, this.onOwnershipChangedEvent);
-
       return true;
     }
     return false;
@@ -286,6 +309,8 @@ AFRAME.registerComponent('networked', {
         }
         this.syncAll(undefined, true);
       }, 0);
+    } else {
+      this.applyPersistentFirstSync();
     }
 
     document.body.removeEventListener('connected', this.onConnected, false);
@@ -338,7 +363,7 @@ AFRAME.registerComponent('networked', {
   /* Sending updates */
 
   syncAll: function(targetClientId, isFirstSync) {
-    if (!this.canSync()) {
+    if (!this.canSync() || !NAF.connection.adapter) {
       return;
     }
 
@@ -354,7 +379,7 @@ AFRAME.registerComponent('networked', {
   },
 
   syncDirty: function() {
-    if (!this.canSync()) {
+    if (!this.canSync() || !NAF.connection.adapter) {
       return;
     }
 
@@ -451,6 +476,7 @@ AFRAME.registerComponent('networked', {
     // The reason for the latter case is so the object will still be
     // properly instantiated if the owner leaves. (Since the object lifetime
     // is tied to the creator.)
+    if (!NAF.clientId) return false;
     if (this.data.owner && this.isMine()) return true;
     if (!this.createdByMe()) return false;
 
