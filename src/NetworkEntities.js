@@ -15,7 +15,9 @@ class NetworkEntities {
 
   createRemoteEntity(entityData) {
     NAF.log.write('Creating remote entity', entityData);
+
     const { networkId, template, components, creator, owner, persistent } = entityData;
+
 
     try {
       const exists = document.getElementById(networkId);
