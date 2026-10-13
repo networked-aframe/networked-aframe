@@ -503,7 +503,10 @@ List of ownership transfer events:
 | | | `evt.detail.oldOwner` - the clientId of the previous owner |
 | | | `evt.detail.newOwner` - the clientId of the new owner |
 
-### Adapters
+#For an overview of how schema-selected component changes reach remote entities, see
+[How periodic component updates flow](docs/component-sync.md).
+
+## Adapters
 
 NAF can be used with multiple network libraries and services. An adapter is a class which adds support for a library to NAF. If you're just hacking on a small project or proof of concept you'll probably be fine with the default configuration and you can skip this section. Considerations you should make when evaluating different adapters are:
 
